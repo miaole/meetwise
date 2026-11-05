@@ -1,5 +1,8 @@
 import { boot, mkAssert, tokenFor } from './_neg-harness';
 import { createHash, randomUUID } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { asPrincipal, createJob, classifyJobRoute, inviteCandidate } from '@meetwise/db';
 
 /**
  * neg:interview —— 面试状态机/begin/turn/legacy-answer-stop/abandon/report/assessment/events/transcript 的**纯负路径**证明。
@@ -654,6 +657,130 @@ GRANT EXECUTE ON FUNCTION assert_interview_answer_legacy_plaintext_allowed(text,
     Number(rsvAfter.rows[0].n) === Number(rsvBefore.rows[0].n));
 }
 
+// ═════════════════════════════════════════════════════════════════════════
+// §11 内容安全 kill-switch · applications.start 第三入口收口（begin/turn/start 三口同闸）
+//     D6 #239-① 后继收口刀：闸原钉 begin/turn 双口（interview.service 方法层），applications.start
+//     合一事务直调 beginInterviewCore（同核第二生产者·绕行残余经登记面裁决后由本刀收口）。修法=闸放
+//     核首语句共享位（denyContentSafetyKilledShared·核内先于任何绑定写/扣额/入队）——合一事务内抛出
+//     即整体回滚零悬账。本节负臂：kill=1 三口各拒 503 具名码+诚实文案逐字+零副作用；非法值 fail-closed
+//     500 与 begin 口 K 臂现状同形；off 链路零翻（走至企业扣费守卫 402 分码=全链在场旁证·负路径）。
+//     环境窗=仅测试进程 env 窗（uc050 K 臂先例形·收窗复原）。夹具=产品路径种子链（createJob→
+//     classifyJobRoute 规则决→inviteCandidate·uc050 先例形·modelClassify 护栏=模型路径意外即炸）；
+//     豁免①具名（负测夹具种子）: entitlement_bucket(enterprise) + resume(ingested) 裸 INSERT——
+//     真迁移链上无对应产品 HTTP 面的最小种子；0104 route 表族经迁移原文幂等加载（IF NOT EXISTS/
+//     DROP POLICY IF EXISTS 形）。规则决输入 HMAC 键=neg-bend 同形测试值补齐（隔离 runner 剥离该键）。
+// ═════════════════════════════════════════════════════════════════════════
+{
+  const KILL_ENV = 'MEETWISE_CONTENT_SAFETY_KILL_SWITCH';
+  const KILL_CODE = 'content_safety_kill_switch_active';
+  const KILL_MSG = '内容安全开关已开启：面试出题与作答提交暂停';
+  A('KSE-ISO kill-switch-env-unset-at-section-entry(off=缺省现状·env 窗仅本节)', process.env[KILL_ENV] === undefined);
+  // 0104 route 表族 + 0123 岗位题名快照列（harness 引导链不含·幂等原文直载 IF NOT EXISTS/DROP IF EXISTS 形）
+  await h.pool.query(readFileSync(fileURLToPath(new URL('../../../packages/db/migrations/0104_job_route_decision.sql', import.meta.url)), 'utf8'));
+  await h.pool.query(readFileSync(fileURLToPath(new URL('../../../packages/db/migrations/0123_user_facing_context_snapshots.sql', import.meta.url)), 'utf8'));
+  // 规则决输入 HMAC 键（neg-bend 同形：隔离 runner 剥离·测试值补齐·非凭据）
+  process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'kse-neg-route-input-hmac-key-test-only-0123456789abcdef';
+
+  // 净账小工具（零副作用断言面）
+  const cnt = async (sql: string, params: unknown[] = []): Promise<number> =>
+    Number((await h.pool.query(sql, params as never)).rows[0]?.n ?? 0);
+  const ivRows = (owner: string) => cnt('SELECT count(*)::int AS n FROM interview WHERE owner_user_id=$1', [owner]);
+  const jobRows = (owner: string) => cnt('SELECT count(*)::int AS n FROM interview_job WHERE owner_user_id=$1', [owner]);
+  const rsvRows = (owner: string) => cnt('SELECT count(*)::int AS n FROM entitlement_consumption WHERE owner_user_id=$1', [owner]);
+  const bucketReserved = async (owner: string) => Number((await h.pool.query(
+    "SELECT coalesce(sum(units_reserved),0)::float8 AS n FROM entitlement_bucket WHERE owner_user_id=$1 AND kind='enterprise'", [owner],
+  )).rows[0]?.n ?? 0);
+  const appStatus = async (id: string) => String((await h.pool.query('SELECT status FROM job_application WHERE id=$1', [id])).rows[0]?.status ?? '');
+
+  const S11 = Date.now().toString(36).toUpperCase();
+  const REC_K = `kse_rec_k_${S11}`, CAND_K = `kse_cand_k_${S11}`;
+  const REC_O = `kse_rec_o_${S11}`, CAND_O = `kse_cand_o_${S11}`;
+  const RSK = '55555555-5555-4555-8555-555555555551';
+  const RSO = '55555555-5555-4555-8555-555555555552';
+  // 豁免①具名：企业桶（kill 臂 recruiter·5.00；off 臂 recruiter 零桶=扣费守卫不足路径）+ resume(ingested)
+  await h.pool.query(
+    `INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'enterprise',5.00, now()+interval '365 days')`,
+    [REC_K],
+  );
+  await h.pool.query(
+    "INSERT INTO resume(id,owner_user_id,status,content_sha,source_kind,privacy_epoch) VALUES ($1,$2,'ingested',$3,'text',1),($4,$5,'ingested',$3,'text',1)",
+    [RSK, CAND_K, 'k'.repeat(64), RSO, CAND_O],
+  );
+  // 产品路径种子链（uc050 先例形）：createJob→classifyJobRoute 规则决（modelClassify 护栏）→inviteCandidate
+  const seedApplication = async (recruiter: string, candidate: string): Promise<string> => {
+    const job = await asPrincipal(h.pool, recruiter, (c) => createJob(c, recruiter, {
+      title: 'Node.js 服务端工程师（kill-switch 收口夹具）',
+      description: 'neg-interview §11 fixture job',
+      competencies: ['nestjs', 'express', 'koa'],
+    }));
+    const rev = Number((await h.pool.query(
+      'SELECT COALESCE(MAX(revision),0)::int AS n FROM job_semantic_revision WHERE job_id=$1', [job.id],
+    )).rows[0].n);
+    const cls = await classifyJobRoute(h.pool, recruiter, job.id, rev, {
+      modelClassify: async () => { throw new Error('B-side seed must rule-decide; model path unexpected'); },
+    });
+    if (cls.status !== 'route_decided') throw new Error(`fixture route not decided: ${cls.status}`);
+    const invited = await asPrincipal(h.pool, recruiter, (c) => inviteCandidate(c, recruiter, job.id, candidate));
+    if (!invited) throw new Error('fixture invite failed');
+    return invited.applicationId;
+  };
+  const appK = await seedApplication(REC_K, CAND_K);
+  const appO = await seedApplication(REC_O, CAND_O);
+  A('KSE-SEED 两申请 invited 且路由绑定在场（application_bound·产品路径种子链）',
+    (await cnt('SELECT count(*)::int AS n FROM application_route_binding WHERE application_id=ANY($1) AND status=$2', [[appK, appO], 'application_bound'])) === 2
+    && (await cnt("SELECT count(*)::int AS n FROM job_application WHERE id=ANY($1) AND status='invited'", [[appK, appO]])) === 2);
+
+  // ── KSE1 kill=1 start（第三入口·合一事务直调核）→ 503 具名码 + 诚实文案逐字 + 零副作用 ──
+  process.env[KILL_ENV] = '1';
+  const b1 = { iv: await ivRows(CAND_K), jobs: await jobRows(CAND_K), rsv: await rsvRows(CAND_K), bucket: await bucketReserved(REC_K), app: await appStatus(appK) };
+  const rStartKill = await h.post(`/applications/${appK}/start`, h.U(CAND_K), { resumeId: RSK });
+  A('KSE1 kill=1 start → 503（第三入口同闸·改前 200 绕行放行）', is(rStartKill, 503, KILL_CODE));
+  A('KSE1 kill=1 start 诚实文案逐字（与 begin/turn 口同形）', rStartKill.body?.message === KILL_MSG);
+  A('KSE1 零副作用：interview 行净 0（合一事务整体回滚）', (await ivRows(CAND_K)) === b1.iv);
+  A('KSE1 零副作用：start job 净 0（不入任何模型面）', (await jobRows(CAND_K)) === b1.jobs);
+  A('KSE1 零副作用：预留净 0·企业桶 reserved 零动', (await rsvRows(CAND_K)) === b1.rsv && (await bucketReserved(REC_K)) === b1.bucket);
+  A('KSE1 零副作用：申请状态仍 invited（CAS 同事务回滚）', (await appStatus(appK)) === b1.app);
+
+  // ── KSE2 同 env 三口差分：begin → 503 同码同文案（方法口闸先于一切·与 start 口同码差分自证）──
+  const rBeginKill = await h.post('/interview/IV_CREATED/begin', { ...A_, ...rid }, {});
+  A('KSE2 kill=1 begin → 503 同具名码（方法口·双闸差分）', is(rBeginKill, 503, KILL_CODE));
+  A('KSE2 kill=1 begin 诚实文案逐字（三口同形）', rBeginKill.body?.message === KILL_MSG);
+
+  // ── KSE3 非法值 fail-closed（'2'）→ start 500 opaque（与 begin 口 uc050-K4 现状同形）+ 零副作用 ──
+  process.env[KILL_ENV] = '2';
+  const rStartBad = await h.post(`/applications/${appK}/start`, h.U(CAND_K), { resumeId: RSK });
+  A(`KSE3 kill='2' start → 500（fail-closed·非静默 off）`, rStartBad.status === 500);
+  A(`KSE3 kill='2' start body opaque {error:internal_error} 零细节`, JSON.stringify(rStartBad.body) === JSON.stringify({ error: 'internal_error' }));
+  A('KSE3 非法值路径零副作用（合一事务回滚·净账零动）',
+    (await ivRows(CAND_K)) === b1.iv && (await jobRows(CAND_K)) === b1.jobs && (await rsvRows(CAND_K)) === b1.rsv
+    && (await appStatus(appK)) === b1.app);
+  process.env[KILL_ENV] = '1';   // 非法值臂收窗复原（uc050-K4 同形·后续 503 臂环境恒 '1'）
+
+  // ── KSE4 kill=1 turn → 503 同码同文案 + 题仍 issued + answer job 零增（turn 口本门复证）──
+  const qIssued = () => cnt("SELECT count(*)::int AS n FROM interview_question WHERE interview_id='IV_BPT' AND question_id='q-v1-t9-c0' AND status='issued'", []);
+  const ansJobs = () => cnt("SELECT count(*)::int AS n FROM interview_job WHERE interview_id='IV_BPT' AND kind='answer'", []);
+  const qB = await qIssued(); const jB = await ansJobs();
+  const tAns = '内容安全开关下的合法作答';
+  const rTurnKill = await h.post('/interview/IV_BPT/turn', A_, {
+    questionId: 'q-v1-t9-c0', stateVersion: 91, answerId: randomUUID(),
+    answerHash: createHash('sha256').update(tAns).digest('hex'), turn: 9, answer: tAns,
+  });
+  A('KSE4 kill=1 turn → 503 具名码', is(rTurnKill, 503, KILL_CODE));
+  A('KSE4 kill=1 turn 诚实文案逐字', rTurnKill.body?.message === KILL_MSG);
+  A('KSE4 题仍 issued（claim 未发生·零状态变化）', (await qIssued()) === qB);
+  A('KSE4 answer job 零增（零入队）', (await ansJobs()) === jB);
+
+  // ── KSE5 off 复原：env unset → start 链路零翻（走至企业扣费守卫 402 分码=全链在场旁证·负路径零悬账）──
+  delete process.env[KILL_ENV];
+  const rStartOff = await h.post(`/applications/${appO}/start`, h.U(CAND_O), { resumeId: RSO });
+  A('KSE5 off start → 402 application_enterprise_pay_unavailable（分码面零翻·核链在场）',
+    is(rStartOff, 402, 'application_enterprise_pay_unavailable'));
+  A('KSE5 off 臂零副作用（扣费守卫抛→合一事务回滚·零悬账）',
+    (await ivRows(CAND_O)) === 0 && (await jobRows(CAND_O)) === 0 && (await rsvRows(CAND_O)) === 0
+    && (await appStatus(appO)) === 'invited');
+  A('KSE-ISO env-window-hygiene: kill env restored to unset after arms', process.env[KILL_ENV] === undefined);
+}
+
 // 用例统计:
 //   §1 begin ........... 9
 //   §2 turn ............ 17
@@ -666,9 +793,13 @@ GRANT EXECUTE ON FUNCTION assert_interview_answer_legacy_plaintext_allowed(text,
 //   §9 feedback/voice .. 8
 //   状态机硬不变量 .... 9
 //   §10 enqueue 背压闸 .... 5
-//   ── 合计:107 条负路径断言（所有状态守卫均为精确码断言）
+//   §11 内容安全 kill-switch 三口收口 ... 20
+//   ── 合计:128 条负路径断言（所有状态守卫均为精确码断言）
 //   [AUTHZ-HARDEN 5A-1 席1-R1 随刀更注] 原注「合计:97」系 H3 EXEC 时点值,后续刀增臂未更注;
 //   本次 rg 实测静态 A( 断言恰 102,按实测更正(97→102·只更注零臂动)。
 //   [QUEUE-ENQUEUE-BP EXEC 2026-10-16 随刀更注] §10 新增 5 臂(429 映射臂×2+预查形豁免臂+回滚臂×2),
 //   rg 实测静态 A( 断言恰 107,按实测更正(102→107·只更注·臂账见 §10 段注)。
+//   [KILL-SWITCH-ENTRY EXEC 2026-11-05 随刀更注] §11 新增 20 臂(kill=1 start/begin/turn 503 具名码+
+//   零副作用+非法值 500+off 402 链路零翻+种子/env 卫生臂),done() runtime 实测合计恰 128,按实测更正
+//   (107→128·只更注·臂账见 §11 段注·基线 108 系上注 107 注存后的 +1 史实漂如实承登·零臂动零凑绿)。
 await done();

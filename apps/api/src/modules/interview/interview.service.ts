@@ -91,6 +91,25 @@ export function normalizeFocusHeader(raw: string | undefined): string[] | undefi
 }
 
 /**
+ * D6 #239-① 内容安全 kill-switch 闸·共享映射形（模块级）。begin/turn 双口方法与 beginInterviewCore
+ * 共用同一 503+具名码+诚实文案映射——闸放核首语句即所有 begin 侧入口的共用位（第三入口
+ * applications.start=核的第二生产者由此同闸覆盖），后继新增 begin 侧调用方自动入闸（不再可能绕行）。
+ */
+export function denyContentSafetyKilledShared(): void {
+  try {
+    assertContentSafetyKillSwitchOff();
+  } catch (error) {
+    if (error instanceof ContentSafetyKillSwitchActiveError) {
+      throw new HttpException(
+        { error: 'content_safety_kill_switch_active', message: '内容安全开关已开启：面试出题与作答提交暂停' },
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
+    }
+    throw error;
+  }
+}
+
+/**
  * begin 语义核心（B271 片2 S2-C2/C4 模块化抽取·原 InterviewService.begin() asPrincipal 事务体逐字搬移）：
  * 在**给定事务客户端**上执行完整 begin 守卫链+扣额路由+入队——begin 端点（C 端练习·原路径）与
  * applications.start 合一事务（S2-C4 修法⑤·start+begin 同一事务·#227 缺陷收口）共用本函数。
@@ -103,6 +122,10 @@ export async function beginInterviewCore(
   c: any, owner: string, id: string, resumeId: string,
   requestId?: string, sourceQuizId?: string, targetRole?: string, focus?: string,
 ): Promise<{ accepted: boolean; jobId?: string; alreadyBegun?: boolean }> {
+  // D6 #239-① kill-switch 闸（共享位·核首语句先于任何绑定写/扣额/入队）：begin 端点在方法层
+  // 已闸（事务外先拒）——此处复闸覆盖**不经 begin 方法的第二生产者 applications.start 直调**
+  // （合一事务内抛出=整体回滚零悬账）及一切后继 begin 侧入口（共用位不再可能绕行）。
+  denyContentSafetyKilledShared();
   if (!resumeId) throw new HttpException({ error: 'missing_resume_id' }, HttpStatus.BAD_REQUEST);
   if (!UUID_RE.test(resumeId)) throw new HttpException({ error: 'invalid_resume_id' }, HttpStatus.BAD_REQUEST);
   // #259 用户显式目标岗位:归一化 trim/限长 100/空串→undefined(诊断链 diagnosis.service 同形制,
@@ -330,20 +353,12 @@ export class InterviewService {
   /**
    * D6 #239-① 内容安全 kill-switch 闸(fail-closed·begin/turn 双口)。触发(env=1)即
    * 503+诚实文案,不再入队任何模型面;缺省 off=现状字节零翻。语义与平台级既有开关
-   * (runaway/写门/熔断/成本治理)相互独立,零翻其语义。
+   * (runaway/写门/熔断/成本治理)相互独立,零翻其语义。映射体模块化为
+   * denyContentSafetyKilledShared（文件顶部导出）供 beginInterviewCore 同形复用——
+   * 第三入口 applications.start（核的第二生产者）由核首语句同闸覆盖。
    */
   private denyContentSafetyKilled(): void {
-    try {
-      assertContentSafetyKillSwitchOff();
-    } catch (error) {
-      if (error instanceof ContentSafetyKillSwitchActiveError) {
-        throw new HttpException(
-          { error: 'content_safety_kill_switch_active', message: '内容安全开关已开启：面试出题与作答提交暂停' },
-          HttpStatus.SERVICE_UNAVAILABLE,
-        );
-      }
-      throw error;
-    }
+    denyContentSafetyKilledShared();
   }
 
   /**
