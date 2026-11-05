@@ -6,9 +6,13 @@
  *    · EOCD 六字段 zip64 哨兵负例(C5 覆写形·守卫审的目录=jszip 实读的目录)/注释区越界廉价检。
  *    · rev r4(复验别名读放大类):单条目声明帽负例 guard+生产缝/关系别名诚实件全链提取恒等/
  *      单条目 liar 声明值早停全链拒(子进程流式计量)。
+ *    · rev r5(post-prove 双席 FAIL 处置·生产映射直证四臂,闭 r4-1 P2-2 缝):子进程被杀
+ *      (abort→SIGKILL→extract_timeout)/8s 到点(extract_timeout)/子进程 OOM(deep-xml DOM 形→
+ *      V8 abort→child_oom)/畸形帧(IPC 反序列化崩溃守卫→child_crash)——各断言宿主存活与错误码;
+ *      另证清洗截断下沉(20M 字件只回传帽+1 字)。
  */
-import { deflateRawSync } from 'node:zlib';
-import { detectResumeFormat, cleanResumeText, extractResumeText, looksLikeEncryptedPdf, assertDocxZipWithinCaps } from '../src/resume-extract.ts';
+import { deflateRawSync, deflateSync } from 'node:zlib';
+import { detectResumeFormat, cleanResumeText, extractResumeText, looksLikeEncryptedPdf, assertDocxZipWithinCaps, probeCorruptIpcFrame } from '../src/resume-extract.ts';
 
 let n = 0;
 const ok = (c: boolean, m: string) => { if (!c) { console.error('✗', m); process.exit(1); } n++; };
@@ -356,5 +360,83 @@ function craftMinimalPdf(text: string): Buffer {
 }
 const rPdf = await extractResumeText(craftMinimalPdf('Three Years Backend Engineer Order Systems'), 'application/pdf', 'probe-min.pdf');
 ok(rPdf.format === 'pdf' && rPdf.text.trim().length > 0 && rPdf.text.includes('Backend'), '真 PDF 正例:合法 xref 手构 → worker 端到端提取非空文本(#108 worker+pdf-parse happy path)');
+
+// ── rev r5 生产映射直证四臂(错误码按退出码/信号区分·各臂断言宿主存活——断言继续执行到卷尾即活体)──
+// r4-1 P2-2 缝闭合:runInChild 被杀/超时/OOM/畸形帧四条生产映射此前仅探针缝间接覆盖,本节四臂全部
+// 走生产缝 extractResumeText/probeCorruptIpcFrame(fork 选项与生产 runInChild 同构)。
+function craftManyPagesPdf(nPages: number): Buffer {
+  const kids = Array.from({ length: nPages }, (_, i) => `${5 + i} 0 R`).join(' ');
+  const content = Buffer.from('BT /F1 12 Tf 72 712 Td (x) Tj ET\n', 'latin1');
+  const objs: string[] = ['', '<< /Type /Catalog /Pages 2 0 R >>', `<< /Type /Pages /Kids [${kids}] /Count ${nPages} >>`, '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>', `<< /Length ${content.length} >>\nstream\n${content.toString('latin1')}\nendstream`];
+  for (let i = 0; i < nPages; i++) objs.push('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 3 0 R >> >> >>');
+  let out = '%PDF-1.4\n';
+  const off: number[] = [0];
+  for (let j = 1; j < objs.length; j++) { off[j] = out.length; out += `${j} 0 obj\n${objs[j]}\nendobj\n`; }
+  const xref = out.length;
+  out += `xref\n0 ${objs.length - 1}\n0000000000 65535 f \n` + off.slice(1).map((o) => `${String(o).padStart(10, '0')} 00000 n \n`).join('');
+  out += `trailer\n<< /Size ${objs.length - 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  return Buffer.from(out, 'latin1');
+}
+// 臂①(被杀=abort→SIGKILL·信号路径):多页慢件解析中外部 abort→宿主 SIGKILL 子进程→extract_timeout,
+// 子进程被收尸无僵尸、宿主存活(后续断言继续执行即活体)。
+const manyPages = craftManyPagesPdf(50000);
+{
+  const ac = new AbortController();
+  const t0 = Date.now();
+  setTimeout(() => ac.abort(), 1000);
+  let abortCode = '';
+  try { await extractResumeText(manyPages, 'application/pdf', 'many-pages-abort.pdf', { signal: ac.signal }); } catch (e) { abortCode = codeOf(e); }
+  ok(abortCode === 'extract_timeout' && Date.now() - t0 < 5000, `rev r5 臂①:解析中途 abort→宿主 SIGKILL 子进程→extract_timeout(${Date.now() - t0}ms·宿主存活)`);
+}
+// 臂②(8s 到点硬超时·timer 路径):同慢件不 abort→EXTRACT_TIMEOUT_MS 到点 SIGKILL→extract_timeout。
+{
+  const t0 = Date.now();
+  let timeoutCode = '';
+  try { await extractResumeText(manyPages, 'application/pdf', 'many-pages-timeout.pdf'); } catch (e) { timeoutCode = codeOf(e); }
+  ok(timeoutCode === 'extract_timeout' && Date.now() - t0 >= 7000, `rev r5 臂②:8s 到点硬超时→SIGKILL 子进程→extract_timeout(${Date.now() - t0}ms·宿主存活)`);
+}
+// 臂③(子进程 OOM·SIGABRT/134 信号路径):deep-xml DOM 形(16KB 诚实声明·过守卫)在子进程内撑爆
+// 256MB 堆帽→V8 FatalProcessOutOfMemory abort→宿主收 exit(134/SIGABRT)→child_oom(宿主不连坐)。
+{
+  const deepXml = Buffer.from('<x:a xmlns:x="u">'.repeat(300000) + '</x:a>'.repeat(300000), 'utf8');
+  const deepZip = craftDocx([
+    realDocxEntries[0], realDocxEntries[1],
+    ['word/document.xml', deepXml.toString('latin1')],
+  ]);
+  const t0 = Date.now();
+  let oomCode = '';
+  try { await extractResumeText(deepZip, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'deep-xml.docx'); } catch (e) { oomCode = codeOf(e); }
+  ok(oomCode === 'child_oom' && Date.now() - t0 < 8000, `rev r5 臂③:deep-xml DOM 炸弹→子进程 V8 堆 OOM abort→child_oom(${Date.now() - t0}ms·宿主不连坐存活)`);
+}
+// 臂④(畸形帧·IPC 反序列化崩溃守卫):子进程向 IPC fd 写合法帧长+乱载荷→宿主通道反序列化抛
+// "Unable to deserialize cloned data"(uncaughtException·child.on('error') 拦不住)→IpcCrashGuard
+// 捕获→SIGKILL 活跃子进程+child_crash settle——宿主不退出(修复前实测宿主 EXIT 1)。
+{
+  const r = await probeCorruptIpcFrame(15000);
+  ok(r.code === 'child_crash' && r.hostAlive === true, 'rev r5 臂④:子进程畸形帧→IpcCrashGuard 捕获→child_crash(宿主存活不退出)');
+}
+// 臂⑤(清洗截断下沉·语义不变):20 页共享内容流 2000 万字件→子进程清洗后 >服务层帽只回传帽+1 字
+// (服务层 >帽→413 extracted_too_long 判定恒同;宿主不收 MB 级文本=消息大小上界构造性成立)。
+function craftTextbombPdf(): Buffer {
+  const lines: string[] = [];
+  const s = 'A'.repeat(99) + ' ';
+  for (let k = 0; k < 10000; k++) lines.push(`BT /F1 1 Tf 0 ${k % 700} Td (${s}) Tj ET\n`);
+  const content = deflateSync(Buffer.from(lines.join(''), 'latin1'), { level: 9 });
+  const kids = Array.from({ length: 20 }, (_, i) => `${5 + i} 0 R`).join(' ');
+  const objs: string[] = ['', '<< /Type /Catalog /Pages 2 0 R >>', `<< /Type /Pages /Kids [${kids}] /Count 20 >>`, '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>', `<< /Length ${content.length} /Filter /FlateDecode >>\nstream\n${content.toString('latin1')}\nendstream`];
+  for (let i = 0; i < 20; i++) objs.push('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 3 0 R >> >> >>');
+  let out = '%PDF-1.4\n';
+  const off: number[] = [0];
+  for (let j = 1; j < objs.length; j++) { off[j] = out.length; out += `${j} 0 obj\n${objs[j]}\nendobj\n`; }
+  const xref = out.length;
+  out += `xref\n0 ${objs.length - 1}\n0000000000 65535 f \n` + off.slice(1).map((o) => `${String(o).padStart(10, '0')} 00000 n \n`).join('');
+  out += `trailer\n<< /Size ${objs.length - 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  return Buffer.from(out, 'latin1');
+}
+{
+  const t0 = Date.now();
+  const tb = await extractResumeText(craftTextbombPdf(), 'application/pdf', 'textbomb20.pdf');
+  ok(tb.text.length === 60_001, `rev r5 臂⑤:2000 万字件→子进程清洗截断只回传帽+1 字(${tb.text.length}=60000+1·${Date.now() - t0}ms·服务层 413 判定语义不变)`);
+}
 
 console.log(`✓ resume-extract:prove 全部通过(${n} 断言)`);

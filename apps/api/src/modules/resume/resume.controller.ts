@@ -1,4 +1,5 @@
-import { Controller, Post, Get, Delete, Param, Body, Req, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Post, Get, Delete, Param, Body, Req, Res, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
+import type { FastifyReply } from 'fastify';
 import { UploadResumeDto, UploadResumeFileDto } from '@meetwise/contracts';
 import { PrincipalGuard } from '../../platform/principal.guard';
 import { ZodValidationPipe } from '../../platform/zod.pipe';
@@ -23,8 +24,23 @@ export class ResumeController {
   @Post('file')
   @HttpCode(HttpStatus.OK)
   // 文件上传(PDF/Word/图片):服务端提取+清洗→结构化。契约 UploadResumeFileDto 真校验。
-  uploadFile(@Req() req: any, @Body(new ZodValidationPipe(UploadResumeFileDto)) b: UploadResumeFileDto) {
-    return this.resumes.uploadFile(req.principal, b);
+  // r5:断开即取消(排队弃权+子进程 terminate)——interview transcribe/speak 同款 AbortSignal 缝形
+  // (`req.raw 'aborted'`=请求体中断 + `reply.raw 'close'`=解析中途断连;finally 摘监听防正常完成误触)。
+  async uploadFile(
+    @Req() req: any,
+    @Res({ passthrough: true }) reply: FastifyReply,
+    @Body(new ZodValidationPipe(UploadResumeFileDto)) b: UploadResumeFileDto,
+  ) {
+    const controller = new AbortController();
+    const abort = () => controller.abort();
+    req.raw.once('aborted', abort);
+    reply.raw.once('close', abort);
+    try {
+      return await this.resumes.uploadFile(req.principal, b, { signal: controller.signal });
+    } finally {
+      req.raw.off('aborted', abort);
+      reply.raw.off('close', abort);
+    }
   }
 
   @Get()
