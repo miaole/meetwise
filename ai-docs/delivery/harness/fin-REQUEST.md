@@ -43,6 +43,8 @@
 
 > **2026-11-05 · G7K-REDS 定性收官勘误注（fin 台账收官刀 U5c·协调方终裁授权行使·append-only · 文件尾落位（沿 ID→唯一行对账表「落位=文件尾为零位移」先例形）· `:109` GAP-G7K-API-REDS 行与既有各注原文零字节改写 · 行状态零翻转——P1 OPEN 维持 · 本注只更新定性非翻面）**: 产品语义已落卷闭合——QGEN-CRITIQUE-RESILIENCE（PR #108 `112e6d26f`·帽内换序降格）与 SUBMIT-FLOW-COMPETENCY-WIRE（PR #110 `26ec18425`·submit 补供）两产品语义 REQUEST 卷均已 EXEC 落码且 STATUS-RECON 对账刀翻面 `closed`（两卷卷内翻面注亲读在树·`有效态翻面→closed`）；`:803` G7K-REDS-REMAP 行勘误注（红② abandon 409 verified-green·红①③残余收敛「出题批判门单发即终场」新根）与本注定性相承不悖——**本行剩余面=trio 三红 live 复验（归 G7 trio 执行）**；行关闭仍须其自身修复刀全链（沿行原文口径·本注不翻面·翻面/销案权归协调方）· trio/`g7SuiteGreen=false`/Pins 零动。
 
+> 【勘误注 2026-11-05（ERRATA-SESSION-1105 总刀 · fin post-prove 登记项兑现 · append-only · 上行 U5c 行使文本与 §3 既有字零字节改写）】: 上行 U5c 行使文本及其 backlog 文件尾落卷同文（`gap-bug-backlog.md:982` 落卷时点锚）中「QGEN-CRITIQUE-RESILIENCE（PR **#108** `112e6d26f`·帽内换序降格）」系 **carrier 引注错挂**——真值=**QGEN carrier=PR #110 `26ec18425` 非 #108**（QGEN-CRITIQUE-RESILIENCE 卷内翻面注三处亲读原文「PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）」；`git log -1 112e6d26f` subject=「feat(delivery): F1–F4 + chromium + prove honesty (mysql schema branch) (#108)」系 mysql schema 交付线 commit 非 QGEN EXEC 载体；`git merge-base --is-ancestor 112e6d26f 26ec18425` EXIT=0=先序非载体）——SUBMIT-FLOW-COMPETENCY-WIRE（PR #110 `26ec18425`·submit 补供）引注不受本勘影响（同卷翻面注同值互证）。carrier 勘正不改 U5c 定性收官实质（两产品语义卷 EXEC 落码+STATUS-RECON `closed` 翻面定性不变·trio live 复验剩余面不变）· backlog `:982` 落卷同文零字节（本注即其勘误承引载体·backlog 侧行使面零触）· 登记源=fin-REQUEST §9 post-prove 记录席1①+席2① 双席同判（协调方台账·本卷转录）。】
+
 ## §4 U6 五 draft 亲读处置（裁定+落点）
 
 | 卷 | 卷载证据（亲读行号） | 裁定 | 落点 |

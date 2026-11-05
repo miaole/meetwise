@@ -137,6 +137,7 @@ PROBE_EXIT=0
 勘误注（rev r1·dual 双席机械定谳）：现行块 `:63`-`:70` region 本身恰 8 行·疑与「+8」混淆（误将 preserved 计入 delta）——实算=替换块 15 行 vs 现行块 8 行纯插入 **+7/−0**（5 注释行+2 守卫行·preserved 8/8·两席独立定谳：逐行模拟 delta=+7 + /tmp git 仓逐字节 patch 后 numstat 实测 `7 0`）·EXEC 按 §1.2 逐字节行使即得 numstat `+7 -0`·原「+8」口径下 A2 必红触 §8 停手·凑行凑数=spec 漂移触 §5 Ban。
 
 语义注（spec 性质·不入码）：判定双臂与 guard 读者 `:612`/`:620`/`:621`-`:623` 同构；`row==='call'` 行天然过形状臂（字段全）；`estimatedCostCny` 累加随 `continue` 只累计调用行=读者 `:624` 同口径（簿记行成本恒 0·0.3-P2e 恒等机证）；`:57`-`:62` 函数头/`:71`-`:87` fingerprint+返回形/`:4492`-`:4493` 调用点/`requireCalls` 语义全零触。镜像边界（rev r1 补）：本判定系 guard 读者 `inspectG7SharedLedgerUnlocked` 口径的 runner 侧镜像——未来读者口径变更（含新增簿记行型）须 runner 镜像随刀重同步·Ban 单侧漂移；带形状字段（`estimatedCostCny` number ∧ `actualModel` string）的新簿记行将与读者同口径进入 `calls`（fail-closed 兜底=契约 declared 集查 `:118`-`:125` `model_undeclared` 炸收据翻红·不静默）。
+> （补句 2026-11-05 · ERRATA-SESSION-1105 总刀 · R2 席2 P2-A 登记兑现 · append-only · 上行零字节改写）——**两臂并列明示**：判定=「**形状不合法行剔除**」（守卫行 `continue` 剔除——`row` 为 `reservation`/`release`·或缺 `estimatedCostCny` number/`actualModel` string 任一形状）与「**形状合法行 fail-closed（model_undeclared）**」（形状过而 declared 集查不过的行照进 `calls`·由契约 declared 集查 `:118`-`:125` `model_undeclared` 炸收据翻红·不静默）**并列成立**——前者剔除非放行·后者 fail-closed 兜底·两臂互不替代（沿 rev r1 P2-5 镜像边界条款承）· 语义零变仅并列结构明示。
 
 ### 1.3 「旧代码忽略仍正确」书面结论（wire/结构兼容义务）
 
