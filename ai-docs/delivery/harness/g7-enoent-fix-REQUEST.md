@@ -72,3 +72,5 @@
 *Harness · g7-enoent-fix · 2026-10-10 · base 46ff2290 · 2 文件 15 处路径字面（runner 13 + proof 补漏 2）· 五键 1/1/1/1/1→0/0/0/0/0 · 旁证双绿零回归 · markers=0 · est live=0 · ⛔push · alone≠dual*
 
 > **2026-11-05 · fin 台账收官刀 U7 普查裁定登记注（append-only · 文件尾落位 · 原卷零字节改写 · 无状态行=正形维持 · 零翻面）**: STATUS-RECON 对账刀普查（274 卷·`scripts/ai-docs/request-status-recon.mjs` 六锚口径·锚定基线 `e647fcffa`）对本卷裁定「无状态行」桶=**正形**（普查读数「无状态行 1·g7-enoent-fix（全卷零状态 token·亲证）」在 `rc-REQUEST.md §0.2` 亲读·六锚全空亲证：R1 无 STOP= 赋值/R2 无 Status 形行/R3-R6 无行首裸 token）——本注只登记裁定·**不补状态行**（补行=改卷形·非本注职权）·卷内既有证明面（§2-§4：五键 EXIT 前后对照/旁证双绿/收据清单）原样维持·处置/翻面权归协调方·Pins 零动。
+
+> 【归档注 2026-11-05（ERRATA-SESSION-1105 总刀 rev r1 · 协调方采认勘定建议选项 b · append-only · 卷内既有字零字节改写 · 零状态行补登（rc 普查「无状态行 1」正形维持·两读制可复算性））】: 本卷归档登记——**目标面已全应用**（rev r1 席亲扫：runner `scripts/run-e2e-isolated.mjs` 旧路径 `packages/db/src/report.ts` 零残留亲证+新域路径 `packages/db/src/report/report.ts` 在树（卷载落卷时点 13 处·现树 12 处亲扫·后继 wave 行区重组如实采）·proof `packages/db/test/report-retry.proof.ts` 2 处（`:213`/`:224`）新域路径亲读+零旧路径）——**rc 普查「无状态行 1」正形维持不补行**（rc-REQUEST §0.1-2 六锚全空亲证+fin U7 注承登·补行=改卷形动普查基线·两读制可复算性维持）；**收据目录未入仓如实披露**（主线 `ai-docs/delivery/receipts/` 零 g7-enoent 目录亲证）。归档=闭卷登记·处置/翻面权归协调方·Pins 零动。】
