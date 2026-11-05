@@ -221,10 +221,15 @@ async function main() {
     return classifyFreeTextScope(pool, recA, s3.scopeId, s3.revision, CONC_GOAL, { modelClassify: concSeam.classify });
   }));
   const decidedCount = results.filter((r) => r.status === 'route_decided').length;
-  const noopCount = results.filter((r) => r.status === 'noop' && r.reason === 'already_decided').length;
+  // 拆相后败者 noop 原因两态皆合法：事务 B 已提交 → already_decided；仍在 model_prepared 窗口 →
+  // not_pending。承重不变式=恰 1 decided、恰 1 外发、0 unresolved/stale（零重发零误拒）。
+  const noopDecidedCount = results.filter((r) => r.status === 'noop' && r.reason === 'already_decided').length;
+  const noopPendingCount = results.filter((r) => r.status === 'noop' && r.reason === 'not_pending').length;
+  const badNoopCount = results.filter((r) => r.status === 'noop'
+    && (r.reason === 'already_unresolved' || r.reason === 'stale_revision' || r.reason === 'revision_not_found')).length;
   A('20 并发 → 恰 1 次模型外发（seam 调用=1）', concSeam.calls() === 1);
-  A('20 并发 → 恰 1 个 route_decided、其余 19 个 noop already_decided',
-    decidedCount === 1 && noopCount === 19 && results.length === N);
+  A('20 并发 → 恰 1 个 route_decided、其余 19 个 noop（already_decided 或 model_prepared 窗口的 not_pending·零误拒）',
+    decidedCount === 1 && noopDecidedCount + noopPendingCount === 19 && badNoopCount === 0 && results.length === N);
   const concDecisionRows = (await pool.query('SELECT count(*)::int n FROM free_text_route_decision WHERE scope_id=$1', [s3.scopeId])).rows[0].n;
   A('UNIQUE(scope_id, revision) 恰 1 行 decision', concDecisionRows === 1);
 
@@ -300,6 +305,36 @@ async function main() {
     const rejected = await tryRawDecided(rawScope.scopeId, recA, rawScope.revision, c.allocs, c.conf, c.margin);
     A(`DB CHECK 拒非法 decision（${c.label}）`, rejected);
   }
+
+  // ── 拆相不变量（与 RAG-03 job-route 同刀同形）：事务 A 提交 model_prepared 后外呼在事务外；
+  //    抛错补偿回 route_pending 可重试；崩溃残面 model_prepared fail-closed 不重发。 ──
+  section('⑨ 拆相不变量（外呼不占事务）：抛错补偿 / 崩溃残面');
+  const compScope = await newScope(recA, AMBIGUOUS);
+  let compCalls = 0;
+  const compSeam = { classify: async () => { compCalls++; throw new Error('ft_comp_seam_transient'); } };
+  let compThrew = '';
+  try {
+    await classifyFreeTextScope(pool, recA, compScope.scopeId, compScope.revision, AMBIGUOUS, { modelClassify: compSeam.classify });
+  } catch (err) { compThrew = err instanceof Error ? err.message : 'comp_threw'; }
+  const compStatus = String((await pool.query('SELECT status FROM free_text_scope_revision WHERE scope_id=$1 AND revision=$2', [compScope.scopeId, compScope.revision])).rows[0]?.status ?? '');
+  A('seam 抛非 dispatched_unknown 错误 → 上抛且 revision 回 route_pending（可重试·非 sticky）',
+    compThrew === 'ft_comp_seam_transient' && compStatus === 'route_pending');
+  const compRetry = await classifyFreeTextScope(pool, recA, compScope.scopeId, compScope.revision, AMBIGUOUS, { modelClassify: mkSeam(async () => ({
+    allocations: [{ leafTrackId: 'backend/nodejs', allocationBps: 7000 }, { leafTrackId: 'frontend/web', allocationBps: 3000 }], confidenceBps: 8500, marginBps: 4000, reasonCodes: [],
+  })).classify });
+  A('补偿后同 revision 重试 → route_decided（外发预算仍各恰 1 次）',
+    compRetry.status === 'route_decided' && compRetry.attemptOutcome === 'result_validated' && compCalls === 1);
+
+  const wedgeScope = await newScope(recA, AMBIGUOUS);
+  await pool.query(
+    "UPDATE free_text_scope_revision SET status='model_prepared' WHERE scope_id=$1 AND revision=$2 AND status='route_pending'",
+    [wedgeScope.scopeId, wedgeScope.revision],
+  );
+  let wedgeCalls = 0;
+  const wedgeSeam = { classify: async () => { wedgeCalls++; return { allocations: [], confidenceBps: 0, marginBps: 0, reasonCodes: [] }; } };
+  const wedged = await classifyFreeTextScope(pool, recA, wedgeScope.scopeId, wedgeScope.revision, AMBIGUOUS, { modelClassify: wedgeSeam.classify });
+  A('崩溃残面（外呼后事务 B 前进程死）= model_prepared 永滞：funnel 不重发（fail-closed）',
+    wedged.status === 'noop' && wedged.reason === 'not_pending' && wedgeCalls === 0);
 
   console.log(`\n${fail === 0 ? '✓ rag07-free-text-route（真 Postgres）全部通过' : `✗ ${fail} 项失败`}`);
   await pool.end();

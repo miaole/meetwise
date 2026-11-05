@@ -5,6 +5,10 @@
  * No fake rule-only classifier that claims R2 green.
  *
  * Prefer fail-closed without Key for structural proves.
+ *
+ * 慢模型臂（真 invoke 关口全链）：模型延迟 > 压低后的 idle 事务超时时，外呼不得再嵌在
+ * 持锁事务内——修复前本臂红（tick 2 被 0209 围栏拒 → sticky known_not_sent），修复后绿
+ * （tick 1 route_decided · 恰 1 次外发 · 零 sticky）。
  */
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -12,11 +16,13 @@ import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import {
   bindJobRouteClassify, JOB_ROUTE_CLASSIFY_OPERATION_ID, JOB_ROUTE_CLASSIFY_PROMPT_SERVICE,
-  scriptedModelClient,
+  createJobRouteModelClassify, scriptedModelClient, type ModelClient,
 } from '@meetwise/ai-runtime';
 import {
   assertIsolatedTestTarget, asPrincipal, classifyJobRoute, createJob, createPool, updateJob,
+  type ClassifyJobRouteResult,
 } from '@meetwise/db';
+import { canonicalJobSemanticDigest } from '@meetwise/domain';
 import { drainOwnerRouteClassify } from '../src/route-classify-consumer.ts';
 
 let failures = 0;
@@ -194,6 +200,107 @@ function errorCode(err: unknown): string {
   return typeof code === 'string' ? code : '';
 }
 
+/**
+ * 慢模型臂（全真链·红先证）：classifyJobRoute 的模型缝经真实 invoke 关口（durable claim +
+ * ai_model_invocation 结算 + 0209 replay-first 围栏），模型延迟（2s）超过压低后的
+ * idle_in_transaction_session_timeout（1s）。修复前：外层单事务持锁 await 模型 → 连接被
+ * 服务端杀、事务回滚（revision 仍 route_pending），但 invoke 已在自身短事务 settle
+ * succeeded（redactOutput=true 不可回放）；tick 2 同幂等键重领被围栏拒为
+ * sensitive_result_replay_requires_artifact → 保守 known_not_sent → sticky route_unresolved
+ * （岗位永久卡住且模型账已结）。修复后：外呼在任何 DB 事务之外，tick 1 直接
+ * result_validated → route_decided，恰 1 次外发，无 sticky。
+ */
+async function proveSlowModelDoesNotWedgeRoute(): Promise<void> {
+  process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'r2-p-worker-slow-model-hmac-proof-key-not-production-01';
+  // 压低 idle 事务超时；只影响本函数随后 createPool 的新池（证明内其余 pool 先于本行创建，零影响）。
+  process.env.PG_IDLE_TX_TIMEOUT_MS = '1000';
+  const port = process.env.PGPORT ?? '';
+  A('隔离库端口不是 54329（慢模型臂）', port !== '' && port !== '54329', `PGPORT=${port}`);
+  if (port === '' || port === '54329') return;
+
+  const pool = createPool();
+  try {
+    await assertIsolatedTestTarget(pool);
+    const owner = `slow_${createHash('sha256').update(String(Date.now())).digest('hex').slice(0, 12)}`;
+    // 无任何唯一 leaf 信号的歧义岗位：rule miss，强制走模型路径。
+    const fields = { title: '全栈工程师', description: '前后端都写', competencies: ['全栈'] };
+    const created = await asPrincipal(pool, owner, (c) => createJob(c, owner, fields));
+    const digest = canonicalJobSemanticDigest({
+      title: fields.title, description: fields.description, competencies: fields.competencies,
+    });
+    const idempotencyKey = `job-route-classify:${created.id}:1:${digest}`;
+
+    const fast = scriptedModelClient({
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- 注册表服务键，不是 camelCase 标识符
+      'job.route-classify.v1': () => ({
+        ok: true as const,
+        raw: {
+          allocations: [
+            { leafTrackId: 'backend/nodejs', allocationBps: 7000 },
+            { leafTrackId: 'frontend/web', allocationBps: 3000 },
+          ],
+          confidenceBps: 8500, marginBps: 4000, reasonCodes: [],
+        },
+      }),
+    });
+    let providerCalls = 0;
+    const slowModel: ModelClient = {
+      async complete(req, attempt, signal) {
+        providerCalls++;
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        return fast.complete(req, attempt, signal);
+      },
+    };
+    const modelClassify = createJobRouteModelClassify({ pool, owner, model: slowModel });
+
+    // tick 1：修复前外层事务在 ~1s 被杀 → classify 抛错；invoke 已 settle succeeded（不可回放）。
+    let tick1Error = '';
+    let tick1: ClassifyJobRouteResult | null = null;
+    try {
+      tick1 = await classifyJobRoute(pool, owner, created.id, 1, { modelClassify });
+    } catch (err) {
+      tick1Error = err instanceof Error ? err.message : 'tick1_threw';
+    }
+    const invocationFace = await pool.query(
+      `SELECT status, replayable FROM ai_model_invocation WHERE owner_user_id=$1 AND idempotency_key=$2`,
+      [owner, idempotencyKey],
+    );
+    const inv = invocationFace.rows[0] as { status: string; replayable: boolean } | undefined;
+    const rev1Face = await pool.query(
+      'SELECT status FROM job_semantic_revision WHERE job_id=$1 AND revision=1', [created.id],
+    );
+    const tick1Status = String(rev1Face.rows[0]?.status ?? '');
+    A('tick 1 结果与账面自洽（抛错+route_pending+succeeded 不可回放 · 或直接 route_decided 恰 1 外发）',
+      ((tick1Error !== '' || tick1 === null) && tick1Status === 'route_pending'
+        && inv?.status === 'succeeded' && inv.replayable === false && providerCalls === 1)
+      || (tick1 !== null && tick1.status === 'route_decided'
+        && tick1.attemptOutcome === 'result_validated' && tick1Status === 'route_decided'
+        && inv?.status === 'succeeded' && providerCalls === 1),
+      `err=${tick1Error || '-'} status=${tick1Status} inv=${inv?.status ?? 'none'} calls=${providerCalls}`);
+
+    // tick 2：修复前同键重领被 0209 围栏拒 → sticky route_unresolved/known_not_sent（缺陷读数）；
+    // 修复后 tick 1 已终态 → noop already_decided（零二次外发）。
+    const tick2 = await classifyJobRoute(pool, owner, created.id, 1, { modelClassify });
+    const finalFace = await pool.query(
+      `SELECT r.status AS rev_status, d.attempt_outcome AS outcome, d.reason_codes AS reasons
+         FROM job_semantic_revision r
+         LEFT JOIN job_route_decision d ON d.job_id=r.job_id AND d.revision=r.revision
+        WHERE r.job_id=$1 AND r.revision=1`, [created.id],
+    );
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- snake_case 为 SQL 列别名逐字回读
+    const finalRow = finalFace.rows[0] as { rev_status: string; outcome: string | null; reasons: string[] | null };
+    const reasons = Array.isArray(finalRow.reasons) ? finalRow.reasons.map(String) : [];
+    A('tick 2 不产生第二次外发且岗位不落 sticky known_not_sent（修复前红：sticky+sensitive_result_replay 围栏读数）',
+      providerCalls === 1
+      && tick2.status === 'noop' && tick2.reason === 'already_decided'
+      && finalRow.rev_status === 'route_decided' && finalRow.outcome === 'result_validated'
+      && !reasons.some((r) => r.includes('sensitive_result_replay')),
+      `status=${finalRow.rev_status} outcome=${String(finalRow.outcome)} calls=${providerCalls} reasons=${reasons.join(',')}`);
+  } finally {
+    await pool.end();
+  }
+}
+
 /** 过期修订必须离开 route_pending，同一次抽干才能领到较新的待分类修订。hmac 不匹配仍抛错。 */
 async function proveStaleRevisionDoesNotBlockDrain(): Promise<void> {
   process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'r2-p-worker-stale-drain-hmac-proof-key-not-production-01';
@@ -308,7 +415,9 @@ async function proveStaleRevisionDoesNotBlockDrain(): Promise<void> {
   }
 }
 
-proveStaleRevisionDoesNotBlockDrain().then(() => {
+proveStaleRevisionDoesNotBlockDrain()
+  .then(() => proveSlowModelDoesNotWedgeRoute())
+  .then(() => {
   console.log(failures === 0
     ? '\nOK  r2-p-worker-route-classify prove (P-WORKER closed via sole route-classify consumer + MODEL-OP modelClassify; R2 NOT closed; ≠ 路由已生效; releaseEvidence=false; Not HA)'
     : `\nFAIL  r2-p-worker-route-classify prove (${failures} failures)`);

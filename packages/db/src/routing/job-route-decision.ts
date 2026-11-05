@@ -9,8 +9,9 @@
  * 安全规则（编码在此）：
  *  - revision 只存 canonical digest + input HMAC（服务端派生），trackId/weight/confidence/
  *    override 结构上无处可写；
- *  - 同一 (job, revision) 最多 1 次模型外发：route_pending 被 FOR UPDATE 锁定后先落
- *    model_prepared，再调用 seam；任何终态都不再重发；
+ *  - 同一 (job, revision) 最多 1 次模型外发：事务 A 在 FOR UPDATE 锁内 CAS 落 model_prepared
+ *    并**提交**；模型外呼严格在任何 DB 事务之外（外呼绝不占住连接/行锁——idle 事务被杀不再
+ *    连坐已外发的模型账）；事务 B 重锁，仍为 model_prepared 才写终态。任何终态都不再重发；
  *  - dispatched_unknown / known_not_sent / validation_rejected 是 sticky 终态，永不自动重试；
  *  - binding 只可绑 route_decided 的版本；snapshot 是 binding 的不可变副本；
  *  - route 事件 (job_id, revision, event_seq) 与消费事件 (candidate_user_id, event_seq)
@@ -166,26 +167,36 @@ async function writeRouteDecided(c: Client, args: {
 /**
  * 分类漏斗：rules（0 次）→ seam（最多 1 次）→ 服务端双重校验 → 终态。同一 (job, revision)
  * 最多 1 次外发；任何终态或非 route_pending 都 noop，绝不重发。
+ *
+ * 三相拆分（模型外呼不占任何 DB 事务/行锁）：
+ *  - 事务 A：FOR UPDATE 锁 + 校验 + rules 终态 或 CAS route_pending→model_prepared，提交；
+ *  - 事务外：调用 seam（idle 事务超时/连接被杀不再连坐已外发的模型账）；
+ *  - 事务 B：重锁，仍为 model_prepared 才写终态（CAS 单写者）。
+ * seam 抛非 dispatched_unknown 错误 → 补偿 model_prepared→route_pending 再上抛（恢复
+ * 「可重试」旧语义）；崩溃残面 = revision 滞留 model_prepared（drain 不领取、funnel 不重发，
+ * fail-closed，恢复走岗位编辑新 revision / 运维终态化）。
  */
 export async function classifyJobRoute(pool: DbPool, owner: string, jobId: string, revision: number, deps: {
   modelClassify: JobRouteModelClassify;
 }): Promise<ClassifyJobRouteResult> {
-  return asPrincipal(pool, owner, async (c) => {
+  type ClassifyPhaseA = { phase: 'done'; result: ClassifyJobRouteResult } | { phase: 'prepared'; input: JobRouteModelInput };
+  // ── 事务 A：锁 + 校验 + rules 终态 / model_prepared CAS；提交并释放锁后才允许模型 I/O ──
+  const phaseA = await asPrincipal<ClassifyPhaseA>(pool, owner, async (c): Promise<ClassifyPhaseA> => {
     const rev = await c.query(
       'SELECT status, semantic_digest, input_hmac FROM job_semantic_revision WHERE job_id=$1 AND revision=$2 FOR UPDATE',
       [jobId, revision],
     );
-    if (rev.rowCount === 0) return { status: 'noop', reason: 'revision_not_found' } as const;
+    if (rev.rowCount === 0) return { phase: 'done', result: { status: 'noop', reason: 'revision_not_found' } as const };
     const r = rev.rows[0] as { status: JobSemanticRevisionStatus; semantic_digest: string; input_hmac: string };
-    if (r.status === 'route_decided') return { status: 'noop', reason: 'already_decided' } as const;
-    if (r.status === 'route_unresolved') return { status: 'noop', reason: 'already_unresolved' } as const;
-    if (r.status !== 'route_pending') return { status: 'noop', reason: 'not_pending' } as const;
+    if (r.status === 'route_decided') return { phase: 'done', result: { status: 'noop', reason: 'already_decided' } as const };
+    if (r.status === 'route_unresolved') return { phase: 'done', result: { status: 'noop', reason: 'already_unresolved' } as const };
+    if (r.status !== 'route_pending') return { phase: 'done', result: { status: 'noop', reason: 'not_pending' } as const };
 
     const job = await c.query(
       'SELECT title, description, competencies FROM job_posting WHERE id=$1 AND owner_user_id=$2',
       [jobId, owner],
     );
-    if (job.rowCount === 0) return { status: 'noop', reason: 'revision_not_found' } as const;
+    if (job.rowCount === 0) return { phase: 'done', result: { status: 'noop', reason: 'revision_not_found' } as const };
     const j = job.rows[0] as { title: string; description: string | null; competencies: unknown };
     const competencies: string[] = Array.isArray(j.competencies) ? (j.competencies as unknown[]).map(String) : [];
     const input = { jobId, revision, title: j.title, description: j.description ?? '', competencies };
@@ -206,7 +217,7 @@ export async function classifyJobRoute(pool: DbPool, owner: string, jobId: strin
           });
         }
       }
-      return { status: 'noop', reason: 'stale_revision' } as const;
+      return { phase: 'done', result: { status: 'noop', reason: 'stale_revision' } as const };
     }
     if (computeJobInputHmac(digest) !== r.input_hmac) throw codeError('job_route_input_hmac_mismatch');
 
@@ -224,26 +235,53 @@ export async function classifyJobRoute(pool: DbPool, owner: string, jobId: strin
         allocations: [{ leafTrackId: ruleLeaf, allocationBps: 10000 }],
         confidenceBps: 10000, marginBps: 10000, fromStatus: 'rule_decided',
       });
-      return { status: 'route_decided', decisionId, attemptOutcome: 'rule_decided', modelCalls: 0 };
+      return { phase: 'done', result: { status: 'route_decided', decisionId, attemptOutcome: 'rule_decided', modelCalls: 0 } };
     }
 
-    // ── 模型路径：先持久化 model_prepared 意图，再恰一次外发 ──
+    // ── 模型路径：事务 A 持久化 model_prepared 意图后提交（send fence 落定），外呼留给事务外 ──
     await c.query(
       `UPDATE job_semantic_revision SET status='model_prepared', updated_at=clock_timestamp()
         WHERE job_id=$1 AND revision=$2 AND status='route_pending'`,
       [jobId, revision],
     );
     await appendRouteEvent(c, { jobId, owner, revision, fromStatus: 'route_pending', toStatus: 'model_prepared', reason: 'rule_ambiguous', decisionId: null });
+    return { phase: 'prepared', input };
+  });
+  if (phaseA.phase !== 'prepared') return phaseA.result;
 
-    let output: JobRouteModelOutput;
-    try {
-      output = await deps.modelClassify(input);
-    } catch (err) {
-      // 只有 seam 显式报告 dispatched_unknown 才落 unresolved；其余错误 rethrow（回滚，revision 仍 pending 可重试）。
-      if ((err as { code?: unknown } | undefined)?.code !== 'dispatched_unknown') throw err;
+  // ── 模型外呼：严格在任何 DB 事务之外 ──
+  let output: JobRouteModelOutput;
+  try {
+    output = await deps.modelClassify(phaseA.input);
+  } catch (err) {
+    // 只有 seam 显式报告 dispatched_unknown 才落 sticky unresolved（事务 B）；其余错误补偿回
+    // route_pending 再上抛——与旧单事务回滚的可重试语义逐值一致（并发双 tick 已被 model_prepared
+    // 闸拦为 noop，补偿无竞态）。
+    if ((err as { code?: unknown } | undefined)?.code !== 'dispatched_unknown') {
+      await asPrincipal(pool, owner, (c) => c.query(
+        `UPDATE job_semantic_revision SET status='route_pending', updated_at=clock_timestamp()
+          WHERE job_id=$1 AND revision=$2 AND status='model_prepared'`,
+        [jobId, revision],
+      )).catch(() => undefined);
+      throw err;
+    }
+    return asPrincipal(pool, owner, async (c) => {
       const { decisionId } = await writeRouteUnresolved(c, { jobId, owner, revision, attemptOutcome: 'dispatched_unknown', reasonCodes: ['dispatched_unknown'] });
       return { status: 'route_unresolved', decisionId, attemptOutcome: 'dispatched_unknown', reasonCodes: ['dispatched_unknown'], modelCalls: 1 };
-    }
+    });
+  }
+
+  // ── 事务 B：重锁；revision 仍为 model_prepared 才写终态（stale/并发双写 = noop） ──
+  return asPrincipal(pool, owner, async (c) => {
+    const cur = await c.query(
+      'SELECT status FROM job_semantic_revision WHERE job_id=$1 AND revision=$2 FOR UPDATE',
+      [jobId, revision],
+    );
+    if (cur.rowCount === 0) return { status: 'noop', reason: 'revision_not_found' } as const;
+    const status = (cur.rows[0] as { status: JobSemanticRevisionStatus }).status;
+    if (status === 'route_decided') return { status: 'noop', reason: 'already_decided' } as const;
+    if (status === 'route_unresolved') return { status: 'noop', reason: 'already_unresolved' } as const;
+    if (status !== 'model_prepared') return { status: 'noop', reason: 'not_pending' } as const;
 
     // 模型主动含原因码 = 明确拒分（known_not_sent，未进入评分路径）。
     if (Array.isArray(output?.reasonCodes) && output.reasonCodes.length > 0) {

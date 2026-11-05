@@ -314,6 +314,51 @@ async function main() {
     "SELECT count(*)::int n FROM job_route_decision WHERE job_id=$1 AND route_outcome='route_decided'", [jobBind.id]));
   A('非 owner 候选人读 route_decided decision = 1 行（公开读允许，绑定依赖此读）', candReadDecided.rows[0].n === 1);
 
+  // ── 拆相不变量：事务 A 锁+CAS 落 model_prepared 并提交；模型外呼严格在事务外；事务 B 重锁
+  //    （仍为 model_prepared 才写终态）。并发单发 / 抛错补偿可重试 / 崩溃残面 fail-closed。 ──
+  section('⑩ 拆相不变量（外呼不占事务）：并发单发 / 抛错补偿 / 崩溃残面');
+  const jobGate = await asPrincipal(pool, recA, (c) => createJob(c, recA, AMBIGUOUS));
+  let releaseGate!: () => void;
+  const gateOpened = new Promise<void>((resolve) => { releaseGate = resolve; });
+  let gateCalls = 0;
+  const gateSeam = {
+    classify: async () => { gateCalls++; await gateOpened; return { allocations: [{ leafTrackId: 'backend/nodejs', allocationBps: 7000 }, { leafTrackId: 'frontend/web', allocationBps: 3000 }], confidenceBps: 8500, marginBps: 4000, reasonCodes: [] }; },
+  };
+  const inFlight = classifyJobRoute(pool, recA, jobGate.id, await rev(jobGate.id), { modelClassify: gateSeam.classify });
+  const racer = classifyJobRoute(pool, recA, jobGate.id, await rev(jobGate.id), { modelClassify: gateSeam.classify });
+  releaseGate();
+  const [gateResult, raceResult] = await Promise.all([inFlight, racer]);
+  A('并发双 tick 恰 1 次外发（send fence：model_prepared CAS + 终态 sticky）',
+    gateResult.status === 'route_decided' && gateCalls === 1
+    && (raceResult.status === 'noop' && (raceResult.reason === 'not_pending' || raceResult.reason === 'already_decided')));
+
+  const jobComp = await asPrincipal(pool, recA, (c) => createJob(c, recA, AMBIGUOUS));
+  let compCalls = 0;
+  const compSeam = { classify: async () => { compCalls++; throw new Error('comp_seam_transient'); } };
+  let compThrew = '';
+  try {
+    await classifyJobRoute(pool, recA, jobComp.id, await rev(jobComp.id), { modelClassify: compSeam.classify });
+  } catch (err) { compThrew = err instanceof Error ? err.message : 'comp_threw'; }
+  const compStatus = String((await pool.query('SELECT status FROM job_semantic_revision WHERE job_id=$1 AND revision=1', [jobComp.id])).rows[0]?.status ?? '');
+  A('seam 抛非 dispatched_unknown 错误 → 上抛且 revision 回 route_pending（可重试·非 sticky）',
+    compThrew === 'comp_seam_transient' && compStatus === 'route_pending');
+  const compRetry = await classifyJobRoute(pool, recA, jobComp.id, 1, { modelClassify: mkSeam(async () => ({
+    allocations: [{ leafTrackId: 'backend/nodejs', allocationBps: 7000 }, { leafTrackId: 'frontend/web', allocationBps: 3000 }], confidenceBps: 8500, marginBps: 4000, reasonCodes: [],
+  })).classify });
+  A('补偿后同 revision 重试 → route_decided（外发预算仍各恰 1 次）',
+    compRetry.status === 'route_decided' && compRetry.attemptOutcome === 'result_validated' && compCalls === 1);
+
+  const jobWedge = await asPrincipal(pool, recA, (c) => createJob(c, recA, AMBIGUOUS));
+  await pool.query(
+    "UPDATE job_semantic_revision SET status='model_prepared' WHERE job_id=$1 AND revision=1 AND status='route_pending'",
+    [jobWedge.id],
+  );
+  let wedgeCalls = 0;
+  const wedgeSeam = { classify: async () => { wedgeCalls++; return { allocations: [], confidenceBps: 0, marginBps: 0, reasonCodes: [] }; } };
+  const wedged = await classifyJobRoute(pool, recA, jobWedge.id, 1, { modelClassify: wedgeSeam.classify });
+  A('崩溃残面（外呼后事务 B 前进程死）= model_prepared 永滞：drain 不领取、funnel 不重发（fail-closed）',
+    wedged.status === 'noop' && wedged.reason === 'not_pending' && wedgeCalls === 0);
+
   console.log(`\n${fail === 0 ? '✓ rag03-route（真 Postgres）全部通过' : `✗ ${fail} 项失败`}`);
   await pool.end();
   process.exit(fail ? 1 : 0);
