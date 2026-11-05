@@ -1,6 +1,6 @@
 # ROUTE-CLASSIFY-TX REQUEST（meetwise 路由分类事务缺陷修复刀 · G7 trio 头号阻塞 · 真实产品缺陷 · classifyJobRoute/classifyFreeTextScope 三相拆相：模型外呼移出全部 DB 事务 · 红先证修复后全绿 · 起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（2026-11-05 起草席落卷 → 同日 EXEC 席落码翻面（前值 `draft:awaiting_pre_exec_dual` 史录保留 · 双审两独立外席 BOTH PASS + 协调方 EXEC 授权随令 · §9.1 七项 P2 处置全落）· ⛔push ⛔merge 主线 · Ban self-approve · est live=0 · `actualSpendCny=null`）
+**Status**: **`proofed:dual_pass`**（前值 `executed:awaiting_post_prove_dual` 史录保留 · 前前值 `draft:awaiting_pre_exec_dual` 史录 · 2026-11-05 起草席落卷 → 同日 EXEC 席落码翻面（双审两独立外席 BOTH PASS + 协调方 EXEC 授权随令 · §9.1 七项 P2 处置全落）→ post-prove 双审两独立外席互盲 BOTH PASS（§9.3）· 措辞吸收 §9.2 · #212 已并主线 · self-approve 禁令不变 · est live=0 · `actualSpendCny=null`）
 
 **席位**：路由分类事务缺陷修复刀 起草席（协调方派单令「G7 trio 头号阻塞 + 真实产品缺陷」· 诊断席根因已证、本席逐条复核亲证）。
 **基线**：`origin/main` @ **`92a82a944`**（fetch 后亲证 origin tip=92a82a944=#209 perf-status-pin merge 点 · worktree **`meetwise-rtx`**（`git worktree add ../meetwise-rtx -b line/rtx-draft origin/main` 本起草席立 · `pnpm install --frozen-lockfile` EXIT=0）· branch **`line/rtx-draft`**）。
@@ -119,7 +119,7 @@ FAIL  r2-p-worker-route-classify prove (1 failures)  · run EXIT=1
 
 ## §8 STOP + 停止条件
 
-**`executed:awaiting_post_prove_dual`**（2026-11-05 EXEC 席落码翻面 · 前值 `draft:awaiting_pre_exec_dual` 史录 · 三处以上实测一致=Status 头/§8/§9/卷尾）。开工三条款：①pre-exec 双审两独立外席 BOTH PASS（rtx-1/rtx-2 各 P0=0·P1=0 · 审 §0 锚与红读数保真+§1 修法四问逐条+§1.3 proof 面+§2 门矩阵+§1.3 基线红单列）**已满足**；②协调方 EXEC 授权**已行使**（§9.1 全落）；③post-prove 双审**待派**。
+**`proofed:dual_pass`**（前值 `executed:awaiting_post_prove_dual` 史录保留 · 前前值 `draft:awaiting_pre_exec_dual` 史录 · 三处以上实测一致=Status 头/§8/§9/卷尾）。开工三条款：①pre-exec 双审两独立外席 BOTH PASS（rtx-1/rtx-2 各 P0=0·P1=0 · 审 §0 锚与红读数保真+§1 修法四问逐条+§1.3 proof 面+§2 门矩阵+§1.3 基线红单列）**已满足**；②协调方 EXEC 授权**已行使**（§9.1 全落）；③post-prove 双审**已完成**（两独立外席互盲 BOTH PASS · §9.3）。
 
 **停止条件（命中即停手上报）**：
 1. **现场漂移**：pre-exec/EXEC 对届时 tip 重 pin，§0 锚漂移超 ±3 且结论受影响、或根因面（principal/invoke/0209/路由状态机）被他刀改动 → 停。
@@ -127,7 +127,7 @@ FAIL  r2-p-worker-route-classify prove (1 failures)  · run EXIT=1
 3. **越界需要**：需触 §3 任一域才能继续 → 停。
 4. **机制不符**：修复后慢模型臂读数若复现 sticky（门 1 绿不可稳）→ 停。
 
-## §9 pre-exec dual 交接 + EXEC 交付注记（状态：**`executed:awaiting_post_prove_dual`**）
+## §9 pre-exec dual 交接 + EXEC 交付注记（状态：**`proofed:dual_pass`**·前值 `executed:awaiting_post_prove_dual` 史录保留）
 
 - **双审对象**：§0 根因链锚表逐条 file:line+红读数原值 · §1.1 三相结构与补偿臂语义 · §1.2 四问逐条 · §1.3 proof 三面（红先证链）· §2 十门判定与基线红单列 · §3 范围外。
 - **悬决项（归协调方）**：pre-exec 双席派定 · EXEC 排程 · post-prove 双席 · 六件基线红（PTP-archive 失位）排程 · model_prepared 运维恢复工具立项与否 · `persistValidatedOutput` 工件重放加固立项与否 · 路由事件可观测（补偿审计事件消费规范+补偿失败结构化日志一行——rtx-post-1 P2-B/rtx-post-2 P2-1 吸收登记·§9.2）。
@@ -155,6 +155,14 @@ FAIL  r2-p-worker-route-classify prove (1 failures)  · run EXIT=1
 - **吸2（rtx-post-2 P2-1 · 补偿事务可观测性登记）**：两补偿臂 `.catch(() => undefined)`（job-route-decision.ts:276 · free-text 同位 :258）无差别吞补偿事务错误（含连接池耗尽等环境性故障），与「revision 确已 model_prepared」不可区分且无日志/metric——排障只能靠「事件流缺补偿事件+状态滞 prepared」反推。后继观测刀建议：补偿失败至少一行结构化日志（含原错误码），不加行为。已并入悬决项「路由事件可观测」。
 - **吸3（rtx-post-1 P2-B + rtx-post-2 P2-2 · 消费规范与探针登记）**：`compensation_retriable` 系事件 reason 新词面（reason 列无值域 CHECK·零迁移合规）；现生产消费读面 0（rg 亲证）零误读面；后继若建路由事件流 UI/报表，应按「decisionId=null + `job_route_decision`/`free_text_route_decision` 表为准」消费、勿将 to_status='route_pending' 事件计为决策事实——已并入悬决项「路由事件可观测」。另登记：pre-exec rtx-2 探针文件 p3 M2 臂 retry 断言标签（`not_retryable`）与真实语义（#219③ 对 route_unresolved 返回 `retried@rev2`）不符，其报告正文描述与真实语义一致、承重断言（tick2 noop+calls=1）均真，不影响 pre-exec 结论；登记供后继复用探针时修正标签。
 
+### §9.3 post-prove 双审交付记录（2026-11-05/06 · status-pin 席 · 工作树 `meetwise-rtx` · 支 `line/rtx-status-pin` 自合并后 main `d549a497b` 拉出）
+
+- **post-prove 双审翻面**：两独立外席互盲评审 **BOTH PASS**——第一路 rtx-post-1：PASS（P0=0/P1=0/P2=2 nit+2 过程注记·六项派单全核+13 门亲跑+红先证反向回退亲证）；第二路 rtx-post-2 证伪审查：PASS（P0=0/P1=0/P2=2·四判据在真 SIGKILL 三窗/并发双 tick/敌意带外重置/补偿事务强制失败/生产缝六态矩阵/双树对读全探针下未被推翻）。报告存 `.tmp/reviews/rtx-post-1.md`/`rtx-post-2.md`·措辞类 P2 已吸收入卷（§9.2·零码动）。
+- **nail 期并线**：rebase 至 origin/main `e282c5ebd`（#211）——两 policy 脚本冲突 dual-keep（main 侧 CAP-SANCTION-2487 ONLINE-PAY rev+CAP-SANCTION-2489 注史录全保留+本支 CAP-SANCTION-2487 RTX 起草注并留·新增 CAP-SANCTION-2490 union 注·cap 恰等步进 2489→2490·四联动点 2_490/f-2490.md/:2491）· backlog 无冲突（双方追加行均全）。
+- **rebase 后复跑全绿**：慢模型臂 `r2-p-worker-route-classify` EXIT=0（tick1 `route_decided/result_validated calls=1`·tick2 noop）· `rag03-route`/`rag07-free-text-route` 全部通过 EXIT=0（含补偿审计事件断言）· `pnpm db:prove` 四原语全过 EXIT=0 · typecheck db/worker EXIT=0/EXIT=0 · `pnpm arch` 0 errors/8 既有 warnings EXIT=0 · egress inventory `adapters=5; operations=10; pairs=55` EXIT=0 · docs `scanned 2490=cap 2490 恰等` EXIT=0 · PTP `selected=12/12` EXIT=0 · markers 改动集 0 命中。
+- **主线交付链**：PR **#212** → CI 三查全绿（verify 14m11s/audit/secrets-scan）→ merge commit **`d549a497b`** → 主仓 `git merge --ff-only origin/main` → check-docs 复绿 EXIT=0 `scanned 2490=cap 2490 恰等`。
+- **Status 四处（Status 头/§8/§9/卷尾）`executed:awaiting_post_prove_dual`→**`proofed:dual_pass`**·前值史录不洗·pins 十一值零翻转。
+
 ---
 
-*ROUTE-CLASSIFY-TX REQUEST · 2026-11-05 起草 · 同日 EXEC 席落码翻面 **`executed:awaiting_post_prove_dual`**（前值 `draft:awaiting_pre_exec_dual` 史录 · 双审 BOTH PASS+EXEC 授权随令 · §9.1 七项 P2 处置全落）· ⛔push ⛔merge 主线 · alone ≠ dual · base `origin/main` @`92a82a944`（#209 merge 点 · 起草期 fetch 后亲证 · EXEC 期 fetch 三试网络不可达·本地 ref=pin 恒等零 rebase 如实承登 §9.1）· worktree `meetwise-rtx` · branch `line/rtx-draft` · 起草改动集=两 src（job-route-decision.ts/free-text-route-decision.ts 拆相）+三 proof（r2-p-worker 慢模型臂/rag03 §⑩/rag07 §⑨+③）+两 policy 脚本 cap 恰等步进 2486→2487（CAP-SANCTION-2487 链注追加·四联动点恰等改）+本卷（唯一新受管件）· EXEC 增补=两 src 补偿审计事件（既有词面零迁移）+三 proof（§⑩/§⑨ 补偿事件断言红先证后绿·慢模型臂 env finally 还原）+本卷（§1.1/§1.2-④/§1.3 补记+§9.1 交付注记）+gap-bug-backlog.md 一行（GAP-ROUTE-RETRY-UNKNOWN-REBILL·P2-1 判修复前既有）· 修复前红已证（§0.2）· 修复后全绿（§2+§9.1 门读数）· 基线红六件恒等亲证（§9.1）· est live=0 · pins 十一值照抄 · markers=0 · 停止条件四类全设 · Ban self-approve · post-prove dual 待派 · **STOP（EXEC 落卷即停）***
+*ROUTE-CLASSIFY-TX REQUEST · 2026-11-05 起草 · 同日 EXEC 席落码翻面 · post-prove 双审翻面 **`proofed:dual_pass`**（前值 `executed:awaiting_post_prove_dual` 史录保留 · 前前值 `draft:awaiting_pre_exec_dual` 史录 · pre-exec 双审 BOTH PASS+EXEC 授权随令 · §9.1 七项 P2 处置全落 · post-prove 双审互盲 BOTH PASS+措辞吸收 §9.2+并线交付记录 §9.3）· alone ≠ dual · base `origin/main` @`92a82a944`（#209 merge 点 · 起草期 fetch 后亲证 · EXEC 期 fetch 三试网络不可达·本地 ref=pin 恒等零 rebase 如实承登 §9.1）· worktree `meetwise-rtx` · branch `line/rtx-draft` · 起草改动集=两 src（job-route-decision.ts/free-text-route-decision.ts 拆相）+三 proof（r2-p-worker 慢模型臂/rag03 §⑩/rag07 §⑨+③）+两 policy 脚本 cap 恰等步进 2486→2487（CAP-SANCTION-2487 链注追加·四联动点恰等改）+本卷（唯一新受管件）· EXEC 增补=两 src 补偿审计事件（既有词面零迁移）+三 proof（§⑩/§⑨ 补偿事件断言红先证后绿·慢模型臂 env finally 还原）+本卷（§1.1/§1.2-④/§1.3 补记+§9.1 交付注记）+gap-bug-backlog.md 一行（GAP-ROUTE-RETRY-UNKNOWN-REBILL·P2-1 判修复前既有）· 修复前红已证（§0.2）· 修复后全绿（§2+§9.1 门读数）· 基线红六件恒等亲证（§9.1）· est live=0 · pins 十一值照抄 · markers=0 · 停止条件四类全设 · self-approve 禁令不变 · **STOP（proofed 翻面即停·主线交付毕）***
