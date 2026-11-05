@@ -223,6 +223,13 @@ async function main() {
   A('坏 JSON → null', toBusinessEvent({ event: 'question_ready', id: 9, data: '{bad' }) === null);
   A('payload 不符 → null', toBusinessEvent({ event: 'question_ready', id: 9, data: '{}' }) === null);
   A('未知事件 → null', toBusinessEvent({ event: 'nope', id: 9, data: '{}' }) === null);
+  // 未知 kind 降级显式钉：score_card_written 是后端真实持久 kind（0103 写卡函数随事务追加·0202
+  // 入 ck_interview_event_kind 值域），SSE 重放会原样透传到前端——前端契约不含它，必须降级为
+  // null 丢弃（不崩溃、不裸用、不挡后读事件），后端扩 kind 时旧前端忽略仍正确。
+  A('后端真实未知 kind(score_card_written) → null 降级丢弃', toBusinessEvent({ event: 'score_card_written', id: 10, data: '{"overall":88}' }) === null);
+  A('未知 kind 不挡后读事件（降级后序列仍可继续类型化）',
+    toBusinessEvent({ event: 'score_card_written', id: 10, data: '{"overall":88}' }) === null
+    && toBusinessEvent({ event: 'report_ready', id: 11, data: '{"overall":90}' })?.event === 'report_ready');
   A('NaN id(缺 id) → null,不污染 lastEventId', toBusinessEvent({ event: 'waiting_user', data: '{}' }) === null);
 
   section('视图归约 + 无静默死胡同');
