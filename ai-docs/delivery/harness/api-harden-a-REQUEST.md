@@ -110,6 +110,7 @@
 - **受管净增恰 5**：`harness/api-harden-a-REQUEST.md`（本卷）+`apps/web/lib/api/turn-proxy.ts`+`apps/web/lib/api/events-proxy.ts`+`apps/web/test/api-proxy-resilience.proof.ts`+`apps/api/test/apih-cost-rl.proof.ts`（tracked gate stdout 收据 .log ∉TEXT_EXTENSIONS 不计·本刀收据走 /tmp 不入树）。改前树亲跑 docs:check `PTP_FILE_LIMIT:2493>2489` 红亲证（4 件码/proof 已入树时点值）→ 随本卷 +1=2494 恰等零多放。
 - **cap 2489→2494 恰等步进**（协调方常设预授权「cap/lint 以合并树实测恰等步进免再询」随令行使）落两 policy 脚本：`MAX_FILES=2_494`+CAP-SANCTION-2494 注记**追加置链区**（policy .mjs 链区+proof 链区各一条 · 既有注记零字节改写 · dual-keep 先例形）+proof TC 四联动点恰等改（loop `i<2_494`/atCap `scannedFiles 2_494`/越限件 `f-2494.md`/错误码 `FILE_LIMIT:2495`）·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减。
 - **在飞七支触两 policy 热面**（§0.5 表）如实列——并线期 union 沿常设预授权届时取大重算承登。
+- **限流桶归属与多副本/重启语义如实登记（rev r1·证伪 pre-2 P2-3·本刀不改码）**：RateLimitService 分级制——`*:global`/`*:ip:*` 键落 PG 共享桶表（跨实例合计、重启存续、7 天 TTL）；其余键=**进程内 LRU**（本刀 `begin:${owner}`/`qzbegin:`/`dgbg:`/`cbpay:${id}`/`cbref:${id}` per-principal/per-order 族全在此列；`cbfail:ip:*` 属 `:ip:` 共享形）。compose.ha 双实例+lb 轮询下进程内桶实际阈值 ×2：对合法用户=突发跨实例分摊（放宽），对单点攻击者=需 ×2 发数；进程重启桶清零。沿平台既有 `login:${email}` 同形制（登记缺口，非行为 bug）。**后续建议（另行派单）**：per-principal/per-order 桶迁共享存储（沿 `gateway_rl_bucket_*` 网关函数形）使多副本/重启语义归一。rev r1 改形残余面如实：验签失败洪水打 HMAC CPU=微秒级/请求，可忽略量级。
 
 ## §8 停止条件
 
