@@ -1981,8 +1981,14 @@ async function main() {
 
     // ── #231：押题提示诚实化（备战提示落位·refs 拼装机制字节零触）——旧话术字面量经 join 拆写（沿 public-copy prohibitedMarketingPhrases 先例·保全仓 rg EXIT=1 形） ──
     const maybeFollowUp = ['可能追', '问'].join('');
-    A('I5-#231a 旧押题话术在 QuizPanel/dashboard 双文件零残留（全仓 rg 负断言入收据·EXIT=1 形）',
-      !quizSrc.includes(maybeFollowUp) && !dashSrc.includes(maybeFollowUp));
+    // 键级负断言：只押「备战提示」文案行（旧话术宿主行形）逐行不含旧字面量——
+    // 全文件级负断言会把任何提及「可能追问」的无害注释/文档行误杀（地雷形·收窄为文案行键级）。
+    const quizTipLines = quizSrc.split('\n').filter((l) => l.includes('备战提示'));
+    const dashTipLines = dashSrc.split('\n').filter((l) => l.includes('备战提示'));
+    A('I5-#231a 旧押题话术键级零残留（QuizPanel/dashboard 备战提示文案行逐行不含旧字面量·负断言收窄为文案行键级）',
+      quizTipLines.length > 0 && dashTipLines.length > 0
+      && quizTipLines.every((l) => !l.includes(maybeFollowUp))
+      && dashTipLines.every((l) => !l.includes(maybeFollowUp)));
     A('I5-#231b 「备战提示」落位钉死行形：QuizPanel 用户文案行（非 :83 注释自匹配）+dashboard 快捷卡行',
       /备战提示：就「\{q\.refs\.join\('、'\)\}」准备原理、权衡与踩坑/.test(quizSrc)
       && dashSrc.includes('标考察点与备战提示'));
