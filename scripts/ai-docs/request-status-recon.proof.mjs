@@ -5,17 +5,19 @@
 // 「规范注头共线 + marker 非反引号引述 + 态字紧邻（marker 后只容包裹字符）」读法
 // （2026-11-06 rev：正文引述格式示例/prose 提及不再伪翻——small-fixes-1105 §0 表行 :13 原文
 // 曾被读成 executed 的 P1 根因面）。
-//   探针仓臂：/tmp 临时 git 仓构造会误判样例卷（含 :13 原文逐字）断言不再伪翻 + 真翻面注
-//   原形（携注头）正控照常翻面；bare `终值裁定=` 不翻系钉死语义一并钉住。
+//   固定样本臂（2026-11-06 post r2）：探针卷自本 proof 旁 `request-status-recon.proof-samples/`
+//   固定样本目录装入（各状态×各形态：引述免疫/bare 与无日期免疫/态字不紧邻免疫/终裁注正控/
+//   翻面注正控/关闭注正控/独立终裁注前后位两臂/零状态注防漏卷）——不再钉任何真实卷状态
+//   （真实卷随生命周期翻面，钉 draft 族在 EXEC 翻面后必红=xs-post-1 P1 原因面）。
 //   门行为臂：防漏门（零锚卷 EXIT=1 逐卷点名）与卷数收缩门（HEAD 默认读法 < 下界 EXIT=1；
 //   显式 --ref= 不设界）保持如实红。
-//   真仓臂：HEAD 默认读法 ②向差异清单为空（无不存在的 draft→executed 迁移）+
-//   small-fixes-1105 读 draft 族（不落 executed/closed）。
+//   真仓臂：只留与任何单卷状态无关的普查级不变量——HEAD 默认读法 EXIT=0（收缩门下界绿）+
+//   ②向差异清单为空（无不存在的 draft→executed 迁移）。
 // 用法：node scripts/ai-docs/request-status-recon.proof.mjs
 //   RECON_SCRIPT=<path> 覆盖被测脚本路径（红证用：指向修订前脚本副本，proof 应 FAIL）。
 
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readdirSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -23,6 +25,8 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, '..', '..');
 const RECON = process.env.RECON_SCRIPT ? resolve(process.env.RECON_SCRIPT) : join(here, 'request-status-recon.mjs');
+const SAMPLES_DIR = join(here, 'request-status-recon.proof-samples');
+const LEAK_SAMPLE = 'silent-volume-REQUEST.md'; // 零状态注卷：防漏门 fixture（不进正控探针仓）
 
 let exitCode = 0;
 const lines = [];
@@ -62,85 +66,22 @@ function rowFor(out, vol) {
   return m ?? '';
 }
 
-// ── small-fixes-1105 §0 表行 :13 原文逐字（本 proof 的核心样例）──────────────────
-const QUOTED_FORMATS_ROW =
-  '| 1 | 普查门提取器 | `scripts/ai-docs/request-status-recon.mjs:66-67` 硬编码 `EXPECTED_VOLUME_COUNT=274`+默认 ref `e647fcffa`；HEAD 287 卷被 census drift guard 拒绝 EXIT=1（亲跑）；rc 后四种关闭注（`有效态翻面→`态字`` / `【关闭…STOP 收口 `closed`` / `【闭卷注|【归档注…本卷闭卷|归档登记】` / `终值裁定=`）不识别——287 卷被伪读为 executed/无状态行 |';
+// ── 固定样本装入：proof 旁 request-status-recon.proof-samples/（各状态×各形态）────────
+// 文件名（去 -REQUEST.md 后缀）即探针卷名，文件内容即探针卷全文逐字节——样本卷的机读行为
+// 由下方断言逐卷钉住；样本改动必过本 proof。
+const samples = Object.fromEntries(
+  readdirSync(SAMPLES_DIR)
+    .filter((f) => f.endsWith('-REQUEST.md'))
+    .sort()
+    .map((f) => [f, readFileSync(join(SAMPLES_DIR, f), 'utf8')]),
+);
+if (!samples[LEAK_SAMPLE]) {
+  console.error(`FAIL  missing leak fixture ${LEAK_SAMPLE} in ${SAMPLES_DIR}`);
+  process.exit(1);
+}
+const corpus = Object.fromEntries(Object.entries(samples).filter(([f]) => f !== LEAK_SAMPLE));
 
-const probe1 = makeProbeRepo('forms', {
-  // 引述格式示例卷：正文引用四关闭注格式原文（含 :13 行逐字）——须读 draft 不伪翻。
-  'quote-formats-REQUEST.md': [
-    '# QUOTE-FORMATS REQUEST',
-    '**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷即停）',
-    '',
-    QUOTED_FORMATS_ROW,
-    '',
-    'STOP: `draft:awaiting_pre_exec_dual`',
-    '',
-  ].join('\n'),
-  // 关闭注引述卷：日期缺位的【闭卷注引述+bare `终值裁定=` 行——均不翻（钉死语义）。
-  'quote-close-note-REQUEST.md': [
-    '# QUOTE-CLOSE-NOTE REQUEST',
-    '**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷即停）',
-    '',
-    '可补【闭卷注 （示例引用） 本卷闭卷登记——详见真卷】。',
-    '',
-    '终值裁定=closed',
-    '',
-  ].join('\n'),
-  // 正控·对账翻面注+终裁注并存原形（regw `:3` 形）：裁定注胜翻面注 → 照常翻 proofed:dual_pass。
-  'real-adjud-REQUEST.md': [
-    '# REAL-ADJUD REQUEST',
-    '**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷即停）',
-    '',
-    '【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only）: 本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·有效态翻面→`closed`】【终裁注 2026-11-05（U5a·协调方终裁授权行使·append-only）: 本行并存两注——翻面注（有效态翻面→`closed`·2026-11-03）与补转注（状态补转 `proofed:dual_pass`·2026-11-03）——终值裁定=**`proofed:dual_pass`**（取时间后位·两注并存史录零洗·本注只钉终值读序·翻面权归协调方）】',
-    '',
-  ].join('\n'),
-  // 正控·对账刀翻面注原形（cap-sanction-2232 形）→ 照常翻 closed。
-  'real-recon-flip-REQUEST.md': [
-    '# REAL-RECON-FLIP REQUEST',
-    '**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷即停）',
-    '',
-    '【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only）: 本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·有效态翻面→`closed`】',
-    '',
-  ].join('\n'),
-  // 正控·批量关闭注原形（g2-report-page 形）→ 照常翻 closed。
-  'real-close-REQUEST.md': [
-    '# REAL-CLOSE REQUEST',
-    '**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷即停）',
-    '',
-    '【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only）: 卷内 §9 已落·**零残面**·STOP 收口 `closed`】',
-    '',
-  ].join('\n'),
-  // 紧邻判据隔离臂：注头与 marker 原形俱在、但态字不紧邻（marker 后 prose 隔断）→ 不翻。
-  'nonadjacent-REQUEST.md': [
-    '# NONADJACENT REQUEST',
-    '**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷即停）',
-    '',
-    '【翻面 2026-11-03（STATUS-RECON 对账刀·append-only）: 本行系引述非注记原行·有效态翻面→ 的态字须紧邻 marker 方命中·真注在真卷读 closed】',
-    '',
-  ].join('\n'),
-  // 独立终裁注臂·后位（xs-post-2 P1-2）：位序末条=EXEC 翻面注 executed，其后独立一行终裁注
-  // closed → 裁定注必须胜位序末条（adjudFlip 独立旗·修前该卷伪读 executed）。
-  'adjud-after-chain-REQUEST.md': [
-    '# ADJUD-AFTER-CHAIN REQUEST',
-    '**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷即停）',
-    '',
-    '【翻面 2026-11-05（EXEC 翻面·协调方授权·append-only）: 本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·有效态翻面→`executed:awaiting_post_prove_dual`】',
-    '',
-    '【终裁注 2026-11-06（U5a·协调方终裁授权行使·append-only）: 本行独立成行·终值裁定=`closed`（翻面权归协调方）】',
-    '',
-  ].join('\n'),
-  // 独立终裁注臂·前位：裁定注在 EXEC 翻面注之前位——裁定层优先于位序末条仍取裁定值。
-  'adjud-before-chain-REQUEST.md': [
-    '# ADJUD-BEFORE-CHAIN REQUEST',
-    '**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷即停）',
-    '',
-    '【终裁注 2026-11-05（U5a·协调方终裁授权行使·append-only）: 本行独立成行·终值裁定=`closed`（翻面权归协调方）】',
-    '',
-    '【翻面 2026-11-06（EXEC 翻面·协调方授权·append-only）: 本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·有效态翻面→`executed:awaiting_post_prove_dual`】',
-    '',
-  ].join('\n'),
-});
+const probe1 = makeProbeRepo('forms', corpus);
 
 // 探针臂统一走显式 --ref=HEAD（=真仓全量跑同读法·且绕开 HEAD 默认读法的卷数收缩门）。
 const p1 = runRecon(probe1, ['--ref=HEAD', '--all']);
@@ -220,10 +161,8 @@ check(
 );
 rmSync(probe1, { recursive: true, force: true });
 
-// 防漏门臂：零锚卷（无任何状态行）→ EXIT=1 逐卷点名（先出报告后裁决）。
-const probe2 = makeProbeRepo('leak', {
-  'silent-volume-REQUEST.md': ['# SILENT VOLUME', '', '本卷无任何状态注。', ''].join('\n'),
-});
+// 防漏门臂：零锚卷（无任何状态行·固定样本 silent-volume）→ EXIT=1 逐卷点名（先出报告后裁决）。
+const probe2 = makeProbeRepo('leak', { [LEAK_SAMPLE]: samples[LEAK_SAMPLE] });
 const p2 = runRecon(probe2, ['--ref=HEAD']);
 check(
   p2.status === 1 && p2.stdout.includes('卷数=1') && p2.stderr.includes('census leak') && p2.stderr.includes('silent-volume'),
@@ -233,7 +172,9 @@ check(
 );
 rmSync(probe2, { recursive: true, force: true });
 
-// 真仓臂：HEAD 默认读法（收缩门过界=现值恰等下界）②向差异清单为空 + 本卷读 draft 族。
+// 真仓臂（2026-11-06 post r2 收窄）：只断言与任何单卷状态无关的普查级不变量——HEAD 默认读法
+// EXIT=0（收缩门下界绿）+ ②向差异清单为空（无不存在的 draft→executed 迁移）。
+// 真实单卷状态钉定已撤（样本目录承接种状态×形态覆盖；真实卷随生命周期翻面，钉态必红）。
 const real = runRecon(repoRoot, []);
 check(real.status === 0, 'real repo HEAD default read exits 0 (shrink gate green at floor)', 'real repo default read must exit 0', { status: real.status, stderr: real.stderr.slice(0, 300) });
 const dir2Section = real.stdout.slice(real.stdout.indexOf('## ②向差异清单'));
@@ -243,14 +184,6 @@ check(
   'real repo: ②向差异清单 empty (no phantom draft→executed migrations)',
   'real repo ②向 list must be empty with count 0',
   { head: real.stdout.split('\n')[3] },
-);
-const realAll = runRecon(repoRoot, ['--ref=HEAD', '--all']);
-const smallFixesRow = rowFor(realAll.stdout, 'small-fixes-1105');
-check(
-  smallFixesRow.includes('draft:awaiting_pre_exec_dual') && !/executed|closed/.test(smallFixesRow),
-  'real repo: small-fixes-1105 reads draft family (not executed/closed)',
-  'small-fixes-1105 must read draft at HEAD',
-  smallFixesRow,
 );
 
 const failedCount = lines.filter((l) => l.startsWith('FAIL')).length;
