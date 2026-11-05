@@ -5,7 +5,7 @@
  */
 import 'reflect-metadata';
 import { fileURLToPath } from 'node:url';
-import { createPool, loadMigrations, provisionRuntimeLogin, runMigrations } from '@meetwise/db';
+import { asGateway, createPool, loadMigrations, provisionRuntimeLogin, runMigrations } from '@meetwise/db';
 
 const admin = createPool();
 const role = `api_runtime_${process.pid}`;
@@ -33,10 +33,25 @@ async function main() {
   try {
     const db = app.get(DbService);
     A('API 运行登录不能绕过网关直接读 user_account', await rejects(() => db.pool.query('SELECT id,password_hash FROM user_account')));
+    // #92 readiness 深化曾把账本读（SELECT max(version) FROM schema_migrations）放进探针位：
+    // 探针在 NOINHERIT 运行时登录裸连接上运行（绝不 SET ROLE app_role），直读表即
+    // permission-denied（42501）→ readyz 恒 503 migration_mismatch——生产身份下 readiness
+    // 永久假红的真实回归（regr-draft 刀判定）。修法沿 0040/0041/0042 网关元数据先例：
+    // 0225 固定 SECURITY DEFINER 函数 gateway_migration_ledger_max()，经 app_gateway_role
+    // SET LOCAL ROLE 执行；运行时登录仍零表授权。这里钉四层：①登录直读账本仍拒（表授权
+    // 不变量不破）；②登录直调网关函数仍拒（EXECUTE 只授 app_gateway_role，NOINHERIT 成员
+    // 不自动继承——唯一路径=评审过的 SET ROLE 门）；③经 asGateway 网关账本读返回与真实
+    // 账本一致的 max（探针元数据路径在真实生产身份下可用·抓回归主断言）；④HTTP readyz
+    // 200（回归前此断言 503）。
+    A('运行登录不能直读迁移账本（零表授权不变量）', await rejects(() => db.pool.query('SELECT max(version COLLATE "C") AS v FROM schema_migrations')));
+    A('运行登录不能直调网关卡尺函数（EXECUTE 只经 app_gateway_role SET ROLE 门）', await rejects(() => db.pool.query('SELECT gateway_migration_ledger_max()')));
+    const gatewayMax = await asGateway(db.pool, (c) => c.query<{ v: string | null }>('SELECT gateway_migration_ledger_max() AS v'));
+    const adminMax = (await admin.query<{ v: string | null }>('SELECT max(version COLLATE "C") AS v FROM schema_migrations')).rows[0]?.v ?? null;
+    A('网关账本读返回真实账本 max（readyz 元数据路径在生产身份下可用）', typeof adminMax === 'string' && adminMax.length > 0 && gatewayMax.rows[0]?.v === adminMax);
     const livez = await fetch(`${base}/livez`);
     A('低权 API livez 不读数据库仍为 200', livez.status === 200 && (await livez.json() as any).status === 'ok');
     const readyz = await fetch(`${base}/readyz/api`);
-    A('低权 API readyz/api 使用无表权限 SELECT 1 仍为 200', readyz.status === 200 && (await readyz.json() as any).status === 'ok');
+    A('低权 API readyz/api（SELECT 1 + 网关函数账本读）仍为 200', readyz.status === 200 && (await readyz.json() as any).status === 'ok');
 
     const signup = await fetch(`${base}/auth/signup`, {
       method: 'POST', headers: { 'content-type': 'application/json' },

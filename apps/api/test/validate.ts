@@ -287,13 +287,16 @@ async function validate() {
   let readinessQueryCount = 0;
   probePool.query = async (...args: any[]) => { readinessQueryCount++; return originalProbeQuery(...args); };
   r = await req('GET', '/livez'); A('存活探针公开且不读 DB → 200 + 固定 ok', r.status === 200 && r.body.status === 'ok' && readinessQueryCount === 0);
-  // 审计 #92：readyz 探针从 1 条扩为**两条有界只读**（SELECT 1 + 账本 max(version COLLATE "C")），
-  // 仍不触任何业务表；db_unreachable 时在 SELECT 1 短路，探针查询数恒 ≤2。
-  r = await req('GET', '/readyz/api'); A('API 就绪探针 → 200 + 两条有界只读 + 迁移位 ok', r.status === 200 && r.body.status === 'ok' && r.body.schema?.migration === 'ok' && readinessQueryCount === 2);
-  r = await req('GET', '/health'); A('旧 /health 兼容映射 API 就绪探针', r.status === 200 && r.body.status === 'ok' && r.body.schema?.migration === 'ok' && readinessQueryCount === 4);
+  // 审计 #92：readyz 探针恒**两条有界只读**（SELECT 1 + 账本 max(version COLLATE "C")），
+  // 仍不触任何业务表；db_unreachable 时在 SELECT 1 短路。regr-draft 刀：账本读改经固定
+  // SECURITY DEFINER 网关函数（0225 gateway_migration_ledger_max·asGateway→SET LOCAL ROLE
+  // app_gateway_role）——NOINHERIT 运行时登录裸连接无表权限，直读账本即 permission-denied
+  // （生产身份 readiness 恒假红回归面）；网关读不经池 .query 面，故池面计数=每拍恰 1 条。
+  r = await req('GET', '/readyz/api'); A('API 就绪探针 → 200 + 两条有界只读(池面 1 条+网关函数 1 读) + 迁移位 ok', r.status === 200 && r.body.status === 'ok' && r.body.schema?.migration === 'ok' && readinessQueryCount === 1);
+  r = await req('GET', '/health'); A('旧 /health 兼容映射 API 就绪探针', r.status === 200 && r.body.status === 'ok' && r.body.schema?.migration === 'ok' && readinessQueryCount === 2);
   probePool.query = async () => { readinessQueryCount++; throw new Error('simulated_probe_dependency_failure'); };
-  r = await req('GET', '/readyz/api'); A('DB 失败时 readyz/api → 503 最小降级体(短路 1 条,迁移位 unknown)', r.status === 503 && r.body.status === 'degraded' && r.body.error === undefined && r.body.schema?.migration === 'unknown' && readinessQueryCount === 5);
-  r = await req('GET', '/livez'); A('DB 失败不误杀 livez，且不额外读 DB', r.status === 200 && r.body.status === 'ok' && readinessQueryCount === 5);
+  r = await req('GET', '/readyz/api'); A('DB 失败时 readyz/api → 503 最小降级体(短路 1 条,迁移位 unknown)', r.status === 503 && r.body.status === 'degraded' && r.body.error === undefined && r.body.schema?.migration === 'unknown' && readinessQueryCount === 3);
+  r = await req('GET', '/livez'); A('DB 失败不误杀 livez，且不额外读 DB', r.status === 200 && r.body.status === 'ok' && readinessQueryCount === 3);
   r = await req('GET', '/health'); A('DB 失败时旧 /health 同样 fail-closed → 503', r.status === 503 && r.body.status === 'degraded' && r.body.error === undefined);
   probePool.query = originalProbeQuery;
   const corsRes = await fetch(base + '/livez', { headers: { origin: 'http://localhost:3000' } });
