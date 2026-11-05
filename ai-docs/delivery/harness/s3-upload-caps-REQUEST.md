@@ -51,14 +51,14 @@ extrev-deps-audit S1（audit 实跑+定向升级）/S2（CI audit 门+Renovate�
  * ——炸弹字节零 worker spawn 零解包,进不了 mammoth→jszip 解压面。
 ```
 
-### 1.2 件② 同文件 :102-143 新增守卫节（帽常量+签名常量+守卫函数·魔数门节后 EXTRACT_TIMEOUT_MS 前插）
+### 1.2 件② 同文件 :104-145 新增守卫节（帽常量+签名常量+守卫函数·魔数门节后 EXTRACT_TIMEOUT_MS 前插·rev r1 守卫增两行 fail-closed 自洽检）
 
-- :102-108 处方锚注（#107 处方·帽值两行依据：正常 docx <100 条目含 media 余量·12MB bodyLimit × 压缩比合理域·声明合计守卫=解包前零解压成本定夺·zip64 哨兵 0xFFFFFFFF 天然越帽）；
+- :104-109 处方锚注（#107 处方·帽值两行依据：正常 docx <100 条目含 media 余量·12MB bodyLimit × 压缩比合理域·声明合计守卫=解包前零解压成本定夺·zip64 哨兵 0xFFFFFFFF 天然越帽）；
 - :110-111 帽常量：`const DOCX_ZIP_MAX_ENTRIES = 1000;` / `const DOCX_ZIP_MAX_UNCOMPRESSED_TOTAL = 64 * 1024 * 1024;`
-- :113-114 签名常量：`ZIP_EOCD_SIG = 0x06054b50`（PK\x05\x06）/ `ZIP_CDH_SIG = 0x02014b50`（PK\x01\x02）；
-- :116 `zipGuardErr` 工厂（沿 `mismatch()` :79 同族 Object.assign 形）；
-- :118-123 doc 注（读法/三码/fail-closed 语义/前插数据失配同拒如实披露）；
-- :123-143 守卫函数（export·沿 `assertMagicMatchesDeclaration` export 先例）：
+- :112-113 签名常量：`ZIP_EOCD_SIG = 0x06054b50`（PK\x05\x06）/ `ZIP_CDH_SIG = 0x02014b50`（PK\x01\x02）；
+- :115 `zipGuardErr` 工厂（沿 `mismatch()` :79 同族 Object.assign 形）；
+- :117-122 doc 注（读法/三码/fail-closed 语义/前插数据失配同拒如实披露）；
+- :123-145 守卫函数（export·沿 `assertMagicMatchesDeclaration` export 先例·rev r1 增 :135 预走读 EOCD 自洽检+:144 走读后 CD 区耗尽检——两检合用闭 EOCD 字段谎报整类绕过·帽值常量/三错误码零变）：
 
 ```ts
 export function assertDocxZipWithinCaps(buffer: Buffer): void {
@@ -73,6 +73,7 @@ export function assertDocxZipWithinCaps(buffer: Buffer): void {
   const totalEntries = buffer.readUInt16LE(eocd + 10);
   if (totalEntries > DOCX_ZIP_MAX_ENTRIES) throw zipGuardErr('zip_entry_overflow');
   const cdOffset = buffer.readUInt32LE(eocd + 16);
+  if (cdOffset + buffer.readUInt32LE(eocd + 12) !== eocd) throw zipGuardErr('zip_directory_invalid');   // EOCD 自洽:cdOffset+cdSize 恰抵 EOCD
   let p = cdOffset;
   let uncompressedTotal = 0;
   for (let n = 0; n < totalEntries; n++) {
@@ -81,12 +82,13 @@ export function assertDocxZipWithinCaps(buffer: Buffer): void {
     if (uncompressedTotal > DOCX_ZIP_MAX_UNCOMPRESSED_TOTAL) throw zipGuardErr('zip_uncompressed_overflow');
     p += 46 + buffer.readUInt16LE(p + 28) + buffer.readUInt16LE(p + 30) + buffer.readUInt16LE(p + 32);
   }
+  if (p !== eocd) throw zipGuardErr('zip_directory_invalid');   // CD 区恰被 totalEntries 条耗尽
 }
 ```
 
-机制要点：EOCD 自尾反向扫（注释区 ≤65535+22 上界）·条目数先核后走读（守卫自体 O(≤1000) 零 DoS 面）·CDH 定长 46+name+extra+comment 变长步进·`p+46 > eocd` 先检后读零 OOB·全字段小端·零新依赖（纯 Buffer 读）。
+机制要点：EOCD 自尾反向扫（注释区 ≤65535+22 上界）·条目数先核后走读（守卫自体 O(≤1000) 零 DoS 面）·EOCD 自洽双检（rev r1：预走读 `cdOffset+cdSize` 恰抵 EOCD·走读后 CD 区恰被 `totalEntries` 条耗尽——jszip 按签名连续走读不用 EOCD `totalEntries` 定界，谎报 `totalEntries`/双 CD `cdSize` 操纵形守卫声明面 PASS 而 jszip 全链 ACCEPT，两检合用整类 fail-closed）·CDH 定长 46+name+extra+comment 变长步进·`p+46 > eocd` 先检后读零 OOB·全字段小端·零新依赖（纯 Buffer 读）。
 
-### 1.3 件③ 同文件 :227-231 docx 分支守卫接线（:229 守卫调用·先于 worker spawn）
+### 1.3 件③ 同文件 :230-234 docx 分支守卫接线（:231 守卫调用·先于 worker spawn·rev r1 行号随守卫 +2 重 pin）
 
 ```ts
   if (format === 'docx') {
@@ -98,21 +100,28 @@ export function assertDocxZipWithinCaps(buffer: Buffer): void {
 
 ### 1.4 件④ packages/domain/test/resume-extract.proof.ts——craftDocx 工具面扩展 + §6b 新臂
 
-- import :5 增 `assertDocxZipWithinCaps`；头注 :3-4 测面行追加守卫段；
-- `craftDocx` :110 签名增 `opts?.centralUncompressedOverride?: (name, actual) => number`（:127 central directory uncompressedSize 声明值覆写·local header 与实体字节保持真实小体=超大声明炸弹形·老调用面零破）；
-- :140-145 三真实条目提绑 `realDocxEntries`（A1 断言语义零变）；
-- :150-179 §6b 新臂八断言（负例两向各 guard 直证+生产缝全链双面·恰帽边界两向·结构不可核·正例旁证）：
+- import :7 增 `assertDocxZipWithinCaps`；头注 :3-5 测面行（rev r1 追加 EOCD 谎报自洽检/真实三件同构变体测面行）；
+- `craftDocx` :111 签名增 `opts?.centralUncompressedOverride?: (name, actual) => number`（:128 central directory uncompressedSize 声明值覆写·local header 与实体字节保持真实小体=超大声明炸弹形·老调用面零破）；
+- :141-146 三真实条目提绑 `realDocxEntries`（A1 断言语义零变）；
+- :151-206 §6b 新臂十五断言（基线八断言+rev r1 七增补：自洽检负例四向+真实三件变体三向）（负例两向各 guard 直证+生产缝全链双面·恰帽边界两向·结构不可核·正例旁证·EOCD 字段谎报自洽检·真实三件同构变体两向闭合）：
 
-| # | 断言（届时行） | 读数 |
+| # | 断言（届时行·rev r1 重 pin） | 读数 |
 |---|---|---|
-| 1 | :157 恰 1000 条目 guard 零抛 | 边界上界不误伤 |
-| 2 | :158 恰 64MB 声明 guard 零抛 | 边界上界不误伤 |
-| 3 | :160 1001 条目 guard → `zip_entry_overflow` | 负例一 guard 面 |
-| 4 | :163 1001 条目经 `extractResumeText` 生产缝 → `zip_entry_overflow` | 负例一全链（无守卫时该 fixture 会被 mammoth 静默吃下=断言承重） |
-| 5 | :165 64MB+1 声明 guard → `zip_uncompressed_overflow` | 负例二 guard 面 |
-| 6 | :168 真 document.xml 条目声明 0xFFFFFFFF（zip64 哨兵形）经生产缝 → `zip_uncompressed_overflow` | 负例二全链 |
-| 7 | :172 PK`\x03\x04` 无 central directory 经生产缝 → `zip_directory_invalid` | 结构不可核 fail-closed（"核不了"="拒"） |
-| 8 | :179 100 条目真 docx（3 真实件+97 media 形 filler）全链提取输出与 A1 恒等 | 正例旁证防误伤 |
+| 1 | :158 恰 1000 条目 guard 零抛 | 边界上界不误伤 |
+| 2 | :159 恰 64MB 声明 guard 零抛 | 边界上界不误伤 |
+| 3 | :161 1001 条目 guard → `zip_entry_overflow` | 负例一 guard 面 |
+| 4 | :164 1001 条目经 `extractResumeText` 生产缝 → `zip_entry_overflow` | 负例一全链（反事实勘正·rev r1：无守卫时**同构含真实件**的 1001 条目 zip 被 mammoth→jszip 静默吃下——评审席 2026-11-05 亲证 18ms 提取成功；本行基线 fixture 系无 document.xml 简形，无守卫时 mammoth 拒因缺主件非拒因条目数——承重由行 13-15 同构真实件变体升为仓内机证） |
+| 5 | :166 64MB+1 声明 guard → `zip_uncompressed_overflow` | 负例二 guard 面 |
+| 6 | :169 真 document.xml 条目声明 0xFFFFFFFF（zip64 哨兵形）经生产缝 → `zip_uncompressed_overflow` | 负例二全链 |
+| 7 | :173 PK`\x03\x04` 无 central directory 经生产缝 → `zip_directory_invalid` | 结构不可核 fail-closed（"核不了"="拒"） |
+| 8 | :180 100 条目真 docx（3 真实件+97 media 形 filler）全链提取输出与 A1 恒等 | 正例旁证防误伤 |
+| 9 | :188 谎报 `totalEntries=2`（CD 定界少报·CD 区残余）guard → `zip_directory_invalid` | 自洽检负例·探针1形 guard 面 |
+| 10 | :191 谎报 `totalEntries=2` 经生产缝 → `zip_directory_invalid` | 自洽检负例·全链拒（worker 零 spawn） |
+| 11 | :192 谎报 `cdSize`（cdOffset+cdSize 失配 EOCD）guard → `zip_directory_invalid` | 自洽检负例·双 CD cdSize 操纵形 guard 面 |
+| 12 | :195 谎报 `cdSize` 经生产缝 → `zip_directory_invalid` | 自洽检负例·全链拒（worker 零 spawn） |
+| 13 | :200 1001 条目真实三件形（3 真实件+998 media 形 filler）guard → `zip_entry_overflow` | 负例一变体 guard 面 |
+| 14 | :203 真实三件 1001 条目经生产缝 → `zip_entry_overflow` | 负例一变体全链（拒因唯一=条目数） |
+| 15 | :206 恰 1000 条目同构合法件（3 真实件+997 media 形 filler）全链必通·输出与 A1 恒等 | 负例一变体对向（无守卫反事实仓内机证·两向同 fixture 族闭合） |
 
 ### 1.5 件⑤ CAP-SANCTION-2485 起草随刀恰等步进（两 policy 脚本·预登随令）
 
@@ -130,14 +139,16 @@ export function assertDocxZipWithinCaps(buffer: Buffer): void {
 
 ## §2 验收（门矩阵·EXEC 席/审查席亲跑口径）
 
-1. **负例一（条目数越帽）**：craftDocx 造 1001 条目 fixture → guard 臂+`extractResumeText` 生产缝双断言 `zip_entry_overflow`（:160/:163）。无守卫反事实：该 fixture 会被 mammoth→jszip 静默吃下（返回成功文本）——断言承重非同义反复。
-2. **负例二（超大解压声明）**：64MB+1 声明 + 真 document.xml 条目 0xFFFFFFFF（zip64 哨兵）声明两 fixture → guard 臂+生产缝双断言 `zip_uncompressed_overflow`（:165/:168）。
-3. **结构不可核**：PK`\x03\x04` 头无 central directory → `zip_directory_invalid`（:172·fail-closed"核不了=拒"面）。
-4. **恰帽边界**：恰 1000 条目/恰 64MB 声明零抛（:157/:158·上界不误伤·帽值语义=≤ 恰等通过）。
-5. **正例旁证（防误伤）**：100 条目真 docx 全链提取输出与 A1 恒等（:179）+A1 三条目真例既有断言保持（:143-144）——守卫对合法多 media 文档零误伤。
-6. **现有 proof 全绿**：`pnpm -C packages/domain prove:resume-extract` 全量 EXIT=0（修前 35 断言基线在案→落码后 43 断言）。
+1. **负例一（条目数越帽）**：craftDocx 造 1001 条目 fixture → guard 臂+`extractResumeText` 生产缝双断言 `zip_entry_overflow`（:161/:164）。无守卫反事实（勘正·rev r1）：**同构含真实件**的 1001 条目 zip 无守卫时被 mammoth→jszip 静默吃下（评审席 2026-11-05 亲证 18ms 提取成功）；本项基线 fixture 系无 document.xml 简形——无守卫时 mammoth 拒因缺主件非拒因条目数（如实披露）——同构真实件承重面由 §2-10 升为仓内机证，断言承重非同义反复。
+2. **负例二（超大解压声明）**：64MB+1 声明 + 真 document.xml 条目 0xFFFFFFFF（zip64 哨兵）声明两 fixture → guard 臂+生产缝双断言 `zip_uncompressed_overflow`（:166/:169）。
+3. **结构不可核**：PK`\x03\x04` 头无 central directory → `zip_directory_invalid`（:173·fail-closed"核不了=拒"面）。
+4. **恰帽边界**：恰 1000 条目/恰 64MB 声明零抛（:158/:159·上界不误伤·帽值语义=≤ 恰等通过·真 docx 与恰帽 fixture 对 rev r1 两自洽检恒真）。
+5. **正例旁证（防误伤）**：100 条目真 docx 全链提取输出与 A1 恒等（:180）+A1 三条目真例既有断言保持（:148-149）——守卫对合法多 media 文档零误伤。
+6. **现有 proof 全绿**：`pnpm -C packages/domain prove:resume-extract` 全量 EXIT=0（修前 35 断言基线在案→落码后 43 断言→rev r1 增自洽检负例四断言+真实三件变体三断言→**50 断言**）。
 7. **三门**：`node scripts/ai-docs/check-docs.mjs` EXIT=0 且 scanned **2485=cap 2485 恰等**；`node scripts/ai-docs/public-text-policy.proof.mjs` **12/12** EXIT=0；markers 改动集冲突标记扫描 **0**。
 8. **node --check**：两 policy `.mjs` 脚本 EXIT=0；`.ts` 面语法门由 tsx proof 行使（tsx 编译即全量语法核）。
+9. **自洽检负例（EOCD 字段谎报类·rev r1）**：谎报 `totalEntries=2`（CD 定界少报·CD 区残余）guard+生产缝双断言 `zip_directory_invalid`（:188/:191）；谎报 `cdSize`（cdOffset+cdSize 失配 EOCD·双 CD 操纵形）guard+生产缝双断言 `zip_directory_invalid`（:192/:195）——两检合用闭探针 1/2 及「良性 CD 填满至 EOCD+敌对 CD 异域」变体。
+10. **真实三件同构变体两向同 fixture 族闭合（rev r1）**：1001=3 真实件+998 media 形 filler guard+生产缝双断言 `zip_entry_overflow`（:200/:203）；恰 1000 条目同构合法件（3 真实件+997 media 形 filler）全链必通且输出与 A1 恒等（:206）——同构合法件无守卫必通=反事实仓内机证（拒因唯一=条目数非结构）。
 
 ---
 
@@ -171,11 +182,18 @@ export function assertDocxZipWithinCaps(buffer: Buffer): void {
 | 落码后 | `node scripts/ai-docs/public-text-policy.proof.mjs` | EXIT=0·**12/12** |
 | 落码后 | markers 改动集冲突标记扫描 | **0** 命中 |
 | 落码后 | `node --check` 两 policy 脚本 | EXIT=0 ×2 |
+| rev r1 | `pnpm -C packages/domain prove:resume-extract` | EXIT=0·**50 断言全绿**（43+7：自洽检负例四+真实三件变体三） |
+| rev r1 | `node scripts/ai-docs/check-docs.mjs` | EXIT=0·scanned **2485=cap 2485 恰等**（rev 三件均既有 tracked 行内改零增计） |
+| rev r1 | `node scripts/ai-docs/public-text-policy.proof.mjs` | EXIT=0·**12/12** |
+| rev r1 | markers 改动集冲突标记扫描 | **0** 命中 |
+| rev r1 | `node --check` 两 policy 脚本 | EXIT=0 ×2 |
 
 - 负例读数：entry-bomb 生产缝=`zip_entry_overflow`·size-bomb 生产缝=`zip_uncompressed_overflow`（0xFFFFFFFF zip64 哨兵形）·无 CD 生产缝=`zip_directory_invalid`·恰帽边界零抛 ×2·100 条目真 docx 正例旁证输出恒等。
+- rev r1 负例读数：谎报 `totalEntries=2` 全链拒=`zip_directory_invalid`（:188 guard/:191 生产缝）·谎报 `cdSize` 全链拒=`zip_directory_invalid`（:192 guard/:195 生产缝）·1001 条目真实三件形（3 真实件+998 media 形 filler）guard/生产缝=`zip_entry_overflow`（:200/:203）·恰 1000 条目同构合法件全链必通输出与 A1 恒等（:206·反事实仓内机证）·恰帽边界 fixture 与真 docx 对两自洽检恒真零适配。
 - CAP-SANCTION-2485 落点：policy `MAX_FILES = 2_485`+随刀注记·proof 四联动点 2_485/f-2485.md/:2486+随刀注记·PTP 12/12 全量一次行使即全 proof 邻面·2485/2486 双值全行使绿。
+- **rev r1 注记（2026-11-05·登记源=pre-exec dual 席1 P1 双探针实证+P2 清单·探针证词转录）**：守卫帽对 EOCD 字段谎报整类绕过——jszip 按签名连续走读不用 EOCD totalEntries 定界（zipEntries.js:216-236 walked>declared 明文 "no error here"；rev 席亲证 jszip@3.10.1 `readCentralDir` 系 `while (readAndCheckSignature(CENTRAL_FILE_HEADER))` 按签名连续走读、walked>declared 落入 "no error here" 容忍分支，机制属实）：谎报 `totalEntries=2`+附加 100,002 条 CDH → 守卫 PASS→mammoth 全链 ACCEPT（席1 亲证 297ms 提取成功）；双 CD `cdSize` 操纵同类。修法=守卫两行 fail-closed 自洽检（预走读 `cdOffset+buffer.readUInt32LE(eocd+12) !== eocd`→`zip_directory_invalid` 落码 :135·走读循环后 `p !== eocd`→`zip_directory_invalid` 落码 :144）——两检合用闭探针 1/2 及「良性 CD 填满至 EOCD+敌对 CD 异域」变体；帽值常量/三错误码零变；恰帽边界 fixture 与真 docx 两检恒真（既有负例零触自洽检零适配，proof 亲证）。同席 P2 勘正随刀：§1.2 三处预测行号勘正（签名常量 :112-113/工厂 :115/doc 注 :117-122）+新两行落码后全部行号重 pin（§1.2/§1.3/§1.4/§2）·§1.4 表行 4+§2-1 反事实句勘正（18ms 亲证+简形拒因缺主件如实披露）·建议采纳：负例 fixture 补真实三件变体断言（1001=3 真实件+998 media 形 filler 越帽拒+恰 1000 同构合法件全链必通两向同 fixture 族闭合·反事实承重升为仓内机证）。状态保持 `draft:awaiting_pre_exec_dual`（待 dual r2）。
 - **状态钉 · `draft:awaiting_pre_exec_dual`**（2026-11-05 起草落卷即停·前值无·首钉·详 §8·状态钉四处 Status/§8/本节/卷尾 同值）。
 
 ---
 
-*S3-UPLOAD-CAPS REQUEST · 2026-11-05 起草含码落卷 · **`draft:awaiting_pre_exec_dual`**（pre-exec 双审两独立外席留协调方派席·alone≠dual·Ban self-approve·翻面权归协调方·est live=0·actualSpendCny=null·markers=0）· base `origin/main` @`fd2b74635`（#205 并线点·fetch 届值恒等亲证·worktree `meetwise-s3caps` branch `line/s3caps-draft` 亲立·建前零同名卷三查亲证）· 立项出处=协调方派单令 2026-11-05 + extrev-deps-audit-REQUEST.md §1-S3/rev2 A2 :176 帽值预登记 + 外部总表 #107 · 修法=resume-extract 解包前置守卫（EOCD/central directory 手读零新依赖·条目 ≤1000/解压总量 ≤64MB·三新码 fail-closed）+docx 分支 :229 接线+proof §6b 八断言（负例两向/恰帽边界/结构不可核/正例旁证）· CAP-SANCTION-2485 起草随刀恰等步进预登（main 届扫 2484+本卷 1=2485 恰等零多放·errata/perf 同号在飞沿 2480 三支同号 dual-keep 先例形·union 并线期届时取大重算承登）· 三门 docs 2485=cap 恰等/PTP 12/12/markers 0 亲跑在卷·proof 43 断言全绿 · ⛔push ⛔merge主线 ⛔force push ⛔动在飞五树 ⛔Key 值零触 · 落卷即停*
+*S3-UPLOAD-CAPS REQUEST · 2026-11-05 起草含码落卷 · **`draft:awaiting_pre_exec_dual`**（pre-exec 双审两独立外席留协调方派席·alone≠dual·Ban self-approve·翻面权归协调方·est live=0·actualSpendCny=null·markers=0）· base `origin/main` @`fd2b74635`（#205 并线点·fetch 届值恒等亲证·worktree `meetwise-s3caps` branch `line/s3caps-draft` 亲立·建前零同名卷三查亲证）· 立项出处=协调方派单令 2026-11-05 + extrev-deps-audit-REQUEST.md §1-S3/rev2 A2 :176 帽值预登记 + 外部总表 #107 · 修法=resume-extract 解包前置守卫（EOCD/central directory 手读零新依赖·条目 ≤1000/解压总量 ≤64MB·三新码 fail-closed）+docx 分支 :229 接线+proof §6b 八断言（负例两向/恰帽边界/结构不可核/正例旁证）〔rev r1：守卫增两行 EOCD 自洽检（:135 预走读 cdOffset+cdSize 恰抵 EOCD/:144 走读后 CD 区恰耗尽·闭 EOCD 字段谎报整类绕过）·接线重 pin :231·proof §6b 增至十五断言（+自洽检负例四+真实三件同构变体三·反事实仓内机证）〕· CAP-SANCTION-2485 起草随刀恰等步进预登（main 届扫 2484+本卷 1=2485 恰等零多放·errata/perf 同号在飞沿 2480 三支同号 dual-keep 先例形·union 并线期届时取大重算承登）· 三门 docs 2485=cap 恰等/PTP 12/12/markers 0 亲跑在卷·proof 43 断言全绿〔rev r1 50 断言全绿·三门 rev r1 复跑同值〕 · rev r1 2026-11-05 落卷（登记源=pre-exec dual 席1 P1 双探针+P2 清单·详 §9 rev r1 注记·状态保持 `draft:awaiting_pre_exec_dual` 待 dual r2） · ⛔push ⛔merge主线 ⛔force push ⛔动在飞五树 ⛔Key 值零触 · 落卷即停*

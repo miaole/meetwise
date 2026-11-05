@@ -1,7 +1,8 @@
 /**
  * resume-extract:prove — 简历多格式提取 + 清洗。
  * 测:格式探测(pdf/docx/image/text)· 清洗(控制字符/空白/空行/不间断空格)· 文本直通 · 图片抛 OCR
- *    · 解压守卫双帽负例/恰帽边界/多条目正例旁证(条目数/解压总量·fail-closed 先于 worker spawn)。
+ *    · 解压守卫双帽负例/恰帽边界/多条目正例旁证(条目数/解压总量·fail-closed 先于 worker spawn)
+ *    · EOCD 字段谎报自洽检负例/真实三件同构变体两向(越帽拒·同构合法件必通)。
  */
 import { detectResumeFormat, cleanResumeText, extractResumeText, looksLikeEncryptedPdf, assertDocxZipWithinCaps } from '../src/resume-extract.ts';
 
@@ -177,6 +178,32 @@ const wideDocx = craftDocx([
 ]);
 const rWide = await extractResumeText(wideDocx, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'resume-wide.docx');
 ok(rWide.format === 'docx' && rWide.text === '张三 · 后端工程师\n\n五年 Node/Go 分布式经验', '正例旁证:100 条目真 docx 守卫零误伤·端到端提取输出恒等');
+// 自洽检负例(EOCD 字段谎报探针复刻):谎报 totalEntries(定界少报)则走读早停 CD 区残余 → zip_directory_invalid;
+// 谎报 cdSize(cdOffset+cdSize 失配 EOCD)走读前即拒——守卫走读自洽与 EOCD 声明恒等,谎报整类 fail-closed。
+const eocdFieldPatch = (buf: Buffer, field: 'totalEntries' | 'cdSize', val: number): Buffer => {
+  const b = Buffer.from(buf);   // 深拷贝:不动 realDocx 原 fixture 字节
+  if (field === 'totalEntries') b.writeUInt16LE(val, b.length - 22 + 10); else b.writeUInt32LE(val, b.length - 22 + 12);
+  return b;
+};
+ok(guardCodeOf(() => assertDocxZipWithinCaps(eocdFieldPatch(realDocx, 'totalEntries', 2))) === 'zip_directory_invalid', '守卫自洽检:谎报 totalEntries=2(CD 定界少报·CD 区残余) → zip_directory_invalid');
+let lieEntries = '';
+try { await extractResumeText(eocdFieldPatch(realDocx, 'totalEntries', 2), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'lie-entries.docx'); } catch (e) { lieEntries = codeOf(e); }
+ok(lieEntries === 'zip_directory_invalid', '自洽检负例:谎报 totalEntries 经生产缝 → zip_directory_invalid(全链拒·worker 零 spawn)');
+ok(guardCodeOf(() => assertDocxZipWithinCaps(eocdFieldPatch(realDocx, 'cdSize', 1))) === 'zip_directory_invalid', '守卫自洽检:谎报 cdSize(cdOffset+cdSize 失配 EOCD) → zip_directory_invalid');
+let lieCdSize = '';
+try { await extractResumeText(eocdFieldPatch(realDocx, 'cdSize', 1), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'lie-cdsize.docx'); } catch (e) { lieCdSize = codeOf(e); }
+ok(lieCdSize === 'zip_directory_invalid', '自洽检负例:谎报 cdSize 经生产缝 → zip_directory_invalid(全链拒·worker 零 spawn)');
+// 真实三件同构变体两向同 fixture 族闭合:1001=3 真实件+998 media 形 filler 越帽拒;恰 1000 同构合法件
+// 全链必通且输出与 A1 恒等——证拒因唯一=条目数非结构(无守卫反事实=同构含真实件 zip 被 mammoth→jszip
+// 静默吃下,本对向即其仓内机证)。
+const realBomb = craftDocx([...realDocxEntries, ...fillerEntries(998, 'word/media/img')]);
+ok(guardCodeOf(() => assertDocxZipWithinCaps(realBomb)) === 'zip_entry_overflow', '守卫:1001 条目真实三件形(3 真实件+998 media 形 filler) → zip_entry_overflow');
+let realBombSeam = '';
+try { await extractResumeText(realBomb, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'bomb-entries-real.docx'); } catch (e) { realBombSeam = codeOf(e); }
+ok(realBombSeam === 'zip_entry_overflow', '负例一变体:真实三件 1001 条目经生产缝 → zip_entry_overflow(拒因唯一=条目数)');
+const realWide1000 = craftDocx([...realDocxEntries, ...fillerEntries(997, 'word/media/img')]);
+const rRealWide = await extractResumeText(realWide1000, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'resume-real-1000.docx');
+ok(rRealWide.format === 'docx' && rRealWide.text === '张三 · 后端工程师\n\n五年 Node/Go 分布式经验', '负例一变体对向:恰 1000 条目同构合法件全链必通·输出与 A1 恒等(反事实仓内机证)');
 
 // 7. #108/#109 伴生:真实 PDF 提取正例——手构合法 xref(禁依赖 pdf.js recovery 模式)·pdf-parse 端到端
 //    经 worker isolate(#108)全链提取并断言非空文本输出(补 worker+pdf-parse happy path 零覆盖面)。

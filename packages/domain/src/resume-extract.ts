@@ -132,6 +132,7 @@ export function assertDocxZipWithinCaps(buffer: Buffer): void {
   const totalEntries = buffer.readUInt16LE(eocd + 10);
   if (totalEntries > DOCX_ZIP_MAX_ENTRIES) throw zipGuardErr('zip_entry_overflow');
   const cdOffset = buffer.readUInt32LE(eocd + 16);
+  if (cdOffset + buffer.readUInt32LE(eocd + 12) !== eocd) throw zipGuardErr('zip_directory_invalid');   // EOCD 自洽:cdOffset+cdSize 恰抵 EOCD
   let p = cdOffset;
   let uncompressedTotal = 0;
   for (let n = 0; n < totalEntries; n++) {
@@ -140,6 +141,7 @@ export function assertDocxZipWithinCaps(buffer: Buffer): void {
     if (uncompressedTotal > DOCX_ZIP_MAX_UNCOMPRESSED_TOTAL) throw zipGuardErr('zip_uncompressed_overflow');
     p += 46 + buffer.readUInt16LE(p + 28) + buffer.readUInt16LE(p + 30) + buffer.readUInt16LE(p + 32);
   }
+  if (p !== eocd) throw zipGuardErr('zip_directory_invalid');   // CD 区恰被 totalEntries 条耗尽
 }
 
 const EXTRACT_TIMEOUT_MS = Number(process.env.RESUME_EXTRACT_TIMEOUT_MS ?? 8000);   // 提取硬超时(界定解压炸弹/病态文档的 hang;安全审计 F2)。到点抛 extract_timeout,上层降级为可解释错误。
