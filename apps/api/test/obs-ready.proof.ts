@@ -12,10 +12,10 @@
  *  P5. db_unreachable：SELECT 1 失败 → 503 + schema.migration=unknown（读不到≠已证一致），
  *      且探针查询短路（≤2 有界）。
  *  P6. 迁移目录不可达（MIGRATIONS_DIR 指向不存在路径）→ fail-closed mismatch。
- *  P7. 原因位分类（#92 残面 N1）：账本查询窗内连接类错（ECONNREFUSED 注入）→
+ *  P7. 原因位分类（#92 残面 N1）：账本查询窗内连接类错（ECONNREFUSED 注入 asGateway 缝）→
  *      db_unreachable + HTTP 503 + schema.migration=unknown；非连接类错（无码 Error）
- *      → migration_mismatch 保真（fail-closed 不松动）；注入下探针实发查询恰 2 条/拍
- *      （≤2 有界不破，零新增查询）。
+ *      → migration_mismatch 保真（fail-closed 不松动）；注入下探针两读有界不破
+ *      （池面 SELECT 1 恰 1 条 + 网关账本读恰 1 次/拍）。
  */
 import { randomUUID } from 'node:crypto';
 import { assertIsolatedTestTarget, createPool, latestMigrationVersion } from '@meetwise/db';
@@ -118,7 +118,10 @@ try {
 
   // P7. 原因位分类（#92 残面 N1）：账本查询窗内连接类错 → db_unreachable（真态归类，
   //     编排方不再误读为迁移漂移）；非连接类错（无码 Error）→ migration_mismatch 保真
-  //     （fail-closed 不松动）；注入下探针实发查询仍恰 2 条/拍（≤2 有界纪律不破，零新增查询）。
+  //     （fail-closed 不松动）。regr-draft 刀：账本读改经固定网关函数（0225·asGateway
+  //     路径·池面 .query 之外）——错误注入面随之移到 DbService 实例的 asGateway 缝
+  //     （探针账本读唯一入口；绕开 pg-pool 连接/回调双形面，避免误伤池内自用路径）；
+  //     有界纪律照旧自证：池面 SELECT 1 恰 1 条 + 网关账本读恰 1 次/拍（两读不变）。
   const originalQuery7 = pool.query.bind(pool);
   const queryThrough7 = originalQuery7 as (...args: unknown[]) => Promise<unknown>;
   const connErr = (): Error & { code?: string } => {
@@ -126,30 +129,42 @@ try {
     e.code = 'ECONNREFUSED';
     return e;
   };
-  let p7Calls = 0;
+  let p7PoolCalls = 0;
+  let p7GatewayReads = 0;
+  let p7ClientError: (() => Error) | null = null;
   pool.query = (sql?: unknown) => {
-    p7Calls++;
-    if (p7Calls % 2 === 1) return queryThrough7(sql) as Promise<never>;
-    return Promise.reject(connErr());
+    p7PoolCalls++;
+    return queryThrough7(sql) as Promise<never>;
   };
+  const dbService = app.get(DbService);
+  const originalAsGateway7 = dbService.asGateway.bind(dbService);
+  dbService.asGateway = ((fn: (c: { query: (sql: string) => Promise<{ rows: unknown[] }> }) => Promise<unknown>) => {
+    p7GatewayReads++;
+    const stubClient = {
+      query: async () => {
+        if (p7ClientError) throw p7ClientError();
+        return { rows: [{ v: null }] };
+      },
+    };
+    return fn(stubClient as never);
+  }) as typeof dbService.asGateway;
+  p7ClientError = connErr;
   const p7aSvc = await service.apiReady();
   const p7aHttp = await get('/readyz/api');
-  A('P7a 首查通/次查连接类错（ECONNREFUSED 注入）→ apiReady()=db_unreachable + HTTP 503 + schema.migration=unknown',
+  A('P7a 账本读连接类错（ECONNREFUSED 注入网关路径）→ apiReady()=db_unreachable + HTTP 503 + schema.migration=unknown',
     p7aSvc === 'db_unreachable' && p7aHttp.status === 503 && p7aHttp.body.schema?.migration === 'unknown');
-  const before7c = p7Calls;
+  const before7cPool = p7PoolCalls;
+  const before7cGw = p7GatewayReads;
   const p7cSvc = await service.apiReady();
-  A('P7c P7a 注入下探针实发查询恰 2 条/拍（SELECT 1+账本各 1·≤2 有界不破·零新增查询）',
-    p7cSvc === 'db_unreachable' && p7Calls - before7c === 2);
-  let p7bCalls = 0;
-  pool.query = (sql?: unknown) => {
-    p7bCalls++;
-    if (p7bCalls % 2 === 1) return queryThrough7(sql) as Promise<never>;
-    return Promise.reject(new Error('obs_ready_injected_unclassified_no_code'));
-  };
+  A('P7c 注入下探针两读有界不破：池面 SELECT 1 恰 1 条 + 网关账本读恰 1 次/拍',
+    p7cSvc === 'db_unreachable' && p7PoolCalls - before7cPool === 1 && p7GatewayReads - before7cGw === 1);
+  p7ClientError = () => new Error('obs_ready_injected_unclassified_no_code');
   const p7bSvc = await service.apiReady();
   const p7bHttp = await get('/readyz/api');
-  A('P7b 次查非连接类错（无码 Error 注入）→ apiReady()=migration_mismatch + HTTP 503 + schema.migration=mismatch 保真（fail-closed 不松动）',
+  A('P7b 账本读非连接类错（无码 Error 注入）→ apiReady()=migration_mismatch + HTTP 503 + schema.migration=mismatch 保真（fail-closed 不松动）',
     p7bSvc === 'migration_mismatch' && p7bHttp.status === 503 && p7bHttp.body.schema?.migration === 'mismatch');
+  p7ClientError = null;
+  dbService.asGateway = originalAsGateway7;
   pool.query = originalQuery7;
   const readyP7 = await get('/readyz/api');
   if (readyP7.status !== 200) throw new Error('obs_ready_p7_restore_failed');

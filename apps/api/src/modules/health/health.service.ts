@@ -60,7 +60,13 @@ export class HealthService {
    * 审计 #92：readiness 增迁移版本检查——两条有界只读（SELECT 1 + 账本 max(version)），
    * 账本 max(`COLLATE "C"` 字节序) 对比目录侧 latestMigrationVersion（同字节序，@meetwise/db
    * 同一版本源）。不一致=尚未迁移完/迁移漂移 → migration_mismatch（503，原因见 controller）。
-   * SELECT 1 失败短路返回 db_unreachable，不追加账本查询（探针查询数有界：≤2）。
+   * SELECT 1 失败短路返回 db_unreachable，不追加账本查询（探针查询数有界：两读）。
+   * 账本读经固定 SECURITY DEFINER 网关函数（0225 gateway_migration_ledger_max，asGateway→
+   * SET LOCAL ROLE app_gateway_role 执行）：探针在 NOINHERIT 运行时登录裸连接上运行、
+   * 绝不持表权限——直读 schema_migrations 会 permission-denied（#92 引入过的生产身份
+   * readiness 恒假红回归面）。函数体 plpgsql + to_regclass 短路：账本表不存在（drift 纯
+   * 文件重放世界）返回 NULL 绝不出错。fail-closed 语义零变：NULL/函数不可执行仍归
+   * migration_mismatch，绝不 fail-open。
    */
   async apiReady(): Promise<ApiReadiness> {
     try {
@@ -69,9 +75,9 @@ export class HealthService {
       return 'db_unreachable';
     }
     try {
-      const ledger = await this.db.pool.query<{ v: string | null }>(
-        'SELECT max(version COLLATE "C") AS v FROM schema_migrations',
-      );
+      const ledger = await this.db.asGateway((c) => c.query<{ v: string | null }>(
+        'SELECT gateway_migration_ledger_max() AS v',
+      ));
       const ledgerMax = ledger.rows[0]?.v ?? null;             // 空账本/表缺失(COLLATE 不救 to_regclass 之外情形) → null
       const dirMax = latestMigrationVersion(migrationsDir());
       // 目录不可读 = readdirSync 抛文件系错误（ENOENT/EACCES 等·不入连接类闭合集）→ 下方
