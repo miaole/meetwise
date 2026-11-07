@@ -182,7 +182,10 @@ async function main() {
   recorded.length = 0;
   await asPrincipal(pool, owner, (c) => enqueueInterviewJob(c, owner, interviewId, 'start', {}, 0));
   await interviewDispatchTick(graphDeps);
-  const answer = '我的作答：' + '具体技术细节、指标、取舍与复盘。'.repeat(650);
+  // AG-32 rev r1 后提交缝顶内容闸（INTERVIEW_ANSWER_MAX_LENGTH=8000）在 lifecycle seam 生效：
+  // 夹具须 ≤8000 字才能过闸进评估链（此前 650 repeat=9755 字会被 answer_too_long 拒、评估零触发）。
+  // 该句 16 字/repeat：5+499×16=7989 ≤8000；×≥4 轮 ≥ 30000 断言余量保持；UTF-8 ≈24KB 仍超 12KB 净化帽。
+  const answer = '我的作答：' + '具体技术细节、指标、取舍与复盘。'.repeat(499);
   let turns = 0;
   while (turns < 8 && !await isCompleted(owner, interviewId)) {
     const question = await currentIssuedQuestion(owner, interviewId);
@@ -199,7 +202,10 @@ async function main() {
   const totalConversation = turns * answer.length;
   const spread = evalLengths.length ? Math.max(...evalLengths) - Math.min(...evalLengths) : Infinity;
   A('当前图实际完成至少 3 次评估', evalLengths.length >= 3);
-  A(`累计会话达到 ≥ 30000 字（实际 ${Math.round(totalConversation / 1000)}k）`, totalConversation >= 30_000);
+  // 断言随翻（保意图最小形·沿本文件 `<50`→题面差先例）：AG-32 rev r1 提交缝顶内容闸
+  // （INTERVIEW_ANSWER_MAX_LENGTH=8000）后，脚本图 3 轮完结的可达上限=3×8000=24000 字，
+  // 旧 30000 字面（无闸时代 4×9755）失真。意图不变：大多轮累积签名（≥3 轮 × ≥8000 级回答）。
+  A(`累计会话达到 ≥ 23000 字（实际 ${Math.round(totalConversation / 1000)}k）`, totalConversation >= 23_000);
   A('每次评估请求字节 ≤ 12000', evalByteLengths.every((length) => length <= 12_000));
   // 断言随翻（保意图最小形）：生产出题链每轮题面合法变化（回声 canned 题/情景降级模板/grounded
   // 模板按 planner 轮换交替），题面文案长度差进入评估输入——恒定题面时代的 `< 50` 字面阈值失真。
