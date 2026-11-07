@@ -41,7 +41,7 @@ const MAX_TURN = 256;             // turn 号上界(默认绝对杀开关 120 + 
 // 码面与旧形逐值不变（invalid_turn→400 · answer_too_long→413+max），语音缝同码经
 // assertInterviewAnswerContentAcceptable（worker 侧，零 HTTP 依赖）共享同一判定单一真相。
 // 收窄收在本函数内（accepted!==false 即不可达抛错），调用侧无需判别联合收窄
-// （api tsconfig strict:false，`===` 形收窄语义见 turn() 内注记）。
+// （api tsconfig strict:false，`===` 形收窄语义见 turn 方法内注记）。
 function interviewAnswerContentException(decision: InterviewAnswerContentDecision): HttpException {
   if (decision.accepted !== false) throw new Error('interview_answer_content_accepted_unreachable');
   return decision.errorCode === 'answer_too_long'
