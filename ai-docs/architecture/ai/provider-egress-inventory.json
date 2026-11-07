@@ -2423,6 +2423,21 @@
       "name": "MODEL_BASE_URL",
       "source": "apps/api/test/uc-e2e-015-nhp-fault.proof.ts",
       "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/voice-adaptive.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "apps/worker/test/voice-adaptive.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_COMPAT_BASE_URL",
+      "source": "apps/worker/test/voice-adaptive.proof.ts",
+      "class": "test-isolation"
     }
   ],
   "deploymentReferences": [

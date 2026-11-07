@@ -1,7 +1,7 @@
 import { Injectable, Inject, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { assertInterviewPrivacyActive, reserveEntitlement, reserveEntitlementForApplication, enqueueInterviewJob, abandonInterviewAndRelease, claimInterviewAnswer, submitInterviewAnswer, readbackInterviewAnswerSubmission, viewInterviewAnswerSnapshot, supplyCandidateProfileRoute, requireOwnerUserId, buildRequiredOwnerFilter, newEntityId, asErr, errCode, createScoreRequestForSubmission, SCORING_ISSUE_PRIVACY_EPOCH, loadTranscribedAnswerJobPayload } from '@meetwise/db';
-import { deriveCareerPath, requireTrustedPracticeOverall, resolveOverlongAnswerPolicy } from '@meetwise/domain';
+import { deriveCareerPath, requireTrustedPracticeOverall, resolveOverlongAnswerPolicy, judgeInterviewAnswerContent, type InterviewAnswerContentDecision } from '@meetwise/domain';
 import { runCareerPathGraph, selectCareerPathDerive, CAREER_PATH_GRAPH_NAME } from '@meetwise/ai-graphs';
 import type { InterviewAnswerPreviewSubmitDto, InterviewAnswerSubmitResult, TranscribeDto, TurnDto } from '@meetwise/contracts';
 import type { Asr, Tts, StreamingTts } from '@meetwise/ai-runtime';
@@ -37,6 +37,17 @@ const REPORT_RETRY_RL = { capacity: 3, refillPerSec: 3 / 3600 };
 // interview 表状态机:created →(completed | failed | abandoned)（A 形 5E 摘除 active 直达）。终态集中一处定义,begin/turn/abandon 守卫共用。
 const TERMINAL_INTERVIEW = ['completed', 'abandoned', 'failed'];
 const MAX_TURN = 256;             // turn 号上界(默认绝对杀开关 120 + clarify 冗余;防超大 turn 号刷无限 job)
+// AG-32 rev r1：内容闸判定（judgeInterviewAnswerContent）的 HTTP 码面映射，本层独占——
+// 码面与旧形逐值不变（invalid_turn→400 · answer_too_long→413+max），语音缝同码经
+// assertInterviewAnswerContentAcceptable（worker 侧，零 HTTP 依赖）共享同一判定单一真相。
+// 收窄收在本函数内（accepted!==false 即不可达抛错），调用侧无需判别联合收窄
+// （api tsconfig strict:false，`===` 形收窄语义见 turn 方法内注记）。
+function interviewAnswerContentException(decision: InterviewAnswerContentDecision): HttpException {
+  if (decision.accepted !== false) throw new Error('interview_answer_content_accepted_unreachable');
+  return decision.errorCode === 'answer_too_long'
+    ? new HttpException({ error: decision.errorCode, max: decision.maxLength }, HttpStatus.PAYLOAD_TOO_LARGE)
+    : new HttpException({ error: decision.errorCode }, HttpStatus.BAD_REQUEST);
+}
 // DBID-1 post-dual 席2：版本组字符类放宽 [1-5]→[0-9a-f]（纳 v7 · resume.id 已 DEFAULT uuidv7()）·变位锁 [89ab] 与守卫逻辑不动。
 // #85 单源化（5E 2026-10-12）：正则本体迁 apps/api/src/platform/uuid.ts（UUID_V7_RE，顶部 import 别名引入）。
 
@@ -452,14 +463,14 @@ export class InterviewService {
     this.denyPublicPreviewWrite();
     const turn = body.turn;
     // 共享 Zod 契约是入口；service 仍做上界防御，避免内部调用绕过 pipe。
-    if (turn > MAX_TURN || !body.answer.trim()) throw new HttpException({ error: 'invalid_turn' }, HttpStatus.BAD_REQUEST);
-    // 超长作答策略显式化（CTX-01）：确定性 reject + 明确错误码 answer_too_long（用户可感知），
-    // 绝不截断/摘要后当评分证据——评分只看原始作答，经 SCOR score_evidence 链（评分侧 capUserData 仍为纵深兜底）。
-    const overlong = resolveOverlongAnswerPolicy('interview_route', body.answer.length);
-    // 用 `=== false` 而非 `!overlong.accepted`：api 侧 tsconfig strict:false（strictNullChecks 关），
-    // `!` 对 boolean 判别联合在 strictNullChecks 关时不会收窄对象类型（会 TS2339 报 policy 不存在）。
-    if (overlong.accepted === false)
-      throw new HttpException({ error: overlong.policy.errorCode, max: overlong.policy.maxLength }, HttpStatus.PAYLOAD_TOO_LARGE);
+    if (turn > MAX_TURN) throw new HttpException({ error: 'invalid_turn' }, HttpStatus.BAD_REQUEST);
+    // AG-32 rev r1：空白/超长两道内容闸下沉为 @meetwise/domain 单一真相（judgeInterviewAnswerContent），
+    // 与语音提交缝（submitVoiceTranscriptAnswer pre-claim 闸 + submitAdaptiveAnswer 缝顶闸）共用同一判定
+    // 与同一错误码（invalid_turn/answer_too_long 逐值同码），杜绝两路入口再分叉。HTTP 码面映射留本层：
+    // invalid_turn→400 · answer_too_long→413+max（超长作答策略显式化 CTX-01：确定性 reject，绝不截断/
+    // 摘要后当评分证据——评分只看原始作答，经 SCOR score_evidence 链，评分侧 capUserData 仍为纵深兜底）。
+    const content = judgeInterviewAnswerContent(body.answer);
+    if (content.accepted === false) throw interviewAnswerContentException(content);
     // 成本 DoS 闸(每 turn = 一条付费评分 job):per-principal 令牌桶,超速 → 429(安全审计 F1)。
     if (!(await this.rl.allow(`turn:${principal}`, TURN_RL.capacity, TURN_RL.refillPerSec)))
       throw new HttpException({ error: 'too_many_requests', message: '作答过于频繁,请稍候' }, HttpStatus.TOO_MANY_REQUESTS);

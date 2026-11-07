@@ -2,6 +2,7 @@
 import {
   INTERVIEW_ANSWER_MAX_LENGTH, INPUT_ROUTE_KINDS, OVERLONG_POLICY_KINDS, SEGMENT_POLICIES,
   isInterviewQuestionIdentity, routeInterviewOrFreeConversation, resolveOverlongAnswerPolicy,
+  judgeInterviewAnswerContent, assertInterviewAnswerContentAcceptable,
   computeDeterministicTotal, scoreSpanDigest, reverifyScoreEvidenceSpan, canonicalScoreSpan, utf8ByteLength,
 } from '../src/index.ts';
 
@@ -69,6 +70,39 @@ A('非法路由值 → 抛 input_route_kind_invalid（fail-closed）',
   throws(() => resolveOverlongAnswerPolicy('bogus' as never, 1)));
 A('负长度 → 抛 answer_length_invalid（fail-closed）',
   throws(() => resolveOverlongAnswerPolicy('interview_route', -1)));
+
+/* ── C2. AG-32 rev r1：作答内容闸单一真相（文本入口/语音提交缝共用·同码同值）────────── */
+// 文本入口（interview.service turn()：invalid_turn→400 · answer_too_long→413+max）与语音提交缝
+// （submitVoiceTranscriptAnswer pre-claim 闸 + submitAdaptiveAnswer 缝顶闸）都经本判定——
+// 证伪外席2 P1（语音缝绕开文本入口两道内容闸：空白吃题·11000 字评满分）的修复单一真相在本原语。
+const codeOfContent = (answer: string): string => {
+  const d = judgeInterviewAnswerContent(answer);
+  return d.accepted === false ? d.errorCode : 'accepted';
+};
+const blankDecision = judgeInterviewAnswerContent('   ');
+A('空白转写（纯空白）→ 拒 invalid_turn（与文本入口 400 invalid_turn 同码）',
+  blankDecision.accepted === false && blankDecision.reason === 'blank' && blankDecision.errorCode === 'invalid_turn');
+A('空串/制表符混白 → 同拒 invalid_turn',
+  codeOfContent('') === 'invalid_turn' && codeOfContent('\n\t \n') === 'invalid_turn');
+const okDecision = judgeInterviewAnswerContent('我用滑动窗口加令牌桶做限流');
+A('正常作答 → accepted·maxLength=8000（判定零副作用，占用与否由调用方决定）',
+  okDecision.accepted === true && okDecision.maxLength === INTERVIEW_ANSWER_MAX_LENGTH);
+const edgeDecision = judgeInterviewAnswerContent('答'.repeat(8000));
+A('恰 8000 字 → accepted（边界不误伤，与超长策略边界逐值一致）', edgeDecision.accepted === true);
+const overDecision = judgeInterviewAnswerContent('答'.repeat(8001));
+A('8001 字 → 拒 answer_too_long·maxLength=8000（与文本入口 413 同码同上限）',
+  overDecision.accepted === false && overDecision.reason === 'overlong'
+  && overDecision.errorCode === 'answer_too_long' && overDecision.maxLength === INTERVIEW_ANSWER_MAX_LENGTH);
+A('assert 形（缝内用）：空白抛 code=invalid_turn·超长抛 code=answer_too_long+max=8000·正常零抛',
+  (() => {
+    const errOf = (answer: string) => { try { assertInterviewAnswerContentAcceptable(answer); return null; } catch (e) { return e as { code?: string; max?: number; message?: string }; } };
+    const blank = errOf(' '); const over = errOf('x'.repeat(8001)); const ok = errOf('正常作答');
+    return blank?.code === 'invalid_turn' && blank?.message === 'invalid_turn'
+      && over?.code === 'answer_too_long' && over.max === 8000 && over.message === 'answer_too_long'
+      && ok === null;
+  })());
+A('两路同码结构性承证:判定拒码只有 invalid_turn/answer_too_long 两值（与文本入口字面恒等）',
+  codeOfContent('   ') === 'invalid_turn' && codeOfContent('答'.repeat(8001)) === 'answer_too_long');
 
 /* ── D. 核心验收：超长作答不改变评分事实（哪些证据进 score_evidence、deterministic_total）── */
 // 原始作答（中文多字节，stress UTF-8 字节坐标系）：25 个汉字 = 75 字节。

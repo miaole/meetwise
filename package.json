@@ -653,7 +653,7 @@
     "worker-production-config:prove": "pnpm -C apps/worker prove:production-config",
     "rag-control-runtime:prove": "pnpm -C apps/worker prove:rag-control-runtime",
     "web-explore:prove": "pnpm -C packages/domain prove:web-explore",
-    "voice-adaptive:prove": "pnpm -C apps/worker prove:voice-adaptive",
+    "voice-adaptive:prove": "node scripts/run-e2e-isolated.mjs voice-adaptive:prove:raw",
     "qbank:prove": "node scripts/run-e2e-isolated.mjs rag-generation:prove:raw",
     "qbank:prove:raw": "pnpm -C apps/worker prove:qbank-generation",
     "qbank-control-role:prove": "node scripts/run-e2e-isolated.mjs qbank-control-role:prove:raw",

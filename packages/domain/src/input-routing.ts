@@ -155,3 +155,46 @@ export function resolveOverlongAnswerPolicy(route: InputRouteKind, length: numbe
   }
   return { accepted: true, maxLength: INTERVIEW_ANSWER_MAX_LENGTH };
 }
+
+/**
+ * 作答内容闸判定（AG-32 rev r1 · 文本/语音两路共用的单一真相）。
+ *
+ * AG-32 证伪审查（外席2 P1）坐实：语音 submit 缝不含文本入口的两道内容闸——空白转写被
+ * `claimInterviewAnswer` 受理后由图判非作答（消耗该题 turn）；11000 字符转写被模面当有效答案
+ * 评满分（绕开 8000 上限契约）。修法：把文本入口的空白/超长两道闸下沉为本判定，文本入口
+ * （HTTP 400/413 码面映射留 service 层）与语音提交缝（worker `submitVoiceTranscriptAnswer`
+ * pre-claim 闸 + `submitAdaptiveAnswer` 缝顶闸）共用同一判定与同一错误码，杜绝再分叉。
+ *
+ * 判定零 IO 零副作用；「是否占用题目」（claim/推进图）由调用方在判定之后决定——两路都必须
+ * 先判定后占用，拒收轮次题目状态零变更、可重答。错误码与文本入口逐值同码：
+ * - 空白/空内容（trim 后为空）→ `invalid_turn`（文本入口 400 同码）；
+ * - 超长（> INTERVIEW_ANSWER_MAX_LENGTH，复用 resolveOverlongAnswerPolicy 单一上限）→
+ *   `answer_too_long`（文本入口 413 同码，maxLength 同值）。
+ */
+export type InterviewAnswerContentDecision =
+  | { accepted: true; maxLength: number }
+  | { accepted: false; reason: 'blank'; errorCode: 'invalid_turn' }
+  | { accepted: false; reason: 'overlong'; errorCode: 'answer_too_long'; maxLength: number };
+
+export function judgeInterviewAnswerContent(answer: string): InterviewAnswerContentDecision {
+  if (typeof answer !== 'string' || !answer.trim())
+    return { accepted: false, reason: 'blank', errorCode: 'invalid_turn' };
+  const overlong = resolveOverlongAnswerPolicy('interview_route', answer.length);
+  if (overlong.accepted === false)
+    return { accepted: false, reason: 'overlong', errorCode: 'answer_too_long', maxLength: overlong.policy.maxLength };
+  return { accepted: true, maxLength: overlong.maxLength };
+}
+
+/**
+ * 缝内判定+抛出（worker 侧 submit 缝用）：错误以 `Error.message=code` + `code` 属性携带
+ * （与 `stale_question` 等生命周期具名错同形），错误码与文本入口逐值同码。HTTP 码面映射
+ * （invalid_turn→400 · answer_too_long→413+max）仍留 API service 层，本函数零 HTTP 依赖。
+ */
+export function assertInterviewAnswerContentAcceptable(answer: string): void {
+  const decision = judgeInterviewAnswerContent(answer);
+  if (decision.accepted) return;
+  throw Object.assign(
+    new Error(decision.errorCode),
+    decision.reason === 'overlong' ? { code: decision.errorCode, max: decision.maxLength } : { code: decision.errorCode },
+  );
+}

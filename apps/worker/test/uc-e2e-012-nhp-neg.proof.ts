@@ -6,24 +6,28 @@
  * 0246361dd · EXEC tip 见 §9-EXEC）。
  *
  * 需求源: e2e-scenarios.md:261-:272（UC-012 降级触发）· :274-:295（UC-024）· §0.2 缝 A/B：
- * adaptive-lifecycle.ts:487/:496/:498 具型拒 + interview-question.ts:115-125/:128-138 围栏族 +
+ * adaptive-lifecycle.ts:494/:503/:505 具型拒 + interview-question.ts:115-125/:128-138 围栏族 +
  * interview-event.ts:19-:21 raw-answer 围栏。D4 披露: UI 稍后评估=UI 面零触；E1 transient 重试
  * 分支 NOT claimed；断言面=终态/事件/围栏语义，非模型质量。
  *
- * 观测面校准（EXEC 亲证 · 收据同笔承登）：三具型拒（:487/:496/:498）均非 transient 白名单码
+ * 观测面校准（EXEC 亲证 · 收据同笔承登）：三具型拒（:494/:503/:505）均非 transient 白名单码
  * （interview-consumer.ts:267/601-610）→ consumer 确定性终态臂：markJobFailed（last_error=具型
  * code 字面 · interview-jobs.ts:270 last_error=$4）+ failInterviewAndRelease + interview_unavailable
  * 恰一 + drain 返回 'failed'（不 throw）。故本 case 断言面=具型 code（job.last_error 字面钉）+
  * 零伪造评分事件 + interview_question 零伪造 apply + 结算 fail-closed 恰一次（release 零双扣）+
  * 零静默续跑（无第二题 question_ready）——降级状态不可被负输入污染的语义逐字兑现。
  *
+ * AG-32 EXEC 锚勘正（会签 r1 P2-a）：缝顶内容闸（adaptive-lifecycle.ts:432 区）+7 行位移后，
+ * 具型拒届位 :487/:496/:498→:494/:503/:505（1a02 起旧位·EXEC 届树亲证 :494/:503/:505）——
+ * 断言本体=interview_job.last_error 错误码字面钉与行号零耦合，运行时绿不受漂移影响·语义零变。
+ *
  * 臂: PC = scripted 合法答案走通 answer-apply（对照 · 防假绿：claim accepted→drain→题标 answered
  * + answer_evaluated 恰一 + 同 identity 重放 markInterviewAnswerApplied 幂等 true=N3 对照半臂）；
  * **N1** 投影题不匹配（job 载荷 answerId=空引用 → 图侧 answer_reference_invalid 不落 transcript →
- * :486 !last → :487 `answer_not_applied_to_expected_question`）；**N2** identity 伪造（围栏占用
- * 窗口内异 identity 覆写 → :495-:496 verifyInterviewAnswerClaim 证伪 → `answer_identity_lost`，
+ * :493 !last → :494 `answer_not_applied_to_expected_question`）；**N2** identity 伪造（围栏占用
+ * 窗口内异 identity 覆写 → :502-:503 verifyInterviewAnswerClaim 证伪 → `answer_identity_lost`，
  * 原语证伪直证随臂）；**N3** 围栏占用后异 identity 重答（占用行已 answered(异 identity) → fence
- * 事务 re-check 具型拒 + :497-:498 markInterviewAnswerApplied stale 臂经原语直证 false + 对照半臂
+ * 事务 re-check 具型拒 + :504-:505 markInterviewAnswerApplied stale 臂经原语直证 false + 对照半臂
  * 同 identity 重放幂等 true）；**N4** 事件原语 raw-answer payload →
  * `interview_event_raw_answer_fenced`（:19-:21）+ 对照半臂=answerId/answerHash 载荷合法放行。
  * **全臂断言**：具型 code + interview_event 零伪造评分事件（零 answer_unscored/零异常
@@ -216,8 +220,8 @@ async function main(): Promise<void> {
     return identity;
   })();
 
-  // ── N1 · 投影题不匹配（job 载荷空 answerId 引用 → 图侧不落 transcript → :487 具型拒）──
-  section('N1 · 投影题不匹配答案 → :487 answer_not_applied_to_expected_question 具型拒（last_error 字面钉）');
+  // ── N1 · 投影题不匹配（job 载荷空 answerId 引用 → 图侧不落 transcript → :494 具型拒）──
+  section('N1 · 投影题不匹配答案 → :494 answer_not_applied_to_expected_question 具型拒（last_error 字面钉）');
   {
     const f = await fixture('n1', true);
     const q1 = await startFixture(f);
@@ -229,7 +233,7 @@ async function main(): Promise<void> {
     await asPrincipal(runtime, f.owner, (c) => enqueueInterviewJob(c, f.owner, f.id, 'answer', forgedInput, forgedInput.turn + 1));
     const drained = await drainInterviewJobOnce(f.deps, f.owner);
     A('N1 drain=failed（consumer 确定性终态臂 · 非 transient requeue 非静默吞）', drained === 'failed');
-    A('N1 具型钉: interview_job.last_error=answer_not_applied_to_expected_question（:486 !last → :487 · :130 同族字面）',
+    A('N1 具型钉: interview_job.last_error=answer_not_applied_to_expected_question（:493 !last → :494 · :130 同族字面）',
       (await lastAnswerJobError(f.owner)) === 'answer_not_applied_to_expected_question');
     A('N1 零伪造评分事件（answer_unscored=0 · answer_evaluated=0）',
       (await evCount(f.owner, f.id, 'answer_unscored')) === 0 && (await evCount(f.owner, f.id, 'answer_evaluated')) === 0);
@@ -241,8 +245,8 @@ async function main(): Promise<void> {
     E('N1-KINDS', { kinds: (await events(f.owner, f.id)).map((e) => e.kind), row });
   }
 
-  // ── N2 · identity 伪造 → :496 answer_identity_lost（verifyInterviewAnswerClaim 证伪路径）──
-  section('N2 · identity 伪造/陈旧 → :496 answer_identity_lost + 围栏原语证伪直证');
+  // ── N2 · identity 伪造 → :503 answer_identity_lost（verifyInterviewAnswerClaim 证伪路径）──
+  section('N2 · identity 伪造/陈旧 → :503 answer_identity_lost + 围栏原语证伪直证');
   {
     const f = await fixture('n2', true);
     const q1 = await startFixture(f);
@@ -268,7 +272,7 @@ async function main(): Promise<void> {
     }, f.owner);
     A('N2 注入生效自证: 钩子已运行 · UPDATE 恰 1 行 · 零错', injectLog.ran && injectLog.updated === 1 && injectLog.error === null);
     A('N2 drain=failed（确定性终态臂）', drained === 'failed');
-    A('N2 具型钉: interview_job.last_error=answer_identity_lost（:495-:496 fence 事务内二次 verify 证伪）',
+    A('N2 具型钉: interview_job.last_error=answer_identity_lost（:502-:503 fence 事务内二次 verify 证伪）',
       (await lastAnswerJobError(f.owner)) === 'answer_identity_lost');
     A('N2 原语直证: verifyInterviewAnswerClaim(真 identity A)=false（伪造覆写后 · :115-125 证伪路径）',
       await asPrincipal(runtime, f.owner, (c) => verifyInterviewAnswerClaim(c, f.owner, f.id, good)) === false);
@@ -297,11 +301,11 @@ async function main(): Promise<void> {
     // （claim 对 queued+异 identity 恒 stale 不落写）——伪造写手=本臂对抗对象。
     // 会话=app_role+GUC（attempt2 亲证：裸 admin 会话同 UPDATE 撞 interview_privacy_fenced=
     // 无主写手正确拒）。生效性=injectLog 臂内自证（零静默失败）。
-    // 观测面校准（attempt3-10 台账承登 · 收据同笔）：占用若于 :495 verify 前可见 → fence 事务
-    // re-check 走 :496 具型拒（answer_identity_lost）；:497-:498 stale 臂（markApplied=false）
-    // 要求占用恰落于 :495→:497 子语句窗——attempt4-10 行锁 Choreography（FOR UPDATE+pg_locks
+    // 观测面校准（attempt3-10 台账承登 · 收据同笔）：占用若于 :502 verify 前可见 → fence 事务
+    // re-check 走 :503 具型拒（answer_identity_lost）；:504-:505 stale 臂（markApplied=false）
+    // 要求占用恰落于 :502→:504 子语句窗——attempt4-10 行锁 Choreography（FOR UPDATE+pg_locks
     // blocking-pids 检测）亲证外部会话无法确定命中该窗（fence tx 先行语句即被 X 阻塞或 phase-2
-    // 先于 :495 落地）。故本臂=占用态经 :495 re-check 具型拒（drain 级）+ :497-:498 stale 臂
+    // 先于 :502 落地）。故本臂=占用态经 :502 re-check 具型拒（drain 级）+ :504-:505 stale 臂
     // 语义经原语直证（markInterviewAnswerApplied=false+同 identity 重放幂等 true 对照半臂）双钉，
     // 语义面（具型拒+占用不被覆写+零伪造评分事件）零弱化。
     const forgedId = randomUUID();
@@ -316,9 +320,9 @@ async function main(): Promise<void> {
     }, f.owner);
     A('N3 注入生效自证: 钩子已运行 · UPDATE 恰 1 行 · 零错', injectLog.ran && injectLog.updated === 1 && injectLog.error === null);
     A('N3 drain=failed（确定性终态臂）', drained === 'failed');
-    A('N3 具型钉: interview_job.last_error=answer_identity_lost（:495-:496 fence 事务 re-check 证伪 · :497-:498 stale 臂先导）',
+    A('N3 具型钉: interview_job.last_error=answer_identity_lost（:502-:503 fence 事务 re-check 证伪 · :504-:505 stale 臂先导）',
       (await lastAnswerJobError(f.owner)) === 'answer_identity_lost');
-    A('N3 原语直证: markInterviewAnswerApplied(真 identity A)=false（占用行 answered+异 identity → :497-:498 stale 臂语义 · :128-138）',
+    A('N3 原语直证: markInterviewAnswerApplied(真 identity A)=false（占用行 answered+异 identity → :504-:505 stale 臂语义 · :128-138）',
       await asPrincipal(runtime, f.owner, (c) => markInterviewAnswerApplied(c, f.owner, f.id, good)) === false);
     A('N3 占用不被覆写: 行仍 answered+伪造 identity（A 未覆盖 B · 绝不覆盖别的答案）',
       (await qRow(f.owner, q1))?.answer_id === forgedId && (await qRow(f.owner, q1))?.status === 'answered');
@@ -381,8 +385,8 @@ async function main(): Promise<void> {
     ? `✓ NHP-012-NEG-01 全臂绿（${total}/${total}）· EXIT=0 = 具名 case 真证据 ≠ covered`
     : `✗ ${failures}/${total} NHP-012-NEG-01 断言失败`}`);
   console.log('PIN: NEG cell gap→case-only · EXIT0≠covered · §1.0.1 :118 措辞零翻动 · coveredCount=8');
-  console.log('PIN: 具型钉=:487/:496(raw-answer-fence throw)· fence re-check 具型拒 N2/N3=answer_identity_lost · N3 stale 臂=markApplied false 原语直证');
-  console.log('PIN: N3 观测面校准=:495 re-check 先于 :497 stale 臂可见（attempt3-10 台账）· 语义面零弱化 · 收据同笔承登');
+  console.log('PIN: 具型钉=:494/:503/:505(raw-answer-fence throw)· fence re-check 具型拒 N2/N3=answer_identity_lost · N3 stale 臂=markApplied false 原语直证');
+  console.log('PIN: N3 观测面校准=:502 re-check 先于 :504 stale 臂可见（attempt3-10 台账）· 语义面零弱化 · 收据同笔承登');
   console.log('PIN: 观测面校准=非 transient 白名单码走 consumer 确定性终态臂（last_error+fail-closed release）· 收据同笔承登');
   console.log('PIN: 豁免②N2/②N3=围栏占用窗口并发注入 UPDATE（具名入收据 · 生效性臂内自证）');
   console.log('PIN: haStatus=NOT_HA · releaseEvidence=false · alone≠dual · ⛔push');

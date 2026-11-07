@@ -14,7 +14,7 @@ import {
 import { Command, type LangGraphRunnableConfig } from '@langchain/langgraph';
 import { buildAdaptiveInterviewGraph, type PendingQuestion } from '@meetwise/ai-graphs';
 import { getMetrics, METRIC, type ModelClient, type GraphObserver, type ModelCostPolicy } from '@meetwise/ai-runtime';
-import { admitInterviewResume, type QuestionGenerationProvenance, type ScoredRef, type SourceDoc, type CompetencySpec, type ResearchBoundaryDecision, type ScoredCriterionDisposition } from '@meetwise/domain';
+import { admitInterviewResume, assertInterviewAnswerContentAcceptable, type QuestionGenerationProvenance, type ScoredRef, type SourceDoc, type CompetencySpec, type ResearchBoundaryDecision, type ScoredCriterionDisposition } from '@meetwise/domain';
 import { buildAdaptiveDeps, buildResumeFactPool, planCompetencies, selectPlannerFacts } from './adaptive-interview-service.ts';
 import { writeScoreCardAfterProjectionFenceTolerant } from './score-writer.ts';
 import { recordAskedQuestions } from './memory-service.ts';
@@ -429,6 +429,13 @@ export function startAdaptiveInterview(d: AdaptiveLifecycleDeps, role: string, f
 async function submitAdaptiveAnswerImpl(
   d: AdaptiveLifecycleDeps, input: AcceptedInterviewAnswer,
 ): Promise<{ score?: number; nextQuestion?: string; nextQuestionId?: string; done: boolean; clarifying: boolean; degraded: boolean }> {
+  // AG-32 rev r1：文本/语音共用的提交缝顶内容闸（judgeInterviewAnswerContent 单一真相）——
+  // 空白 → invalid_turn、超长(>8000) → answer_too_long，错误码与文本入口（interview.service turn()
+  // 400/413）逐值同码。先于任何 DB 写（enrollCheckpointThread）与图 invoke：拒收轮次 checkpoint/
+  // ledger/事件/计费零副作用，题目状态不变可重答。文本路径合法流量在 API 层已过同判定（此处为
+  // 缝内等价闸=纵深兜底，非 HTTP-only 校验的缺口）；语音路径由 submitVoiceTranscriptAnswer 在
+  // claim 之前过同一判定（claim 吃题不可发生在拒收轮次）。
+  assertInterviewAnswerContentAcceptable(input.answer);
   await asPrincipal(d.pool, d.owner, (c) => enrollCheckpointThread(c, d.owner, d.interviewId));
   // C2/G2(RESUME-GROUNDING):answer 链进入点同源注入——一次 RLS 读出授权位+consent 门控 facts 池
   // (S2 grounded 真出题与 S3 追问上下文共用的弹药面;撤回后新一轮面试 buildData 零 digest/facts,G4)。
