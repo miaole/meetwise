@@ -670,6 +670,37 @@ CREATE POLICY p_candidate_profile_route_snapshot_owner ON candidate_profile_rout
     A('pay/已paid单换新流水 → 409 order_conflict', r2.status === 409 && r2.body?.error === 'order_conflict');
   }
 
+  // ══ §7 回调体类型面(#84/API-HARDEN-A·NHP-014)══ 病根:verifyCommerceSig 对 sig 只做 falsy 检查,
+  // 非字符串真值(数字/对象)穿透到 Buffer.from(sig) → TypeError → 500 internal_error(NHP-014)。
+  // 修法=①三控制器加 Zod pipe(类型+128 帽·失败信封 invalid_callback 与域约定同词);②verifyCommerceSig
+  // 单源前置 typeof 检查(纵深,覆盖未来新调用口)。本节锁定:类型混淆必 400 invalid_callback 绝不 500;
+  // 字符串垃圾 sig 的既有 403 bad_signature 语义逐字保留;超帽 129 流水 400(修前 403)。
+  {
+    // NHP-014 主面:数字 sig → 修前 Buffer.from(TypeError) 500;修后 400 invalid_callback
+    const r = await h.post(WH('ORD_AMT'), {}, { providerTxn: 'txn-t', sig: 12345, ts: Date.now() });
+    A('type/webhook 数字 sig → 400 invalid_callback(绝不 500·NHP-014)', r.status === 400 && r.body?.error === 'invalid_callback');
+  }
+  {
+    // 对象 providerTxn 穿透 falsy 检查 → HMAC update(对象) 500 面 → 修后 400 invalid_callback
+    const r = await h.post(WH('ORD_AMT'), {}, { providerTxn: { o: 1 }, sig: sig('ORD_AMT', 'x'), ts: Date.now() });
+    A('type/webhook 对象 providerTxn → 400 invalid_callback(绝不 500)', r.status === 400 && r.body?.error === 'invalid_callback');
+  }
+  {
+    // 主口 /payment/refund-callback:数字 sig 同型(修前 500)→ 修后 400 invalid_callback
+    const r = await h.post('/payment/refund-callback', {}, { orderId: 'ORD_AMT', providerTxn: 'txn-r', sig: 99, ts: Date.now() });
+    A('type/refund-callback 数字 sig → 400 invalid_callback(NHP-014 对偶口)', r.status === 400 && r.body?.error === 'invalid_callback');
+  }
+  {
+    // 对照:字符串垃圾 sig 的既有语义逐字保留 = 403 bad_signature(非 400/非 500)
+    const r = await h.post(WH('ORD_AMT'), {}, { providerTxn: 'txn-g', sig: 'deadbeef', ts: Date.now() });
+    A('type/字符串垃圾 sig 语义保留 → 403 bad_signature', r.status === 403 && r.body?.error === 'bad_signature');
+  }
+  {
+    // 超帽 providerTxn(129>128)→ 修后 400 invalid_callback(修前直达验签 → 403);垃圾 sig 保零副作用
+    const r = await h.post(WH('ORD_AMT'), {}, { providerTxn: 'x'.repeat(129), sig: 'deadbeef', ts: Date.now() });
+    A('type/webhook 超帽 providerTxn → 400 invalid_callback(128 帽)', r.status === 400 && r.body?.error === 'invalid_callback');
+  }
+
   // ── 统计 ──
   // 断言条数汇总(见文件末尾注释)。done() 按失败数退出。
   await done();

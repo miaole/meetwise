@@ -286,6 +286,38 @@ async function main() {
   A('method+body:privacy-consent-array-body', noCrash((await h.post('/privacy/consent', AU, [])).status));   // 裸 @Body 读 b?.purpose → 不崩
   A('method+body:roles-match-null-body', is4xx((await h.raw('POST', '/roles/match', AUJ, 'null')).status));  // 无 resumeId → 400
 
+  /* ═══════════════════════ H. 裸 @Body 类型面(#84/API-HARDEN-A)═══════════════════════
+     病根 census #84/NHP 族:裸 @Body 只做 falsy 存在性检查,非字符串真值穿透 service 校验
+     → 打进 scrypt/UUID_RE 等 string 契约面 → TypeError 500(或语义漂移 404)。
+     修法=Zod pipe(类型+128 帽)前置;本节锁定:①类型混淆必 4xx `invalid` 绝不 5xx;
+     ②既有具名 400 语义词(missing_resume_id/invalid_password/password_required)逐字保留;
+     ③128 帽与 Credentials R4 对齐(超帽 400 invalid,修前 401/放行)。 */
+
+  // H1 changePassword:对象 oldPassword 穿透 falsy 检查 → scrypt(TypeError) 500 → 修后 400 invalid
+  {
+    const r = await h.post('/profile/change-password', AUJ, { oldPassword: { $gt: '' }, newPassword: 'newpass99' });
+    A('type:changepw-object-oldpassword-4xx-not-5xx', is4xx(r.status) && r.status !== 401 && r.body?.error === 'invalid');
+  }
+  // H2 changePassword:超 128 帽 newPassword(修前直落验旧密分支 → 401 wrong_password)→ 修后 400 invalid
+  {
+    const r = await h.post('/profile/change-password', AUJ, { oldPassword: 'oldpass12', newPassword: big(129) });
+    A('type:changepw-overlong-newpassword-400-invalid', r.status === 400 && r.body?.error === 'invalid');
+  }
+  // H3 deactivate:数值 password 穿透 falsy 检查 → scrypt(TypeError) 500 → 修后 400 invalid
+  {
+    const r = await h.post('/profile/deactivate', AUJ, { password: 12345 });
+    A('type:deactivate-number-password-4xx-not-5xx', is4xx(r.status) && r.body?.error === 'invalid');
+  }
+  // H4 roles/match:对象 resumeId 穿透存在性检查(UUID_RE 强转字符串)→ 404 → 修后 400 invalid
+  {
+    const r = await h.post('/roles/match', AUJ, { resumeId: { deep: true } });
+    A('type:roles-match-object-resumeid-400-invalid', r.status === 400 && r.body?.error === 'invalid');
+  }
+  // H5 语义词保留对照(合法请求零变化:缺字段仍走 service 具名词,不因 pipe 改词)
+  A('type:roles-match-missing-resumeid-word-kept', (await h.post('/roles/match', AUJ, {})).body?.error === 'missing_resume_id');
+  A('type:changepw-short-newpassword-word-kept', (await h.post('/profile/change-password', AUJ, { newPassword: 'short' })).body?.error === 'invalid_password');
+  A('type:deactivate-missing-password-word-kept', (await h.post('/profile/deactivate', AUJ, {})).body?.error === 'password_required');
+
   await done();
 }
 

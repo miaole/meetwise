@@ -1,4 +1,6 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, HttpException } from '@nestjs/common';
+import { Controller, Post, Body, Ip, HttpCode, HttpStatus, HttpException } from '@nestjs/common';
+import { PaymentRefundCallbackDto } from '@meetwise/contracts';
+import { ZodValidationPipe } from '../../platform/zod.pipe';
 import { CommerceService } from './commerce.service';
 
 /**
@@ -23,13 +25,17 @@ export class PaymentCallbackController {
 
   @Post('refund-callback')
   @HttpCode(HttpStatus.OK)
-  refundCallback(@Body() b: { orderId?: string; providerTxn?: string; sig?: string; ts?: number }) {
+  // #84/API-HARDEN-A(NHP-014 对偶口)：裸 @Body 收编 PaymentRefundCallbackDto（失败信封=域具名词
+  // invalid_callback·pipe 参变词形·缺 orderId 仍由下方具名词裁决零漂移）——非字符串 sig/providerTxn
+  // 此前穿透 falsy 检查直打 Buffer.from/HMAC(TypeError→500)。
+  // rev r1：来源 IP 透传 service（验签失败独立按来源计，成本闸只在验签通过后消费）。
+  refundCallback(@Body(new ZodValidationPipe(PaymentRefundCallbackDto, 'invalid_callback')) b: PaymentRefundCallbackDto, @Ip() ip: string) {
     // 白名单解构：只取四字段，额外字段（含 amountCents/units/refundAmount 等）在此结构性丢弃。
     const orderId = b?.orderId;
     const providerTxn = b?.providerTxn;
     const sig = b?.sig;
     const ts = b?.ts;
     if (!orderId) throw new HttpException({ error: 'invalid_callback' }, HttpStatus.BAD_REQUEST);
-    return this.commerce.refundWebhook(orderId, { providerTxn, sig, ts });
+    return this.commerce.refundWebhook(orderId, { providerTxn, sig, ts }, ip);
   }
 }

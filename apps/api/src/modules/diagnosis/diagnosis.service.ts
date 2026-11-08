@@ -1,7 +1,16 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, Optional, HttpException, HttpStatus } from '@nestjs/common';
 import { reserveEntitlement, enqueueDiagnosisJob, releaseConsumption, requireOwnerUserId, buildRequiredOwnerFilter, newEntityId, errCode } from '@meetwise/db';
 import { DbService } from '../../platform/db.service';
+import { RateLimitService } from '../../platform/rate-limit.service';
 import { parseLastEventId } from '../../platform/last-event-id.ts';
+
+// #87/API-HARDEN-A:诊断 begin 成本闸(每 begin=1.0 单位预留 + generate job=整条诊断生成模型管线)。
+// 形制/量级/env 覆写口与 interview/quiz begin 闸同源同依据:
+// principal 桶(10,0.05)管单主体,`dgbg:global` 共享桶(60,1)管多账号脚本总量。
+const RL_DIAG_BEGIN_RAW = (process.env.RL_DIAG_BEGIN ?? '10,0.05').split(',');
+const DIAG_BEGIN_RL = { capacity: Number(RL_DIAG_BEGIN_RAW[0]) > 0 ? Number(RL_DIAG_BEGIN_RAW[0]) : 10, refillPerSec: Number(RL_DIAG_BEGIN_RAW[1]) > 0 ? Number(RL_DIAG_BEGIN_RAW[1]) : 0.05 };
+const RL_DIAG_BEGIN_GLOBAL_RAW = (process.env.RL_DIAG_BEGIN_GLOBAL ?? '60,1').split(',');
+const DIAG_BEGIN_GLOBAL_RL = { capacity: Number(RL_DIAG_BEGIN_GLOBAL_RAW[0]) > 0 ? Number(RL_DIAG_BEGIN_GLOBAL_RAW[0]) : 60, refillPerSec: Number(RL_DIAG_BEGIN_GLOBAL_RAW[1]) > 0 ? Number(RL_DIAG_BEGIN_GLOBAL_RAW[1]) : 1 };
 
 /**
  * 简历诊断应用服务(拥有 asPrincipal 事务边界 + 业务编排:advisory 锁、幂等、额度预留、入队、状态机、RLS)。
@@ -11,7 +20,8 @@ import { parseLastEventId } from '../../platform/last-event-id.ts';
  */
 @Injectable()
 export class DiagnosisService {
-  constructor(private readonly db: DbService) {}
+  // @Optional 形沿 RateLimitService 自身 db 注入先例(直接 new 的单测证明可零 rl 构造;Nest DI 生产恒注入)。
+  constructor(private readonly db: DbService, @Optional() private readonly rl?: RateLimitService) {}
 
   // 新建诊断(空壳,created)。begin 才扣额度跑图。
   async create(principal: string) {
@@ -23,8 +33,16 @@ export class DiagnosisService {
   }
 
   // 开始诊断:扣额度 + 入队 generate job(resume-diagnosis 图在 worker 跑,api 薄)。202 已受理。
-  begin(principal: string, id: string, resumeId: string, targetRole?: string) {
+  async begin(principal: string, id: string, resumeId: string, targetRole?: string) {
     if (!resumeId) throw new HttpException({ error: 'missing_resume_id' }, HttpStatus.BAD_REQUEST);
+    // #87/API-HARDEN-A:成本闸在 400 形校验后、advisory 锁/事务前(400 不入桶;幂等 alreadyBegun
+    // 重放也计费——重复 begin 本身就是可刷面,与 interview/quiz begin 闸同口径)。
+    if (this.rl) {
+      const ownerGate = requireOwnerUserId(principal, 'diagnosis.begin');
+      if (!(await this.rl.allow(`dgbg:${ownerGate}`, DIAG_BEGIN_RL.capacity, DIAG_BEGIN_RL.refillPerSec))
+        || !(await this.rl.allow('dgbg:global', DIAG_BEGIN_GLOBAL_RL.capacity, DIAG_BEGIN_GLOBAL_RL.refillPerSec)))
+        throw new HttpException({ error: 'too_many_requests', message: '诊断过于频繁,请稍候' }, HttpStatus.TOO_MANY_REQUESTS);
+    }
     const role = (targetRole ?? '').trim().slice(0, 100) || undefined;     // 限长防滥用;空串归一为 undefined
     const owner = requireOwnerUserId(principal, 'diagnosis.begin');   // PRIV01-C 第二层 E1
     const jobFilter = buildRequiredOwnerFilter(owner, 'diagnosis.begin.existingJob');   // E2 必选谓词

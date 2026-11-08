@@ -278,6 +278,22 @@ export const InvoiceProfileDto = z.object({
 export type InvoiceProfileDto = z.infer<typeof InvoiceProfileDto>;
 export const InvoiceRequestDto = z.object({ orderId: z.string().min(1).max(64) });
 export type InvoiceRequestDto = z.infer<typeof InvoiceRequestDto>;
+
+// ── #84/API-HARDEN-A：裸 @Body 收编 DTO（类型+128 帽，字段 optional——「缺字段」语义仍由 service
+//    具名词裁决（invalid_password/password_required/missing_resume_id/invalid_callback），pipe 只收
+//    「在场的值必为约定类型且不越帽」。128 帽=Credentials R4 上限同源（密码族）；回调 providerTxn/sig
+//    128=PSP 流水/sig(hex64) 充裕帽；resumeId/orderId 64=InvoiceRequestDto 同形帽；ts=签名毫秒数，
+//    有限性/±窗仍在 verifyCommerceSig 单源裁决。〕
+export const ChangePasswordDto = z.object({ oldPassword: z.string().max(128).optional(), newPassword: z.string().max(128).optional() });
+export type ChangePasswordDto = z.infer<typeof ChangePasswordDto>;
+export const DeactivateDto = z.object({ password: z.string().max(128).optional() });
+export type DeactivateDto = z.infer<typeof DeactivateDto>;
+export const RoleMatchDto = z.object({ resumeId: z.string().max(64).optional() });
+export type RoleMatchDto = z.infer<typeof RoleMatchDto>;
+export const CommerceCallbackDto = z.object({ providerTxn: z.string().max(128).optional(), sig: z.string().max(128).optional(), ts: z.number().optional() });
+export type CommerceCallbackDto = z.infer<typeof CommerceCallbackDto>;
+export const PaymentRefundCallbackDto = z.object({ orderId: z.string().max(64).optional(), providerTxn: z.string().max(128).optional(), sig: z.string().max(128).optional(), ts: z.number().optional() });
+export type PaymentRefundCallbackDto = z.infer<typeof PaymentRefundCallbackDto>;
 export const InvoiceProfileView = z.object({
   profile: z.object({
     title: z.string(), tax_id: z.string(), address_phone: z.string().nullable(), bank_account: z.string().nullable(),

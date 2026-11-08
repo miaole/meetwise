@@ -34,6 +34,17 @@ const TURN_RL = { capacity: 30, refillPerSec: 0.2 };
 // 手动报告重试(#229 D2):重排即给一轮全新 3 次自动重试预算(每轮都是付费模型调用) → 无限点击 = 成本 DoS。
 // **每份报告 3 次/小时**令牌桶(突发 3,稳态 3/3600 每秒)·阈值=建议值待用户追认(S12)·常量钉死可调,改值不需重开 REQUEST。
 const REPORT_RETRY_RL = { capacity: 3, refillPerSec: 3 / 3600 };
+// #146/API-HARDEN-A:begin 成本闸(每 begin=1.0 单位预留 + 一条 start job=整条规划-出题模型管线,无限流 = 成本 DoS)。
+// 桶序 principal→global(|| 短路;signup/login 三桶同形,429 断言确定性;principal 桶管单主体公平,
+// `begin:global` 共享桶(:global 后缀→platform_rl_bucket,跨实例合计)管多账号脚本摊薄的总量帽)。
+// 量级依据:全 e2e/neg 套件单主体合法 begin 峰值 ≤5(validate 3/neg-interview ~3/full.e2e ~5,普查亲点),
+// 突发 10=2 倍套件余量;稳态 0.05/s=3/分,沿 signup:ip(10,0.05) 先例形——真人开面节奏(开面后需整场作答)
+// 远低于此,脚本批量开面在此收口;全局 60 突发/1/s 稳态沿 signup:global(60,1) 先例。RL_BEGIN/RL_BEGIN_GLOBAL
+// env 覆写口沿 RL_SIGNUP_IP/RL_LOGIN_IP「容量,速率」双值形(prod 钉死默认,perf/E2E 显式放宽并落档,禁删桶检查)。
+const RL_BEGIN_RAW = (process.env.RL_BEGIN ?? '10,0.05').split(',');
+const BEGIN_RL = { capacity: Number(RL_BEGIN_RAW[0]) > 0 ? Number(RL_BEGIN_RAW[0]) : 10, refillPerSec: Number(RL_BEGIN_RAW[1]) > 0 ? Number(RL_BEGIN_RAW[1]) : 0.05 };
+const RL_BEGIN_GLOBAL_RAW = (process.env.RL_BEGIN_GLOBAL ?? '60,1').split(',');
+const BEGIN_GLOBAL_RL = { capacity: Number(RL_BEGIN_GLOBAL_RAW[0]) > 0 ? Number(RL_BEGIN_GLOBAL_RAW[0]) : 60, refillPerSec: Number(RL_BEGIN_GLOBAL_RAW[1]) > 0 ? Number(RL_BEGIN_GLOBAL_RAW[1]) : 1 };
 // interview 表状态机:created →(completed | failed | abandoned)（A 形 5E 摘除 active 直达）。终态集中一处定义,begin/turn/abandon 守卫共用。
 const TERMINAL_INTERVIEW = ['completed', 'abandoned', 'failed'];
 const MAX_TURN = 256;             // turn 号上界(默认绝对杀开关 120 + clarify 冗余;防超大 turn 号刷无限 job)
@@ -447,13 +458,19 @@ export class InterviewService {
   // B271 片2 S2-C2/C4：事务体模块化为 beginInterviewCore（文件顶部导出）——本端点（C 端练习·原路径）
   // 与 applications.start 合一事务（S2-C4 修法⑤）共用同一核心·签名/this 语义零变（dbid1 冒烟
   // Object.create(prototype) 直调形保持）；扣额路由与分码语义见 beginInterviewCore 头注。
-  begin(principal: string, id: string, resumeId: string, requestId?: string, sourceQuizId?: string, targetRole?: string, focus?: string) {
+  async begin(principal: string, id: string, resumeId: string, requestId?: string, sourceQuizId?: string, targetRole?: string, focus?: string) {
     this.denyContentSafetyKilled();
     this.denyPublicPreviewWrite();
     const owner = requireOwnerUserId(principal, 'interview.begin');
     // 非法简历编号在打开数据库会话前拒绝。核心函数里仍保留同一检查，供申请开场直接调用。
     if (!resumeId) throw new HttpException({ error: 'missing_resume_id' }, HttpStatus.BAD_REQUEST);
     if (!UUID_RE.test(resumeId)) throw new HttpException({ error: 'invalid_resume_id' }, HttpStatus.BAD_REQUEST);
+    // #146/API-HARDEN-A:成本闸在 400 形校验后、DB 会话前(400 不入桶=signup「桶在体校验后」同序;
+    // 404 不可区分面照常返回但计费桶已扣=按尝试计数,与 login 桶语义一致;B 端申请开场走
+    // beginInterviewCore 直调,不经本闸——其 approved-recruiter 门+内容安全开关已另有守卫)。
+    if (!(await this.rl.allow(`begin:${owner}`, BEGIN_RL.capacity, BEGIN_RL.refillPerSec))
+      || !(await this.rl.allow('begin:global', BEGIN_GLOBAL_RL.capacity, BEGIN_GLOBAL_RL.refillPerSec)))
+      throw new HttpException({ error: 'too_many_requests', message: '开面过于频繁,请稍候' }, HttpStatus.TOO_MANY_REQUESTS);
     return this.db.asPrincipal(owner, (c) => beginInterviewCore(c, owner, id, resumeId, requestId, sourceQuizId, targetRole, focus));
   }
 

@@ -106,6 +106,7 @@ const isolatedReceiptSources = {
   'authz5a:login-ip-throttle:prove': ['scripts/run-e2e-isolated.mjs', 'apps/api/test/authz5a-login-ip-throttle.proof.ts', 'apps/api/test/_neg-harness.ts', 'apps/api/src/modules/auth/auth.service.ts', 'apps/api/src/platform/rate-limit.service.ts'],
   'authz5a:login-global-throttle:prove': ['scripts/run-e2e-isolated.mjs', 'apps/api/test/authz5a-login-global-throttle.proof.ts', 'apps/api/test/_neg-harness.ts', 'apps/api/src/modules/auth/auth.service.ts', 'apps/api/src/platform/rate-limit.service.ts'],
   'authz5a:chgpwd-lock:prove': ['scripts/run-e2e-isolated.mjs', 'apps/api/test/authz5a-chgpwd-lock.proof.ts', 'apps/api/test/_neg-harness.ts', 'apps/api/src/modules/profile/profile.service.ts', 'apps/api/src/platform/rate-limit.service.ts'],
+  'apih:cost-rl:prove': ['scripts/run-e2e-isolated.mjs', 'apps/api/test/apih-cost-rl.proof.ts', 'apps/api/test/_neg-harness.ts', 'apps/api/src/modules/interview/interview.service.ts', 'apps/api/src/modules/quiz/quiz.service.ts', 'apps/api/src/modules/diagnosis/diagnosis.service.ts', 'apps/api/src/modules/commerce/commerce.service.ts', 'apps/api/src/platform/rate-limit.service.ts'],
   // AUTHZ-HARDEN 5A-2 簇④ prove 来源清单(DB 面进隔离 runner;hmac/g7-refuse 零 DB 直跑不入本表)。
   'authz5a2:password-max:prove': ['scripts/run-e2e-isolated.mjs', 'apps/api/test/authz5a2-password-max.proof.ts', 'apps/api/test/_neg-harness.ts', 'apps/api/src/modules/auth/auth.service.ts', 'packages/contracts/src/index.ts'],
   'authz5a2:stale-payload-ttl:prove': ['scripts/run-e2e-isolated.mjs', 'packages/db/test/authz5a2-stale-payload-ttl.proof.ts', 'packages/db/src/index.ts', 'packages/db/src/interview/interview-jobs.ts', 'packages/db/src/isolated-test-target.ts', 'packages/db/package.json'],
@@ -2897,7 +2898,7 @@ const isolatedReceiptSources = {
 if (![
   'e2e:prove', 'e2e:ui', 'performance:e2e',
   // AUTHZ-HARDEN 5A-1（簇①归一五臂+镜像 cmp/簇②恒时序计数+限流三臂·隔离容器·est live=0）。
-  'authz5a:normalize:prove', 'authz5a:constant-time:prove', 'authz5a:login-ip-throttle:prove', 'authz5a:login-global-throttle:prove', 'authz5a:chgpwd-lock:prove',
+  'authz5a:normalize:prove', 'authz5a:constant-time:prove', 'authz5a:login-ip-throttle:prove', 'authz5a:login-global-throttle:prove', 'authz5a:chgpwd-lock:prove', 'apih:cost-rl:prove',
   // AUTHZ-HARDEN 5A-2（簇④:R4 密码上界+滞留 TTL 假时钟三臂·隔离容器·est live=0;hmac/g7-refuse 零 DB 直跑）。
   'authz5a2:password-max:prove', 'authz5a2:stale-payload-ttl:prove',
   // AUTHZ #34 残面（scrypt 异步化 promisify 形 + chunked 封顶钩子 preParsing 流计数·隔离容器·est live=0）。
@@ -3888,6 +3889,8 @@ const isolatedCommand = target === 'api-harden:prove'
       ? ['pnpm', ['-C', 'apps/api', 'authz5a:login-global-throttle']]
     : target === 'authz5a:chgpwd-lock:prove'
       ? ['pnpm', ['-C', 'apps/api', 'authz5a:chgpwd-lock']]
+    : target === 'apih:cost-rl:prove'
+      ? ['pnpm', ['-C', 'apps/api', 'apih:cost-rl']]
     : target === 'authz5a2:password-max:prove'
       ? ['pnpm', ['-C', 'apps/api', 'authz5a2:password-max']]
     : target === 'authz5a2:stale-payload-ttl:prove'

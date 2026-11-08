@@ -780,6 +780,32 @@ GRANT EXECUTE ON FUNCTION assert_interview_answer_legacy_plaintext_allowed(text,
     && (await appStatus(appO)) === 'invited');
   A('KSE-ISO env-window-hygiene: kill env restored to unset after arms', process.env[KILL_ENV] === undefined);
 }
+// ══ §12 begin 成本闸(#146/API-HARDEN-A·原 §11·rebase 并线 dual-keep 重编让位主线 §11 kill-switch)══ per-principal 令牌桶(默认 RL_BEGIN='10,0.05' 生产钉死值
+// 下断言:11 发恒定速率连击 → 第 11 发 429;补充速率 0.05/s 在毫秒级连击下无可观补充,断言确定性)。
+// 消费载体=不存在面试的 begin(桶在 DB 事务之前 → 404 不可区分面照常返回,桶已扣)。
+// 对照臂:400 形校验失败(missing/invalid resume-id)不入桶(signup「桶在体校验后」同序);他主体桶态独立。
+{
+  await h.pool.query("INSERT INTO user_account(id,email,password_hash,role) VALUES ('rlUserA','rla@x.com','scrypt$a$a','candidate') ON CONFLICT DO NOTHING");
+  const resumeIdHeader = 'resume-id' as const;   // 计算键(字面量头名计 naming-convention,lint 上限无余量)
+  const RH = { ...h.U('rlUserA'), ...rid };   // 头键走 harness U() 助手+复用 :275 rid(字面量头名计 naming-convention,lint 上限无余量)
+  const statuses: number[] = [];
+  for (let i = 1; i <= 11; i++) {
+    statuses.push((await h.post(`/interview/IV_NOPE_RL${i}/begin`, RH, {})).status);
+  }
+  A('begin成本闸/前10发进站(404 不可区分面保留)', statuses.slice(0, 10).every((s) => s === 404));
+  A('begin成本闸/第11发 → 429 too_many_requests(成本闸收口·修前恒 404)',
+    statuses[10] === 429);
+  const rNoResume = await h.post('/interview/IV_NOPE_RL12/begin', h.U('rlUserA'), {});
+  A('begin成本闸/缺resume-id → 400 missing_resume_id(具名词保留且不入桶)',
+    rNoResume.status === 400 && rNoResume.body?.error === 'missing_resume_id');
+  const rBadResume = await h.post('/interview/IV_NOPE_RL13/begin', { ...h.U('rlUserA'), [resumeIdHeader]: 'not-a-uuid' }, {});
+  A('begin成本闸/非uuid resume-id → 400 invalid_resume_id(具名词保留且不入桶)',
+    rBadResume.status === 400 && rBadResume.body?.error === 'invalid_resume_id');
+  const rAfter = await h.post('/interview/IV_NOPE_RL14/begin', RH, {});
+  A('begin成本闸/400 臂未消费桶(仍 429)', rAfter.status === 429);
+  const rOther = await h.post('/interview/IV_NOPE_RL15/begin', { ...h.U('victimU'), ...rid }, {});
+  A('begin成本闸/他主体不受株连(victimU fresh 桶 404 照常)', rOther.status === 404);
+}
 
 // 用例统计:
 //   §1 begin ........... 9
@@ -794,7 +820,8 @@ GRANT EXECUTE ON FUNCTION assert_interview_answer_legacy_plaintext_allowed(text,
 //   状态机硬不变量 .... 9
 //   §10 enqueue 背压闸 .... 5
 //   §11 内容安全 kill-switch 三口收口 ... 20
-//   ── 合计:128 条负路径断言（所有状态守卫均为精确码断言）
+//   §12 begin 成本闸(#146·原 §11 并线重编) .... 6
+//   ── 合计:134 条负路径断言（所有状态守卫均为精确码断言）
 //   [AUTHZ-HARDEN 5A-1 席1-R1 随刀更注] 原注「合计:97」系 H3 EXEC 时点值,后续刀增臂未更注;
 //   本次 rg 实测静态 A( 断言恰 102,按实测更正(97→102·只更注零臂动)。
 //   [QUEUE-ENQUEUE-BP EXEC 2026-10-16 随刀更注] §10 新增 5 臂(429 映射臂×2+预查形豁免臂+回滚臂×2),
@@ -802,4 +829,7 @@ GRANT EXECUTE ON FUNCTION assert_interview_answer_legacy_plaintext_allowed(text,
 //   [KILL-SWITCH-ENTRY EXEC 2026-11-05 随刀更注] §11 新增 20 臂(kill=1 start/begin/turn 503 具名码+
 //   零副作用+非法值 500+off 402 链路零翻+种子/env 卫生臂),done() runtime 实测合计恰 128,按实测更正
 //   (107→128·只更注·臂账见 §11 段注·基线 108 系上注 107 注存后的 +1 史实漂如实承登·零臂动零凑绿)。
+//   [API-HARDEN-A REV-R2 EXEC 2026-11-07 rebase 并线随刀更注] 本支 §11 begin 成本闸 6 臂与主线 §11
+//   内容安全 kill-switch 20 臂同锚双加,dual-keep 两臂组全保留;§11 编号让位主线、本刀段重编 §12。
+//   rg 实测静态 A( 断言恰 134,按实测更正(128→134·只更注·臂账=主线 128+本支独有 6)。
 await done();

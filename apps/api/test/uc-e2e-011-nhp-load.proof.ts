@@ -186,10 +186,15 @@ void pct;   // 分位工具位保留:平台无 per-request 时序头·延迟观�
     const t0 = Date.now();
     const [rs1, rs2] = await Promise.all([Promise.all(bad), Promise.all(missing)]);
     const wallMs = Date.now() - t0;
-    A('P1 垃圾签 60 并发 → 全 403 bad_signature 零 5xx',
+    // rev r1(证伪 apih-pre-2 P1-1):回调成本闸移 verifyCommerceSig 之后、owner 查询之前——垃圾签
+    // 不消费成功桶、不再产生 429(修前「闸臂恒 429」合同撤),伪造洪水只收 403;60 并发恰在验签失败
+    // 独立桶(RL_CB_FAIL 默认 60,2)帽内 → 全 403 bad_signature 零 429 零 5xx,签名语义面全量行使。
+    A('P1 垃圾签 60 并发 → 全 403 bad_signature 零 429 零 5xx(闸移验签后·垃圾签不占成功桶)',
       rs1.every((r) => r.status === 403 && r.body?.error === 'bad_signature'),
       `statuses=${[...new Set(rs1.map((r) => r.status))].join(',')}`);
-    A('P1 缺字段 60 并发 → 全 400 invalid_callback 零 5xx（400 判定先于 HMAC·并发面一致）',
+    // （缺字段=无 sig 结构拒 400 invalid_callback,非签名爆破不计失败桶 → 全 400;修前「桶跨臂结转
+    // 可全 429」的注随闸移验签后一并撤。）
+    A('P1 缺字段 60 并发 → 全 400 invalid_callback 零 5xx(结构拒不入桶)',
       rs2.every((r) => r.status === 400 && r.body?.error === 'invalid_callback'),
       `statuses=${[...new Set(rs2.map((r) => r.status))].join(',')}`);
     A('P1 负路径零状态面变: avail/订单行快照二致',
