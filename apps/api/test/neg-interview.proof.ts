@@ -779,6 +779,7 @@ GRANT EXECUTE ON FUNCTION assert_interview_answer_legacy_plaintext_allowed(text,
     (await ivRows(CAND_O)) === 0 && (await jobRows(CAND_O)) === 0 && (await rsvRows(CAND_O)) === 0
     && (await appStatus(appO)) === 'invited');
   A('KSE-ISO env-window-hygiene: kill env restored to unset after arms', process.env[KILL_ENV] === undefined);
+}
 // ══ §12 begin 成本闸(#146/API-HARDEN-A·原 §11·rebase 并线 dual-keep 重编让位主线 §11 kill-switch)══ per-principal 令牌桶(默认 RL_BEGIN='10,0.05' 生产钉死值
 // 下断言:11 发恒定速率连击 → 第 11 发 429;补充速率 0.05/s 在毫秒级连击下无可观补充,断言确定性)。
 // 消费载体=不存在面试的 begin(桶在 DB 事务之前 → 404 不可区分面照常返回,桶已扣)。
