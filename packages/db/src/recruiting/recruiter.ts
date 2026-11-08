@@ -134,7 +134,43 @@ export type RetryJobRouteResult =
   | { status: 'already_pending'; revision: number }
   | { status: 'already_decided'; revision: number }
   | { status: 'not_retryable'; revision: number }
+  | { status: 'unknown_pending'; revision: number }
   | null;
+
+/**
+ * GAP-ROUTE-RETRY-UNKNOWN-REBILL 冷却窗缺省（2 分钟·2026-11-06 协调方裁定）：latest revision
+ * 同键前账 unknown/dispatching 在窗内时抑制同内容重试，防可能的二次真实计费。理由：模型传输
+ * 超时 30s 后 provider 侧残余处理绝大多数在 2 分钟内结束，快模型路由分类单次费用极低，让招聘方
+ * 长等待的体验代价更大（原 10 分钟保守值据此下调）。过期放行不永久阻塞用户；编辑岗位内容新
+ * digest 不受影响。环境变量 ROUTE_RETRY_UNKNOWN_COOLDOWN_MS 可覆盖（见 resolver）；测试可经
+ * opts 注入小窗。
+ */
+export const ROUTE_RETRY_UNKNOWN_COOLDOWN_MS = 2 * 60 * 1000;
+
+const ROUTE_RETRY_UNKNOWN_COOLDOWN_MAX_MS = 3_600_000;
+
+/**
+ * 冷却窗环境变量覆盖（每次调用读取·opts 注入优先）：ROUTE_RETRY_UNKNOWN_COOLDOWN_MS（毫秒·
+ * 缺省 120000·正值域 1–3,600,000 整数）。fail-closed（2026-11-06 EXEC 令 P2 裁定行使）：0、
+ * 负数、非数字（含空白/`-0` 静默归 0 角·小数·越上限）均视为非法配置——**回退缺省 120000
+ * 并警告一次**（进程生命周期内仅首例警告一次，沿启动日志面不逐请求刷屏；抑制闸保持开启，
+ * 不可经 env 关闭——配置错误不容忍静默改策，0=关闸旧语义废止）。
+ */
+let routeRetryUnknownCooldownWarned = false;
+
+export function resolveRouteRetryUnknownCooldownMs(env: NodeJS.ProcessEnv = process.env): number {
+  const raw = env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
+  if (raw === undefined || raw === '') return ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
+  const value = Number(raw);
+  if (!Number.isSafeInteger(value) || value <= 0 || value > ROUTE_RETRY_UNKNOWN_COOLDOWN_MAX_MS) {
+    if (!routeRetryUnknownCooldownWarned) {
+      routeRetryUnknownCooldownWarned = true;
+      console.warn(`route_retry_unknown_cooldown_invalid ROUTE_RETRY_UNKNOWN_COOLDOWN_MS=${JSON.stringify(raw)} fail_closed_fallback_default_ms=${ROUTE_RETRY_UNKNOWN_COOLDOWN_MS}`);
+    }
+    return ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
+  }
+  return value;
+}
 
 /**
  * 招聘方显式重试路由（#219·裁决③）：sticky 终态本体零改——unresolved 旧 revision 原样留存
@@ -143,22 +179,48 @@ export type RetryJobRouteResult =
  * 后由 api 层 notifyWorkerJobWakeup 走既有 sole worker drain（listNextJobRoutePending 自动认领）。
  * 有界：一次调用至多一个新 revision（招聘方显式动作·Ban 无界自动重试）。
  * 岗位不存在/非自有/零 revision → null（上层 404）；最新 revision 非 unresolved → 幂等门不动作。
+ * 二次计费闸（unknown_pending）：route_unresolved 且同键前账 status∈(unknown,dispatching) 在
+ * 冷却窗内（缺省 ROUTE_RETRY_UNKNOWN_COOLDOWN_MS·env ROUTE_RETRY_UNKNOWN_COOLDOWN_MS 同名可
+ * 覆盖·opts 可注入）→ 拒绝零新 revision——新 revision
+ * 同 digest 生成新幂等键会绕开 invoke durable claim（0209 围栏对同键 unknown 恒 refusal、对
+ * 异键无知），首账 unknown（provider 可能已计费）时即可能的二次真实计费。
  * job_posting FOR UPDATE 行锁串行化并发重试，revision 单调无碰撞（updateJob 同法）。
  */
-export async function retryJobRoute(c: Client, owner: string, id: string): Promise<RetryJobRouteResult> {
+export async function retryJobRoute(
+  c: Client, owner: string, id: string,
+  opts?: { unknownOutcomeCooldownMs?: number },
+): Promise<RetryJobRouteResult> {
   await assertPrincipal(c, owner);
   const job = await c.query(
     'SELECT title, description, competencies FROM job_posting WHERE id=$1 AND owner_user_id=$2 FOR UPDATE',
     [id, owner],
   );
   if (job.rowCount === 0) return null;
-  const latest = await c.query('SELECT revision, status FROM job_semantic_revision WHERE job_id=$1 ORDER BY revision DESC LIMIT 1', [id]);
+  const latest = await c.query('SELECT revision, status, semantic_digest FROM job_semantic_revision WHERE job_id=$1 ORDER BY revision DESC LIMIT 1', [id]);
   if (latest.rowCount === 0) return null;
-  const cur = latest.rows[0] as { revision: string | number; status: string };
+  // eslint-disable-next-line @typescript-eslint/naming-convention -- snake_case 为 SQL 列名逐字回读（semantic_digest）
+  const cur = latest.rows[0] as { revision: string | number; status: string; semantic_digest: string };
   const revision = Number(cur.revision);
   if (cur.status === 'route_pending') return { status: 'already_pending', revision };
   if (cur.status === 'route_decided') return { status: 'already_decided', revision };
   if (cur.status !== 'route_unresolved') return { status: 'not_retryable', revision };
+  // 同键前账面 = invoke 幂等键原式（packages/ai-runtime/src/job-route-classify.ts :154 同式，
+  // 行为级由 worker proof 重试计费闸臂对读防漂）；unknown=已外发结果未知（钱待对账）、
+  // dispatching=可能仍在执行（0088 状态机两态均为「结果未确认」）。known_not_sent（无账或
+  // 账 failed）不触闸照常重试。窗内拒绝=零新 revision 零外发；窗过期放行（不永久阻塞）。
+  const digest = typeof cur.semantic_digest === 'string' ? cur.semantic_digest : '';
+  if (digest !== '') {
+    const cooldownMs = opts?.unknownOutcomeCooldownMs ?? resolveRouteRetryUnknownCooldownMs();
+    const pending = await c.query(
+      `SELECT 1 FROM ai_model_invocation
+        WHERE owner_user_id=$1 AND idempotency_key=$2
+          AND status IN ('unknown','dispatching')
+          AND updated_at >= clock_timestamp() - make_interval(secs => $3)
+        LIMIT 1`,
+      [owner, `job-route-classify:${id}:${revision}:${digest}`, cooldownMs / 1000],
+    );
+    if ((pending.rowCount ?? 0) > 0) return { status: 'unknown_pending', revision };
+  }
   const j = job.rows[0] as { title: string; description: string | null; competencies: unknown };
   const competencies = Array.isArray(j.competencies) ? (j.competencies as unknown[]).map(String) : [];
   const created = await createJobSemanticRevision(c, owner, id, { title: j.title, description: j.description ?? '', competencies });

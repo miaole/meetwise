@@ -2438,6 +2438,31 @@
       "name": "DASHSCOPE_COMPAT_BASE_URL",
       "source": "apps/worker/test/voice-adaptive.proof.ts",
       "class": "test-isolation"
+    },
+    {
+      "name": "ROUTE_RETRY_UNKNOWN_COOLDOWN_MS",
+      "source": "packages/db/src/recruiting/recruiter.ts",
+      "class": "runtime-configuration"
+    },
+    {
+      "name": "ROUTE_RETRY_UNKNOWN_COOLDOWN_MS",
+      "source": "packages/db/src/index.ts",
+      "class": "runtime-configuration"
+    },
+    {
+      "name": "ROUTE_RETRY_UNKNOWN_COOLDOWN_MS",
+      "source": "apps/api/src/modules/recruiter/recruiter.service.ts",
+      "class": "runtime-configuration"
+    },
+    {
+      "name": "ROUTE_RETRY_UNKNOWN_COOLDOWN_MS",
+      "source": "apps/worker/test/r2-p-worker-route-classify.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "ROUTE_RETRY_UNKNOWN_COOLDOWN_MS",
+      "source": "apps/web/app/recruiter/jobs/actions.ts",
+      "class": "runtime-configuration"
     }
   ],
   "deploymentReferences": [
@@ -2475,7 +2500,8 @@
         "DASHSCOPE_RERANK_MODEL",
         "DASHSCOPE_VISION_MODEL",
         "DASHSCOPE_STREAM_ASR_MODEL",
-        "DASHSCOPE_STREAM_TTS_MODEL"
+        "DASHSCOPE_STREAM_TTS_MODEL",
+        "ROUTE_RETRY_UNKNOWN_COOLDOWN_MS"
       ]
     },
     {

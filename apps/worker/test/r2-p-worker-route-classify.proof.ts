@@ -19,7 +19,8 @@ import {
   createJobRouteModelClassify, scriptedModelClient, type ModelClient,
 } from '@meetwise/ai-runtime';
 import {
-  assertIsolatedTestTarget, asPrincipal, classifyJobRoute, createJob, createPool, updateJob,
+  assertIsolatedTestTarget, asPrincipal, classifyJobRoute, createJob, createPool,
+  resolveRouteRetryUnknownCooldownMs, ROUTE_RETRY_UNKNOWN_COOLDOWN_MS, retryJobRoute, updateJob,
   type ClassifyJobRouteResult,
 } from '@meetwise/db';
 import { canonicalJobSemanticDigest } from '@meetwise/domain';
@@ -419,8 +420,352 @@ async function proveStaleRevisionDoesNotBlockDrain(): Promise<void> {
   }
 }
 
+/**
+ * 重试二次计费闸臂（全真链·红先证已证 · GAP-ROUTE-RETRY-UNKNOWN-REBILL 修复面）：
+ * dispatched_unknown sticky 后，同内容 retryJobRoute 写新 revision（同 digest → 新幂等键
+ * `job-route-classify:{jobId}:{rev+1}:{digest}`）绕开 invoke durable claim——0209 replay-first
+ * 围栏对同键 unknown 恒 refusal、对异键无知——首账 unknown（provider 可能已计费待对账）时
+ * 第二次真实外发=可能的二次计费。修复前红读数（base d549a497b 隔离 PG 亲跑）：
+ * tick1 dispatched_unknown+inv1=unknown(model_execution_timeout)+calls=1 → retry=retried@rev2
+ * → tick2 第二次真实派发 calls=2。修复后绿：冷却窗内重试抑制（unknown_pending·零新 revision
+ * 零外发）；并发双击零新 revision；冷却过期（opts 注入 30ms 小窗·updated_at 已老化）放行且
+ * 快模型走完分类（不永久阻塞用户）；环境变量覆盖臂（第二岗位·env=30ms 同形放行）；known_not_sent
+ * （账 failed）不触闸照常重试（独立臂）。
+ */
+async function proveRetryGateBlocksDoubleBilling(): Promise<void> {
+  process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'r2-p-worker-retry-gate-hmac-proof-key-not-production-01';
+  const port = process.env.PGPORT ?? '';
+  A('隔离库端口不是 54329（重试计费闸臂）', port !== '' && port !== '54329', `PGPORT=${port}`);
+  if (port === '' || port === '54329') return;
+
+  // 压低执行预算（env 每次 invoke 读取·transport ≤ execution 两值同设防 config invalid 臂）：
+  // scripted 模型悬挂超预算 → invoke 到点 abort → 账 unknown(model_execution_timeout) →
+  // dispatched_unknown sticky（rtx M2 形）。臂尾 finally 还原（沿慢模型臂 env 纪律）。
+  const priorExecTimeout = process.env.MODEL_EXECUTION_TIMEOUT_MS;
+  const priorTransportTimeout = process.env.MODEL_TIMEOUT_MS;
+  const priorCooldownMs = process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
+  process.env.MODEL_EXECUTION_TIMEOUT_MS = '4000';
+  process.env.MODEL_TIMEOUT_MS = '4000';
+  const pool = createPool();
+  try {
+    await assertIsolatedTestTarget(pool);
+    const owner = `rgate_${createHash('sha256').update(String(Date.now())).digest('hex').slice(0, 12)}`;
+    const fields = { title: '全栈工程师', description: '前后端都写', competencies: ['全栈'] };
+    const created = await asPrincipal(pool, owner, (c) => createJob(c, owner, fields));
+    const digest = canonicalJobSemanticDigest({
+      title: fields.title, description: fields.description, competencies: fields.competencies,
+    });
+    const key1 = `job-route-classify:${created.id}:1:${digest}`;
+
+    let providerCalls = 0;
+    const hangModel: ModelClient = {
+      async complete() {
+        providerCalls += 1;
+        // 悬挂超执行预算（非配合 adapter）：invoke 到点 abort → unknown，本 promise 随后自灭。
+        await new Promise((resolve) => setTimeout(resolve, 9000));
+        return { ok: true as const, raw: { allocations: [{ leafTrackId: 'backend/general', allocationBps: 10000 }], confidenceBps: 5000, marginBps: 3000, reasonCodes: [] } };
+      },
+    };
+    const fastModel: ModelClient = {
+      async complete() {
+        providerCalls += 1;
+        // 响应形状逐值取慢模型臂已验 accepted 面（服务端双重校验过·防 validation_rejected 干扰本臂语义）。
+        return { ok: true as const, raw: { allocations: [{ leafTrackId: 'backend/nodejs', allocationBps: 7000 }, { leafTrackId: 'frontend/web', allocationBps: 3000 }], confidenceBps: 8500, marginBps: 4000, reasonCodes: [] } };
+      },
+    };
+    const modelClassify = createJobRouteModelClassify({ pool, owner, model: hangModel });
+    const fastClassify = createJobRouteModelClassify({ pool, owner, model: fastModel });
+    const revCount = async (): Promise<number> => Number((await pool.query(
+      'SELECT count(*)::int AS n FROM job_semantic_revision WHERE job_id=$1', [created.id],
+    )).rows[0]?.n ?? 0);
+
+    const tick1 = await classifyJobRoute(pool, owner, created.id, 1, { modelClassify });
+    const tick1Face = tick1.status === 'route_unresolved' ? tick1 : null;
+    const inv1 = await pool.query(
+      'SELECT status, error_code FROM ai_model_invocation WHERE owner_user_id=$1 AND idempotency_key=$2',
+      [owner, key1],
+    );
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- snake_case 为 SQL 列逐字回读
+    const inv1Row = inv1.rows[0] as { status: string; error_code: string | null } | undefined;
+    A('tick 1 落 dispatched_unknown sticky 且账 unknown（首呼已真实外发·调用=1）',
+      tick1.status === 'route_unresolved' && tick1Face?.attemptOutcome === 'dispatched_unknown'
+      && providerCalls === 1 && inv1Row?.status === 'unknown' && (await revCount()) === 1,
+      `outcome=${tick1Face?.attemptOutcome ?? tick1.status} inv1=${inv1Row?.status ?? 'none'}(${inv1Row?.error_code ?? '-'}) calls=${providerCalls} reasons=${tick1Face?.reasonCodes.join(',') ?? ''}`);
+
+    const retry1 = await asPrincipal(pool, owner, (c) => retryJobRoute(c, owner, created.id));
+    const revisions1 = await revCount();
+    A('同内容重试在首账 unknown 冷却窗内被抑制（修复前红：retried@rev2=第二次真实派发·二次计费窗口）',
+      retry1 !== null && retry1.status === 'unknown_pending' && retry1.revision === 1
+      && revisions1 === 1 && providerCalls === 1,
+      `status=${retry1?.status ?? 'null'} revision=${retry1?.revision ?? '-'} revisions=${revisions1} calls=${providerCalls}`);
+
+    const dbl = await Promise.all([
+      asPrincipal(pool, owner, (c) => retryJobRoute(c, owner, created.id)),
+      asPrincipal(pool, owner, (c) => retryJobRoute(c, owner, created.id)),
+    ]);
+    const revisions2 = await revCount();
+    A('并发双击重试零新 revision 零外发（只发一次·两路均 unknown_pending）',
+      dbl[0]?.status === 'unknown_pending' && dbl[1]?.status === 'unknown_pending'
+      && revisions2 === 1 && providerCalls === 1,
+      `statuses=${dbl.map((x) => x?.status ?? 'null').join('/')} revisions=${revisions2} calls=${providerCalls}`);
+
+    // 冷却过期放行（先确定性老化 250ms，再以 opts 注入 100ms 小窗：updated_at 已老化超窗）→
+    // retried@rev2；快模型走完 rev2 分类=用户出口恢复（此处 calls=2 系窗后放行的产品决策面）。
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    const retryAged = await asPrincipal(pool, owner, (c) => retryJobRoute(c, owner, created.id, { unknownOutcomeCooldownMs: 100 }));
+    const revisions3 = await revCount();
+    A('冷却过期后重试放行（不永久阻塞用户·retried@rev2·sticky 旧 revision 原样留存）',
+      retryAged !== null && retryAged.status === 'retried' && retryAged.revision === 2 && revisions3 === 2,
+      `status=${retryAged?.status ?? 'null'} revision=${retryAged?.revision ?? '-'} revisions=${revisions3}`);
+    const tick2 = await classifyJobRoute(pool, owner, created.id, 2, { modelClassify: fastClassify });
+    const rev2Face = await pool.query(
+      'SELECT status FROM job_semantic_revision WHERE job_id=$1 AND revision=2', [created.id],
+    );
+    A('放行后的重试真实派发并走完分类（用户出口恢复）',
+      tick2.status === 'route_decided' && tick2.attemptOutcome === 'result_validated'
+      && providerCalls === 2 && String(rev2Face.rows[0]?.status ?? '') === 'route_decided',
+      `status=${tick2.status}/${tick2.status === 'route_decided' ? tick2.attemptOutcome : '-'} calls=${providerCalls}`);
+
+    // 环境变量覆盖臂（第二岗位·缺省调用路径）：新缺省 2 分钟窗内抑制 → env 置 30ms + 确定性
+    // 老化 60ms 后缺省调用即放行 retried@rev2（覆盖真实流入 SQL 窗口·非仅 opts 注入形）。
+    const created2 = await asPrincipal(pool, owner, (c) => createJob(c, owner, fields));
+    const key2a = `job-route-classify:${created2.id}:1:${digest}`;
+    const tick1b = await classifyJobRoute(pool, owner, created2.id, 1, { modelClassify });
+    const inv2a = await pool.query(
+      'SELECT status FROM ai_model_invocation WHERE owner_user_id=$1 AND idempotency_key=$2',
+      [owner, key2a],
+    );
+    const retry2a = await asPrincipal(pool, owner, (c) => retryJobRoute(c, owner, created2.id));
+    A('第二岗位缺省 2 分钟冷却窗内同样抑制（unknown_pending·新缺省生效）',
+      tick1b.status === 'route_unresolved' && inv2a.rows[0]?.status === 'unknown'
+      && retry2a?.status === 'unknown_pending' && providerCalls === 3,
+      `status=${retry2a?.status ?? 'null'} inv=${String(inv2a.rows[0]?.status ?? 'none')} calls=${providerCalls}`);
+    process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS = '30';
+    await new Promise((resolve) => setTimeout(resolve, 60));
+    const retry2b = await asPrincipal(pool, owner, (c) => retryJobRoute(c, owner, created2.id));
+    const revisionsJ2 = Number((await pool.query(
+      'SELECT count(*)::int AS n FROM job_semantic_revision WHERE job_id=$1', [created2.id],
+    )).rows[0]?.n ?? 0);
+    A('环境变量覆盖生效（ROUTE_RETRY_UNKNOWN_COOLDOWN_MS=30·老化后缺省调用放行 retried@rev2）',
+      retry2b !== null && retry2b.status === 'retried' && retry2b.revision === 2 && revisionsJ2 === 2,
+      `status=${retry2b?.status ?? 'null'} revision=${retry2b?.revision ?? '-'} revisions=${revisionsJ2}`);
+  } finally {
+    if (priorExecTimeout === undefined) delete process.env.MODEL_EXECUTION_TIMEOUT_MS;
+    else process.env.MODEL_EXECUTION_TIMEOUT_MS = priorExecTimeout;
+    if (priorTransportTimeout === undefined) delete process.env.MODEL_TIMEOUT_MS;
+    else process.env.MODEL_TIMEOUT_MS = priorTransportTimeout;
+    if (priorCooldownMs === undefined) delete process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
+    else process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS = priorCooldownMs;
+    await pool.end();
+  }
+}
+
+/**
+ * known_not_sent 不触闸臂：确定性拒绝（scripted {ok:false,kind:'deterministic'}·known-not-executed）
+ * → sticky known_not_sent + 账 failed（无计费歧义·任务书「已知未发送仍允许正常重试」）→
+ * 缺省冷却下重试照常 retried@rev2 → 快模型走完分类。
+ */
+async function proveKnownNotSentRetryUnblocked(): Promise<void> {
+  process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'r2-p-worker-retry-gate-hmac-proof-key-not-production-01';
+  const port = process.env.PGPORT ?? '';
+  A('隔离库端口不是 54329（known_not_sent 不触闸臂）', port !== '' && port !== '54329', `PGPORT=${port}`);
+  if (port === '' || port === '54329') return;
+
+  const pool = createPool();
+  try {
+    await assertIsolatedTestTarget(pool);
+    const owner = `kns_${createHash('sha256').update(String(Date.now())).digest('hex').slice(0, 12)}`;
+    const fields = { title: '全栈工程师', description: '前后端都写', competencies: ['全栈'] };
+    const created = await asPrincipal(pool, owner, (c) => createJob(c, owner, fields));
+    const digest = canonicalJobSemanticDigest({
+      title: fields.title, description: fields.description, competencies: fields.competencies,
+    });
+
+    let providerCalls = 0;
+    const refuseModel: ModelClient = {
+      async complete() {
+        providerCalls += 1;
+        return { ok: false as const, kind: 'deterministic' as const };
+      },
+    };
+    const fastModel: ModelClient = {
+      async complete() {
+        providerCalls += 1;
+        // 响应形状逐值取慢模型臂已验 accepted 面（服务端双重校验过·防 validation_rejected 干扰本臂语义）。
+        return { ok: true as const, raw: { allocations: [{ leafTrackId: 'backend/nodejs', allocationBps: 7000 }, { leafTrackId: 'frontend/web', allocationBps: 3000 }], confidenceBps: 8500, marginBps: 4000, reasonCodes: [] } };
+      },
+    };
+    const refuseClassify = createJobRouteModelClassify({ pool, owner, model: refuseModel });
+    const fastClassify = createJobRouteModelClassify({ pool, owner, model: fastModel });
+
+    const tick1 = await classifyJobRoute(pool, owner, created.id, 1, { modelClassify: refuseClassify });
+    const tick1Face = tick1.status === 'route_unresolved' ? tick1 : null;
+    const inv1 = await pool.query(
+      'SELECT status FROM ai_model_invocation WHERE owner_user_id=$1 AND idempotency_key=$2',
+      [owner, `job-route-classify:${created.id}:1:${digest}`],
+    );
+    A('tick 1 落 known_not_sent sticky 且账 failed（确定性拒绝·无计费歧义）',
+      tick1.status === 'route_unresolved' && tick1Face?.attemptOutcome === 'known_not_sent'
+      && inv1.rows[0]?.status === 'failed',
+      `outcome=${tick1Face?.attemptOutcome ?? tick1.status} inv1=${String(inv1.rows[0]?.status ?? 'none')} calls=${providerCalls}`);
+
+    const retry = await asPrincipal(pool, owner, (c) => retryJobRoute(c, owner, created.id));
+    A('known_not_sent（账 failed）重试不受闸拦照常写新 revision（缺省冷却）',
+      retry !== null && retry.status === 'retried' && retry.revision === 2,
+      `status=${retry?.status ?? 'null'} revision=${retry?.revision ?? '-'}`);
+    const tick2 = await classifyJobRoute(pool, owner, created.id, 2, { modelClassify: fastClassify });
+    A('known_not_sent 重试走完分类（用户出口恢复）',
+      tick2.status === 'route_decided' && providerCalls === 2,
+      `status=${tick2.status} calls=${providerCalls}`);
+  } finally {
+    await pool.end();
+  }
+}
+
+/**
+ * 跨 owner 冷却隔离臂（pre-exec 双审两路 P2 补证·EXEC 令随令行使）：owner-A 岗位首账 unknown
+ * 处于缺省冷却窗内时，owner-B 独立岗位的重试不受 owner-A 冷却窗影响——闸谓词
+ * `owner_user_id=$1 AND idempotency_key=$2`（ai_model_invocation PK 0037 同构）+ FORCE RLS
+ * owner 相等（0037）双保险，冷却窗按各 owner 自身前账结算时刻计。正向对照：owner-A 自身重试
+ * 同窗仍抑制（unknown_pending），证明隔离是「B 不被 A 拦」而非「闸失效」。
+ */
+async function proveCrossOwnerRetryIsolation(): Promise<void> {
+  process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'r2-p-worker-retry-gate-hmac-proof-key-not-production-01';
+  const port = process.env.PGPORT ?? '';
+  A('隔离库端口不是 54329（跨 owner 冷却隔离臂）', port !== '' && port !== '54329', `PGPORT=${port}`);
+  if (port === '' || port === '54329') return;
+
+  const priorExecTimeout = process.env.MODEL_EXECUTION_TIMEOUT_MS;
+  const priorTransportTimeout = process.env.MODEL_TIMEOUT_MS;
+  const priorCooldownMs = process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
+  process.env.MODEL_EXECUTION_TIMEOUT_MS = '4000';
+  process.env.MODEL_TIMEOUT_MS = '4000';
+  delete process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
+  const pool = createPool();
+  try {
+    await assertIsolatedTestTarget(pool);
+    const suffix = createHash('sha256').update(`${Date.now()}:cross-owner`).digest('hex').slice(0, 12);
+    const ownerA = `xown_a_${suffix}`;
+    const ownerB = `xown_b_${suffix}`;
+    const fields = { title: '全栈工程师', description: '前后端都写', competencies: ['全栈'] };
+    const jobA = await asPrincipal(pool, ownerA, (c) => createJob(c, ownerA, fields));
+    const jobB = await asPrincipal(pool, ownerB, (c) => createJob(c, ownerB, fields));
+    const digest = canonicalJobSemanticDigest({
+      title: fields.title, description: fields.description, competencies: fields.competencies,
+    });
+
+    let hangCalls = 0;
+    let refuseCalls = 0;
+    let fastCalls = 0;
+    const hangModel: ModelClient = {
+      async complete() {
+        hangCalls += 1;
+        await new Promise((resolve) => setTimeout(resolve, 9000));
+        return { ok: true as const, raw: { allocations: [{ leafTrackId: 'backend/general', allocationBps: 10000 }], confidenceBps: 5000, marginBps: 3000, reasonCodes: [] } };
+      },
+    };
+    const refuseModel: ModelClient = {
+      async complete() {
+        refuseCalls += 1;
+        return { ok: false as const, kind: 'deterministic' as const };
+      },
+    };
+    const fastModel: ModelClient = {
+      async complete() {
+        fastCalls += 1;
+        return { ok: true as const, raw: { allocations: [{ leafTrackId: 'backend/nodejs', allocationBps: 7000 }, { leafTrackId: 'frontend/web', allocationBps: 3000 }], confidenceBps: 8500, marginBps: 4000, reasonCodes: [] } };
+      },
+    };
+    const hangA = createJobRouteModelClassify({ pool, owner: ownerA, model: hangModel });
+    const refuseB = createJobRouteModelClassify({ pool, owner: ownerB, model: refuseModel });
+    const fastB = createJobRouteModelClassify({ pool, owner: ownerB, model: fastModel });
+
+    const tick1a = await classifyJobRoute(pool, ownerA, jobA.id, 1, { modelClassify: hangA });
+    const invA = await pool.query(
+      'SELECT status FROM ai_model_invocation WHERE owner_user_id=$1 AND idempotency_key=$2',
+      [ownerA, `job-route-classify:${jobA.id}:1:${digest}`],
+    );
+    const retryA = await asPrincipal(pool, ownerA, (c) => retryJobRoute(c, ownerA, jobA.id));
+    A('正向对照：owner-A 缺省窗内自身重试仍抑制（unknown_pending·闸未失效）',
+      tick1a.status === 'route_unresolved' && invA.rows[0]?.status === 'unknown'
+      && retryA?.status === 'unknown_pending' && hangCalls === 1,
+      `invA=${String(invA.rows[0]?.status ?? 'none')} retryA=${retryA?.status ?? 'null'} hangCalls=${hangCalls}`);
+
+    const tick1b = await classifyJobRoute(pool, ownerB, jobB.id, 1, { modelClassify: refuseB });
+    const tick1bFace = tick1b.status === 'route_unresolved' ? tick1b : null;
+    const retryB = await asPrincipal(pool, ownerB, (c) => retryJobRoute(c, ownerB, jobB.id));
+    A('跨 owner 隔离：owner-A 冷却窗内时 owner-B 重试不受影响（缺省冷却下照常 retried@rev2）',
+      tick1bFace?.attemptOutcome === 'known_not_sent' && refuseCalls === 1
+      && retryB !== null && retryB.status === 'retried' && retryB.revision === 2,
+      `outcome=${tick1bFace?.attemptOutcome ?? tick1b.status} retryB=${retryB?.status ?? 'null'}@${retryB?.revision ?? '-'}`);
+    const tick2b = await classifyJobRoute(pool, ownerB, jobB.id, 2, { modelClassify: fastB });
+    const invAAfter = await pool.query(
+      'SELECT status FROM ai_model_invocation WHERE owner_user_id=$1 AND idempotency_key=$2',
+      [ownerA, `job-route-classify:${jobA.id}:1:${digest}`],
+    );
+    A('owner-B 重试走完分类且 owner-A 前账 unknown 原样未动',
+      tick2b.status === 'route_decided' && fastCalls === 1
+      && invAAfter.rows[0]?.status === 'unknown',
+      `tick2b=${tick2b.status} fastCalls=${fastCalls} invAAfter=${String(invAAfter.rows[0]?.status ?? 'none')}`);
+  } finally {
+    if (priorExecTimeout === undefined) delete process.env.MODEL_EXECUTION_TIMEOUT_MS;
+    else process.env.MODEL_EXECUTION_TIMEOUT_MS = priorExecTimeout;
+    if (priorTransportTimeout === undefined) delete process.env.MODEL_TIMEOUT_MS;
+    else process.env.MODEL_TIMEOUT_MS = priorTransportTimeout;
+    if (priorCooldownMs === undefined) delete process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
+    else process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS = priorCooldownMs;
+    await pool.end();
+  }
+}
+
+A('重试 unknown 冷却缺省=2 分钟（120000ms·2026-11-06 协调方裁定·env ROUTE_RETRY_UNKNOWN_COOLDOWN_MS 可覆盖）',
+  ROUTE_RETRY_UNKNOWN_COOLDOWN_MS === 120_000, String(ROUTE_RETRY_UNKNOWN_COOLDOWN_MS));
+
+{
+  // 冷却窗环境变量覆盖 resolver 断言（纯函数·零 DB）：缺省回落 / env 数值生效 / 非法值
+  // fail-closed 回退缺省并警告一次（EXEC 令 P2 裁定：0/负数/非数字/越界不再抛错、也绝不静默
+  // 关闸——统一回退缺省 120000·进程生命周期内警告恰一次）。
+  const priorCd = process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
+  const cdRestore = () => {
+    if (priorCd === undefined) delete process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
+    else process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS = priorCd;
+  };
+  let defaultOk = false;
+  let envOk = false;
+  let invalidFallbacks = 0;
+  let warnCalls = -1;
+  try {
+    delete process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
+    defaultOk = resolveRouteRetryUnknownCooldownMs() === 120_000;
+    process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS = '30';
+    envOk = resolveRouteRetryUnknownCooldownMs() === 30;
+    const warns: string[] = [];
+    const priorWarn = console.warn;
+    console.warn = (...args: unknown[]) => { warns.push(args.map(String).join(' ')); };
+    try {
+      // 六例非法：非数字/负数/0（旧「关闭」语义废止）/小数/越上限/纯空白静默归 0 角。
+      for (const bad of ['abc', '-1', '0', '1.5', '3600001', ' ']) {
+        process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS = bad;
+        if (resolveRouteRetryUnknownCooldownMs() === 120_000) invalidFallbacks += 1;
+      }
+    } finally {
+      console.warn = priorWarn;
+    }
+    warnCalls = warns.length;
+  } finally {
+    cdRestore();
+  }
+  A('冷却窗环境变量覆盖 resolver（缺省 120000·env 数值生效·非法六例 fail-closed 全回退缺省·警告恰一次）',
+    defaultOk && envOk && invalidFallbacks === 6 && warnCalls === 1,
+    `default=${defaultOk} env=${envOk} fallbacks=${invalidFallbacks} warns=${warnCalls}`);
+}
+
+
 proveStaleRevisionDoesNotBlockDrain()
   .then(() => proveSlowModelDoesNotWedgeRoute())
+  .then(() => proveRetryGateBlocksDoubleBilling())
+  .then(() => proveKnownNotSentRetryUnblocked())
+  .then(() => proveCrossOwnerRetryIsolation())
   .then(() => {
   console.log(failures === 0
     ? '\nOK  r2-p-worker-route-classify prove (P-WORKER closed via sole route-classify consumer + MODEL-OP modelClassify; R2 NOT closed; ≠ 路由已生效; releaseEvidence=false; Not HA)'

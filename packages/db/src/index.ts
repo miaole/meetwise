@@ -104,7 +104,7 @@ export type { LedgerEntry, LedgerPage, LedgerSource, LedgerEntryStatus, ListLedg
 // 招聘方(B 端)岗位仓储(多租户 RLS 隔离)+ 候选人申请闭环(多方 RLS)
 export {
   createJob, listJobs, getJob, closeJob, updateJob,
-  getJobRouteStatus, listJobRouteStatuses, retryJobRoute, getJobPlannerInputForInterview,
+  getJobRouteStatus, listJobRouteStatuses, retryJobRoute, getJobPlannerInputForInterview, ROUTE_RETRY_UNKNOWN_COOLDOWN_MS, resolveRouteRetryUnknownCooldownMs,
   listOpenJobs, applyToJob, listMyApplications, listJobCandidates, finalizeApplication,
   inviteCandidate, startApplicationInterview, declineInvitation, markApplicationAssessmentUnavailable, markApplicationNoEligibleScore, listTalentPool,
 } from './recruiting/recruiter.ts';
