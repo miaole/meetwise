@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {
   cloudTestSerialFailure,
   resolveCloudTestSerialConfig,
-} from '../src/cloud-test-serial.ts';
+} from '../evidence/cloud-test-serial.ts';
 
 const runId = 'cloudtest-20260811-a';
 const caseId = 'TC-CLOUD-TEST-001-main';

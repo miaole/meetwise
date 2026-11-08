@@ -223,6 +223,13 @@ async function main() {
   A('坏 JSON → null', toBusinessEvent({ event: 'question_ready', id: 9, data: '{bad' }) === null);
   A('payload 不符 → null', toBusinessEvent({ event: 'question_ready', id: 9, data: '{}' }) === null);
   A('未知事件 → null', toBusinessEvent({ event: 'nope', id: 9, data: '{}' }) === null);
+  // 未知 kind 降级显式钉：score_card_written 是后端真实持久 kind（0103 写卡函数随事务追加·0202
+  // 入 ck_interview_event_kind 值域），SSE 重放会原样透传到前端——前端契约不含它，必须降级为
+  // null 丢弃（不崩溃、不裸用、不挡后读事件），后端扩 kind 时旧前端忽略仍正确。
+  A('后端真实未知 kind(score_card_written) → null 降级丢弃', toBusinessEvent({ event: 'score_card_written', id: 10, data: '{"overall":88}' }) === null);
+  A('未知 kind 不挡后读事件（降级后序列仍可继续类型化）',
+    toBusinessEvent({ event: 'score_card_written', id: 10, data: '{"overall":88}' }) === null
+    && toBusinessEvent({ event: 'report_ready', id: 11, data: '{"overall":90}' })?.event === 'report_ready');
   A('NaN id(缺 id) → null,不污染 lastEventId', toBusinessEvent({ event: 'waiting_user', data: '{}' }) === null);
 
   section('视图归约 + 无静默死胡同');
@@ -1981,8 +1988,14 @@ async function main() {
 
     // ── #231：押题提示诚实化（备战提示落位·refs 拼装机制字节零触）——旧话术字面量经 join 拆写（沿 public-copy prohibitedMarketingPhrases 先例·保全仓 rg EXIT=1 形） ──
     const maybeFollowUp = ['可能追', '问'].join('');
-    A('I5-#231a 旧押题话术在 QuizPanel/dashboard 双文件零残留（全仓 rg 负断言入收据·EXIT=1 形）',
-      !quizSrc.includes(maybeFollowUp) && !dashSrc.includes(maybeFollowUp));
+    // 键级负断言：只押「备战提示」文案行（旧话术宿主行形）逐行不含旧字面量——
+    // 全文件级负断言会把任何提及「可能追问」的无害注释/文档行误杀（地雷形·收窄为文案行键级）。
+    const quizTipLines = quizSrc.split('\n').filter((l) => l.includes('备战提示'));
+    const dashTipLines = dashSrc.split('\n').filter((l) => l.includes('备战提示'));
+    A('I5-#231a 旧押题话术键级零残留（QuizPanel/dashboard 备战提示文案行逐行不含旧字面量·负断言收窄为文案行键级）',
+      quizTipLines.length > 0 && dashTipLines.length > 0
+      && quizTipLines.every((l) => !l.includes(maybeFollowUp))
+      && dashTipLines.every((l) => !l.includes(maybeFollowUp)));
     A('I5-#231b 「备战提示」落位钉死行形：QuizPanel 用户文案行（非 :83 注释自匹配）+dashboard 快捷卡行',
       /备战提示：就「\{q\.refs\.join\('、'\)\}」准备原理、权衡与踩坑/.test(quizSrc)
       && dashSrc.includes('标考察点与备战提示'));

@@ -9,9 +9,9 @@
 // 复跑纪律（§0.1-2 钉死）：EXEC 期复跑以本脚本输出为准，禁另起口径。
 //
 // 用法：
-//   node scripts/ai-docs/request-status-recon.mjs             # 对 274 卷输出两读差异清单（默认）
+//   node scripts/ai-docs/request-status-recon.mjs             # 对现树（HEAD）受管面全卷输出两读差异清单
 //   node scripts/ai-docs/request-status-recon.mjs --all       # 附每卷两读全表
-//   node scripts/ai-docs/request-status-recon.mjs --ref=<ref> # 改读其他提交（默认=普查基线锚）
+//   node scripts/ai-docs/request-status-recon.mjs --ref=<ref> # 改读其他提交（默认=HEAD 现树）
 //
 // ── raw 读法 = 六锚优先级（取首中锚行的首个 canonical token；行中嵌入 token 一律 prose 混入
 //    不取；prose 提及与连字合成词不命中——uc025-e2e / secret-checker-nul-guard 反例校验样本）──
@@ -37,7 +37,19 @@
 //      EXEC 期终态注记·EXEC 落卷·EXEC 翻面 bold 头标形（db-acl-residual `:181`）/
 //      post 双审会签 PASS·post-prove 双席 BOTH PASS 携态字（g2-report-page `:97`）/
 //      「EXEC 状态行」节下态字行（resume-grounding `:189`）/ 括注翻面（event-ttl `:3` 收官翻面形）/
-//      链续行（行首 → 态字——ha-6-companion `:171` 形）；
+//      链续行（行首 → 态字——ha-6-companion `:171` 形）/
+//      2026-11-03/05 后四种关闭注（STATUS-RECON 对账刀 + DRAFT-FLIP 批量关闭刀 + ERRATA-SESSION-1105
+//      总刀 + fin 台账收官刀 U5a）：`有效态翻面→`态字``翻面注（cap-sanction-2232 `:3`/`:73` 形·
+//      `终值裁定=` 同线并存时裁定注后位胜）/ `【关闭 … STOP 收口 `态字``（g2-report-page `:99` 形）/
+//      `【闭卷注|【归档注 … 本卷闭卷|归档登记】`（extrev-deps-audit `:203` / g7-enoent-fix `:76` 形·
+//      闭卷登记=closed·零态字亦命中）/ `终值裁定=态字`（fin `:27` / regw `:3` 形·链/标记赋值前取；
+//      2026-11-06 post r2：独立成行（无链/Status/翻面注共线）亦触发——adjudFlip 旗与
+//      reconFlip/stopCloseNote 同构，裁定值压位序末条链行）；
+//      2026-11-06 rev 引述/提及免疫：三类显式标记与闭卷/归档注只在「规范注头（【终裁注/【翻面/
+//      【关闭/【闭卷注|【归档注 + ISO 日期）共线 + marker 本体在 code span 外 + 态字紧邻
+//      （marker 后只容反引号/加粗/括号/空白等包裹字符）」时取值，且 marker 本体不被反引号引述
+//      （前邻非反引号）——正文引述格式示例（small-fixes-1105 §0 表行形）、裸 marker 行、prose 提及
+//      一律不触发（bare `终值裁定=` 不翻系钉死语义）；
 //   > 权威条款行（「本注记为权威」/「现以 §N 为准」/「已改回」携态字——smoke-env-fix `:131` vs
 //      `:3` 标本：卷尾历史 STOP= 复述行不翻，`:3` 权威终翻行胜）；
 //   > 后置历史 STOP=/卷尾注（无⑦标记的 STOP= / STOP · 复述行——smoke-env-fix `:127/:131`、
@@ -58,13 +70,18 @@
 //    entpay-slice2 `:180` 保持 draft 之机制依据；红停上报行 `executed:stopped_gate_red_escalated`
 //    系中间停报态非终值翻面——safewrite-backpressure `:5` 形）。
 //
-// census 锚定：默认读普查基线提交（rc-REQUEST §0.1-1 命令锚同源），卷数须恰 274，否则
-// 报错退出 1（防普查集漂移静默缩放）。
+// census 锚定：默认读 HEAD（受管面动态枚举——普查集=该 ref 下 harness/ 内 REQUEST 卷全集，
+// 不再钉死卷数常数；274 卷旧基线 e647fcffa 及任何历史提交可用 --ref=<ref> 回读）。
+// 防漏门：任何一卷若六锚 raw 与注记终值两读全空（= 未被任何锚读到），报错退出 1 并逐卷点名
+// （防新卷无状态注静默漏读；errata-session-1105 起全部在册卷均带状态注或关闭注）。
 
 import { execFileSync } from 'node:child_process';
 
-const CENSUS_BASE_REF = 'e647fcffa'; // 普查基线锚（rc-REQUEST §0.1-1 钉死·保可复跑）
-const EXPECTED_VOLUME_COUNT = 274;
+const DEFAULT_REF = 'HEAD'; // 受管面动态枚举（普查基线重锚现树；历史基线 e647fcffa 用 --ref 回读）
+// 卷数收缩防线（2026-11-06 rev）：动态枚举只防「读不出」（防漏门），不防「集合变小」——
+// 卷被删/改名漏检时 census 静默缩水。HEAD 默认读法设硬下界=落值时受管卷全集（增长零触碰，
+// 永不误红；合法删除须随刀承登如实上调/撤除）。显式 --ref= 读法（历史基线/探针仓）不设界。
+const MIN_VOLUME_COUNT = 288;
 
 // ---------- token 模型 ----------
 
@@ -83,6 +100,50 @@ const CHAIN_ARROW_LOOKAHEAD =
 
 function normalizeToken(raw) {
   return raw.replace(/\s+/g, ' ').trim();
+}
+
+// ---------- 显式翻面标记读法（2026-11-06 rev：引述/提及免疫）----------
+// 三类显式标记（`终值裁定=`/`有效态翻面→`/`STOP 收口`态字``）只在「权威注记原行」上取值，
+// 三条件齐备方命中（small-fixes-1105-REQUEST §0 表行引述四关闭注格式即被旧读法伪读为
+// executed 的 P1 根因）：
+//   ① 注头共线：marker 所在行须带该注记种的规范注头+ISO 日期（【终裁注/【翻面/【关闭
+//      +\d{4}-\d{2}-\d{2}——append-only 注记约定形，在案全部真翻面行均带；裸 marker、
+//      格式示例、他卷注引述不带本种注头不触发；bare `终值裁定=` 行不翻系本读法钉死语义）；
+//   ② span 外：marker 本体前邻字符非反引号（`` `有效态翻面→` ``整段被引述形免疫；
+//      注记值形 `有效态翻面→`closed`` 的值在 span 内、marker 在外，照常命中）；
+//   ③ 态字紧邻：marker 之后只容包裹字符（反引号/加粗/括号/空白）即须紧邻 canonical 态字
+//      ——marker 后正文 prose 里任意位置的态字（如「伪读为 executed」）不取。
+const ADJUD_MARKER_RE = /终值裁定\s*[`*_\s]*[=＝：:]\s*[`*_\s]*/g;
+const RECON_MARKER_RE = /有效态翻面\s*→\s*[`*_\s]*/g;
+const STOPCLOSE_MARKER_RE = /STOP\s*收口\s*[`*_\s]*/g;
+const ADJUD_NOTE_RE = /【终裁注\s+\d{4}-\d{2}-\d{2}/;
+const FLIP_NOTE_RE = /【翻面\s+\d{4}-\d{2}-\d{2}/;
+const CLOSE_NOTE_RE = /【关闭\s+\d{4}-\d{2}-\d{2}/;
+const EXPLICIT_WRAP_ONLY =
+  new RegExp('^[`*_\\s（）()〔〕【】]*(' + CANON_SRC + '|' + FAMILY_SRC + ')(?![\\w-])');
+
+function inCodeSpan(line, idx) {
+  return idx > 0 && line[idx - 1] === '`'; // marker 前邻恰为反引号=code span 引述形（`` `有效态翻面→` ``）
+}
+
+// errata 闭卷注/归档注整行判定：注头须携 ISO 日期（真注约定形；格式示例/引述不带日期
+// 不命中——small-fixes-1105 §0 表行 `` `【闭卷注|【归档注…` 引述形免疫）。
+function isCloseNoteLine(line) {
+  return /【(?:闭卷注|归档注)\s+\d{4}-\d{2}-\d{2}/.test(line) && /本卷(?:闭卷|归档)登记/.test(line);
+}
+
+// marker 全局扫描：取首个「注头共线+非反引号引述+态字紧邻」命中；任一条件不满足即无此标记值。
+function explicitMarkerHit(line, markerRe, noteRe) {
+  if (!noteRe.test(line)) return null;
+  markerRe.lastIndex = 0;
+  let m;
+  while ((m = markerRe.exec(line)) !== null) {
+    if (inCodeSpan(line, m.index)) continue;
+    const rest = line.slice(m.index + m[0].length);
+    const am = EXPLICIT_WRAP_ONLY.exec(rest);
+    if (am) return { token: normalizeToken(am[1]), end: m.index + m[0].length + am[0].length };
+  }
+  return null;
 }
 
 function familyOf(token, line, matchEnd) {
@@ -146,8 +207,31 @@ function lastChainSegment(line) {
   return lastSplit >= 0 ? line.slice(lastSplit) : null;
 }
 
-// 翻面行解析：链形取链末元素；否则显式标记赋值；否则 STOP=/现值= 赋值取末个；否则行首态字。
+// 翻面行解析：显式赋值标记（终值裁定/有效态翻面/STOP 收口）最优先——翻面注行常兼含链形
+// 与「本行活值 `旧值`」复述（ag09 卷尾注 `:156` 形），链首取到旧值系伪读，注体箭头才是翻面；
+// 其余仍链形取链末元素；否则泛值标记赋值；否则 STOP=/现值= 赋值取末个；否则行首态字。
 function parseFlipLine(line) {
+  // errata 闭卷注/归档注：注头（携 ISO 日期·引述格式示例不带日期不命中）+本卷登记同线即
+  // closed（注体零态字亦命中——extrev-deps-audit `:203` / g7-enoent-fix `:76` 形）；
+  // 引述行无「本卷…登记」字样不命中。
+  if (isCloseNoteLine(line)) {
+    return { token: 'closed', family: 'closed', via: 'close_note' };
+  }
+  const adjudHit = explicitMarkerHit(line, ADJUD_MARKER_RE, ADJUD_NOTE_RE); // fin U5a 终裁注（末位权威·胜于位序）
+  const reconHit = explicitMarkerHit(line, RECON_MARKER_RE, FLIP_NOTE_RE); // STATUS-RECON 对账刀翻面注（cap-sanction-2232 `:3`/`:73` 形·协调方授权对账翻面）
+  const explicitFlip =
+    adjudHit ??
+    reconHit ??
+    explicitMarkerHit(line, STOPCLOSE_MARKER_RE, CLOSE_NOTE_RE); // DRAFT-FLIP 批量关闭刀（g2-report-page `:99` 形）
+  if (explicitFlip) {
+    return {
+      token: explicitFlip.token,
+      family: familyOf(explicitFlip.token, line, explicitFlip.end),
+      via: 'marker',
+      ...(adjudHit ? { adjudicated: true } : {}),
+      ...(reconHit ? { reconFlip: true } : {}),
+    };
+  }
   const chain = lastChainSegment(line);
   if (chain !== null) {
     const hit = firstFamilyToken(chain);
@@ -260,7 +344,9 @@ function readTerminal(lines, raw, debug) {
       continue;
     }
     if (NOFLIP_RE.test(line)) continue; // 「维持/零翻面/不翻」声明行零翻面（bill4 `:199` 形）
-    if (!firstFamilyToken(line)) continue;
+    // errata 闭卷注/归档注：注体零态字（g7-enoent-fix `:76` 形）也须进入翻面判定。
+    const closeNoteFlip = isCloseNoteLine(line);
+    if (!firstFamilyToken(line) && !closeNoteFlip) continue;
     const no = i + 1;
     if (debug) debug(`  L${no} [scan] ${line.slice(0, 140)}`);
     // 后置 `nail 落卷` 叙事行先行归类（uuid `:150` bare 终值 nail 与 h5 `:167` 行首 nail 同判
@@ -280,10 +366,19 @@ function readTerminal(lines, raw, debug) {
     const flipGloss = FLIP_GLOSS_RE.test(line);
     const lineStartArrow = /^\s*[`*_\s]*→/.test(line);
     const sectionCarry = execSection;
+    // 触发旗与取值同判据（注头+span 外+态字紧邻）：正文引述/格式示例/提及不再把行送进翻面分支
+    // ——small-fixes-1105 §0 表行（引四关闭注格式）即被旧子串旗伪触发。
+    const reconFlip = explicitMarkerHit(line, RECON_MARKER_RE, FLIP_NOTE_RE) !== null; // STATUS-RECON 对账刀翻面注（卷头 :3 形无 STOP/Status 标记时由此触发）
+    const stopCloseNote = explicitMarkerHit(line, STOPCLOSE_MARKER_RE, CLOSE_NOTE_RE) !== null; // DRAFT-FLIP 批量关闭刀（无 dualPass 共现时由此触发）
+    // 终裁注独立行旗（2026-11-06 post r2）：`终值裁定=` 独立成行（无链/Status/翻面注共线）此前
+    // 不入触发旗链——explicitAssign 正则要求「终值」后紧跟赋值符，「终值裁定=」隔「裁定」二字
+    // 不命中，终裁注输给位序末条链行（xs-post-2 P1-2）。adjudFlip 与 reconFlip/stopCloseNote
+    // 同构（注头+span 外+态字紧邻同判据），取值层 adjudicated 优先级本就高于 reconFlip（末位权威）。
+    const adjudFlip = explicitMarkerHit(line, ADJUD_MARKER_RE, ADJUD_NOTE_RE) !== null; // fin U5a 终裁注独立行（终值裁定=）
     // 翻面行判定：链形须与 Status/STOP/EXEC 标记或链续行（行首 →）共现——纯 prose 链复述
     // （closed-job-start `:68` 代码箭头 / ag09 `:156` / ci-wiring2 `:34` 等叙述形）不翻。
     const chainIsFlip = chainFlip && (statusShape || statusMarked || stopFlip || execBold || lineStartArrow || sectionCarry);
-    if (chainIsFlip || statusMarked || stopFlip || execBold || explicitAssign || dualPass || flipGloss || sectionCarry) {
+    if (chainIsFlip || statusMarked || stopFlip || execBold || explicitAssign || dualPass || flipGloss || sectionCarry || closeNoteFlip || reconFlip || stopCloseNote || adjudFlip) {
       const parsed = parseFlipLine(line);
       if (parsed) {
         if (parsed.token && parsed.token.startsWith('stopped')) continue; // 红停上报=中间停报态非终值翻面
@@ -315,9 +410,16 @@ function readTerminal(lines, raw, debug) {
   // 终值裁决只取 ⑦活值翻面行 / 权威条款行；后置历史 STOP=/卷尾注（hits[5]）为复述层
   // 不裁决（无更高类翻面行时随 raw 层——qbank-pipeline-scope `:213` 卷尾历史 trailer 形），
   // hits[4] nail 叙事层同不裁决（判据②佐证位）。
+  // `终值裁定=`（fin U5a 终裁注）自钉「终值读序」权威（regw `:3` vs §9-EXEC `:497` 形）：
+  // 同类内取末条裁定行，压位序；`有效态翻面→`（STATUS-RECON 对账刀）同层压位序——它逐行
+  // append 于卷头/§8/卷尾全部状态行，EXEC 期卷尾摘要的翻面括注复述行（assert-strengthen
+  // `:141` 形）位序在后但系旧值史录非翻面。两类权威均缺位时仍取末条（append-only 后位胜）。
   for (const cls of [7, 6]) {
     if (hits[cls].length > 0) {
-      const last = hits[cls][hits[cls].length - 1]; // 末条权威翻面行
+      const adjs = hits[cls].filter((h) => h.adjudicated);
+      const recons = hits[cls].filter((h) => h.reconFlip);
+      const last =
+        adjs.length > 0 ? adjs[adjs.length - 1] : recons.length > 0 ? recons[recons.length - 1] : hits[cls][hits[cls].length - 1];
       if (last.token) return { value: last.token, family: last.family, via: last.via, class: cls, line: last.no };
       return { value: null, label: last.label, family: 'non-canonical', class: cls, line: last.no };
     }
@@ -334,17 +436,15 @@ function git(args) {
 function main() {
   const argv = process.argv.slice(2);
   const refArg = argv.find((a) => a.startsWith('--ref='));
-  const ref = refArg ? refArg.slice('--ref='.length) : CENSUS_BASE_REF;
+  const ref = refArg ? refArg.slice('--ref='.length) : DEFAULT_REF;
   const showAll = argv.includes('--all');
   const debugVol = argv.find((a) => a.startsWith('--debug='))?.slice('--debug='.length);
 
+  // 受管面动态枚举：普查集=该 ref 下 harness/ 内 REQUEST 卷全集（不钉卷数常数；
+  // 防漏由扫描后的「未被任何锚读到」门承担）。
   const paths = git(['ls-tree', '-r', '--name-only', ref, '--', 'ai-docs/delivery/harness/'])
     .split('\n')
     .filter((p) => p.includes('REQUEST'));
-  if (paths.length !== EXPECTED_VOLUME_COUNT) {
-    console.error(`census drift: ref ${ref} harness REQUEST count = ${paths.length}, expect ${EXPECTED_VOLUME_COUNT}`);
-    process.exit(1);
-  }
 
   const rows = [];
   for (const path of paths) {
@@ -358,6 +458,16 @@ function main() {
     }
     rows.push({ vol, path, raw, terminal });
   }
+
+  // 卷数收缩防线：HEAD 默认读法（未显式 --ref=）下卷集合小于硬下界即红（见 MIN_VOLUME_COUNT 注）。
+  if (!refArg && rows.length < MIN_VOLUME_COUNT) {
+    console.error(`census shrink: ref ${ref} 卷数 ${rows.length} < 下界 ${MIN_VOLUME_COUNT}（卷集合收缩·合法删除须随刀承登上调）`);
+    process.exit(1);
+  }
+
+  // 防漏门样本：六锚 raw 与注记终值两读全空 = 未被任何锚读到（新卷无状态注静默漏读防线）。
+  // 先出报告再裁决退出码（历史 ref 可能含补注前无状态卷——报告仍可读，退出码如实红）。
+  const unread = rows.filter((r) => !r.raw && !r.terminal);
 
   const rawTally = { closed: 0, executed: 0, draft: 0, proofed: 0, post_prove_dual_pass: 0, stopped: 0, none: 0 };
   const termTally = { executed: 0, closed: 0, draft: 0, proofed: 0, post_prove_dual_pass: 0, stopped: 0, non_canonical: 0 };
@@ -423,6 +533,11 @@ function main() {
         : '（无翻面行·随 raw）';
       console.log(`- ${r.vol} | raw=${raw} | 终值=${term}`);
     }
+  }
+  if (unread.length > 0) {
+    console.error(`census leak: ref ${ref} 有 ${unread.length} 卷未被任何锚读到（raw 六锚与注记终值两读全空）：`);
+    for (const r of unread) console.error(`- ${r.path}`);
+    process.exit(1);
   }
 }
 

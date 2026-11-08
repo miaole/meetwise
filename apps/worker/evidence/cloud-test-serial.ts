@@ -15,7 +15,7 @@ import {
   cloudSmokeFailure,
   parseCloudSmokePrivateCidrs,
   resolveCloudSmokePrivateHost,
-} from './cloud-readiness.ts';
+} from '../src/cloud-readiness.ts';
 import {
   beginCloudTestRun,
   completeCloudTestRun,

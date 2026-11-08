@@ -457,8 +457,10 @@ export function parseReviewFileVerdict(text) {
 }
 
 /**
- * Test-only diagnostic companion to `parseReviewFileVerdict` (no production
- * exit: `dualFromReviewFiles` never calls it and carries no diagnostics).
+ * Diagnostic companion to `parseReviewFileVerdict`. Production exit:
+ * `dualFromReviewFiles` calls it when a role/author-matched reviewer file
+ * parses to null and emits `unparseable reviewer file <path>: reason=<reason>`
+ * on stderr — diagnostics only, the slot stays null (fail-closed unchanged).
  *
  * Reason priority = defense chain order:
  *   empty > comment family (`verdict-in-comment` before `unclosed-comment`)
@@ -551,7 +553,14 @@ export function dualFromReviewFiles(paths, root) {
       }
     }
     const verdict = parseReviewFileVerdict(text);
-    if (verdict == null) continue;
+    if (verdict == null) {
+      // GAP-EVAL-PARSER-DETAILS-UNCLOSED 诊断出口：角色+作者均匹配的 reviewer 文件解析失败
+      // 时 stderr 点名（unparseable reviewer file <path>: reason=<reason>）——仅诊断，
+      // 槽位仍 null（fail-closed 语义零变），parseable 文件零输出。
+      const { reason } = diagnoseReviewFile(text);
+      console.error(`unparseable reviewer file ${p}: reason=${reason}`);
+      continue;
+    }
     if (role === 'e2eHa') e2eHa = verdict;
     if (role === 'ragRoute') ragRoute = verdict;
   }

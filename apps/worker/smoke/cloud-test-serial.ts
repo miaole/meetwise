@@ -1,4 +1,4 @@
-import { cloudTestSerialFailure, runCloudTestSerial } from '../src/cloud-test-serial.ts';
+import { cloudTestSerialFailure, runCloudTestSerial } from '../evidence/cloud-test-serial.ts';
 
 function argument(name: string): string | undefined {
   const index = process.argv.indexOf(name);

@@ -214,6 +214,19 @@ export async function pumpSseEvents(o: SsePumpOptions): Promise<void> {
   // 取数抛错不走 end:上面的注销之后 destroy,再把原错误抛出。
   if (fetchRejected) {
     const err = fetchErr;
+    // #57 留痕:全局过滤器对已发响应(reply.sent/headersSent)静默 return,这里取数失败时响应
+    // 必已发出——不留痕则故障不可见。pump 是唯一带流上下文的出口:结构化日志(streamKey/lastSeq/
+    // 错误类别与码)走 fastify pino reply.log;无 pino 时退回 stderr 兜底。只录 name/code
+    // (2026-11-06 rev:err.message/stack 原文不落日志——错误文本可能内嵌查询串/DSN/token,
+    // 类别+码足以分诊;原文随 rethrow 走既有错误通道)。
+    const e = err as Error;
+    const payload = {
+      streamKey: o.streamKey,
+      lastSeq,
+      err: { name: e?.name, code: (err as { code?: unknown })?.code },
+    };
+    if (typeof reply.log?.error === 'function') reply.log.error(payload, 'sse_fetch_rejected');
+    else console.error('sse_fetch_rejected:', payload);
     reply.raw.destroy?.(err as Error);
     throw err;
   }
