@@ -280,8 +280,11 @@ function childEnv(): NodeJS.ProcessEnv {
  *    原生模块)。
  *  - allow-worker:pdfjs fake-worker 面预留(实测生产镜像验证所需,同证伪路预演配置)。
  *  - allow-child-process:node 包装器形态(dev 机 hermes shim 自 spawn 真 node 二进制)需要;
- *    生产 swc 形态实测零 spawn——保留此授权系形态兼容面,残余面=被入侵解析库理论可 spawn,
- *    但其 env 已最小化(无机密),纵深不因之破。
+ *    生产 swc 形态实测零 spawn——保留此授权系形态兼容面。r6 码注修正(前值「其 env 已最小化
+ *    (无机密),纵深不因之破」containment 句被 r5 乙席容器实测证伪):子进程 env 已最小化+node
+ *    层沙箱对 node 内逃逸有效;--allow-child-process 下子进程 spawn 非 node 二进制可逃逸
+ *    node 沙箱读宿主 env(r5 乙席容器实测)——残余威胁=解析器 code exec,登记于卷 §1.8-件⑧
+ *    与 gap 台账(台账行随派单落·r6-confirm P3-1),处置(撤授权/独立容器)归后继刀。
  *  r5 子进程 execArgv 不继承宿主 loader 链(原生 strip-types 直跑·r4-1 P2-3 耦合面关闭)——
  *  故无 tsx/swc 编译缓存读写授权面(零写盘形态保持,证伪路生产镜像实测)。 */
 const CHILD_PERM_ARGS = [
