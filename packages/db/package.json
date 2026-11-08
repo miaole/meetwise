@@ -47,6 +47,7 @@
     "tenant-enforcement:prove": "tsx test/tenant-enforcement.proof.ts",
     "prove:tenant-wiring-e5": "tsx test/tenant-wiring-e5.proof.ts",
     "prove:tenant-wiring-neg": "tsx test/tenant-wiring-neg.proof.ts",
+    "prove:tenant-rls-isolation": "tsx test/tenant-rls-isolation.proof.ts",
     "prove:isolated-target": "tsx test/isolated-test-target.proof.ts",
     "prove:privacy-authorization": "tsx test/privacy-authorization.proof.ts",
     "prove:uc052-internal-erasure": "tsx test/uc052-internal-erasure.proof.ts",

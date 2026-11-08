@@ -909,7 +909,7 @@ const isolatedReceiptSources = {
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/level-policy-version.proof.ts', 'packages/db/migrations/0160_level_policy_version.sql',
   ],
-  // JOB-QUEUE-INDEX（队列 status/lease 前导索引 + gauge 聚合改形隔离证明·真迁移链 222 件·additive 注册沿 level-policy-migrate:prove 同形）。
+  // JOB-QUEUE-INDEX（队列 status/lease 前导索引 + gauge 聚合改形隔离证明·真迁移链 223 件（0225 PRIV01 rev r3 起）·additive 注册沿 level-policy-migrate:prove 同形）。
   'job-queue-index:prove': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/job-queue-index.proof.ts', 'packages/db/package.json',
@@ -2237,6 +2237,15 @@ const isolatedReceiptSources = {
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/migrations/0001_baseline.sql',
   ],
+  // PRIV01-A 候选 A（owner 隔离实证·矩阵 6 + RLS 内省 3 · additive 注册沿 tenant-wiring-neg 同形）。
+  'tenant-rls-isolation:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'packages/db/test/tenant-rls-isolation.proof.ts',
+    'packages/db/src/tenant/index.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0001_baseline.sql', 'packages/db/migrations/0032_rag_corpus_version_control.sql',
+    'apps/api/src/modules/interview/interview.service.ts', 'apps/api/src/modules/privacy/privacy.controller.ts',
+  ],
   'privacy-authorization:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/privacy-authorization.proof.ts',
@@ -2945,6 +2954,8 @@ if (![
   // G7FIX-4R 补锤(nail 席·QP #201 min(3) 后 fixture 刷新实跑):worker g7fix4-reroll 接隔离 PG runner·additive 注册沿 memory:prove 同形。
   'g7fix4-reroll:prove:raw',
   'privacy-authorization:prove:raw', 'tenant-wiring-neg:prove:raw',
+  // PRIV01-A owner 隔离实证（GAP-PRIV-01 候选 A·矩阵+内省·additive 沿 tenant-wiring-neg 同形）。
+  'tenant-rls-isolation:prove:raw',
   'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:external-sink-async-purge:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw',
   'memory-governance:prove:raw',
   'db-id-v7:prove:raw',
@@ -3931,6 +3942,8 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'packages/qdrant-store', 'prove:vectorstore-qdrant']]
   : target === 'tenant-wiring-neg:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:tenant-wiring-neg']]
+  : target === 'tenant-rls-isolation:prove:raw'
+    ? ['pnpm', ['-C', 'packages/db', 'prove:tenant-rls-isolation']]
   : target === 'env-schema:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:env-schema']]
   : target === 'obs-ready:prove:raw'
@@ -4419,6 +4432,8 @@ async function main() {
       `product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.`,
     );
     if (['e2e:prove', 'e2e:ui', 'performance:e2e', 'api:validate', 'obs-ready:prove:raw', 'env-schema:prove:raw', 'recruiter:prove:raw', 'g7fix4:finalize:prove:raw', 'commerce-reconcile:prove:raw', 'commerce-outbox-retention:prove:raw', 'fence-reflow-repair:prove:raw', 'model-invocation-reconcile:prove:raw', 'trace-recon:prove:raw', 'ag-b-classify:prove:raw', 'ag-e-report:prove:raw', 'ag-f-reroll:prove:raw', 'ag-d-admission:prove:raw', 'ag09-replay-first:prove:raw', 'model-op00:prove:raw', 'model-op02:prove:raw', 'model-op02-endpoint-partition:prove:raw', 'model-slot-bypass:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'ag-a-resume:prove:raw', 'ag16-legacy:prove:raw', 'graph-fence-write:prove:raw', 'tokenstream:prove:raw', 'scoring-integrity:prove', 'scoring:eval:raw', 'privacy-erasure:prove:raw', 'privacy-erasure:http:prove:raw', 'privacy-erasure-preview:prove:raw', 'unstube-erase:prove:raw', 'scor-00:http:prove:raw', 'resume-erasure:foundation:prove:raw', 'resume-derivative-reference:prove:raw', 'resume-reference:http:prove:raw', 'reqid:prove:raw', 'interview:prove:raw', 'role-input:prove:raw', 'stress:prove:raw', 'voice-adaptive:prove:raw', 'memory:prove:raw', 'weakness:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'quiz-list:prove', 'diagnosis:prove:raw', 'reaper:prove:raw', 'requeue-backoff:prove:raw', 'bill1-topic-fields:prove:raw', 'bill2-shadow-meter:prove:raw', 'ag19-prompt-version:prove:raw', 'ag12-estimator-freeze:prove:raw', 'qa-tool-layer:prove:raw', 's4b-invoke-delta:prove:raw', 's4b-token-stream:prove:raw', 'bill3-settlement:prove:raw', 'bill4-ledger-list:prove:raw', 'ocr:prove:raw', 'adaptive-degrade:prove:raw', 'commerce:prove:raw', 'uc017:orphan:prove:raw', 'uc017:nhp-load:prove:raw', 'uc018:abandon:prove:raw', 'uc018:graph:prove:raw', 'uc018:ttl:prove:raw', 'uc011:report-refund:prove:raw', 'uc019:report-regenerate:prove:raw', 'report-retry:prove:raw', 'uc002:lease:prove:raw', 'interview-privacy-read-tier:prove:raw', 'resume:prove:raw', 'rag-generation:prove:raw', 'qbank:prove:raw', 'qbank-pipeline:prove:raw', 'qbank-control-role:prove:raw', 'qbank-handoff-closure:prove:raw', 'embed-cache:prove:raw', 'qbank-retrieval-eval:prove:raw', 'online-judge-control:prove:raw', 'privacy-authorization:prove:raw', 'tenant-wiring-neg:prove:raw',
+  // PRIV01-A owner 隔离实证（GAP-PRIV-01 候选 A·pre-migrate 名单第四注册位·沿 tenant-wiring-neg 同形全登记）。
+  'tenant-rls-isolation:prove:raw',
   'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:external-sink-async-purge:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw', 'int-transcript-preview-submit:http:prove:raw', 'int-transcript-answer-fact-root:prove:raw', 'int-transcript-remaining-sinks:prove:raw', 'api-harden:prove', 'scor-01:prove:raw', 'scor-02:prove:raw', 'scor03-evidence-conflict:prove:raw', 'scor-parity:prove:raw', 'growth:prove:raw', 'rag03-route:prove:raw', 'rag04-track-local:prove:raw', 'rag03-filter-locus:prove:raw', 'rag03-hnsw-completeness:prove:raw', 'rag03c-exactk-observe:prove:raw', 'r4-wrong-track-adv-live-pg:prove:raw', 'nhp-r4-adv-covered:prove:raw', 'r4-wrong-track-prod-surface:prove:raw', 'rag05-qbank-miss:prove:raw', 'rag06-route-scope-cache:prove:raw', 'rag07-free-text-route:prove:raw', 'memory-governance:prove:raw', 'db-id-v7:prove:raw', 'db-intfk:prove:raw', 'db-money3:prove:raw', 'memory-admission:prove:raw', 'memory-fact-adjudication:prove:raw', 'memory-index-generation:prove:raw', 'memory-two-stage-recall:prove:raw', 'memory-control-surface:prove:raw', 'ctx03-event-source:prove:raw', 'mem02-summary:prove:raw', 'mem03-summary-tree:prove:raw', 'ctx04-compression-snapshot:prove:raw', 'ctx05-concurrency-recovery:prove:raw', 'ctx06-deletion-closure:prove:raw', 'int-answer-dual-write-fence:prove:raw', 'memory-vector-chunk-erasure:prove:raw', 'vector-plane-erasure:prove:raw', 'uc004:career-path-fault:prove:raw', 'uc004:career-path:http:prove:raw', 'uc001:nhp-neg:prove:raw', 'uc001:nhp-bound:prove:raw', 'uc001:nhp-adv:prove:raw', 'uc001:nhp-fault:prove:raw', 'uc016:nhp-fault:prove:raw',
   // DBHY-1: sql/ 兼容镜像退役(案A 机械迁面)——这些目标改为预迁移(migrations 单真相),proof 内 sql/ 重放已剥。
   // (vectorstore:prove:raw 不入此名单:marked-red legacy fixture 自证只装 legacy 向量面,归 B' 残面=sql/ 夹具保留至 legacy 退役刀。)
