@@ -109,7 +109,7 @@ r0 起草刀收两路 pre-exec 审查：`meetwise/.tmp/reviews/priv1-pre-1.md`�
 | E2 | user_memory `p_owner`→`USING(true) WITH CHECK(true)` | 谓词恒真 | r0 红（M3+I2） | 同 r0 + M7 user_memory |
 | F | 新建 `priv_isolation_decoy(id, owner_user_id NOT NULL)` 零 RLS | 新表漏 RLS | **r0 满绿（假绿）** | G 反演差集非空 |
 
-  r0 的 MUT-PRIV1-1（`0001_baseline.sql` user_memory 手术替换 `USING (true)`）由 E2 同形追加迁移承载；r0 两读数（M3 `upd=1 del=1` + I2 `qual=false chk=false` 红）如实承登不洗。（rev r2 EXEC 期：八形全部重跑仍全红+新增 G2 第三角色授权/H2 fence 钉自证两形，11 形读数见 §9-R2。）（rev r3 post-prove 证伪期：原 11 形全重跑仍全红+新增四形必红=F2 ALTER OWNER 所有权漂移（G-O 固定名单）/F6 无闸 SD 读者（G-SD）/F7 视图体漂移（G-V 体全等钉）/UID user_id 会话表去 RLS（M8 行为+I3 census+G 反演）+补充 F5A `created_by` 别名形（G-SCAN 扫描钉有牙证据）——**16 形全红**，读数见 §9-R3。）
+  r0 的 MUT-PRIV1-1（`0001_baseline.sql` user_memory 手术替换 `USING (true)`）由 E2 同形追加迁移承载；r0 两读数（M3 `upd=1 del=1` + I2 `qual=false chk=false` 红）如实承登不洗。（rev r2 EXEC 期：八形全部重跑仍全红+新增 G2 第三角色授权/H2 fence 钉自证两形，11 形读数见 §9-R2。）（rev r3 post-prove 证伪期：原 11 形全重跑仍全红+新增四形必红=F2 ALTER OWNER 所有权漂移（G-O 固定名单）/F6 无闸 SD 读者（G-SD）/F7 视图体漂移（G-V 体全等钉）/UID user_id 会话表去 RLS（M8 行为+I3 census+G 反演）+补充 F5A `created_by` 别名形（G-SCAN 扫描钉有牙证据）——**16 形全红**，读数见 §9-R3。）（rev r2-一体席 re-dual 收敛期：扩面后新三形必红=UA2R user_account 恒真化（I2-E 全等面·扩面新牙）/W1R definer 属主表 NO FORCE（G-O2·乙席 W1 假绿转红）/SD2 definer 属主降 BYPASSRLS 旗（G-SD 非 super 具名臂）——**三形全红+还原绿**，读数见 §9-R2-一体席。）
 - **新 proof 绿**：`pnpm tenant-rls-isolation:prove` 隔离容器真迁移链 EXIT=0。attempts 全录：本卷 §9（r0 台账 + §9-R1 rev r1 台账）。
 - **相关既有 proof**：`pnpm db:prove` · `pnpm uc033:cross-user-authz:prove` · `pnpm neg:resume` · `pnpm tenant-wiring-neg:prove`（同锚热面回归）。
 - **静态面**：受影响包 typecheck/lint 不高于基线 · `pnpm arch` · `node scripts/e2e-static-guards.mjs` · `node scripts/provider-egress-inventory.mjs` · `node scripts/ai-docs/check-docs.mjs`（届扫=cap 恰等·r3 起 2496）· `node scripts/ai-docs/public-text-policy.proof.mjs`（12/12）· markers 0 · 迁移编号唯一性（`node scripts/check-migration-version-uniqueness.mjs`）。rev r1 零迁移零新增受管件 cap 不动；rev r3 起有迁移 → `migrate:prove`/`drift:prove` 适用必跑；不跑浏览器 UI runner。
@@ -246,6 +246,69 @@ r0 起草刀收两路 pre-exec 审查：`meetwise/.tmp/reviews/priv1-pre-1.md`�
 
 **状态**: `executed:awaiting_post_prove_dual`
 
+## §9-R2-一体席 rev r2 re-dual 收敛台账（2026-11-07 · 树 `line/priv1-draft`（meetwise-priv1 worktree）@ `b9a55fb55` · 源=两席 re-dual FAIL 报告 `meetwise/.tmp/reviews/priv1-redual-甲.md`（P1-甲1 盲表族）+ `priv1-redual-乙.md`（P1-1 93 表策略盲区 / P2-1 G-O FORCE 缺口 / P2-2 G-SD 非 super 跳过）· 一体席=起草+落码同一席 · 本节编号「rev r2」系协调方工单口径，与卷内既有 §9-R2（EXEC 期 rev r2）不同轮，勿混淆）
+
+**修法面**（两席已裁定：单文件断言扩面，不动授权根、零新迁移、零产品码改动；本席实测扩面读数与两席口径对账：乙席 93 张=101 app 面向表−8 已覆盖，甲席 48 张盲族与乙席 93 张系两种口径（带归属列 vs 全部 app 面向），本席以 pg 目录实测 101 张/139 条策略为准全量扩）：
+
+1. **I2-E 全等断言扩面（P1-甲1/乙P1-1）**：I2 全等面从 canonical 7 表+会话表扩到**全部带 app_role/PUBLIC 面向策略的表（活库实测 101 张/139 条策略）**，按判据如实分两桶：
+   - **owner-form 桶（83 表）**：每表每条 app 面向策略**逐条双射全等钉**（policyname+cmd+USING/WITH CHECK 两侧 deparse 归一化全字符串全等，Ban 子串/SOME）。谓词形按实名登记：归属列等值形（`owner_user_id`/`user_id`/`candidate_user_id`/`recruiter_user_id` 等 = `current_setting('app.principal_user', true)`）、凭据 PK 等值形（`user_account.id`）、隐私围栏复合形（owner 等值 ∧ `interview_privacy_active(...)`，9 表）、函数谓词形（`interview_event_stream_privacy_active`，已有 I2 钉）、party 双臂 OR 形（application_route_binding/job_application 读侧+recruiter INSERT EXISTS 形）、派生 EXISTS 形（checkpoint 三表 enrollment 形 / privacy_deletion_target、privacy_preview_sink_line 父请求形 / resume_blob、resume_profile resume 围栏形）、status 写入闸形（interview_answer_artifact/job/submission）。断言五条：反演（app 面向表∈两桶，不在即红=新表漏钉 cap 式）、钉完备（钉表面被删即红=有意识重钉）、RLS+FORCE 面（101 表全 true）、全等面（83 表双射全等+18 表名集）、registered face（恰 1）。
+   - **shared/control 桶（18 表）**：无归属列且设计上共享的表（qbank 控制面/系统语料 15+qbank_curator、qbank_org_curator 目录 2（user_id 为目录身份非行所有权）+level_policy_version 1）——**不为凑数强断言 owner 形**（无所有权列可钉），改钉：全策略名集双射（含 companion，增删漂移即红）+RLS ENABLE+FORCE+收据具名注记（逐表设计面注记入 `receipt.appFaceCensus.sharedControlTables`）。其谓词级漂移（如 qbank 控制面恒真化）属 qbank 控制面 proofs 管辖，如实披露为**本刀 owner 隔离牙之外**（两席 P1 实证形 W4/UA2 均在 owner-form 桶内，已红）。
+2. **G-O2 FORCE 契约扩面（乙P2-1）**：全量非超用户属主关系（r/p/v/m 全枚举，不限归属列）必须∈固定 definer 名单**且恒 RLS ENABLE+FORCE**——活库读数 rels=189（meetwise 155 含 2 视图 · online_judge_owner 8 · privacy_worker_owner 1 · rag_control_definer 25）violations=[]；**definer 属主非归属列表=恰 28 张**（online_judge 8+rag 20，与甲席口径恰等，逐表名录入收据 `ownershipCensus.allRelations.definerOwnedNonAttribution`）——即 r3 被跳过的 FORCE 契约缺口面。非超属主视图触红属设计行为（definer 视图=bypass 面须走 G-V 具名，不得静默挪属主）。
+3. **G-SD 非 super 具名臂（乙P2-2）**：proof.ts（r3 版 :1504）`continue` 跳过改为断言臂——被标记非超属主 SD 函数（活库 97 个）逐函数断言：属主保持 NOSUPERUSER/NOBYPASSRLS（RLS 照管前提从无断言假设升级为活体断言）+EXECUTE 面 app_role=yes/PUBLIC=no；**97 个具名全名单入收据 `sdReaderCensus.nonSuperNamed`**（owners={memory_runtime:73, privacy_api_owner:19, scoring_definer_owner:4, event_retention_worker:1}）；**`interview_event_retention_purge` 具名在册断言**（0219 设计内跨 owner 保留期清扫面：worker-select qual-true+函数自设 `app.event_ttl_sweep` 删除闸——如实登记，处置归协调方/用户）。
+4. **read_decided 设计级上报（乙 P1-1 伴生面·零产品改动）**：`job_route_decision.p_job_route_decision_read_decided`（`0104_job_route_decision.sql:240-242`）= app_role 面向 SELECT、谓词 `route_outcome='route_decided'`、**无 principal 绑定**——app_role 携任意 GUC 可跨 owner 读全体用户的已决路由决策行（乙席活体实证）。本刀不改产品：proof 将该面 **exact-pin 防加宽**（谓词加宽/删除/新增即红）+收据 `registeredNonOwnerFaces` 具名（face='registered-cross-owner-read'）；**是否属预期招聘可见性设计（如 candidate 绑定面注释所示意图）归协调方/用户裁定**，裁定前该面如实登记为「存在且当前无收据兜底」。
+5. **变异自证三形**（真树追加 `0226_mut_*.sql` 经同一 runner 隔离容器全链复跑，applied=224 逐跑亲证，跑后删文件·迁移目录还原 223 件亲证）：
+
+| ID | 变异 SQL | EXIT | 失败数 | 红读数（首因） | 对账 |
+|---|---|---|---|---|---|
+| UA2R | `ALTER POLICY p_user_account_self ON user_account USING(true) WITH CHECK(true)` | 1 | 1 | **I2-E 全等面**：`(user_account.p_user_account_self: USING/ WITH CHECK exact-mismatch … got="true")` | 甲席 UA2 形（r3 版 124 PASS 满绿）→ 扩面后必红 |
+| W1R | `ALTER TABLE online_judge_candidate NO FORCE ROW LEVEL SECURITY` | 1 | 1 | **G-O2**：`(online_judge_candidate,owner=online_judge_owner rls/force off)` | 乙席 W1 形（r3 版 124 PASS 满绿）→ 扩面后必红 |
+| SD2 | `ALTER ROLE memory_runtime BYPASSRLS` | 1 | 2 | **G-SD 具名臂**：memory_runtime 名下 73 个被标记 SD 函数逐个 `definer owner holds BYPASSRLS`（新具名臂+既有 reader face 共享 violations 双红） | 乙席 P2-2 跳过面 → 具名臂必红 |
+| 还原 | 删三变异文件后复跑 | **0** | 0 | **132 PASS / 0 FAIL** · applied=223 | 断言数 124→132（+8：I2-E×5+G-O2×1+G-SD×2），断言面只增不减 |
+
+**prove attempts（Asia/Shanghai · 真树 · docker 隔离容器 runner 自管）**：
+
+| # | 时点 | CMD | EXIT | 读数 |
+|---|---|---|---|---|
+| U-1 | 2026-11-07（r3 终码基线复跑） | `pnpm tenant-rls-isolation:prove` | 0 | 124 PASS（扩面前基线亲证）· receipt `…-ae416ac8-…json` |
+| S-1 | 同日（扩面码·静态门先行） | `tsc --noEmit` / 文件级 eslint | 1→修 | 本席代码缺陷×2 均被静态门拦截于 runner 之前：TS undefined narrowing×4（noUncheckedIndexedAccess）+ eslint 命名规约 99 warnings（snake_case 键名）→ 改 narrowing 处理+两常量表改数组形后 tsc=0/文件 eslint=0（cap 1042 恰等保持）· 非隔离面红、诚实保留修后复跑 |
+| U-2 | 同日（扩面终码首绿） | `pnpm tenant-rls-isolation:prove` | **0** | I2-E 五臂+G-O2+G-SD 两臂全绿（详见门读数）· receipt `…-98607086-…json` |
+| U-3 | 同日（还原终验） | 同上 | **0** | **132 PASS / 0 FAIL** · receipt `2026-11-06T19-45-39-491Z-43742-*.json` · applied=223 |
+
+**扩面读数（U-5 receipt 摘录）**：appFaceCensus: appFacingPolicyTotal=139 · ownerFormTables=83 · sharedControlTables=18 · registeredNonOwnerFaces=[job_route_decision.p_job_route_decision_read_decided]；ownershipCensus.allRelations: total=189 · owners={meetwise:155, online_judge_owner:8, privacy_worker_owner:1, rag_control_definer:25} · definerOwnedNonAttribution=28 张 · violations=[]；sdReaderCensus.nonSuperNamed=97（memory_runtime 73/privacy_api_owner 19/scoring_definer_owner 4/event_retention_worker 1·全部 appExec=true/publicExec=false）；既有读数零漂移（policies=341/rlsTables=167/census 125/120/白名单 5/principals=26/triples=520/views=2/sessionFace 全 true）。
+
+**设计级上报（归协调方/用户裁定·本刀零产品改动）**：① `p_job_route_decision_read_decided`（0104:240-242）跨主读面——proof 已 exact-pin+收据具名；② `interview_event_retention_purge`（0219:115-149）跨 owner 保留期清扫面（worker-select qual-true+自设 sweep GUC·app_role EXECUTE 显式 GRANT）——proof 已具名在册+属主形/EXECUTE 面断言。两面的「是否属预期设计」与「补绑定收窄/白名单化」处置不在本刀授权面，留协调方。
+
+**门读数（rev r2-一体席 终验 · 2026-11-07）**：新 proof EXIT=0（**132 PASS**·receipt `2026-11-06T19-45-39-491Z-43742-*.json`）+ 变异三形全红+还原绿如上 · `pnpm db:prove` EXIT=0（四原语）· `pnpm neg:auth` EXIT=0（90 例全绿）· `pnpm uc033:cross-user-authz:prove` EXIT=0（51 例）· `pnpm neg:resume` EXIT=0（91 例）· `pnpm tenant-wiring-neg:prove` EXIT=0（N1–N7）· `pnpm migrate:prove` EXIT=0 · `pnpm drift:prove` EXIT=0 · 迁移编号唯一性 EXIT=0（files=223）· 计数同步两 proof（interview-event-retention/job-queue-index）复跑 EXIT=0 · packages/db `tsc --noEmit` EXIT=0 · packages/db eslint **1042=cap 1042 恰等 · 0 errors**（proof 文件 0 warning）· 根 eslint **5410=cap 5410 恰等 · 0 errors** · `pnpm arch` EXIT=0 · `node scripts/e2e-static-guards.mjs` EXIT=0 · `node scripts/provider-egress-inventory.mjs` EXIT=0 · `node scripts/ai-docs/check-docs.mjs` EXIT=0 scanned **2496=cap 2496 恰等**（零新增受管件·cap 不动）· `node scripts/ai-docs/public-text-policy.proof.mjs` **12/12** EXIT=0 · markers=0（改动集零命中）· 活库普查一次性容器用后已删（docker ps -a 零残留）· 浏览器 UI runner 未跑（按令）。
+
+**改动在树未 commit 待门开行使**：本轮改动（`packages/db/test/tenant-rls-isolation.proof.ts` 单文件+本卷）留在工作树，**零 commit 零 push**（协调方 commit 门冻结中），待门开行使。
+
+**状态**: `executed:awaiting_post_prove_dual`
+
 ---
 
-**Status**: `executed:awaiting_post_prove_dual`（起草并实现随刀 · rev r1 按证伪路 §7 修订完成，两份审查已登记 §9-R1 · rev r2 EXEC 期 rebase 并线+四条 P2 吸收+变异 11 形全红+门全绿，台账 §9-R2 · rev r3 post-prove 证伪路三 P1 修订（源=`priv1-post-2.md`）+变异 16 形全红+门全绿，台账 §9-R3 · post-prove dual BOTH PASS + 协调方 AUTHORIZE 前 Ban push/Ban nail/Ban SSOT · alone ≠ dual · STOP）
+## §9-R3-一体席 rev r3 一体席小修落码台账（2026-11-07 · 树 `line/priv1-draft`（meetwise-priv1 worktree）@ `b9a55fb55`（HEAD 未动）· 源=rev r2 确认乙席 FAIL 报告 `meetwise-priv1/.tmp/reviews/priv1-rev2-confirm-乙.md`（P1-乙1 rag_runtime schema 盲区 BYPASSRLS 变异满绿实证 + P2-乙2 两清扫面登记网漏 + P2-乙3 谓词单点臂零冗余）· 一体席=小修落码同一席 · 本节编号「rev r3」系协调方工单口径，与卷内既有 §9-R3（EXEC 期 rev r3 post-prove）不同轮，勿混淆）
+
+**修法面**（乙席已裁定：普查域放宽+名册驱动角色形状断言+登记面补全，单文件断言级，不动授权根、零新迁移、零产品码改动 · `packages/db/test/tenant-rls-isolation.proof.ts` 2207→2418 行）：
+
+1. **G-SD 普查域放宽（P1-乙1）**：SD 普查 WHERE 从 `nspname='public'` 放宽为 `nspname NOT IN ('pg_catalog','information_schema')`——活库实测放宽后新增可执行 SD **恰 8 个、全在 `rag_runtime` schema**（`rag_register_private_document`/`rag_publish_private_document_version`/`rag_bind_query`/`rag_record_citation`/`rag_tombstone_private_document`/`rag_resolve_query_binding`/`rag_search_bound`/`rag_evidence_bound`，owner=`rag_runtime_definer`（0073:20 建 role/:35 建 schema），全部体触用户域 `owner_user_id` 面）；`rag_control` schema 27 个 SD 因 app_role/PUBLIC EXECUTE=0 被同一特权过滤挡在普查外（0073 ACL fail-closed，如实）。**非 public 可执行 SD 集 cap 钉=上述 8 函数具名名册**（`NON_PUBLIC_SD_ROSTER`，name+schema+owner 双射；新非 public SD=有意识名册编辑）+ 全部 8 个入非超属主具名集断言。sdReaderCensus 读数：executableSd 155→**163** · flagged 126→**147** · nonSuperOwned 97→**107**（+8 rag_runtime+2 assert_interview_answer_* 由表集放宽带出）· violations=[]。**基线勘正（rev3-confirm O1·2026-11-07）：放宽带前基线实为 125/97（非 126/98·转录失真）——r2 席日志、rev2-confirm-乙、rev3-confirm 三方独立计数一致，且 126+22=148≠147 不自洽而 125+22=147 恰等；proof 头注已同步勘正，后值 147/107 有活体断言钉不受影响。**
+2. **名册驱动 definer 角色形状断言（P1-乙1 修法 B）**：放宽普查域内全部可执行 SD 函数的**去重非超属主集必须恰等迁移链声明 definer 名册**（`SD_DEFINER_ROSTER`：memory_runtime/privacy_api_owner/scoring_definer_owner/event_retention_worker/rag_runtime_definer，活库恰 5），逐角色活体断言 **NOLOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS**——独立于 flag 正则（体逃 colRe/tabRe 的函数其属主形仍被钉），role 级 BYPASSRLS 升格无法靠正则漏检躲过。
+3. **tabRe 表集放宽根因修 + 两清扫面入册（P2-乙2）**：G-SD 保护表网（tabRe TABLES）从 canonical 13 名扩为**全部 app 面向钉集（APP_FACE_PINS 83+APP_FACE_SHARED 18+既有 13）**——两 super 属主无 principal 闸跨 owner 清扫面 `commerce_outbox_relayed_retention_purge`（0212:6）/`ai_usage_calibration_observation_retention_purge`（0177:153）由此入普查，按 read_decided 同处置**登记不修码**：`REGISTERED_CROSS_OWNER_PURGE_FACES` 常量（体 witness 钉：invalid_input 异常码+时间窗/批次帽+EXECUTE 面 app=yes/PUBLIC=no）+ 新断言臂（恰等登记集）+ **receipt.appFaceCensus.registeredNonOwnerFaces 由 1（read_decided policy face）扩为 3**（+2 个 face='registered-cross-owner-purge' function face）。登记网全景=read_decided 读面+两 purge 函数面+interview_event_retention_purge 具名臂。表集放宽同时新带出 10 个 super 属主已体内闸函数入证据 allowlist（6 gateway_admin_*+gateway_active_candidate 带全局 `gateway_require_active_admin/recruiter` witness；qbank_active_generation_metadata/qbank_active_source_id/qbank_lock_retrieval_cache_epoch 有界控制面单体读体钉），allowlist 16→**26** 条，零放松。
+4. **P2-乙3 谓词单点臂冗余对照**：I2-E exact-face 臂（confirm-乙 实证删臂+COALESCE 加宽=131/0 绿）后补 **SHA-256 多重集 digest 臂**（`APP_FACE_POLICY_DIGEST=b083ad4abf524194`，输入=139 条 app 面向策略 sorted `table.policy|cmd|roles|normQual=>normWithCheck`，roles 入 Hash 兼堵 P3-乙6 roles 换绑盲区）——谓词/roles/增删漂移在 exact-face 臂被删后仍红。
+5. **变异自证（活库直打·零迁移落树 · 一次性普查容器 `priv1-r3it-census` 直跑 proof harness · 每轮还原）**：
+
+| ID | 变异 | EXIT | 失败 | 红读数（首因） | 对账 |
+|---|---|---|---|---|---|
+| R3-A | `ALTER ROLE rag_runtime_definer BYPASSRLS` | **1** | 3 | **G-SD definer roster shape** `broken=[rag_runtime_definer]` + **非超具名臂** 8×`rag_runtime_definer holds BYPASSRLS` + reader face（共享 violations） | confirm-乙 P1-乙1 满绿盲区 → 本轮必红 ✓ |
+| R3-B | CREATE OR REPLACE `commerce_outbox_relayed_retention_purge`（异常码 `…_invalid_input`→`…_bad_input`，witness 漂移） | **1** | 2 | **registered purge face**：`commerce_outbox_relayed_retention_purge: registered purge-face body drifted, missing witnesses [commerce_outbox_retention_invalid_input]` | P2-乙2 登记面核：登记非静默 pass、体漂移即红 ✓ |
+| R3-C（附加） | 删 exact-face 臂 proof 副本 + `ALTER POLICY p_owner ON payment_order USING/WITH CHECK COALESCE(…)` | **1** | 1 | **I2-E exact-face redundancy digest** `digest=0f193e6c01028aa6 want=b083ad4abf524194` | confirm-乙 P2-乙3 同形实验（删臂+加宽）原 131/0 绿 → 本轮恰 digest 单臂红 ✓ |
+| 还原 | role NOBYPASSRLS+函数体/策略复原后复跑 | **0** | 0 | **137 PASS / 0 FAIL** | 终态复原亲证 ✓ |
+
+**门读数（rev r3-一体席 终验 · 2026-11-07）**：`pnpm tenant-rls-isolation:prove`（官方 runner）EXIT=0 · **137 PASS / 0 FAIL**（断言 132→137：+5：G-SD non-public roster/rag_runtime 具名/definer roster shape/registered purge faces/I2-E digest）· applied=223 · receipt `2026-11-06T20-19-48-412Z-73846-b7064a03-….json`（outcome=passed · releaseEvidence=false）· sdReaderCensus：163/147/12/107 · nonPublicRoster=8 · definerOwners=5 · registeredNonOwnerFaces=3 · violations=[] · I2-E digest 恰等 · packages/db `tsc --noEmit` EXIT=0 · packages/db eslint **1042=cap 1042 恰等 · 0 errors**（proof 文件 0 warning）· `node scripts/ai-docs/check-docs.mjs` EXIT=0 scanned **2496=cap 2496 恰等** · `node scripts/ai-docs/public-text-policy.proof.mjs` **12/12** EXIT=0 · markers=0（改动集 2 文件标记词零命中）· 其余 §2/§9 行为键本轮未复跑（按令小修面：proof+静态门+docs/PTP/markers）。
+
+**改动在树未 commit 待门开行使**：本轮改动（proof 单文件+本卷节）留在工作树，**零 commit 零 push**（协调方 commit 门冻结中）· 变异全走活库（ALTER ROLE/CREATE OR REPLACE/ALTER POLICY）零迁移文件落树（223 件亲证）· 普查容器 `priv1-r3it-census` 用后已删（`docker ps -a` 零 priv1 残留）· est live=0。
+
+**状态**: `executed:awaiting_post_prove_dual`
+
+---
+
+**Status**: `executed:awaiting_post_prove_dual`（起草并实现随刀 · rev r1 按证伪路 §7 修订完成，两份审查已登记 §9-R1 · rev r2 EXEC 期 rebase 并线+四条 P2 吸收+变异 11 形全红+门全绿，台账 §9-R2 · rev r3 post-prove 证伪路三 P1 修订（源=`priv1-post-2.md`）+变异 16 形全红+门全绿，台账 §9-R3 · rev r2-一体席（协调方工单口径）re-dual 两席 FAIL 收敛修订：I2 全等面扩 101 表/G-O2 FORCE 契约扩全量属主/G-SD 非 super 具名臂+变异三形红+还原绿+门全绿，台账 §9-R2-一体席 · rev r3-一体席（协调方工单口径·与卷内既有 §9-R3 EXEC 期不同轮勿混淆）按 rev r2 确认乙席 FAIL 小修：G-SD 普查域放宽非系统 schema 全量（rag_runtime 8 函数具名 cap 钉）+名册驱动 definer 角色形状断言（5 角色 NOBYPASSRLS 活体）+tabRe 表集放宽根因修+两清扫面登记（registeredNonOwnerFaces 1→3）+I2-E digest 冗余臂+变异三形红+还原绿+门全绿（137 PASS），台账 §9-R3-一体席 · post-prove dual BOTH PASS + 协调方 AUTHORIZE 前 Ban push/Ban nail/Ban SSOT · alone ≠ dual · STOP）

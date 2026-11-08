@@ -100,6 +100,77 @@
  *      members pin superuser ownership + exact view body (pg16 pg_get_viewdef)
  *      so body drift (RLS bypass through a definer-rights view) is red.
  *
+ * rev r2-一体席 (post re-dual convergence revision, 2026-11-07; the work order labels
+ * this round "rev r2" — DISTINCT from the earlier EXEC-period rev r2 which the REQUEST卷
+ * records as §9-R2; source = the two re-dual FAIL reports .tmp/reviews/priv1-redual-甲.md
+ * (P1-甲1 blind-table family) and priv1-redual-乙.md (P1-1 93-table policy blind spot,
+ * P2-1 G-O FORCE gap, P2-2 G-SD non-super skip) — both mutation-verified live: an
+ * ALTER POLICY ... USING(true) on a NON-canonical table (mut W4/UA2) and
+ * ALTER TABLE ... NO FORCE on a definer-owned table (mut W1) stayed 124-PASS green.
+ * Zero weakening of r0/r1/r3 faces; single-file assertion widening only, zero new
+ * migrations, zero product-code changes, authorization root untouched:
+ *   1. I2-E whole-app-face expansion: EVERY table carrying an app_role/PUBLIC-facing
+ *      policy (live census: 101 tables / 139 policies — previously only the canonical 7
+ *      + the session face were pinned) is now consciously pinned in one of two honest
+ *      buckets: APP_FACE_PINS (owner-form: every app-facing policy exact-matches a
+ *      bijective per-policy pin — ownership-column/PK owner equality, optionally
+ *      AND-composed with the pinned privacy fence/status gate, an OR of two party arms,
+ *      or an EXISTS derivation carrying the same owner equality; 83 tables) or
+ *      APP_FACE_SHARED (shared/control by design: qbank system-corpus control plane,
+ *      curator directories, reference data — 18 tables; full policy-name-set pin + RLS
+ *      ENABLE+FORCE + named receipt entry, NO fabricated owner-form assertion). Any
+ *      app-facing table missing from both structures is red; predicate/cmd/name drift
+ *      on the owner-form bucket is red.
+ *   2. G-O2 FORCE-contract expansion: EVERY non-super-owned public relation (r/p/v/m)
+ *      — not only attribution-carrying ones — must be owned by a fixed migration-chain
+ *      definer name AND stay RLS ENABLE+FORCE; the 28 definer-owned non-attribution
+ *      tables (online_judge_owner 8 + rag_control_definer 20) are the newly covered
+ *      bucket, recorded separately in the receipt (mut W1 red).
+ *   3. G-SD named arm for non-super definer-owned flagged functions (the r3 branch
+ *      skipped them after counting): the definer owner must keep NOSUPERUSER/NOBYPASSRLS
+ *      (RLS fail-closed on every query the body runs) and the EXECUTE face must stay
+ *      app_role-yes/PUBLIC-no; the full named list lands in the receipt, which registers
+ *      the design-internal cross-owner retention sweep face
+ *      (interview_event_retention_purge) by name. Escalations that are design-level
+ *      (job_route_decision.p_job_route_decision_read_decided unbound read face,
+ *      0104:240-242) are exact-pinned against widening and registered in the receipt
+ *      with face:'registered-cross-owner-read' — product code is NOT touched here;
+ *      disposition belongs to the coordinator/user.
+ *   4. rev r3-一体席 (post rev2-confirm 乙-seat FAIL convergence, 2026-11-07; source =
+ *      .tmp/reviews/priv1-rev2-confirm-乙.md):
+ *      the confirm-乙 seat mutation-proved a live blind spot in item 3: the G-SD census
+ *      pinned nspname='public', so the rag_runtime schema's 8 SECURITY DEFINER functions
+ *      (owner rag_runtime_definer, 0073:20 role / :35 schema, bodies touching
+ *      public.rag_corpus_document / public.rag_query_binding owner_user_id) escaped every
+ *      SD assertion and `ALTER ROLE rag_runtime_definer BYPASSRLS` stayed 132-PASS green
+ *      (P1-乙1). Fixes, all single-file assertion-level, zero product-code changes:
+ *      a. census domain widened from nspname='public' to every NON-system schema
+ *         (pg_catalog/information_schema excepted); live census adds exactly the
+ *         rag_runtime 8 (rag_control's 27 SD hold zero app_role/PUBLIC EXECUTE);
+ *         the non-public executable-SD set is cap-pinned to that named roster and each
+ *         function joins the non-super named arm;
+ *      b. roster-driven owner shape: the distinct non-super owners of the widened census
+ *         must be EXACTLY the migration-declared definer roster (memory_runtime,
+ *         privacy_api_owner, scoring_definer_owner, event_retention_worker,
+ *         rag_runtime_definer), each live NOLOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS —
+ *         independent of the flag regex, so the BYPASSRLS-down mutation goes red even on
+ *         a body the regex would miss;
+ *      c. the protected-table flag net (tabRe) widened from the canonical 13 names to
+ *         the WHOLE app-face pin set — root fix for P2-乙2 (a body DELETE on any newly
+ *         pinned table silently escaped the net). This newly flags the two unregistered
+ *         super-owned cross-owner purge faces (commerce_outbox_relayed_retention_purge
+ *         0212:6, ai_usage_calibration_observation_retention_purge 0177:153) which are
+ *         now REGISTERED (not re-coded, same disposition as read_decided) in
+ *         receipt.registeredNonOwnerFaces with body witnesses + EXECUTE-face pins, plus
+ *         the 10 in-body-gated admin/recruiter/qbank readers which enter the evidence
+ *         allowlist (each already carries gateway_require_active_admin/recruiter or a
+ *         bounded control-singleton body);
+ *      d. P2-乙3 single-point redundancy: the I2-E exact-face arm proved deletable
+ *         (confirm-乙: delete arm + COALESCE widening = green), so a SHA-256 digest arm
+ *         over the whole app-facing policy multiset (table.policy|cmd|roles|qual|with_check)
+ *         is added — any predicate/roles/drop/add drift stays red even with the
+ *         exact-face arm deleted.
+ *
  * Faces (nail REQUEST `gap-priv-01-tenant-rls.md` §3 · C-P3: matrix 6 + introspection 3, no weakening):
  *   M1  cross-owner SELECT isolation   — owner A SELECT owner B interview row → 0 rows
  *                                        (positive controls: A self-read ≥1 · B self-read ≥1 — no idle-green)
@@ -185,7 +256,7 @@
  * releaseEvidence=false · Not HA · PG-retained (ai-docs/delivery/adr-postgres-retained.md).
  */
 import { readFileSync, readdirSync } from 'node:fs';
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { dirname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Client } from 'pg';
@@ -356,13 +427,20 @@ const FIXED_TABLE_OWNERS: readonly { owner: string; super: boolean; declaredAt: 
  *  app_role/PUBLIC-executable SD functions whose body references a user-scope/actor
  *  attribution column or a protected table are flagged; superuser-owned flagged
  *  functions must carry the standard first owner gate (`principal IS NULL` /
- *  `ai_cost_require_request_owner`) or be exactly one of these entries. Each entry
- *  live-pins its own authorizing witnesses (prosrc substrings, whitespace-flattened)
- *  plus the EXECUTE face (app_role yes, PUBLIC no) — so the allowlist is an evidence
- *  contract, not a silent pass. rev r3 live census: 155 app/PUBLIC-executable SD
- *  functions, 126 flagged, 12 superuser-owned carry the standard gate, 98 owned by
- *  NOBYPASSRLS definer roles (RLS-governed — shape asserted live), and exactly these
- *  16 entries. */
+ *  `ai_cost_require_request_owner`), be exactly one of these entries, or be exactly a
+ *  REGISTERED_CROSS_OWNER_PURGE_FACES entry (rev r3-一体席 registration route). Each
+ *  entry live-pins its own authorizing witnesses (prosrc substrings, whitespace-
+ *  flattened) plus the EXECUTE face (app_role yes, PUBLIC no) — so the allowlist is an
+ *  evidence contract, not a silent pass. rev r3 live census (public only): 155
+ *  app/PUBLIC-executable SD functions, 125 flagged, 12 superuser-owned carry the
+ *  standard gate, 97 owned by NOBYPASSRLS definer roles (RLS-governed — shape asserted
+ *  live), and exactly the first 16 entries（基线读数勘正 rev3-confirm O1：126/98 系转录失真，
+ *  r2 席日志/rev2-confirm-乙/rev3-confirm 三方独立计数一致=125/97，且 126+22≠147 不自洽）.
+ *  rev r3-一体席 widened census (all non-system
+ *  schemas + whole app-face table net): 163 executable, 147 flagged, 12 standard-gated,
+ *  107 named non-super-owned (incl. the rag_runtime 8 + 2 assert_interview_answer_*),
+ *  and exactly these 26 entries (the last 10 newly flagged by the widened net — all
+ *  admin/recruiter-gated or bounded control-singleton readers). */
 const SD_GATE_ALLOWLIST: readonly { fn: string; witnesses: readonly string[]; reason: string }[] = [
   { fn: 'gateway_admin_orders', witnesses: ['gateway_require_active_admin'],
     reason: 'admin cross-owner order queue read (payment_order.owner_user_id listed); caller re-checked in-function by gateway_require_active_admin — admin face by design (user_account.is_admin cross-user read-only, sql/09_auth)' },
@@ -396,7 +474,94 @@ const SD_GATE_ALLOWLIST: readonly { fn: string; witnesses: readonly string[]; re
     reason: 'qbank bounded evidence reader (§6.1 manifest); org-scoped system corpus only, retrieval-scope asserted in-query' },
   { fn: 'qbank_generation_question_evidence', witnesses: ['qbank_assert_retrieval_scope', 'search_path=public, pg_temp'],
     reason: 'qbank bounded question-evidence reader (§6.1 manifest); org-scoped system corpus only, retrieval-scope asserted in-query' },
+  // rev r3-一体席 (post rev2-confirm 乙P2-2 tabRe root fix): widening the protected-table
+  // net to the whole app-face pin set newly flags these in-body-gated readers/writers —
+  // same evidence-contract form as the entries above (witnesses live-pin the gate or the
+  // bounded body; EXECUTE face app_role-yes/PUBLIC-no asserted per entry).
+  { fn: 'gateway_active_candidate', witnesses: ['gateway_require_active_recruiter', 'gateway_candidate_lookup_requires_exactly_one_key'],
+    reason: 'recruiter-gated candidate lookup by id XOR normalized email (AUTHZ-HARDEN 5A-1: trim+lower); reads the user_account credential PK face only, no owner-scope rows' },
+  { fn: 'gateway_admin_users', witnesses: ['gateway_require_active_admin'],
+    reason: 'admin user list read (user_account credential face, LIMIT 100); admin-gated by design' },
+  { fn: 'gateway_admin_stats', witnesses: ['gateway_require_active_admin'],
+    reason: 'admin aggregate stats (counts/sums over user_account + payment_order); admin-gated, no row content returned' },
+  { fn: 'gateway_admin_disable', witnesses: ['gateway_require_active_admin'],
+    reason: 'admin disables a user account + admin_audit actor row; admin-gated' },
+  { fn: 'gateway_admin_feedback_summary', witnesses: ['gateway_require_active_admin'],
+    reason: 'admin question_feedback rating counts; admin-gated, counts only' },
+  { fn: 'gateway_admin_recruiter_approval', witnesses: ['gateway_require_active_admin', 'gateway_admin_recruiter_approval_invalid_decision'],
+    reason: 'admin approve/reject recruiter approval_status + admin_audit actor row; admin-gated + decision-enum fail-closed' },
+  { fn: 'gateway_admin_recruiter_approvals', witnesses: ['gateway_require_active_admin'],
+    reason: 'admin recruiter approval queue read (LIMIT 100); admin-gated' },
+  { fn: 'qbank_active_generation_metadata', witnesses: ['a.singleton=true', "g.state='active'"],
+    reason: 'qbank control-plane singleton read (active generation metadata over APP_FACE_SHARED control tables only — zero user-domain rows); bounded body pin' },
+  { fn: 'qbank_active_source_id', witnesses: ["status <> 'rejected'", 'LIMIT 1'],
+    reason: 'qbank control-plane source-id lookup by content_hash over the shared corpus catalog (no user-domain rows); bounded body pin' },
+  { fn: 'qbank_lock_retrieval_cache_epoch', witnesses: ['qbank_retrieval_cache_epoch_missing', 'FOR SHARE'],
+    reason: 'qbank retrieval-cache epoch lock read (control singleton, fail-closed raise when missing); bounded body pin' },
 ];
+
+/** rev r3-一体席 (post rev2-confirm 乙P2-2): registered design-internal cross-owner purge
+ *  faces — SUPERUSER-owned, app_role-executable, no principal gate BY DESIGN (retention
+ *  sweeps: time-window guard + batch cap, worker-only callers). Same disposition as
+ *  job_route_decision.read_decided: REGISTERED, not re-coded; disposition pending
+ *  coordinator/user. These two sat outside every SD net because the flag regex's table
+ *  set (tabRe) did not include their tables — the tabRe widening above is the root fix
+ *  that makes them visible; this constant then holds them consciously (body witnesses +
+ *  EXECUTE face, same evidence contract as SD_GATE_ALLOWLIST) and they land in
+ *  receipt.appFaceCensus.registeredNonOwnerFaces beside the read_decided policy face.
+ *  interview_event_retention_purge stays registered via the non-super named arm (its
+ *  definer owner shape is asserted there), so it is NOT duplicated here. */
+const REGISTERED_CROSS_OWNER_PURGE_FACES: readonly { fn: string; table: string; witnesses: readonly string[]; reason: string }[] = [
+  { fn: 'commerce_outbox_relayed_retention_purge', table: 'commerce_outbox',
+    witnesses: ['commerce_outbox_retention_invalid_input', "status = 'relayed'", 'p_batch_cap'],
+    reason: '0212:6 relayed-outbox retention sweep (super-owned; keep-days window 7..365 + batch cap 1..10000 fail-closed, no principal gate by design — worker purge face); registered not re-coded (rev2-confirm 乙P2-2), disposition pending coordinator/user' },
+  { fn: 'ai_usage_calibration_observation_retention_purge', table: 'ai_usage_calibration_observation',
+    witnesses: ['ai_usage_calibration_retention_invalid_input', 'p_keep_days'],
+    reason: '0177:153 usage-calibration observation retention sweep (super-owned; keep-days window 1..3650 fail-closed, no principal gate by design — worker purge face); registered not re-coded (rev2-confirm 乙P2-2), disposition pending coordinator/user' },
+];
+
+/** rev r3-一体席 (post rev2-confirm 乙P1-乙1): executable SECURITY DEFINER functions
+ *  OUTSIDE the public schema (pg_catalog/information_schema always excluded). The r2
+ *  census pinned nspname='public', so the rag_runtime schema's 8 functions (role
+ *  0073:20, schema AUTHORIZATION rag_runtime_definer 0073:35, bodies touching
+ *  public.rag_corpus_document / public.rag_query_binding owner_user_id) escaped every
+ *  SD assertion and `ALTER ROLE rag_runtime_definer BYPASSRLS` stayed 132-PASS green
+ *  (confirm-乙 mutation-verified blind spot). CAP PIN: name+schema+owner bijective —
+ *  any NEW non-public executable SD function must be a conscious roster edit here.
+ *  rag_control's 27 SD functions carry zero app_role/PUBLIC EXECUTE (0073 ACL) and
+ *  stay outside this executable census by the same privilege filter as public. */
+const NON_PUBLIC_SD_ROSTER: readonly { schema: string; fn: string; owner: string }[] = [
+  { schema: 'rag_runtime', fn: 'rag_bind_query', owner: 'rag_runtime_definer' },
+  { schema: 'rag_runtime', fn: 'rag_evidence_bound', owner: 'rag_runtime_definer' },
+  { schema: 'rag_runtime', fn: 'rag_publish_private_document_version', owner: 'rag_runtime_definer' },
+  { schema: 'rag_runtime', fn: 'rag_record_citation', owner: 'rag_runtime_definer' },
+  { schema: 'rag_runtime', fn: 'rag_register_private_document', owner: 'rag_runtime_definer' },
+  { schema: 'rag_runtime', fn: 'rag_resolve_query_binding', owner: 'rag_runtime_definer' },
+  { schema: 'rag_runtime', fn: 'rag_search_bound', owner: 'rag_runtime_definer' },
+  { schema: 'rag_runtime', fn: 'rag_tombstone_private_document', owner: 'rag_runtime_definer' },
+];
+
+/** rev r3-一体席: roster-driven definer-owner shape pin. The distinct NON-super owners of
+ *  EVERY executable SD function in the widened census domain must be exactly these
+ *  migration-declared definer roles, each live NOLOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS
+ *  (rag_runtime_definer declared 0073:20; memory/privacy/scoring/event pairs by their own
+ *  control-surface migrations, shapes already covered for the relation owners via G-O).
+ *  Unlike the per-function named arm this does NOT depend on the flag regex hitting the
+ *  body — an owner whose functions escape colRe/tabRe is still shape-asserted here, so a
+ *  role-level BYPASSRLS escalation cannot hide behind a regex miss. */
+const SD_DEFINER_ROSTER: readonly string[] = [
+  'event_retention_worker', 'memory_runtime', 'privacy_api_owner', 'rag_runtime_definer', 'scoring_definer_owner',
+];
+
+/** rev r3-一体席 (post rev2-confirm 乙P2-3): redundant control over the whole app-facing
+ *  policy multiset. The I2-E exact-face arm is a single assertion point — confirm-乙
+ *  mutation-proved that deleting it plus widening one predicate stays 131/0 green.
+ *  SHA-256 (first 16 hex) over the sorted `table.policy|cmd|roles|normQual=>normWithCheck`
+ *  lines of the app-facing policy set: ANY predicate widening, roles rebinding (incl. the
+ *  TO-clause merge blind spot, P3-乙6), drop or add turns this arm red even if the
+ *  exact-face arm is deleted. Re-pin consciously on a legitimate policy migration.
+ *  Computed 2026-11-07 one-off container, full 223-file chain, 139 policies. */
+const APP_FACE_POLICY_DIGEST = 'b083ad4abf524194';
 
 /** rev r3 G-V: view exemptions. All views/materialized views are enumerated; any whose
  *  body references an attribution column must be security_invoker=true OR exactly one of
@@ -445,6 +610,352 @@ const POLICY_CENSUS_BASELINE = { policies: 341, rlsTables: 167 };
  *  introspection arm — same normalization as the canonical OWNER_PREDICATE. */
 const SESSION_PREDICATE_RAW = "user_id = current_setting('app.principal_user', true)";
 const SESSION_PREDICATE = normPolicy(SESSION_PREDICATE_RAW);
+
+/** rev r2-一体席 (re-dual convergence): whole-app-face pin constants.
+ *  Every table with an app_role/PUBLIC-facing RLS policy must appear in exactly one of
+ *  APP_FACE_PINS (owner-form bucket — bijective per-policy exact pins) or
+ *  APP_FACE_SHARED (shared/control bucket — name-set pins + receipt registration). The
+ *  pins were derived from the live migration chain by whole-census (101 tables / 139
+ *  app-facing policies, 2026-11-07 one-off container, full 223-file chain) and are
+ *  committed as constants: any future policy drift forces a conscious re-pin here,
+ *  same contract as POLICY_CENSUS_BASELINE. Bucketing criterion: a table lands in the
+ *  owner-form bucket iff EVERY app-facing policy of the table is principal-bound (its
+ *  ownership column — or the credential PK `id` for user_account — compared to
+ *  current_setting('app.principal_user', true), possibly composed with the pinned
+ *  fence/status/EXISTS/party forms below); tables without a row-ownership column whose
+ *  faces are shared-by-design (qbank control plane, curator directories, reference
+ *  data) land in the shared bucket — asserting an owner-equality form on them would
+ *  fabricate an ownership root that does not exist, so they are registered, not forced
+ *  (不为凑数强断言). */
+const APPF_EQ = (col: string): string => normPolicy(`${col} = current_setting('app.principal_user', true)`);
+const APPF_FENCE = (col: string, call: string): string =>
+  normPolicy(`${col} = current_setting('app.principal_user', true) AND ${call}`);
+const APPF_STATUS = (col: string, status: string): string =>
+  normPolicy(`${col} = current_setting('app.principal_user', true) AND status = '${status}'`);
+const APPF_OR_PARTY = (colA: string, colB: string): string =>
+  normPolicy(`${colA} = current_setting('app.principal_user', true) OR ${colB} = current_setting('app.principal_user', true)`);
+const APPF_JOB_POSTING_READ = (): string =>
+  normPolicy("status = 'open' OR owner_user_id = current_setting('app.principal_user', true)");
+const APPF_CK_ENROLL = (table: string): string => normPolicy(
+  `EXISTS (SELECT 1 FROM checkpoint_thread_enrollment e WHERE e.thread_id = ${table}.thread_id`
+  + " AND e.owner_user_id = current_setting('app.principal_user', true) AND e.access_state = 'active'"
+  + ` AND current_setting('app.checkpoint_thread_id', true) = ${table}.thread_id`
+  + " AND current_setting('app.checkpoint_epoch', true) = e.fence_epoch)");
+const APPF_EXISTS_PARENT = (child: string, parent: string, on: string): string => normPolicy(
+  `EXISTS (SELECT 1 FROM ${parent} r WHERE r.id = ${child}.${on}`
+  + " AND r.owner_user_id = current_setting('app.principal_user', true))");
+const APPF_RESUME_FENCE = (table: string): string => normPolicy(
+  "owner_user_id = current_setting('app.principal_user', true)"
+  + ` AND EXISTS (SELECT 1 FROM resume r WHERE r.id = ${table}.resume_id`
+  + ` AND r.owner_user_id = ${table}.owner_user_id AND r.status = 'ingested')`);
+const APPF_RECRUITER = (table: string): string => normPolicy(
+  "recruiter_user_id = current_setting('app.principal_user', true)"
+  + ` AND EXISTS (SELECT 1 FROM job_posting j WHERE j.id = ${table}.job_id`
+  + " AND j.owner_user_id = current_setting('app.principal_user', true))");
+const APPF_ROUTE_DECIDED = normPolicy("route_outcome = 'route_decided'");
+
+/** Pin entry: one app_role/PUBLIC-facing policy. qual/withCheck null = the side must be
+ *  NULL (e.g. INSERT policies carry no USING); arrays = deparse-normalized exact-match
+ *  set. face marks a named non-plain-owner form for the receipt. */
+interface AppFacePolicyPin {
+  name: string;
+  cmd: string;
+  qual: string[] | null;
+  withCheck: string[] | null;
+  face?: string;
+  reason?: string;
+}
+const APP_FACE_PINS: readonly { table: string; col: string; policies: AppFacePolicyPin[] }[] = [
+  { table: 'ai_graph_run', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_FENCE('owner_user_id', 'interview_privacy_active(thread_id)')], withCheck: [APPF_FENCE('owner_user_id', 'interview_privacy_active(thread_id)')] },
+  ] },
+  { table: 'ai_invocation_trace', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'ai_model_dispatch_slot', col: 'owner_user_id', policies: [
+    { name: 'p_ai_model_dispatch_slot_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'ai_model_invocation', col: 'owner_user_id', policies: [
+    { name: 'p_ai_model_invocation_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'ai_model_logical_node_header', col: 'owner_user_id', policies: [
+    { name: 'p_ai_model_logical_node_header_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'ai_report', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_FENCE('owner_user_id', 'interview_privacy_active(interview_id)')], withCheck: [APPF_FENCE('owner_user_id', 'interview_privacy_active(interview_id)')] },
+  ] },
+  { table: 'ai_usage_calibration', col: 'owner_user_id', policies: [
+    { name: 'p_ai_usage_calibration_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'ai_usage_calibration_observation', col: 'owner_user_id', policies: [
+    { name: 'p_ai_usage_calibration_observation_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'ai_usage_calibration_watermark', col: 'owner_user_id', policies: [
+    { name: 'p_ai_usage_calibration_watermark_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'application_route_binding', col: 'candidate_user_id', policies: [
+    { name: 'p_application_route_binding_candidate_insert', cmd: 'INSERT', qual: null, withCheck: [APPF_EQ('candidate_user_id')] },
+    { name: 'p_application_route_binding_read', cmd: 'SELECT', qual: [APPF_OR_PARTY('candidate_user_id', 'recruiter_user_id')], withCheck: null, face: 'party-bound' },
+    { name: 'p_application_route_binding_recruiter_insert', cmd: 'INSERT', qual: null, withCheck: [APPF_RECRUITER('application_route_binding')], face: 'party-bound' },
+  ] },
+  { table: 'assessment_report', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_FENCE('owner_user_id', 'interview_privacy_active(interview_id)')], withCheck: [APPF_FENCE('owner_user_id', 'interview_privacy_active(interview_id)')] },
+  ] },
+  { table: 'auth_user_session', col: 'user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_EQ('user_id')], withCheck: [APPF_EQ('user_id')] },
+  ] },
+  { table: 'candidate_profile_route_decision', col: 'owner_user_id', policies: [
+    { name: 'p_candidate_profile_route_decision_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'candidate_profile_route_snapshot', col: 'candidate_user_id', policies: [
+    { name: 'p_candidate_profile_route_snapshot_owner', cmd: 'ALL', qual: [APPF_EQ('candidate_user_id')], withCheck: [APPF_EQ('candidate_user_id')] },
+  ] },
+  { table: 'career_path', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_FENCE('owner_user_id', 'interview_privacy_active(interview_id)')], withCheck: [APPF_FENCE('owner_user_id', 'interview_privacy_active(interview_id)')] },
+  ] },
+  { table: 'checkpoint_blobs', col: 'owner_user_id', policies: [
+    { name: 'checkpoint_blobs_owner', cmd: 'ALL', qual: [APPF_CK_ENROLL('checkpoint_blobs')], withCheck: [APPF_CK_ENROLL('checkpoint_blobs')], face: 'derived-enrollment' },
+  ] },
+  { table: 'checkpoint_thread_enrollment', col: 'owner_user_id', policies: [
+    { name: 'checkpoint_thread_enrollment_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'checkpoint_writes', col: 'owner_user_id', policies: [
+    { name: 'checkpoint_writes_owner', cmd: 'ALL', qual: [APPF_CK_ENROLL('checkpoint_writes')], withCheck: [APPF_CK_ENROLL('checkpoint_writes')], face: 'derived-enrollment' },
+  ] },
+  { table: 'checkpoints', col: 'owner_user_id', policies: [
+    { name: 'checkpoints_owner', cmd: 'ALL', qual: [APPF_CK_ENROLL('checkpoints')], withCheck: [APPF_CK_ENROLL('checkpoints')], face: 'derived-enrollment' },
+  ] },
+  { table: 'commerce_outbox', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'consent_record', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'diagnosis_job', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'embedding_fill_intent', col: 'owner_user_id', policies: [
+    { name: 'p_embedding_fill_intent_read', cmd: 'SELECT', qual: [APPF_EQ('owner_user_id')], withCheck: null },
+  ] },
+  { table: 'entitlement_bucket', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'entitlement_consumption', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'free_text_route_decision', col: 'owner_user_id', policies: [
+    { name: 'p_free_text_route_decision_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'free_text_route_event', col: 'owner_user_id', policies: [
+    { name: 'p_free_text_route_event_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'free_text_scope_revision', col: 'owner_user_id', policies: [
+    { name: 'p_free_text_scope_revision_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'interview', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'interview_answer_artifact', col: 'owner_user_id', policies: [
+    { name: 'interview_answer_artifact_app_role', cmd: 'INSERT', qual: null, withCheck: [APPF_STATUS('owner_user_id', 'active')] },
+  ] },
+  { table: 'interview_answer_job', col: 'owner_user_id', policies: [
+    { name: 'interview_answer_job_app_role', cmd: 'INSERT', qual: null, withCheck: [APPF_STATUS('owner_user_id', 'queued')] },
+  ] },
+  { table: 'interview_answer_submission', col: 'owner_user_id', policies: [
+    { name: 'interview_answer_submission_app_role', cmd: 'INSERT', qual: null, withCheck: [APPF_STATUS('owner_user_id', 'accepted_unscored')] },
+  ] },
+  { table: 'interview_event', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [IE_FN_PRED], withCheck: [IE_FN_PRED] },
+  ] },
+  { table: 'interview_job', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_FENCE('owner_user_id', 'interview_privacy_active(interview_id)')], withCheck: [APPF_FENCE('owner_user_id', 'interview_privacy_active(interview_id)')] },
+  ] },
+  { table: 'interview_question', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_FENCE('owner_user_id', 'interview_privacy_active(interview_id)')], withCheck: [APPF_FENCE('owner_user_id', 'interview_privacy_active(interview_id)')] },
+  ] },
+  { table: 'interview_route_snapshot', col: 'candidate_user_id', policies: [
+    { name: 'p_interview_route_snapshot_owner', cmd: 'ALL', qual: [APPF_EQ('candidate_user_id')], withCheck: [APPF_EQ('candidate_user_id')] },
+  ] },
+  { table: 'invoice_profile', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'invoice_request', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'issued_question_contract', col: 'owner_user_id', policies: [
+    { name: 'issued_question_contract_app_role', cmd: 'SELECT', qual: [APPF_EQ('owner_user_id')], withCheck: null },
+  ] },
+  { table: 'job_application', col: 'candidate_user_id', policies: [
+    { name: 'p_candidate_insert', cmd: 'INSERT', qual: null, withCheck: [APPF_EQ('candidate_user_id')] },
+    { name: 'p_candidate_update', cmd: 'UPDATE', qual: [APPF_EQ('candidate_user_id')], withCheck: [APPF_EQ('candidate_user_id')] },
+    { name: 'p_party_read', cmd: 'SELECT', qual: [APPF_OR_PARTY('candidate_user_id', 'recruiter_user_id')], withCheck: null, face: 'party-bound' },
+    { name: 'p_recruiter_insert', cmd: 'INSERT', qual: null, withCheck: [APPF_RECRUITER('job_application')], face: 'party-bound' },
+  ] },
+  { table: 'job_posting', col: 'owner_user_id', policies: [
+    { name: 'p_read', cmd: 'SELECT', qual: [APPF_JOB_POSTING_READ()], withCheck: null, face: 'party-bound' },
+    { name: 'p_update', cmd: 'UPDATE', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+    { name: 'p_write', cmd: 'INSERT', qual: null, withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'job_route_decision', col: 'owner_user_id', policies: [
+    { name: 'p_job_route_decision_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+    { name: 'p_job_route_decision_read_decided', cmd: 'SELECT', qual: [APPF_ROUTE_DECIDED], withCheck: null, face: 'registered-cross-owner-read', reason: 'route_decided rows readable by app_role without principal binding (0104:240-242) — design-level escalation registered; exact-pinned against widening; disposition pending coordinator/user' },
+  ] },
+  { table: 'job_route_event', col: 'owner_user_id', policies: [
+    { name: 'p_job_route_event_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'job_semantic_revision', col: 'owner_user_id', policies: [
+    { name: 'p_job_semantic_revision_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'learning_plan', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_FENCE('owner_user_id', 'interview_privacy_active(interview_id)')], withCheck: [APPF_FENCE('owner_user_id', 'interview_privacy_active(interview_id)')] },
+  ] },
+  { table: 'learning_progress', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_FENCE('owner_user_id', 'interview_privacy_active(interview_id)')], withCheck: [APPF_FENCE('owner_user_id', 'interview_privacy_active(interview_id)')] },
+  ] },
+  { table: 'notification', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'payment_order', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'privacy_deletion_target', col: 'owner_user_id', policies: [
+    { name: 'privacy_deletion_target_owner', cmd: 'ALL', qual: [APPF_EXISTS_PARENT('privacy_deletion_target', 'privacy_erasure_request', 'request_id')], withCheck: [APPF_EXISTS_PARENT('privacy_deletion_target', 'privacy_erasure_request', 'request_id')], face: 'derived-parent' },
+  ] },
+  { table: 'privacy_erasure_request', col: 'owner_user_id', policies: [
+    { name: 'privacy_erasure_request_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'privacy_preview_request', col: 'owner_user_id', policies: [
+    { name: 'privacy_preview_request_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'privacy_preview_sink_line', col: 'owner_user_id', policies: [
+    { name: 'privacy_preview_sink_line_owner', cmd: 'ALL', qual: [APPF_EXISTS_PARENT('privacy_preview_sink_line', 'privacy_preview_request', 'request_id')], withCheck: [APPF_EXISTS_PARENT('privacy_preview_sink_line', 'privacy_preview_request', 'request_id')], face: 'derived-parent' },
+  ] },
+  { table: 'qbank_retrieval_cache', col: 'owner_user_id', policies: [
+    { name: 'p_qbank_retrieval_cache_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'qbank_retrieval_fill_intent', col: 'owner_user_id', policies: [
+    { name: 'p_qbank_retrieval_fill_intent_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'qbank_retrieval_inflight', col: 'owner_user_id', policies: [
+    { name: 'p_qbank_retrieval_inflight_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'qbank_retrieval_plan', col: 'owner_user_id', policies: [
+    { name: 'p_qbank_retrieval_plan_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'qbank_retrieval_plan_event', col: 'owner_user_id', policies: [
+    { name: 'p_qbank_retrieval_plan_event_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'qbank_route_scope_cache_event', col: 'owner_user_id', policies: [
+    { name: 'p_qbank_route_scope_cache_event_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'qbank_route_scope_negative_result', col: 'owner_user_id', policies: [
+    { name: 'p_qbank_route_scope_negative_result_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'qbank_served_question_ref', col: 'owner_user_id', policies: [
+    { name: 'p_qbank_served_question_ref_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'question_feedback', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_FENCE('owner_user_id', 'interview_privacy_active(interview_id)')], withCheck: [APPF_FENCE('owner_user_id', 'interview_privacy_active(interview_id)')] },
+  ] },
+  { table: 'question_issue_provenance', col: 'owner_user_id', policies: [
+    { name: 'p_question_issue_provenance_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'question_plan', col: 'owner_user_id', policies: [
+    { name: 'p_question_plan_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'question_plan_event', col: 'owner_user_id', policies: [
+    { name: 'p_question_plan_event_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'question_usage_ledger', col: 'owner_user_id', policies: [
+    { name: 'p_question_usage_ledger_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'quiz_job', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'resume', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'resume_blob', col: 'owner_user_id', policies: [
+    { name: 'p_resume_blob_active_read', cmd: 'SELECT', qual: [APPF_RESUME_FENCE('resume_blob')], withCheck: null, face: 'derived-parent' },
+    { name: 'p_resume_blob_active_update', cmd: 'UPDATE', qual: [APPF_RESUME_FENCE('resume_blob')], withCheck: [APPF_EQ('owner_user_id')], face: 'derived-parent' },
+    { name: 'p_resume_blob_owner_insert', cmd: 'INSERT', qual: null, withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'resume_diagnosis', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'resume_ocr_artifact', col: 'owner_user_id', policies: [
+    { name: 'p_resume_ocr_artifact_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'resume_profile', col: 'owner_user_id', policies: [
+    { name: 'p_resume_profile_active_read', cmd: 'SELECT', qual: [APPF_RESUME_FENCE('resume_profile')], withCheck: null, face: 'derived-parent' },
+    { name: 'p_resume_profile_active_update', cmd: 'UPDATE', qual: [APPF_RESUME_FENCE('resume_profile')], withCheck: [APPF_EQ('owner_user_id')], face: 'derived-parent' },
+    { name: 'p_resume_profile_owner_insert', cmd: 'INSERT', qual: null, withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'resume_quiz', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'route_consumption_event', col: 'candidate_user_id', policies: [
+    { name: 'p_route_consumption_event_owner', cmd: 'ALL', qual: [APPF_EQ('candidate_user_id')], withCheck: [APPF_EQ('candidate_user_id')] },
+  ] },
+  { table: 'score_card', col: 'owner_user_id', policies: [
+    { name: 'score_card_app_role', cmd: 'SELECT', qual: [APPF_EQ('owner_user_id')], withCheck: null },
+  ] },
+  { table: 'score_card_criterion', col: 'owner_user_id', policies: [
+    { name: 'score_card_criterion_app_role', cmd: 'SELECT', qual: [APPF_EQ('owner_user_id')], withCheck: null },
+  ] },
+  { table: 'score_evidence', col: 'owner_user_id', policies: [
+    { name: 'score_evidence_app_role', cmd: 'SELECT', qual: [APPF_EQ('owner_user_id')], withCheck: null },
+  ] },
+  { table: 'score_request', col: 'owner_user_id', policies: [
+    { name: 'score_request_app_role', cmd: 'SELECT', qual: [APPF_EQ('owner_user_id')], withCheck: null },
+  ] },
+  { table: 'settlement_ledger', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'topic_charge', col: 'owner_user_id', policies: [
+    { name: 'p_topic_charge_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'topic_shadow_meter', col: 'owner_user_id', policies: [
+    { name: 'p_topic_shadow_meter_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'user_account', col: 'id', policies: [
+    { name: 'p_user_account_self', cmd: 'ALL', qual: [APPF_EQ('id')], withCheck: [APPF_EQ('id')], face: 'pk-owner' },
+  ] },
+  { table: 'user_memory', col: 'owner_user_id', policies: [
+    { name: 'p_owner', cmd: 'ALL', qual: [APPF_EQ('owner_user_id')], withCheck: [APPF_EQ('owner_user_id')] },
+  ] },
+  { table: 'vector_chunk', col: 'owner_user_id', policies: [
+    { name: 'p_vchunk_delete', cmd: 'DELETE', qual: [VCHUNK_WRITE], withCheck: null },
+    { name: 'p_vchunk_insert', cmd: 'INSERT', qual: null, withCheck: [VCHUNK_WRITE] },
+    { name: 'p_vchunk_read', cmd: 'SELECT', qual: [VCHUNK_QBANK_READ], withCheck: null, face: 'party-bound' },
+    { name: 'p_vchunk_update', cmd: 'UPDATE', qual: [VCHUNK_WRITE], withCheck: [VCHUNK_WRITE] },
+  ] },
+];
+
+/** Shared/control bucket: full policy-name-set pins (companions included — add/drop
+ *  drift red) + RLS ENABLE+FORCE + receipt note. Predicate-level drift on these control
+ *  faces is owned by the qbank control-plane proofs and is disclosed in the REQUEST卷
+ *  as out of this knife's owner-isolation scope. */
+const APP_FACE_SHARED: readonly { table: string; names: string[]; note: string }[] = [
+  { table: 'level_policy_version', names: ['level_policy_version_read'], note: 'shared reference data (level policy versions), PUBLIC read-true by design; no attribution column' },
+  { table: 'qbank_active_generation', names: ['p_qbank_active_generation_control', 'p_qbank_active_generation_control_definer', 'p_qbank_active_generation_read'], note: 'qbank generation control-plane singleton; qbank_is_generation_control_definer() faces (0016/0018 control plane)' },
+  { table: 'qbank_cache_epoch', names: ['p_qbank_cache_epoch_bump', 'p_qbank_cache_epoch_control', 'p_qbank_cache_epoch_control_definer', 'p_qbank_cache_epoch_read'], note: 'qbank cache epoch control-plane singleton; control-definer + singleton faces' },
+  { table: 'qbank_chunk', names: ['p_qbank_chunk_candidate_view', 'p_qbank_chunk_control', 'p_qbank_chunk_control_definer', 'p_qbank_chunk_delete', 'p_qbank_chunk_update'], note: 'qbank corpus chunk (system corpus, no owner data); control-definer + CURRENT_USER candidate-view + explicit false write faces (0016/0125 design)' },
+  { table: 'qbank_chunk_serving_scope', names: ['p_qbank_chunk_serving_scope_read', 'p_qbank_chunk_serving_scope_write'], note: 'qbank serving scope control face; control-executor/control-definer only' },
+  { table: 'qbank_corpus_epoch', names: ['p_qbank_corpus_epoch_bump', 'p_qbank_corpus_epoch_control', 'p_qbank_corpus_epoch_control_definer', 'p_qbank_corpus_epoch_read'], note: 'qbank corpus epoch control-plane singleton; control-definer + singleton faces' },
+  { table: 'qbank_curator', names: ['p_curator_read'], note: 'curator directory (user_id column is curator identity, not row ownership); PUBLIC read-true shared face by design' },
+  { table: 'qbank_embedding_recipe', names: ['p_qbank_recipe_control', 'p_qbank_recipe_insert', 'p_qbank_recipe_read'], note: 'qbank embedding recipe registry; PUBLIC read-true shared face + system-principal-id write gate' },
+  { table: 'qbank_generation_chunk', names: ['p_qbank_generation_candidate_reader', 'p_qbank_generation_chunk_control', 'p_qbank_generation_chunk_control_definer', 'p_qbank_generation_chunk_read', 'p_qbank_generation_chunk_write'], note: 'qbank generation chunk (system corpus); control-definer + candidate-reader + curator + system-principal-id write faces' },
+  { table: 'qbank_metadata_review_receipt', names: ['p_qbank_metadata_review_receipt_read', 'p_qbank_metadata_review_receipt_write'], note: 'qbank metadata review receipt control face; control-executor/control-definer only' },
+  { table: 'qbank_org_curator', names: ['p_org_curator_read'], note: 'org curator directory (user_id column is curator identity, not row ownership); PUBLIC read-true shared face by design' },
+  { table: 'qbank_pool_entry', names: ['p_pool_insert', 'p_pool_read', 'p_qbank_pool_candidate_view', 'p_qbank_pool_control', 'p_qbank_pool_control_definer'], note: 'qbank curated pool (system corpus); approved-source read + curator write + candidate-view faces (0016)' },
+  { table: 'qbank_question', names: ['p_qbank_question_control', 'p_qbank_question_control_definer'], note: 'qbank question corpus (system corpus, no owner data); control-definer face only' },
+  { table: 'qbank_question_chunk', names: ['p_qbank_question_chunk_control', 'p_qbank_question_chunk_control_definer'], note: 'qbank question chunk corpus; control-definer face only' },
+  { table: 'qbank_source', names: ['p_qbank_source_candidate_view', 'p_qbank_source_control', 'p_qbank_source_control_definer'], note: 'B-side org qbank corpus source registry (added_by/reviewed_by actor columns, not row ownership); curated-visible control faces by design (0016)' },
+  { table: 'qbank_taxonomy_release', names: ['p_qbank_taxonomy_release_publish', 'p_qbank_taxonomy_release_read', 'p_qbank_taxonomy_release_write'], note: 'qbank taxonomy release control face; control-executor/control-definer only' },
+  { table: 'qbank_taxonomy_scope', names: ['p_qbank_taxonomy_scope_read', 'p_qbank_taxonomy_scope_write'], note: 'qbank taxonomy scope control face; control-executor/control-definer only' },
+  { table: 'qbank_vector_generation', names: ['p_qbank_generation_control', 'p_qbank_generation_control_definer', 'p_qbank_generation_read', 'p_qbank_generation_write'], note: 'qbank vector generation control-plane; control-definer + read-true + system-principal-id write faces' },
+];
 
 /** pg_policies deparses roles as a text[] — normalize to a plain string list. Shared by
  *  the I2 canonical face and the rev r3 M8 session face. */
@@ -504,8 +1015,18 @@ interface Receipt {
   rlsFreeAllowlist: { table: string; reason: string }[];
   allowlistProbe: { principalsProbed: number; triplesProbed: number; namedTripleAllowlistSize: number; violations: string[] };
   sessionFace: { policies: number; usingExact: boolean; withCheckExact: boolean; deleteGrantAbsent: boolean; codePathsWitnessed: boolean };
-  ownershipCensus: { attributionRelations: number; ownerCounts: Record<string, number>; fixedOwners: { owner: string; super: boolean; declaredAt: string }[]; violations: string[] };
-  sdReaderCensus: { executableSd: number; flagged: number; standardGated: number; nonSuperOwned: number; allowlist: { fn: string; reason: string }[]; violations: string[] };
+  ownershipCensus: { attributionRelations: number; ownerCounts: Record<string, number>; fixedOwners: { owner: string; super: boolean; declaredAt: string }[]; violations: string[];
+    allRelations: { total: number; ownerCounts: Record<string, number>; definerOwnedNonAttribution: string[]; violations: string[] } };
+  appFaceCensus: {
+    appFacingPolicyTotal: number;
+    ownerFormTables: string[];
+    sharedControlTables: string[];
+    registeredNonOwnerFaces: { table: string; policy: string; face: string; reason: string }[];
+  };
+  sdReaderCensus: { executableSd: number; flagged: number; standardGated: number; nonSuperOwned: number; allowlist: { fn: string; reason: string }[]; violations: string[];
+    nonSuperNamed: { fn: string; owner: string; appExec: boolean; publicExec: boolean }[];
+    nonPublicRoster: { schema: string; fn: string; owner: string }[];
+    definerOwners: string[] };
   viewCensus: { views: { name: string; kind: string; owner: string; ownerSuper: boolean; securityInvoker: boolean; touchesAttributionColumns: boolean }[]; violations: string[] };
 }
 
@@ -528,10 +1049,20 @@ const receipt: Receipt = {
   sessionFace: { policies: -1, usingExact: false, withCheckExact: false, deleteGrantAbsent: false, codePathsWitnessed: false },
   ownershipCensus: {
     attributionRelations: -1, ownerCounts: {}, fixedOwners: FIXED_TABLE_OWNERS.map((x) => ({ ...x })), violations: [],
+    allRelations: { total: -1, ownerCounts: {}, definerOwnedNonAttribution: [], violations: [] },
+  },
+  appFaceCensus: {
+    appFacingPolicyTotal: -1,
+    ownerFormTables: [],
+    sharedControlTables: [],
+    registeredNonOwnerFaces: [],
   },
   sdReaderCensus: {
     executableSd: -1, flagged: -1, standardGated: -1, nonSuperOwned: -1,
     allowlist: SD_GATE_ALLOWLIST.map((x) => ({ fn: x.fn, reason: x.reason })), violations: [],
+    nonSuperNamed: [],
+    nonPublicRoster: [],
+    definerOwners: [],
   },
   viewCensus: { views: [], violations: [] },
 };
@@ -1178,6 +1709,120 @@ try {
     }
   }
 
+  // ---- I2-E (rev r2-一体席): whole-app-face policy pins — re-dual P1-甲1/乙P1-1 fix ----
+  // The canonical-only I2 face left every other app_role/PUBLIC-facing policy table with
+  // zero predicate assertions: `ALTER POLICY ... USING(true) WITH CHECK(true)` on any of
+  // them stayed 124-PASS green (re-dual mut W4 on job_route_decision, UA2 on
+  // user_account — live-verified fools). This block enumerates the WHOLE app face
+  // (every policy whose roles include app_role or PUBLIC) and holds each table against
+  // its committed bucket: owner-form tables get bijective per-policy exact pins;
+  // shared/control tables get policy-name-set pins + RLS ENABLE+FORCE + a named receipt
+  // entry. A table carrying an app-facing policy that is in NEITHER structure is red, so
+  // a new app-facing table cannot appear silently (cap-style conscious pinning).
+  {
+    interface AppFaceRow { tablename: string; policyname: string; cmd: string; roles: unknown; qual: string | null;
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- pg_policies column is snake_case
+      with_check: string | null }
+    const appRows = await admin.query(
+      `SELECT tablename, policyname, cmd, roles, qual, with_check FROM pg_policies
+        WHERE schemaname='public' AND ('{app_role}' && roles::text[] OR '{public}' && roles::text[])
+        ORDER BY tablename, policyname`);
+    const grouped: Record<string, AppFaceRow[]> = {};
+    for (const r of appRows.rows as AppFaceRow[]) {
+      const bucket = grouped[r.tablename] ?? (grouped[r.tablename] = []);
+      bucket.push(r);
+    }
+    const tablesSeen = Object.keys(grouped).sort();
+    const pinTables = APP_FACE_PINS.map((x) => x.table).sort();
+    const sharedTables = APP_FACE_SHARED.map((x) => x.table).sort();
+    const faceViolations: string[] = [];
+    for (const t of tablesSeen) {
+      const live = grouped[t] ?? [];
+      const pin = APP_FACE_PINS.find((x) => x.table === t);
+      const shared = APP_FACE_SHARED.find((x) => x.table === t);
+      if (pin && shared) {
+        faceViolations.push(`(${t}: table appears in BOTH buckets — keep exactly one consciously)`);
+        continue;
+      }
+      if (shared) {
+        const allRows = await admin.query(
+          `SELECT policyname FROM pg_policies WHERE schemaname='public' AND tablename=$1 ORDER BY policyname`, [t]);
+        const allNames = (allRows.rows as { policyname: string }[]).map((x) => x.policyname);
+        const want = [...shared.names].sort();
+        if (JSON.stringify(allNames) !== JSON.stringify(want)) {
+          faceViolations.push(`(${t}: shared-face policy name set drifted, want=[${want.join(',')}] got=[${allNames.join(',')}])`);
+        }
+        continue;
+      }
+      if (!pin) {
+        faceViolations.push(`(${t}: app-facing policy set exists but is in NEITHER bucket — pin it consciously)`);
+        continue;
+      }
+      if (pin.policies.length !== live.length) {
+        faceViolations.push(`(${t}: app-facing policy count drifted, want=${pin.policies.length} got=${live.length})`);
+      }
+      for (const lp of live) {
+        const pp = pin.policies.find((x) => x.name === lp.policyname);
+        if (!pp) { faceViolations.push(`(${t}.${lp.policyname}: app-facing policy not in pin set)`); continue; }
+        if (pp.cmd !== lp.cmd) faceViolations.push(`(${t}.${lp.policyname}: cmd drifted, want=${pp.cmd} got=${lp.cmd})`);
+        const qOk = pp.qual === null
+          ? lp.qual === null
+          : lp.qual !== null && pp.qual.includes(normPolicy(lp.qual));
+        const wOk = pp.withCheck === null
+          ? lp.with_check === null
+          : lp.with_check !== null && pp.withCheck.includes(normPolicy(lp.with_check));
+        if (!qOk) faceViolations.push(`(${t}.${lp.policyname}: USING exact-mismatch, want=[${(pp.qual ?? []).join(' | ')}] got=${JSON.stringify(lp.qual)})`);
+        if (!wOk) faceViolations.push(`(${t}.${lp.policyname}: WITH CHECK exact-mismatch, want=[${(pp.withCheck ?? []).join(' | ')}] got=${JSON.stringify(lp.with_check)})`);
+      }
+    }
+    // inverse completeness: every committed pin still has its live face (a dropped face
+    // must be a conscious re-pin, never a silent vacuous constant)
+    const missingLive = [...pinTables, ...sharedTables].filter((t) => !grouped[t]).sort();
+    // every app-facing table is RLS ENABLE+FORCE (the policy layer only exists under RLS)
+    const faceRls = await admin.query(
+      `SELECT c.relname, c.relrowsecurity AS rls, c.relforcerowsecurity AS "forceRls"
+         FROM pg_class c
+        WHERE c.relnamespace='public'::regnamespace AND c.relkind IN ('r','p')
+          AND c.relname = ANY($1::text[])`, [tablesSeen]);
+    const rlsOff = (faceRls.rows as { relname: string; rls: boolean; forceRls: boolean }[])
+      .filter((x) => x.rls !== true || x.forceRls !== true).map((x) => x.relname);
+    const registered = APP_FACE_PINS.flatMap((v) =>
+      v.policies.filter((p) => p.face === 'registered-cross-owner-read')
+        .map((p) => ({ table: v.table, policy: p.name, face: p.face ?? '', reason: p.reason ?? '' })));
+    receipt.appFaceCensus = {
+      appFacingPolicyTotal: appRows.rowCount ?? -1,
+      ownerFormTables: pinTables,
+      sharedControlTables: sharedTables,
+      registeredNonOwnerFaces: registered,
+    };
+    const unpinned = tablesSeen.filter((t) => !pinTables.includes(t) && !sharedTables.includes(t));
+    A('I2-E inversion: every table carrying an app_role/PUBLIC-facing policy is consciously pinned in one of the two buckets (unpinned table = FAIL, cap-style)',
+      unpinned.length === 0,
+      `appFacingTables=${tablesSeen.length} policies=${String(appRows.rowCount)} unpinned=[${unpinned.join(',')}]`);
+    A('I2-E pin completeness: every committed pin still has its live app-facing face (dropped face = conscious re-pin)',
+      missingLive.length === 0, `missingLive=[${missingLive.join(',')}]`);
+    A('I2-E RLS+FORCE face: every app-facing table is relrowsecurity=true AND relforcerowsecurity=true (policy layer exists only under RLS)',
+      rlsOff.length === 0 && faceRls.rowCount === tablesSeen.length,
+      `tables=${String(faceRls.rowCount)} off=[${rlsOff.join(',')}]`);
+    A('I2-E exact face: owner-form tables bijectively exact-match their per-policy pins + shared tables keep their name sets (Ban substring/SOME; re-dual mut W4/UA2 red)',
+      faceViolations.length === 0,
+      `ownerForm=${pinTables.length} shared=${sharedTables.length} violations=[${faceViolations.slice(0, 4).join(' ')}${faceViolations.length > 4 ? ' …' : ''}]`);
+    // rev r3-一体席 (confirm-乙 P2-乙3): the exact-face arm above is a SINGLE assertion point
+    // — confirm-乙 mutation-proved that deleting it plus a COALESCE predicate widening stays
+    // green. This digest arm reads the same live policy multiset through an independent
+    // projection (whole-set SHA-256 incl. cmd+roles), so predicate widening, roles
+    // rebinding (P3-乙6 merge blind spot), drop or add stays red even with that arm gone.
+    const faceDigest = createHash('sha256').update(appRows.rows.map((r: AppFaceRow) =>
+      `${r.tablename}.${r.policyname}|${r.cmd}|${String(r.roles)}|${normPolicy(r.qual)}=>${normPolicy(r.with_check)}`).join('\n'))
+      .digest('hex').slice(0, 16);
+    A('I2-E exact-face redundancy digest (rev r3-一体席): whole app-face policy multiset digest pinned — second net behind the single-point exact-face arm (confirm-乙 P2-乙3)',
+      faceDigest === APP_FACE_POLICY_DIGEST,
+      `digest=${faceDigest} want=${APP_FACE_POLICY_DIGEST} policies=${String(appRows.rowCount)}`);
+    A('I2-E registered face: exactly the known unbound cross-owner READ face is policy-registered (job_route_decision read_decided, 0104:240-242 — design-level escalation, product untouched; the two retention-purge FUNCTION faces register separately in the G-SD block)',
+      registered.length === 1 && registered[0]?.table === 'job_route_decision' && registered[0]?.policy === 'p_job_route_decision_read_decided',
+      `registered=[${registered.map((x) => `${x.table}.${x.policy}`).join(',')}]`);
+  }
+
   // ---- I3: policy census + shared-corpus face reported separately ----
   {
     const total = await admin.query("SELECT count(*)::int AS n FROM pg_policies WHERE schemaname='public'");
@@ -1469,6 +2114,53 @@ try {
     A('G-O witnesses: fixed non-super owners declared NOLOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS in migration chain', ownWitness);
   }
 
+  // ---- G-O2 (rev r2-一体席): ownership drift over ALL public relations — re-dual 乙P2-1 fix ----
+  // The r3 G-O face only covered attribution-CARRYING relations; the 28 definer-owned
+  // non-attribution tables (online_judge_owner 8 + rag_control_definer 20) sat outside
+  // the FORCE contract, so `ALTER TABLE online_judge_candidate NO FORCE ROW LEVEL
+  // SECURITY` stayed green (re-dual mut W1). The contract now covers EVERY non-super-
+  // owned public relation (r/p/v/m): it must be owned by a fixed migration-chain
+  // definer name AND stay RLS ENABLE+FORCE (superuser executor ownership needs no FORCE
+  // pin — the superuser bypasses RLS by definition and the allowlist ledgers are pinned
+  // separately). A non-super-owned VIEW trips this too — deliberate: a definer-rights
+  // view is a bypass face that must be consciously registered in G-V, never silently
+  // owner-moved. The definer-owned non-attribution bucket (the newly covered 28) is
+  // receipt-carried separately from the attribution face above.
+  {
+    interface OwnAllRow { relname: string; relkind: string; owner: string; rolsuper: boolean;
+      rls: boolean; forceRls: boolean; attr: boolean }
+    const ownAll = await admin.query(
+      `SELECT c.relname, c.relkind::text, pg_get_userbyid(c.relowner) AS owner,
+              r.rolsuper, c.relrowsecurity AS rls, c.relforcerowsecurity AS "forceRls",
+              EXISTS (SELECT 1 FROM pg_attribute a
+                       WHERE a.attrelid=c.oid AND a.attnum>0 AND NOT a.attisdropped
+                         AND a.attname = ANY($1::text[])) AS attr
+         FROM pg_class c JOIN pg_roles r ON r.oid=c.relowner
+        WHERE c.relnamespace='public'::regnamespace AND c.relkind IN ('r','p','v','m')
+        ORDER BY c.relname`, [[...ATTRIBUTION_COLUMNS, ...ACTOR_BY_COLUMNS]]);
+    const allRels = ownAll.rows as OwnAllRow[];
+    const fixedNames = new Set(FIXED_TABLE_OWNERS.map((x) => x.owner));
+    const go2Violations: string[] = [];
+    const definerNonAttr: string[] = [];
+    const go2OwnerCounts: Record<string, number> = {};
+    for (const rel of allRels) {
+      go2OwnerCounts[rel.owner] = (go2OwnerCounts[rel.owner] ?? 0) + 1;
+      if (rel.rolsuper) continue;
+      if (!fixedNames.has(rel.owner)) go2Violations.push(`(${rel.relname},${rel.relkind},owner=${rel.owner} not-in-fixed-list)`);
+      if (rel.rls !== true || rel.forceRls !== true) go2Violations.push(`(${rel.relname},owner=${rel.owner} rls/force off)`);
+      if (!rel.attr) definerNonAttr.push(rel.relname);
+    }
+    receipt.ownershipCensus.allRelations = {
+      total: allRels.length,
+      ownerCounts: go2OwnerCounts,
+      definerOwnedNonAttribution: definerNonAttr.sort(),
+      violations: go2Violations,
+    };
+    A('G-O2 ownership (rev r2-一体席): EVERY non-super-owned relation is owned by a fixed definer AND stays RLS ENABLE+FORCE — 28 definer-owned non-attribution tables newly under the FORCE contract (mut W1 red)',
+      allRels.length >= 150 && definerNonAttr.length >= 20 && go2Violations.length === 0,
+      `rels=${String(allRels.length)} definerNonAttr=${definerNonAttr.length} owners=${JSON.stringify(go2OwnerCounts)} violations=[${go2Violations.slice(0, 6).join(' ')}${go2Violations.length > 6 ? ' …' : ''}]`);
+  }
+
   // ---- G-SD (rev r3): SECURITY DEFINER reader face — falsification P1-3a (mut F6) ----
   // Dynamically enumerate every app_role/PUBLIC-executable SECURITY DEFINER function.
   // Superuser-owned ones bypass RLS entirely, so any whose body references a user-scope/
@@ -1477,36 +2169,77 @@ try {
   // SD_GATE_ALLOWLIST entries with live witness pins. Flagged functions owned by non-
   // superuser roles are safe only because the owner keeps the NOBYPASSRLS definer-isolation
   // shape (RLS governs every query it runs) — that shape is asserted live above via G-O.
+  // rev r3-一体席 (post rev2-confirm 乙P1-乙1/P2-乙2): the census domain is every NON-system
+  // schema (was nspname='public' — the rag_runtime 8 escaped it and a BYPASSRLS mutation on
+  // their owner stayed green), the protected-table net (tabRe) covers the WHOLE app-face pin
+  // set (was the canonical 13 names — the two retention sweeps' DELETE bodies escaped it),
+  // the non-public executable set is cap-pinned to NON_PUBLIC_SD_ROSTER, and the definer
+  // owner roster is shape-asserted independent of the flag regex (SD_DEFINER_ROSTER).
   {
     const flat = (s: unknown): string => String(s ?? '').replace(/\s+/g, ' ');
     const sdRows = await admin.query(
-      `SELECT p.proname, p.prosrc, p.proconfig, pg_get_userbyid(p.proowner) AS owner, ro.rolsuper AS owner_super,
+      `SELECT p.proname, p.prosrc, p.proconfig, n.nspname, pg_get_userbyid(p.proowner) AS owner, ro.rolsuper AS owner_super,
+              ro.rolbypassrls AS owner_bypassrls,
               has_function_privilege('app_role', p.oid, 'EXECUTE') AS app_exec,
               has_function_privilege('public', p.oid, 'EXECUTE') AS public_exec
          FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace JOIN pg_roles ro ON ro.oid=p.proowner
-        WHERE n.nspname='public' AND p.prosecdef AND p.prokind='f'
+        WHERE n.nspname NOT IN ('pg_catalog','information_schema') AND p.prosecdef AND p.prokind='f'
           AND p.prorettype <> 'trigger'::regtype
           AND (has_function_privilege('app_role', p.oid, 'EXECUTE') OR has_function_privilege('public', p.oid, 'EXECUTE'))`);
     const COLS = [...ATTRIBUTION_COLUMNS, ...ACTOR_BY_COLUMNS].join('|');
-    const TABLES = [...CANONICAL_FAMILY, 'auth_user_session', ...RLS_FREE_ALLOWLIST.map((x) => x.table)].join('|');
+    // rev r3-一体席: protected-table net = the WHOLE consciously pinned app face (owner-form
+    // + shared buckets), not just the canonical family — a DELETE/UPDATE body touching any
+    // pinned table must surface in this census (root fix: the two super-owned retention
+    // sweeps rode on tables outside the old 13-name list and escaped registration).
+    const TABLES = [...CANONICAL_FAMILY, 'auth_user_session',
+      ...RLS_FREE_ALLOWLIST.map((x) => x.table),
+      ...APP_FACE_PINS.map((x) => x.table), ...APP_FACE_SHARED.map((x) => x.table)].join('|');
     const colRe = new RegExp(`(^|[^_a-zA-Z])(${COLS})([^_a-zA-Z]|$)`);
     const tabRe = new RegExp(`(FROM|JOIN|INTO|UPDATE)\\s+(public\\.)?(${TABLES})([^_a-zA-Z]|$)`);
-    interface SdRow { proname: string; prosrc: string; proconfig: string[] | null; owner: string;
+    interface SdRow { proname: string; prosrc: string; proconfig: string[] | null; owner: string; nspname: string;
       // eslint-disable-next-line @typescript-eslint/naming-convention -- pg_roles column is snake_case
-      owner_super: boolean; app_exec: boolean; public_exec: boolean }
+      owner_super: boolean; owner_bypassrls: boolean; app_exec: boolean; public_exec: boolean }
     const flagged: SdRow[] = [];
     let standardGated = 0, nonSuperOwned = 0;
     const sdViolations: string[] = [];
+    const nonSuperNamed: { fn: string; owner: string; appExec: boolean; publicExec: boolean }[] = [];
+    const registeredPurgeVerified: Receipt['appFaceCensus']['registeredNonOwnerFaces'] = [];
     for (const r of sdRows.rows as SdRow[]) {
       const src = flat(r.prosrc);
       if (!colRe.test(src) && !tabRe.test(src)) continue;
       flagged.push(r);
-      if (!r.owner_super) { nonSuperOwned += 1; continue; }
+      if (!r.owner_super) {
+        nonSuperOwned += 1;
+        // rev r2-一体席 named arm (re-dual 乙P2-2): the r3 branch silently skipped the
+        // non-super-owned flagged functions after counting them — the safety argument
+        // ("RLS governs them because the owner is NOBYPASSRLS") was an UNASSERTED
+        // assumption, and the design-internal cross-owner purge face
+        // (interview_event_retention_purge, 0219: owner-select qual-true + self-set
+        // app.event_ttl_sweep delete gate) rode on it invisible. Assert the assumption:
+        // the definer owner keeps NOSUPERUSER/NOBYPASSRLS (RLS fail-closed on every
+        // query the body runs) and the EXECUTE face stays app_role-yes/PUBLIC-no; the
+        // full named list lands in the receipt.
+        if (r.owner_bypassrls) sdViolations.push(`(${r.proname}: definer owner ${r.owner} holds BYPASSRLS — RLS no longer governs the definer body)`);
+        if (!r.app_exec || r.public_exec) sdViolations.push(`(${r.proname}: EXECUTE face drifted app=${String(r.app_exec)} public=${String(r.public_exec)})`);
+        nonSuperNamed.push({ fn: r.proname, owner: r.owner, appExec: r.app_exec, publicExec: r.public_exec });
+        continue;
+      }
       // witness target = flattened body + the function's SET clause (search_path pin lives in proconfig)
       const witnessTarget = `${src} | ${(r.proconfig ?? []).join(',')}`;
       if (src.includes('principal IS NULL') || src.includes('ai_cost_require_request_owner')) { standardGated += 1; continue; }
       const entry = SD_GATE_ALLOWLIST.find((x) => x.fn === r.proname);
-      if (!entry) { sdViolations.push(`(${r.proname}: no gate, not allowlisted)`); continue; }
+      // rev r3-一体席 (confirm-乙 P2-乙2): registered cross-owner purge faces — no principal
+      // gate by design, so the gate requirement is replaced by the registration contract
+      // (body witnesses + EXECUTE face) and the face lands in registeredNonOwnerFaces.
+      const regEntry = REGISTERED_CROSS_OWNER_PURGE_FACES.find((x) => x.fn === r.proname);
+      if (regEntry) {
+        const missingRegWitness = regEntry.witnesses.filter((w) => !src.includes(w));
+        if (missingRegWitness.length > 0) sdViolations.push(`(${r.proname}: registered purge-face body drifted, missing witnesses [${missingRegWitness.join(',')}])`);
+        if (!r.app_exec || r.public_exec) sdViolations.push(`(${r.proname}: registered face EXECUTE drifted app=${String(r.app_exec)} public=${String(r.public_exec)})`);
+        registeredPurgeVerified.push({ table: regEntry.table, policy: r.proname, face: 'registered-cross-owner-purge', reason: regEntry.reason });
+        continue;
+      }
+      if (!entry) { sdViolations.push(`(${r.proname}: no gate, not allowlisted, not registered)`); continue; }
       const missingWitness = entry.witnesses.filter((w) => !witnessTarget.includes(w));
       if (missingWitness.length > 0) sdViolations.push(`(${r.proname}: missing witnesses [${missingWitness.join(',')}])`);
       if (!r.app_exec || r.public_exec) sdViolations.push(`(${r.proname}: EXECUTE face drifted app=${String(r.app_exec)} public=${String(r.public_exec)})`);
@@ -1515,6 +2248,50 @@ try {
     const qbankEntry = SD_GATE_ALLOWLIST.filter((x) => x.fn.startsWith('qbank_generation_'));
     const manifest = readWitness('packages/db/src/principal.ts');
     const qbankManifestPinned = qbankEntry.every((x) => manifest.includes(`signature: '${x.fn}(`));
+    // rev r3-一体席 (confirm-乙 P1-乙1): the non-public executable-SD set must be EXACTLY the
+    // named roster — a new SD function in any non-system schema is a conscious roster edit,
+    // never a silent census widening.
+    const allSd = sdRows.rows as SdRow[];
+    const nonPublicSd = allSd.filter((r) => r.nspname !== 'public');
+    const rosterWanted = NON_PUBLIC_SD_ROSTER.map((x) => `${x.schema}.${x.fn}:${x.owner}`).sort();
+    const rosterLive = nonPublicSd.map((r) => `${r.nspname}.${r.proname}:${r.owner}`).sort();
+    const rosterDiff = [...rosterLive.filter((x) => !rosterWanted.includes(x)), ...rosterWanted.filter((x) => !rosterLive.includes(x))];
+    A('G-SD non-public schema roster (rev r3-一体席): executable SD functions outside public are EXACTLY the named rag_runtime 8-function roster, owner rag_runtime_definer (confirm-乙 P1-乙1: nspname=public census blind spot; new non-public SD = conscious roster edit)',
+      rosterDiff.length === 0 && nonPublicSd.length === NON_PUBLIC_SD_ROSTER.length,
+      `nonPublicSd=${String(nonPublicSd.length)} want=${String(NON_PUBLIC_SD_ROSTER.length)} diff=[${rosterDiff.slice(0, 4).join(' ')}${rosterDiff.length > 4 ? ' …' : ''}]`);
+    A('G-SD rag_runtime named arm (rev r3-一体席): all 8 rag_runtime SD functions land in the non-super named set under rag_runtime_definer (0073:20 role / :35 schema; they touch user-domain owner_user_id faces, so the BYPASSRLS-down mutation is red per-function)',
+      NON_PUBLIC_SD_ROSTER.every((x) => nonSuperNamed.some((n) => n.fn === x.fn && n.owner === x.owner))
+        && nonPublicSd.every((r) => nonSuperNamed.some((n) => n.fn === r.proname && n.owner === r.owner)),
+      `named=${String(nonSuperNamed.length)} ragRuntimeInNamed=${String(NON_PUBLIC_SD_ROSTER.filter((x) => nonSuperNamed.some((n) => n.fn === x.fn && n.owner === x.owner)).length)}/${String(NON_PUBLIC_SD_ROSTER.length)}`);
+    // rev r3-一体席: roster-driven owner shape — independent of the flag regex (a body that
+    // escapes colRe/tabRe still has its owner asserted). The distinct non-super owner set of
+    // the WHOLE widened census must equal the migration-declared definer roster, each live
+    // NOLOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS; `ALTER ROLE rag_runtime_definer BYPASSRLS`
+    // (confirm-乙 mutation) turns this red together with the per-function named arm.
+    const sdOwnerRows = await admin.query(
+      `SELECT rolname, rolsuper, rolcanlogin, rolinherit, rolbypassrls
+         FROM pg_roles WHERE rolname = ANY($1::text[]) ORDER BY rolname`,
+      [[...new Set(allSd.filter((r) => !r.owner_super).map((r) => r.owner))]]);
+    const sdOwnerLive = (sdOwnerRows.rows as { rolname: string }[]).map((x) => x.rolname).sort();
+    const sdOwnerWanted = [...SD_DEFINER_ROSTER].sort();
+    const sdOwnerDiff = [...sdOwnerLive.filter((x) => !sdOwnerWanted.includes(x)), ...sdOwnerWanted.filter((x) => !sdOwnerLive.includes(x))];
+    const sdOwnerBroken = (sdOwnerRows.rows as { rolname: string; rolsuper: boolean; rolcanlogin: boolean; rolinherit: boolean; rolbypassrls: boolean }[])
+      .filter((x) => x.rolsuper !== false || x.rolcanlogin !== false || x.rolinherit !== false || x.rolbypassrls !== false)
+      .map((x) => x.rolname);
+    A('G-SD definer roster shape (rev r3-一体席): every distinct non-super owner of the widened executable-SD census is EXACTLY the migration-declared definer roster, live NOLOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS — roster-driven, regex-independent (role-level BYPASSRLS mutation red)',
+      sdOwnerDiff.length === 0 && sdOwnerBroken.length === 0 && sdOwnerLive.length >= 5,
+      `owners=${String(sdOwnerLive.length)} want=${String(SD_DEFINER_ROSTER.length)} diff=[${sdOwnerDiff.join(',')}] broken=[${sdOwnerBroken.join(',')}]`);
+    // rev r3-一体席 (confirm-乙 P2-乙2): the two super-owned cross-owner retention sweeps are
+    // flagged by the widened table net, witness-pinned, and registered — merged into the
+    // receipt's registeredNonOwnerFaces beside the job_route_decision read face.
+    const regWanted = [...REGISTERED_CROSS_OWNER_PURGE_FACES].map((x) => x.fn).sort();
+    const regLive = registeredPurgeVerified.map((x) => x.policy).sort();
+    const regDiff = [...regLive.filter((x) => !regWanted.includes(x)), ...regWanted.filter((x) => !regLive.includes(x))];
+    receipt.appFaceCensus.registeredNonOwnerFaces =
+      [...receipt.appFaceCensus.registeredNonOwnerFaces, ...registeredPurgeVerified];
+    A('G-SD registered purge faces (rev r3-一体席): commerce_outbox_relayed_retention_purge + ai_usage_calibration_observation_retention_purge exactly registered (body witnesses + EXECUTE face; registration net = interview_event_retention_purge named arm + these two + job_route_decision read face; confirm-乙 P2-乙2)',
+      regDiff.length === 0 && registeredPurgeVerified.length === REGISTERED_CROSS_OWNER_PURGE_FACES.length,
+      `registered=[${regLive.join(',')}] want=${String(regWanted.length)} diff=[${regDiff.join(',')}]`);
     receipt.sdReaderCensus = {
       executableSd: sdRows.rowCount ?? -1,
       flagged: flagged.length,
@@ -1522,8 +2299,17 @@ try {
       nonSuperOwned,
       allowlist: SD_GATE_ALLOWLIST.map((x) => ({ fn: x.fn, reason: x.reason })),
       violations: sdViolations,
+      nonSuperNamed: nonSuperNamed,
+      nonPublicRoster: nonPublicSd.map((r) => ({ schema: r.nspname, fn: r.proname, owner: r.owner })),
+      definerOwners: sdOwnerLive,
     };
-    A('G-SD reader face: superuser-owned app/PUBLIC-executable SD touching user columns/protected tables are gated or exactly the named evidenced allowlist (mut F6 red)',
+    A('G-SD non-super named arm (rev r2-一体席): every flagged definer-owned function keeps a NOSUPERUSER/NOBYPASSRLS owner + app_role-only EXECUTE face, named in receipt (re-dual 乙P2-2; BYPASSRLS-down mutation red)',
+      nonSuperNamed.length === nonSuperOwned && nonSuperOwned >= 50 && sdViolations.length === 0,
+      `named=${nonSuperNamed.length} owned=${nonSuperOwned} owners=${JSON.stringify(nonSuperNamed.reduce<Record<string, number>>((acc, x) => { acc[x.owner] = (acc[x.owner] ?? 0) + 1; return acc; }, {}))} violations=[${sdViolations.slice(0, 4).join(' ')}${sdViolations.length > 4 ? ' …' : ''}]`);
+    A('G-SD registered design-internal cross-owner face: interview_event_retention_purge present in the named non-super set (0219 retention sweep — worker-select qual-true + function-self-set sweep GUC; registered, disposition pending coordinator/user)',
+      nonSuperNamed.some((x) => x.fn === 'interview_event_retention_purge' && x.owner === 'event_retention_worker'),
+      `present=${String(nonSuperNamed.some((x) => x.fn === 'interview_event_retention_purge'))}`);
+    A('G-SD reader face: superuser-owned app/PUBLIC-executable SD touching user columns/protected tables are gated, exactly the named evidenced allowlist, or exactly the registered purge faces (mut F6 red)',
       (sdRows.rowCount ?? 0) >= 100 && flagged.length >= 100 && allowlistMissing.length === 0 && sdViolations.length === 0,
       `sd=${String(sdRows.rowCount)} flagged=${String(flagged.length)} standardGated=${String(standardGated)} nonSuperOwned=${String(nonSuperOwned)} missing=[${allowlistMissing.join(',')}] violations=[${sdViolations.slice(0, 4).join(' ')}]`);
     A('G-SD qbank bounded readers: manifest-pinned in principal.ts QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST (static §6.1 contract)',
