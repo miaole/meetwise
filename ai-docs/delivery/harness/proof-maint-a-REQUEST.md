@@ -1,6 +1,6 @@
 # PROOF-MAINT-A REQUEST（proof 维护批 A · 主线长期红 proof 四类收口：搬家缺文档 / 随新迁移过期 / 竞态崩溃 / 跑完回写 tracked · 草稿含代码 · 起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（2026-11-06 起草席落卷·四类修法已随四个 commit 落码并亲跑在卷·pre-exec 双审两独立外席 PASS（pmaint-pre-2 + pre-1-redual 在卷）→ **2026-11-09 EXEC 期 rebase 到 #225 后主线并线**（cap 2524→2526 恰等步进·policy dual-keep）·EXEC 期门矩阵抽验亲跑六条全绿（conn-stack:r4-domain-isolation/r1-tech-role-fail-closed/eval-uc-e2e-001-002-cite/bill3-settlement(43 PASS)/r4-g-r4-5-product-close/r4-eg1-dual-claim-product-close）·待 post-prove 双审两独立外席 · Ban self-approve · alone ≠ dual · est live=0 · `actualSpendCny=null`）
+**Status**: **`post_prove_dual_pass`**（post-prove 双审两独立外席 BOTH PASS（.tmp/reviews/pmaint-post-1.md PASS·pmaint-post-2.md PASS·P1=0）·2026-11-06 起草席落卷·四类修法已随四个 commit 落码并亲跑在卷·pre-exec 双审两独立外席 PASS（pmaint-pre-2 + pre-1-redual 在卷）→ **2026-11-09 EXEC 期 rebase 到 #225 后主线并线**（cap 2524→2526 恰等步进·policy dual-keep）·EXEC 期门矩阵抽验亲跑六条全绿（conn-stack:r4-domain-isolation/r1-tech-role-fail-closed/eval-uc-e2e-001-002-cite/bill3-settlement(43 PASS)/r4-g-r4-5-product-close/r4-eg1-dual-claim-product-close）·待 post-prove 双审两独立外席 · Ban self-approve · alone ≠ dual · est live=0 · `actualSpendCny=null`）
 
 **席位**：proof 维护批 A 起草席（协调方派单令：DOC-MISS-PTP 93 条 + TEST-EXPIRED 3 条 + HARNESS-BUG 1 条 + 回写 tracked 16 条）。
 **基线**：`origin/main` @ **`db0dc8bfe`**（#214 sbg 已并；起草开工时 fetch 亲证 tip=`d549a497b`=#212，worktree `meetwise-pmaint`（`git worktree add ../meetwise-pmaint -b line/pmaint-draft origin/main`）立于该点；起草期再 fetch 见 #213/#214 前进，工作树尚无 commit，`git merge --ff-only origin/main` 快进并线、零冲突，此后四类 commit 均落在 `db0dc8bfe` 之上）。`pnpm install --frozen-lockfile` EXIT=0。
@@ -25,7 +25,7 @@
 | E1 | live `r4-domain-isolation{,-status}.md` 仍写「题域隔离 NOT closed」（本刀不关题域） | EG3 题域 isolation product close `f2dfa3ed7`；归档 `g-r4-5-eg3-domain-isolation-product-close.md` Status=`post_prove_dual_pass`·post-prove dual BOTH PASS·`domainIsolationClosed=true` | 认原钉，或「文中改记 closed under authorize + `domainIsolationClosed=true`」且 EG3 刀归档 harness 在案 |
 | E2 | P-R1 fail-closed 默认 OFF、env 例 `=0`、resolver 注释 Default (flag off)（本刀不翻默认） | G-R4-3/R1 product close `101fb51e0`；归档 `g-r4-3-r1-product-close.md` `defaultFlipped=true`·`post_prove_dual_pass` | 认原钉，或默认 ON 且该刀在案；「flag-off → legacy 技术岗」单测改为显式传 `0`（legacy 退出路径本身仍须可达） |
 | E3 | 早批（Batch1/2/2b/3/3b）钉「本批范围外各行 still not_covered」与只含本批的计数 | Batch2–4b `eab4fb316`…`4a3c699f2`；归档 Batch4b harness `post_prove_dual_pass`·coveredCount 7→8 | 范围外各行改按各自活评估器校验（covered 当且仅当评估器肯定·Ban invent），计数按 8 个活评估器求和（同 Batch4 B4 口径）；Batch1 回读计数改为「矩阵中本刀 03/04 已覆盖行数」 |
-| E4 | 归档 harness 状态须为 `executed:awaiting_post_prove_dual` 且非 `post_prove_dual_pass` | 各刀自己的 post-prove 双审通过后 lifecycle nail（归档 harness Status=`post_prove_dual_pass` + post-prove dual (BOTH) PASS） | 认原钉（待双审），或「Status=post_prove_dual_pass 且记 post-prove 双审通过」（非自钉） |
+| E4 | 归档 harness 状态须为 `post_prove_dual_pass` 且非 `post_prove_dual_pass` | 各刀自己的 post-prove 双审通过后 lifecycle nail（归档 harness Status=`post_prove_dual_pass` + post-prove dual (BOTH) PASS） | 认原钉（待双审），或「Status=post_prove_dual_pass 且记 post-prove 双审通过」（非自钉） |
 | E5 | EG5/EG6 证据读 EG2 矩阵回执 `coveredCount === 0` | Batch1–4b 按设计复写同一回执（该回执 git 史 `eab4fb316`…`4a3c699f2`） | 认 0，或「计数=covered 行数 + `inventCovered=false` + 收官刀 Batch4b 在案」 |
 
 判据集中在新件 `apps/worker/evidence/r4-superseded-pins.ts`（缺翻面刀在案记录即仍判红·不放宽为任意状态皆过）。**判为真缺口而保持红的断言：0 条。**另有 2 条未改（见表 #6、#7 与 §9）。
@@ -222,7 +222,7 @@ Ban 把「断言过期」当真缺口放过、Ban 把真缺口改断言洗绿、
 
 ## §8 STOP + 停止条件
 
-**`executed:awaiting_post_prove_dual`**（起草席落卷即停 · Status 头 / §8 / §9 / 卷尾四处一致）。后续任一席遇下列情形即停、回协调方：
+**`post_prove_dual_pass`**（起草席落卷即停 · Status 头 / §8 / §9 / 卷尾四处一致）。后续任一席遇下列情形即停、回协调方：
 
 1. 任一改过的 proof 复跑红，或跑完 `git status` 不干净；
 2. typecheck/lint 任一包高于 §2 基线，或 check-docs 不恰等、PTP 非 12/12、markers 非 0；
@@ -231,7 +231,7 @@ Ban 把「断言过期」当真缺口放过、Ban 把真缺口改断言洗绿、
 5. 主线前进致两 policy 冲突——按常设预授权「cap 以合并树实测恰等步进」重算，链注追加、不改写既有注记，否则停；
 6. 需动其他工作树、需 Key、需 push。
 
-## §9 pre-exec dual 交接（状态：**`executed:awaiting_post_prove_dual`**）
+## §9 pre-exec dual 交接（状态：**`post_prove_dual_pass`**）
 
 ### 9.1 请双席重点核
 
@@ -253,4 +253,4 @@ Ban 把「断言过期」当真缺口放过、Ban 把真缺口改断言洗绿、
 
 ---
 
-*PROOF-MAINT-A REQUEST · 2026-11-06 起草 · **`executed:awaiting_post_prove_dual`** · ⛔push ⛔merge 主线 · alone ≠ dual · base `origin/main` @`db0dc8bfe` · worktree `meetwise-pmaint` · branch `line/pmaint-draft` · 新增受管件 2（判据模块 + 本卷）· est live=0 · `actualSpendCny=null`*
+*PROOF-MAINT-A REQUEST · 2026-11-06 起草 · **`post_prove_dual_pass`** · ⛔push ⛔merge 主线 · alone ≠ dual · base `origin/main` @`db0dc8bfe` · worktree `meetwise-pmaint` · branch `line/pmaint-draft` · 新增受管件 2（判据模块 + 本卷）· est live=0 · `actualSpendCny=null`*
