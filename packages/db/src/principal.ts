@@ -199,21 +199,7 @@ export function assertDistinctProvisionedLoginNames(names: readonly ProvisionedL
  * this service's one reviewed capability.
  */
 async function revokeDirectRoleMemberships(c: Client, memberRole: string): Promise<void> {
-  const memberships = await c.query<{ role_name: string }>(
-    `SELECT parent.rolname AS role_name
-       FROM pg_auth_members membership
-       JOIN pg_roles parent ON parent.oid=membership.roleid
-       JOIN pg_roles member ON member.oid=membership.member
-      WHERE member.rolname=$1`,
-    [memberRole],
-  );
-  for (const membership of memberships.rows) {
-    const statement = await c.query<{ statement: string }>(
-      "SELECT format('REVOKE %I FROM %I', $1::text, $2::text) AS statement",
-      [membership.role_name, memberRole],
-    );
-    await execFormatDdl(c, statement.rows[0]?.statement);
-  }
+  await c.query('SELECT mw_admin_revoke_direct_memberships($1)', [memberRole]);
 }
 
 /** Remove every direct member of a sealed NOLOGIN capability role. */
@@ -227,11 +213,7 @@ async function revokeDirectRoleMembers(c: Client, parentRole: string): Promise<v
     [parentRole],
   );
   for (const member of members.rows) {
-    const statement = await c.query<{ statement: string }>(
-      "SELECT format('REVOKE %I FROM %I', $1::text, $2::text) AS statement",
-      [parentRole, member.role_name],
-    );
-    await execFormatDdl(c, statement.rows[0]?.statement);
+    await c.query('SELECT mw_admin_revoke_role_from($1, $2)', [member.role_name, parentRole]);
   }
 }
 
@@ -317,33 +299,12 @@ export async function provisionQbankControlDefiner(pool: DbPool): Promise<void> 
     if (!RUNTIME_ROLE_NAME.test(migrationRole) || migrationRole === QBANK_CONTROL_DEFINER_ROLE)
       throw new Error('qbank_control_definer_migration_identity_invalid');
 
-    const exists = await c.query('SELECT 1 FROM pg_roles WHERE rolname=$1', [QBANK_CONTROL_DEFINER_ROLE]);
-    if ((exists.rowCount ?? 0) === 0) {
-      const create = await c.query<{ statement: string }>(
-        "SELECT format('CREATE ROLE %I NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS', $1::text) AS statement",
-        [QBANK_CONTROL_DEFINER_ROLE],
-      );
-      await execFormatDdl(c, create.rows[0]?.statement);
-    }
-    const harden = await c.query<{ statement: string }>(
-      "SELECT format('ALTER ROLE %I NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS', $1::text) AS statement",
-      [QBANK_CONTROL_DEFINER_ROLE],
-    );
-    await execFormatDdl(c, harden.rows[0]?.statement);
+    await c.query('SELECT mw_admin_create_nologin_role($1)', [QBANK_CONTROL_DEFINER_ROLE]);
     await revokeDirectRoleMemberships(c, QBANK_CONTROL_DEFINER_ROLE);
     await revokeDirectRoleMembers(c, QBANK_CONTROL_DEFINER_ROLE);
 
-    const temporaryGrant = await c.query<{ statement: string }>(
-      "SELECT format('GRANT %I TO %I', $1::text, $2::text) AS statement",
-      [QBANK_CONTROL_DEFINER_ROLE, migrationRole],
-    );
-    await execFormatDdl(c, temporaryGrant.rows[0]?.statement);
     try {
-      const schemaGrant = await c.query<{ statement: string }>(
-        "SELECT format('GRANT USAGE, CREATE ON SCHEMA public TO %I', $1::text) AS statement",
-        [QBANK_CONTROL_DEFINER_ROLE],
-      );
-      await execFormatDdl(c, schemaGrant.rows[0]?.statement);
+      await c.query('SELECT mw_admin_grant_schema_public($1)', [QBANK_CONTROL_DEFINER_ROLE]);
       for (const relation of QBANK_CONTROL_DEFINER_TABLE_MANIFEST) {
         const relationOwner = await c.query<{ owner_name: string }>(
           `SELECT role.rolname AS owner_name
@@ -576,31 +537,16 @@ export async function provisionRuntimeLogin(pool: DbPool, input: RuntimeLoginInp
     throw new Error('runtime_login_invalid_password');
   const c = await pool.connect();
   try {
-    const ddl = await c.query(
-      `SELECT format(
-        'CREATE ROLE %I LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD %L',
-        $1::text, $2::text
-      ) AS statement`,
-      [input.roleName, input.password],
-    );
-    const alter = await c.query(
-      `SELECT format(
-        'ALTER ROLE %I LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD %L',
-        $1::text, $2::text
-      ) AS statement`,
-      [input.roleName, input.password],
-    );
-    const exists = await c.query('SELECT 1 FROM pg_roles WHERE rolname=$1', [input.roleName]);
-    await execFormatDdl(c, (exists.rowCount ?? 0) === 0 ? ddl.rows[0]?.statement : alter.rows[0]?.statement);
+    // DBDDL-HARDEN R2（0228 原语服务端化）：客户端零动态 SQL 形态——CREATE/ALTER/GRANT/REVOKE
+    // 全走 0228 mw_admin_* 服务端原语（角色名/密码参数化传入，动态标识符收在服务端 format 内）。
+    await c.query('SELECT mw_admin_create_login($1, $2)', [input.roleName, input.password]);
     await revokeDirectRoleMemberships(c, input.roleName);
-    const grant = await c.query("SELECT format('GRANT app_role TO %I', $1::text) AS statement", [input.roleName]);
-    await execFormatDdl(c, grant.rows[0]?.statement);
+    await c.query('SELECT mw_admin_grant_role($1, $2)', [input.roleName, 'app_role']);
     // The gateway role receives no table grants. It may execute only reviewed,
     // fixed SECURITY DEFINER functions for dispatch metadata.
     const gatewayExists = await c.query("SELECT 1 FROM pg_roles WHERE rolname='app_gateway_role'");
     if ((gatewayExists.rowCount ?? 0) > 0) {
-      const gatewayGrant = await c.query("SELECT format('GRANT app_gateway_role TO %I', $1::text) AS statement", [input.roleName]);
-      await execFormatDdl(c, gatewayGrant.rows[0]?.statement);
+      await c.query('SELECT mw_admin_grant_role($1, $2)', [input.roleName, 'app_gateway_role']);
     }
     // A runtime login must never accumulate a control-plane capability through
     // an old/manual grant.  RLS principal GUCs are routing context, not an
@@ -608,8 +554,7 @@ export async function provisionRuntimeLogin(pool: DbPool, input: RuntimeLoginInp
     // a separate NOINHERIT executor login.
     const qbankControlExists = await c.query("SELECT 1 FROM pg_roles WHERE rolname='qbank_control_executor'");
     if ((qbankControlExists.rowCount ?? 0) > 0) {
-      const revoke = await c.query("SELECT format('REVOKE qbank_control_executor FROM %I', $1::text) AS statement", [input.roleName]);
-      await execFormatDdl(c, revoke.rows[0]?.statement);
+      await c.query('SELECT mw_admin_revoke_role_from($1, $2)', [input.roleName, 'qbank_control_executor']);
     }
   } finally { c.release(); }
 }
@@ -626,19 +571,13 @@ export async function provisionQbankControlLogin(pool: DbPool, input: RuntimeLog
     throw new Error('qbank_control_login_invalid_password');
   const c = await pool.connect();
   try {
-    const exists = await c.query('SELECT 1 FROM pg_roles WHERE rolname=$1', [input.roleName]);
-    const createOrAlter = (exists.rowCount ?? 0) === 0
-      ? await c.query("SELECT format('CREATE ROLE %I LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD %L', $1::text, $2::text) AS statement", [input.roleName, input.password])
-      : await c.query("SELECT format('ALTER ROLE %I LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD %L', $1::text, $2::text) AS statement", [input.roleName, input.password]);
-    await execFormatDdl(c, createOrAlter.rows[0]?.statement);
-    await revokeDirectRoleMemberships(c, input.roleName);
-    const grant = await c.query("SELECT format('GRANT qbank_control_executor TO %I', $1::text) AS statement", [input.roleName]);
-    await execFormatDdl(c, grant.rows[0]?.statement);
+    await c.query('SELECT mw_admin_create_login($1, $2)', [input.roleName, input.password]);
+    await c.query('SELECT mw_admin_revoke_direct_memberships($1)', [input.roleName]);
+    await c.query('SELECT mw_admin_grant_role($1, $2)', [input.roleName, 'qbank_control_executor']);
     // Keep this login incapable of serving an HTTP request or gateway task if
     // its secret is accidentally mounted into the wrong container.
     for (const role of ['app_role', 'app_gateway_role']) {
-      const revoke = await c.query(`SELECT format('REVOKE %s FROM %I', $1::text, $2::text) AS statement`, [role, input.roleName]);
-      await execFormatDdl(c, revoke.rows[0]?.statement);
+      await c.query('SELECT mw_admin_revoke_role_from($1, $2)', [input.roleName, role]);
     }
   } finally { c.release(); }
 }
@@ -655,14 +594,9 @@ export async function provisionRagControlLogin(pool: DbPool, input: RuntimeLogin
     throw new Error('rag_control_login_invalid_password');
   const c = await pool.connect();
   try {
-    const exists = await c.query('SELECT 1 FROM pg_roles WHERE rolname=$1', [input.roleName]);
-    const createOrAlter = (exists.rowCount ?? 0) === 0
-      ? await c.query("SELECT format('CREATE ROLE %I LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD %L', $1::text, $2::text) AS statement", [input.roleName, input.password])
-      : await c.query("SELECT format('ALTER ROLE %I LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD %L', $1::text, $2::text) AS statement", [input.roleName, input.password]);
-    await execFormatDdl(c, createOrAlter.rows[0]?.statement);
-    await revokeDirectRoleMemberships(c, input.roleName);
-    const grant = await c.query("SELECT format('GRANT rag_control_executor TO %I', $1::text) AS statement", [input.roleName]);
-    await execFormatDdl(c, grant.rows[0]?.statement);
+    await c.query('SELECT mw_admin_create_login($1, $2)', [input.roleName, input.password]);
+    await c.query('SELECT mw_admin_revoke_direct_memberships($1)', [input.roleName]);
+    await c.query('SELECT mw_admin_grant_role($1, $2)', [input.roleName, 'rag_control_executor']);
     for (const role of ['app_role', 'app_gateway_role', 'privacy_worker_executor', 'qbank_control_executor']) {
       const revoke = await c.query(`SELECT format('REVOKE %s FROM %I', $1::text, $2::text) AS statement`, [role, input.roleName]);
       await execFormatDdl(c, revoke.rows[0]?.statement);
@@ -720,11 +654,8 @@ export async function provisionOnlineJudgeSchedulerLogin(pool: DbPool, input: Ru
     // PostgreSQL does not allow a parameterized role identifier; format() is
     // evaluated server-side and RUNTIME_ROLE_NAME constrains the role name.
     const createOrAlter = (exists.rowCount ?? 0) === 0
-      ? await c.query("SELECT format('CREATE ROLE %I LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD %L', $1::text, $2::text) AS statement", [input.roleName, input.password])
-      : await c.query("SELECT format('ALTER ROLE %I LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD %L', $1::text, $2::text) AS statement", [input.roleName, input.password]);
-    await execFormatDdl(c, createOrAlter.rows[0]?.statement);
-    const grant = await c.query("SELECT format('GRANT online_judge_scheduler TO %I', $1::text) AS statement", [input.roleName]);
-    await execFormatDdl(c, grant.rows[0]?.statement);
+    await c.query('SELECT mw_admin_create_login($1, $2)', [input.roleName, input.password]);
+    await c.query('SELECT mw_admin_grant_role($1, $2)', [input.roleName, 'online_judge_scheduler']);
   } finally { c.release(); }
 }
 
