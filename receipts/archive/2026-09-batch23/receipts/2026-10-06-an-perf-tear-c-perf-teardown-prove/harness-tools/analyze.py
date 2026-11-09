@@ -206,5 +206,5 @@ else:
             else:
                 fails.append(f'J2_NOT_L3SIM({j2})')
 res = {'cell': cell, 'attempt': os.path.basename(d), 'pass': not fails, 'fails': fails, 'obs': obs}
-    (Path(d) / 'verdict.json').write_text(json.dumps(res, indent=1, default=str))
+(Path(d) / 'verdict.json').write_text(json.dumps(res, indent=1, default=str))
 print(json.dumps({'attempt': res['attempt'], 'pass': res['pass'], 'fails': fails, 'exit': EXIT, 'J2': j2, 'emitted': E, 'frames': obs['emitted_at_pg_frames'][:2], 'dpe': obs['db_pool_error_n'], 'marker': obs.get('marker'), 'form': obs['form']}, default=str))
