@@ -1,6 +1,6 @@
 # SCORE-STABILITY REQUEST（meetwise 面试评分稳定性刀：评分 prompt v6→v7 档位锚细化+quote 逐字纪律·真模型评测诊断驱动·含 8 轮实跑读数·起草席落卷+rev r1 修订）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（2026-11-06 起草席落卷·同日 rev r1 修订登记源=证伪报告 score-pre-2 见 §9·派单明令「草稿含代码，之后走双审」——改法面与评测实跑已随起草完成并如实申报·双审未行·alone≠dual·Ban self-approve·双审可否决改法面/读数/卷内容·est live=评测 8 轮实发供应商调用约 481 次≈1.1 元（含 rev r1 终配确认 1 轮）·markers 新增字节 0·⛔push ⛔merge）【状态钉四处：本行+§8+§9+卷尾摘要·同值】
+**Status**: **`executed:awaiting_post_prove_dual`**（pre-exec 双审 score-pre-1/score-pre-2 PASS·2026-11-09 EXEC 期 rebase 到 #225 后主线并线（cap 实测 2525 恰等·.log 收据 ∉TEXT_EXTENSIONS 不计面）·待 post-prove 双审·2026-11-06 起草席落卷·同日 rev r1 修订登记源=证伪报告 score-pre-2 见 §9·派单明令「草稿含代码，之后走双审」——改法面与评测实跑已随起草完成并如实申报·双审未行·alone≠dual·Ban self-approve·双审可否决改法面/读数/卷内容·est live=评测 8 轮实发供应商调用约 481 次≈1.1 元（含 rev r1 终配确认 1 轮）·markers 新增字节 0·⛔push ⛔merge）【状态钉四处：本行+§8+§9+卷尾摘要·同值】
 **Date**: 2026-11-06
 **Base**: `origin/main` @ **`d549a497b`**（#212 merge·满足派单「`e282c5ebd` 或更新」·`git fetch origin` EXIT=0）
 **工作区**: worktree `meetwise-score`（branch `line/score-draft`·`git worktree add ../meetwise-score -b line/score-draft origin/main` 亲立·主仓仅此一个 mutation·`pnpm install --frozen-lockfile` EXIT=0）
@@ -166,20 +166,20 @@ Wilson95% 下界在 n=36 时须 **36/36 全对**才 ≥0.90（36/36→0.9036；3
 ## §8 停止条件与状态
 
 - 停止四类核查：①现场漂移超注记级——无（基线 commit/文件锚全部亲证在位）；②机制不满足——**候选线未达即本刀如实申报项**（§2），非隐匿；③越界需要——quote 规范化/中位数属越界面→转 §9 后继刀未行使；④验收红不可修——扰动段已修绿，其余红如实申报。停止条件未触发停刀。
-- **Status**: **`draft:awaiting_pre_exec_dual`**（待 pre-exec 双审两独立外席；本卷含实跑读数与不达标如实申报，双审可否决改法面、读数取舍与卷内容）。
+- **Status**: **`executed:awaiting_post_prove_dual`**（待 pre-exec 双审两独立外席；本卷含实跑读数与不达标如实申报，双审可否决改法面、读数取舍与卷内容）。
 
 ## §9 在飞/偏离/后继建议
 
 - **在飞登记**：`fastm-draft`（快模型缺省修复刀·未并主线——本刀显式 `MODEL_FAST_NAME=qwen-plus` 与其修法语义一致；并线时 `scoring-eval.ts` 相邻面按 dual-keep 先例形承登）·`ksw/xs/sbg/uc31-rev` 各 ahead≥1 零触本刀触面。
-- **rev r1 注记（2026-11-06·登记源=证伪报告 `meetwise/.tmp/reviews/score-pre-2.md`·判定 PASS 带 P1×2 合并前置·P2×8 登记）**：①**P1-1 收据错装勘误**——随卷 ag18/ag19 两件换装终配态 stdout+本条勘误注在 §6，错装旧件整件保留 candidate-state 史录不删；②**P1-2 终配确认**——E8 一轮恰跑（§2.1·71 调用≈0.16 元·红了不重跑未触发·EXIT=0），收据源清单增补 prompts/model-client 两行（harness in-place）；③**P2-① 勘正**——§1-A E3 扰动 p90 17.5→20.2（以原始日志为准）；④其余 P2 观察（②③④⑤⑥⑦⑧：E3 Δ50 对数/分母口径/good→exceeds 抬档/below 锚含混带/quote 纪律动机句/OT-16 四连拒/路由子集扩样后继刀）**登记未行使**，随双审面供裁。零新增受管文件·cap 不动（§7）；Status 保持 `draft:awaiting_pre_exec_dual` 不变。
+- **rev r1 注记（2026-11-06·登记源=证伪报告 `meetwise/.tmp/reviews/score-pre-2.md`·判定 PASS 带 P1×2 合并前置·P2×8 登记）**：①**P1-1 收据错装勘误**——随卷 ag18/ag19 两件换装终配态 stdout+本条勘误注在 §6，错装旧件整件保留 candidate-state 史录不删；②**P1-2 终配确认**——E8 一轮恰跑（§2.1·71 调用≈0.16 元·红了不重跑未触发·EXIT=0），收据源清单增补 prompts/model-client 两行（harness in-place）；③**P2-① 勘正**——§1-A E3 扰动 p90 17.5→20.2（以原始日志为准）；④其余 P2 观察（②③④⑤⑥⑦⑧：E3 Δ50 对数/分母口径/good→exceeds 抬档/below 锚含混带/quote 纪律动机句/OT-16 四连拒/路由子集扩样后继刀）**登记未行使**，随双审面供裁。零新增受管文件·cap 不动（§7）；Status 保持 `executed:awaiting_post_prove_dual` 不变。
 - **偏离任务书清单**：①评测实跑 8 轮=派单上限恰等（含 2 基础设施红轮与 rev r1 终配确认 1 轮·如实记）；②温度候选实测后不采纳（§1-A·回退有据）；③中位数候选实测算账后不采纳（§1-C）；④收据 12 件落 `ai-docs/delivery/receipts/score-stability/`（rev r1 换装 2+候选态存证 2+终配确认 1·.log 非扫描面）；⑤零其余偏离——评测门阈值/用例零字节、ag18 零 diff、pins 十一值零翻。
 - **后继建议（按优先序）**：① **quote 规范化匹配刀**：`validateEvaluationEvidence` 逐字匹配加白名单归一（空白折叠/全半角宽度），一并重验 0103 span 契约链（score-span-answer/scoring-report-integrity 面）——对症 ≈2-4%/调用的整档丢失，是单调性/ICC/相关性三段的公共根；② **多次评分中位数刀**（N 与 billing 归集不变量重验随刀）；③ mediocre/中档判别双盲人工锚定（CALIBRATION_STATUS 未建立面不变）；④ nightly 隔离 PG 池中断观测（E1/E6 同根因）。
-- **Status**: **`draft:awaiting_pre_exec_dual`**（同 §8·四处状态钉之三）。
+- **Status**: **`executed:awaiting_post_prove_dual`**（同 §8·四处状态钉之三）。
 
 ---
 
 ### 卷尾摘要
 
-评分稳定性刀落卷：v7 档位锚+quote 逐字纪律采纳（扰动段 p90 17.5→0.0 四连绿转绿、单调性并列对 6→3-4），温度 0 与多次评分中位数两候选实测后不采纳（读数与成本在卷）；**候选线未达如实申报**——严格单调性 28/36（LB 0.619<0.90）、攻击 Δmax 50、相关性线结构性不可达（子集 13<36）；差距根因=quote 拒绝/同文本档位翻转/3 档碰撞，后继刀与人工校准建议在 §9。8 轮评测 481 次调用≈1.1 元全记账（含 rev r1 终配字节确认 E8·读数绑定交付 v7 sha256 `ed58bb9c…`·收据勘误注见 §6）。**Status**: **`draft:awaiting_pre_exec_dual`**（四处状态钉之四·alone≠dual·Ban self-approve·⛔push）。
+评分稳定性刀落卷：v7 档位锚+quote 逐字纪律采纳（扰动段 p90 17.5→0.0 四连绿转绿、单调性并列对 6→3-4），温度 0 与多次评分中位数两候选实测后不采纳（读数与成本在卷）；**候选线未达如实申报**——严格单调性 28/36（LB 0.619<0.90）、攻击 Δmax 50、相关性线结构性不可达（子集 13<36）；差距根因=quote 拒绝/同文本档位翻转/3 档碰撞，后继刀与人工校准建议在 §9。8 轮评测 481 次调用≈1.1 元全记账（含 rev r1 终配字节确认 E8·读数绑定交付 v7 sha256 `ed58bb9c…`·收据勘误注见 §6）。**Status**: **`executed:awaiting_post_prove_dual`**（四处状态钉之四·alone≠dual·Ban self-approve·⛔push）。
 
 pins（十一值照抄·零翻转）重温：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null。
