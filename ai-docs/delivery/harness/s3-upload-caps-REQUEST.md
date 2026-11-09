@@ -228,6 +228,17 @@ export function assertDocxZipWithinCaps(buffer: Buffer): void {
 - **门读数（亲跑·r8 两项白名单形）**：`prove:resume-extract` EXIT=0 **73 断言全绿**（pdf fake-worker 主线程模式无需真 worker 权限·实测验证）（docx/pdf 解析在无 child-process 授权下正常=白名单三项充分）；`prove:resume-512m-dual` 本机重跑 ✗ 宿主存活（容器未写 host-exit·复跑同形·colima 重启后环境面·非撤旗引入·该证明不进 CI·如实登记待环境恢复复验）。
 - **cap**：零新受管文件（in-place 码改+卷面注记）→ 届值不变。
 
+### §9-rev-r7 post-prove 双审双席分歧登记（2026-11-09）
+
+- **席甲（s3caps-r7-post-1.md）**：r8 复审 **PASS**——撤 --allow-child-process+--allow-worker 后 Worker 创建与直接 spawn 均 ERR_ACCESS_DENIED（node 22.23.2 生产同版两级复现关闭）；73 断言+512m 5 断言全绿。
+- **席乙（s3caps-r7-post-2.md）**：**FAIL·P1-1**——`--allow-addons` 原生代码不受 permission model 约束（addon 内 syscall 可读宿主 env）；「残余威胁从根消除」表述不成立。P2×4（73 断言不守权限集/512m 镜像早于 r8/卷注不一致/commit message 未记 r8）。
+- **处置（fail-closed·双席未 BOTH PASS 故不翻面）**：
+  1. 卷面表述如实修正：撤两旗消除 **child-process/worker 派生面**（实证关闭）；**addons 面残余威胁如实登记**——swc loader 需要 --allow-addons（撤则子进程无法加载构建器），addon 加载面收敛依赖「不落新 .node 文件」（fs 只读授权）与构建产物可信；彻底消除需独立容器/进程外解析（独立刀候选·登记）。
+  2. 本刀 Status 维持 `executed:awaiting_post_prove_dual`（不翻 post_prove_dual_pass·双席分歧在卷）。
+  3. r7/r8 代码（撤两旗）按用户裁定保留并随 PR #229 合并——代码方向双席均无异议，分歧仅在「残余威胁表述」。
+  4. P2 随附：512m-dual 本机环境红已如实登记；73 断言集不含权限集回归臂——补臂入独立刀候选清单。
+
+
 ## §9 门读数（起草席亲跑·EXIT 原值在案）
 
 | 门 | 命令 | 读数 |
