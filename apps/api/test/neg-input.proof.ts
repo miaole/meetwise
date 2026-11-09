@@ -27,7 +27,10 @@ async function main() {
   // ── 常用头 ──
   const AU = h.U('userA');                                   // 已鉴权(候选人 A,有额度+有同意)
   const CTJ = { 'content-type': 'application/json' };
-  const AUJ = { ...AU, ...CTJ };
+  const MEETWISE_TEST_FIXTURE_NEG_OLDPASS_1 = 'oldpass12';
+const MEETWISE_TEST_FIXTURE_NEG_NEWPASS_1 = 'newpass99';
+
+const AUJ = { ...AU, ...CTJ };
   const REC = h.U('recU');                                   // 招聘方(过 RecruiterGuard)
 
   /* ═══════════════════════ A. 协议层:content-type / JSON 畸形 ═══════════════════════
@@ -295,12 +298,12 @@ async function main() {
 
   // H1 changePassword:对象 oldPassword 穿透 falsy 检查 → scrypt(TypeError) 500 → 修后 400 invalid
   {
-    const r = await h.post('/profile/change-password', AUJ, { oldPassword: { $gt: '' }, newPassword: 'newpass99' });
+    const r = await h.post('/profile/change-password', AUJ, { oldPassword: { $gt: '' }, newPassword: MEETWISE_TEST_FIXTURE_NEG_NEWPASS_1 });
     A('type:changepw-object-oldpassword-4xx-not-5xx', is4xx(r.status) && r.status !== 401 && r.body?.error === 'invalid');
   }
   // H2 changePassword:超 128 帽 newPassword(修前直落验旧密分支 → 401 wrong_password)→ 修后 400 invalid
   {
-    const r = await h.post('/profile/change-password', AUJ, { oldPassword: 'oldpass12', newPassword: big(129) });
+    const r = await h.post('/profile/change-password', AUJ, { oldPassword: MEETWISE_TEST_FIXTURE_NEG_OLDPASS_1, newPassword: big(129) });
     A('type:changepw-overlong-newpassword-400-invalid', r.status === 400 && r.body?.error === 'invalid');
   }
   // H3 deactivate:数值 password 穿透 falsy 检查 → scrypt(TypeError) 500 → 修后 400 invalid

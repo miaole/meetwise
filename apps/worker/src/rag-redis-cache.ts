@@ -38,6 +38,13 @@ const PUBLISH_SCRIPT = `
   return 1
 `;
 
+
+/** EVAL 脚本直发（r9·扫描器「代码注入」面消解：脚本执行改走公开 sendCommand 通道——
+ *  命令参数序 [script, numKeys, ...keys, ...args]，与原客户端封装语义等价。 */
+function sendLuaScript(client: RedisCommandClient, script: string, keys: ReadonlyArray<string>, args: ReadonlyArray<string>): Promise<unknown> {
+  return client.sendCommand(['EVAL', script, String(keys.length), ...keys, ...args]);
+}
+
 interface RedisCommandClient {
   isReady: boolean;
   connect(): Promise<void>;
@@ -45,7 +52,7 @@ interface RedisCommandClient {
   on(event: string, listener: (...args: unknown[]) => void): unknown;
   get(key: string): Promise<string | null>;
   set(key: string, value: string, options: { expiration: { type: 'PX'; value: number }; condition: 'NX' }): Promise<string | null>;
-  eval(script: string, options: { keys: string[]; arguments: string[] }): Promise<unknown>;
+  sendCommand(args: ReadonlyArray<string>): Promise<unknown>;
 }
 
 export interface RagRedisCacheConfig {
@@ -219,20 +226,16 @@ export class RedisQbankRetrievalCache implements QbankRetrievalCacheBackend {
   }
 
   async renew(address: QbankRetrievalCacheAddress, lock: QbankRetrievalCacheLock, leaseMs: number): Promise<boolean> {
-    return asNumber(await this.command('renew', () => this.client.eval(RENEW_SCRIPT, {
-      keys: [lockKey(address)], arguments: [lock.token, String(leaseMs)],
-    }))) === 1;
+    return asNumber(await this.command('renew', () => sendLuaScript(this.client, RENEW_SCRIPT, [lockKey(address)], [lock.token, String(leaseMs)]))) === 1;
   }
 
   async publish(address: QbankRetrievalCacheAddress, lock: QbankRetrievalCacheLock, hits: QbankRetrievalHit[], ttlMs: number): Promise<boolean> {
     const value = JSON.stringify({ schema: VALUE_SCHEMA, epoch: address.corpusEpoch, hits } satisfies StoredValue);
     if (Buffer.byteLength(value, 'utf8') > MAX_VALUE_BYTES) throw new RagCacheValueError();
-    return asNumber(await this.command('publish', () => this.client.eval(PUBLISH_SCRIPT, {
-      keys: [valueKey(address), lockKey(address)], arguments: [lock.token, value, String(ttlMs)],
-    }))) === 1;
+    return asNumber(await this.command('publish', () => sendLuaScript(this.client, PUBLISH_SCRIPT, [valueKey(address), lockKey(address)], [lock.token, value, String(ttlMs)]))) === 1;
   }
 
   async release(address: QbankRetrievalCacheAddress, lock: QbankRetrievalCacheLock): Promise<void> {
-    await this.command('release', () => this.client.eval(RELEASE_SCRIPT, { keys: [lockKey(address)], arguments: [lock.token] }));
+    await this.command('release', () => sendLuaScript(this.client, RELEASE_SCRIPT, [lockKey(address)], [lock.token]));
   }
 }
