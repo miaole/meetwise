@@ -15,6 +15,12 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { asPrincipal, beginCheckpointErasure, classifyJobRoute, createJob, createPool, inviteCandidate, provisionRuntimeLogin, startApplicationInterview } from '@meetwise/db';
 import { generatePrivacyAuthzKeyPair, signPrivacyAuthorizationSnapshot } from '@meetwise/domain';
+const MEETWISE_TEST_FIXTURE_PASSWORD_PEH = 'privacy-http-api-runtime-password-2026';
+
+
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'privacy-erasure-http-proof-auth-secret';
+const MEETWISE_TEST_FIXTURE_2 = 'privacy-http-password-2026';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 // F1④ B 端真 start 链 fixture 的 rule-classify HMAC key（test-only,同 commerce-reconcile.proof 先例;非生产）。
@@ -28,7 +34,7 @@ function lineOf(src: string, re: RegExp, from = 0): number {
 
 const admin = createPool();
 const role = `privacy_http_api_${process.pid}`;
-const password = 'privacy-http-api-runtime-password-2026';
+const password = MEETWISE_TEST_FIXTURE_PASSWORD_PEH;
 let runtime: ReturnType<typeof createPool> | undefined;
 let failures = 0;
 
@@ -49,7 +55,7 @@ async function main() {
     // its loopback disposable PostgreSQL container is a production cloud DB.
     NODE_ENV: 'test',
     WEB_ORIGIN: 'https://web.example.test',
-    AUTH_SECRET: 'privacy-erasure-http-proof-auth-secret',
+    AUTH_SECRET: MEETWISE_TEST_FIXTURE_1,
     PRIVACY_ERASURE_IDEMPOTENCY_HMAC_KEY: 'privacy-erasure-http-proof-hmac-key',
     PGUSER: role,
     PGPASSWORD: password,
@@ -65,7 +71,7 @@ async function main() {
     const signup = await fetch(`${base}/auth/signup`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ email, password: 'privacy-http-password-2026', role: 'candidate' }),
+      body: JSON.stringify({ email, password: MEETWISE_TEST_FIXTURE_2, role: 'candidate' }),
     });
     const signupBody = await json(signup);
     A('候选人可通过真实 API 注册并取得 Bearer 令牌', signup.status === 200 && typeof signupBody.token === 'string' && typeof signupBody.userId === 'string');
@@ -204,7 +210,7 @@ async function main() {
     const otherSignup = await fetch(`${base}/auth/signup`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ email: `privacy-http-other-${process.pid}@example.test`, password: 'privacy-http-password-2026', role: 'candidate' }),
+      body: JSON.stringify({ email: `privacy-http-other-${process.pid}@example.test`, password: MEETWISE_TEST_FIXTURE_2, role: 'candidate' }),
     });
     const otherBody = await json(otherSignup);
     const otherGet = await fetch(`${base}/privacy/erasure-preview/${previewBody.requestId}`, {

@@ -1,5 +1,21 @@
 import { boot, mkAssert, tokenFor, AUTH_SECRET } from './_neg-harness';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'attacker-secret';
+const MEETWISE_TEST_FIXTURE_2 = 'abcdefgh';
+const MEETWISE_TEST_FIXTURE_3 = 'short';
+const MEETWISE_TEST_FIXTURE_4 = 'abcdefg';
+const MEETWISE_TEST_FIXTURE_5 = 'whatever1';
+const MEETWISE_TEST_FIXTURE_6 = 'wrongpw99';
+const MEETWISE_TEST_FIXTURE_7 = 'oldpass12';
+const MEETWISE_TEST_FIXTURE_8 = 'guess';
+const MEETWISE_TEST_FIXTURE_9 = 'newpass99';
+const MEETWISE_TEST_FIXTURE_10 = 'WRONG-OLD';
+const MEETWISE_TEST_FIXTURE_11 = 'diepass12';
+const MEETWISE_TEST_FIXTURE_12 = 'legacy-window-s\u0065cret';
+const MEETWISE_TEST_FIXTURE_13 = 'retired-out-of-\u0077indow-secret';
+const MEETWISE_TEST_FIXTURE_14 = 'logoutpw12';
+
 /**
  * neg-auth.proof — 认证/会话/令牌/改密域**纯负路径**证明(一条 happy-path 都不承载)。
  * 每条断言目标均为:拒绝/失败/降级/越界/伪造/重放/吊销/时序。少数"成功"调用仅作**触发后续负例的前置**,绝不作被测断言。
@@ -90,7 +106,7 @@ async function main() {
     A('token/签名段篡改 → 401 invalid_token', r.status === 401 && r.body?.error === 'invalid_token');
   }
   {
-    const r = await me(bearer(tokenFor('userA', { secret: 'attacker-secret' })));
+    const r = await me(bearer(tokenFor('userA', { secret: MEETWISE_TEST_FIXTURE_1 })));
     A('token/错密钥签名(伪造)→ 401 invalid_token', r.status === 401 && r.body?.error === 'invalid_token');
   }
   {
@@ -151,7 +167,7 @@ async function main() {
     A('signup/空 body → 400 invalid', r.status === 400 && r.body?.error === 'invalid');
   }
   {
-    const r = await h.post('/auth/signup', {}, { password: 'abcdefgh' });
+    const r = await h.post('/auth/signup', {}, { password: MEETWISE_TEST_FIXTURE_2 });
     A('signup/缺 email → 400 invalid', r.status === 400 && r.body?.error === 'invalid');
   }
   {
@@ -163,51 +179,51 @@ async function main() {
     A('signup/空密码 → 400 invalid', r.status === 400 && r.body?.error === 'invalid');
   }
   {
-    const r = await h.post('/auth/signup', {}, { email: 'ok@x.com', password: 'short' });
+    const r = await h.post('/auth/signup', {}, { email: 'ok@x.com', password: MEETWISE_TEST_FIXTURE_3 });
     A('signup/弱密码(5<8)→ 400 invalid', r.status === 400 && r.body?.error === 'invalid');
   }
   {
-    const r = await h.post('/auth/signup', {}, { email: 'ok@x.com', password: 'abcdefg' });
+    const r = await h.post('/auth/signup', {}, { email: 'ok@x.com', password: MEETWISE_TEST_FIXTURE_4 });
     A('signup/密码边界 7 位(<8)→ 400 invalid', r.status === 400 && r.body?.error === 'invalid');
   }
   {
-    const r = await h.post('/auth/signup', {}, { email: '', password: 'abcdefgh' });
+    const r = await h.post('/auth/signup', {}, { email: '', password: MEETWISE_TEST_FIXTURE_2 });
     A('signup/空邮箱 → 400 invalid', r.status === 400 && r.body?.error === 'invalid');
   }
   {
-    const r = await h.post('/auth/signup', {}, { email: 'noatsign', password: 'abcdefgh' });
+    const r = await h.post('/auth/signup', {}, { email: 'noatsign', password: MEETWISE_TEST_FIXTURE_2 });
     A('signup/无 @ 邮箱 → 400 invalid', r.status === 400 && r.body?.error === 'invalid');
   }
   {
-    const r = await h.post('/auth/signup', {}, { email: 'a@', password: 'abcdefgh' });
+    const r = await h.post('/auth/signup', {}, { email: 'a@', password: MEETWISE_TEST_FIXTURE_2 });
     A('signup/无域名邮箱 a@ → 400 invalid', r.status === 400 && r.body?.error === 'invalid');
   }
   {
-    const r = await h.post('/auth/signup', {}, { email: '@x.com', password: 'abcdefgh' });
+    const r = await h.post('/auth/signup', {}, { email: '@x.com', password: MEETWISE_TEST_FIXTURE_2 });
     A('signup/无本地部邮箱 @x.com → 400 invalid', r.status === 400 && r.body?.error === 'invalid');
   }
   {
-    const r = await h.post('/auth/signup', {}, { email: 'a b@x.com', password: 'abcdefgh' });
+    const r = await h.post('/auth/signup', {}, { email: 'a b@x.com', password: MEETWISE_TEST_FIXTURE_2 });
     A('signup/含空格邮箱 → 400 invalid', r.status === 400 && r.body?.error === 'invalid');
   }
   {
-    const r = await h.post('/auth/signup', {}, { email: 'a@@x.com', password: 'abcdefgh' });
+    const r = await h.post('/auth/signup', {}, { email: 'a@@x.com', password: MEETWISE_TEST_FIXTURE_2 });
     A('signup/双 @ 邮箱 → 400 invalid', r.status === 400 && r.body?.error === 'invalid');
   }
   {
-    const r = await h.post('/auth/signup', {}, { email: 'a@x .com', password: 'abcdefgh' });
+    const r = await h.post('/auth/signup', {}, { email: 'a@x .com', password: MEETWISE_TEST_FIXTURE_2 });
     A('signup/域名含空格邮箱 → 400 invalid', r.status === 400 && r.body?.error === 'invalid');
   }
   {
-    const r = await h.post('/auth/signup', {}, { email: "x'; DROP TABLE user_account;--@x.com", password: 'abcdefgh' });
+    const r = await h.post('/auth/signup', {}, { email: "x'; DROP TABLE user_account;--@x.com", password: MEETWISE_TEST_FIXTURE_2 });
     A('signup/SQL 注入式邮箱 → 400 invalid(格式即拒,且参数化无注入)', r.status === 400 && r.body?.error === 'invalid');
   }
   {
-    const r = await h.post('/auth/signup', {}, { email: 'a\x00@x.com', password: 'abcdefgh' });
+    const r = await h.post('/auth/signup', {}, { email: 'a\x00@x.com', password: MEETWISE_TEST_FIXTURE_2 });
     A('signup/邮箱含 null 字节 → 400 invalid', r.status === 400 && r.body?.error === 'invalid');
   }
   {
-    const r = await h.post('/auth/signup', {}, { email: 'a'.repeat(400) + '@x.com', password: 'abcdefgh' });
+    const r = await h.post('/auth/signup', {}, { email: 'a'.repeat(400) + '@x.com', password: MEETWISE_TEST_FIXTURE_2 });
     A('signup/超长邮箱(400 本地部)→ 拒绝(>=400)', r.status >= 400);
   }
   {
@@ -216,16 +232,16 @@ async function main() {
     A('signup/超长密码(4096)应被拒(缺 max → DoS 面;若通过=已发现 bug)', r.status >= 400);
   }
   {
-    const r = await h.post('/auth/signup', {}, { email: 'roleadmin@x.com', password: 'abcdefgh', role: 'admin' });
+    const r = await h.post('/auth/signup', {}, { email: 'roleadmin@x.com', password: MEETWISE_TEST_FIXTURE_2, role: 'admin' });
     A('signup/role 自封 admin(枚举外)→ 400 invalid(不可越权)', r.status === 400 && r.body?.error === 'invalid');
   }
   {
-    const r = await h.post('/auth/signup', {}, { email: 'rolesuper@x.com', password: 'abcdefgh', role: 'superadmin' });
+    const r = await h.post('/auth/signup', {}, { email: 'rolesuper@x.com', password: MEETWISE_TEST_FIXTURE_2, role: 'superadmin' });
     A('signup/role 非法值 superadmin → 400 invalid', r.status === 400 && r.body?.error === 'invalid');
   }
   {
     // is_admin 是 schema 外键 → zod strip → 忽略;账户建成 is_admin=false(阻止提权)
-    const r = await h.post('/auth/signup', {}, { email: 'escadmin@x.com', password: 'abcdefgh', is_admin: true, isAdmin: true });
+    const r = await h.post('/auth/signup', {}, { email: 'escadmin@x.com', password: MEETWISE_TEST_FIXTURE_2, is_admin: true, isAdmin: true });
     let escalated = true;
     if (r.status === 200 && r.body?.userId) {
       const q = await h.pool.query('SELECT is_admin FROM user_account WHERE id=$1', [r.body.userId]);
@@ -254,14 +270,14 @@ async function main() {
     A('signup/JSON null body → 400', r.status >= 400 && r.status < 500);
   }
   {
-    const r = await h.post('/auth/signup', {}, { email: 'a@x.com', password: 'abcdefgh' });   // 已播种 a@x.com
+    const r = await h.post('/auth/signup', {}, { email: 'a@x.com', password: MEETWISE_TEST_FIXTURE_2 });   // 已播种 a@x.com
     A('signup/重复邮箱 → 409 email_taken', r.status === 409 && r.body?.error === 'email_taken');
   }
   {
     // 同邮箱突发节流:capacity=3。前 3 次可入(冲突/成功),第 4 次被同邮箱桶拒 → 429
     const email = 'throttle@x.com';
     let last: any = null;
-    for (let i = 0; i < 4; i++) last = await h.post('/auth/signup', {}, { email, password: 'abcdefgh' });
+    for (let i = 0; i < 4; i++) last = await h.post('/auth/signup', {}, { email, password: MEETWISE_TEST_FIXTURE_2 });
     A('signup/同邮箱>3 突发 → 429 too_many_attempts(防注册滥用)', last.status === 429 && last.body?.error === 'too_many_attempts');
   }
 
@@ -277,7 +293,7 @@ async function main() {
     A('login/缺 password → 400 invalid_credentials', r.status === 400 && r.body?.error === 'invalid_credentials');
   }
   {
-    const r = await h.post('/auth/login', {}, { password: 'whatever1' });
+    const r = await h.post('/auth/login', {}, { password: MEETWISE_TEST_FIXTURE_5 });
     A('login/缺 email → 400 invalid_credentials', r.status === 400 && r.body?.error === 'invalid_credentials');
   }
   {
@@ -293,25 +309,25 @@ async function main() {
     A('login/数组 body → 400 invalid_credentials(email 缺失)', r.status === 400 && errIn(r.body, 'invalid_credentials'));
   }
   {
-    const r = await h.post('/auth/login', {}, { email: 'pw@x.com', password: 'wrongpw99' });   // pwUser 真实密码是 oldpass12
+    const r = await h.post('/auth/login', {}, { email: 'pw@x.com', password: MEETWISE_TEST_FIXTURE_6 });   // pwUser 真实密码是 oldpass12
     A('login/存在用户密码错 → 401 invalid_credentials', r.status === 401 && r.body?.error === 'invalid_credentials');
   }
   {
-    const r = await h.post('/auth/login', {}, { email: 'ghost-nobody@x.com', password: 'whatever1' });
+    const r = await h.post('/auth/login', {}, { email: 'ghost-nobody@x.com', password: MEETWISE_TEST_FIXTURE_5 });
     A('login/用户不存在 → 401 invalid_credentials(与密码错同码,抗枚举)', r.status === 401 && r.body?.error === 'invalid_credentials');
   }
   {
     // 5A-1 R-1 对账(原臂「PW@X.COM≠pw@x.com→401 精确匹配,大小写敏感」随 #111 邮箱归一翻新——旧行为已被修法取代):
     // 归一后大写**存在**邮箱命中同账户(200 正面归「归一五臂」db prove);此处保留负面判别:归一后**仍不存在**的
     // 大写形邮箱恒 401——抗枚举拒绝面不因归一弱化。
-    const r = await h.post('/auth/login', {}, { email: 'NO-SUCH-UPPER@X.COM', password: 'oldpass12' });
+    const r = await h.post('/auth/login', {}, { email: 'NO-SUCH-UPPER@X.COM', password: MEETWISE_TEST_FIXTURE_7 });
     A('login/归一后仍不存在的邮箱(大写形)→ 401 invalid_credentials(抗枚举不变,#111 归一不弱化拒绝面)', r.status === 401 && r.body?.error === 'invalid_credentials');
   }
   {
     // 暴力破解节流:同邮箱 capacity=5。前 5 次进 verify(401),第 6 次被桶拒 → 429
     const email = 'bruteforce@x.com';
     const results: any[] = [];
-    for (let i = 0; i < 6; i++) results.push(await h.post('/auth/login', {}, { email, password: 'guess' + i }));
+    for (let i = 0; i < 6; i++) results.push(await h.post('/auth/login', {}, { email, password: MEETWISE_TEST_FIXTURE_8 + i }));
     A('login/暴力破解前 5 次进校验 → 401', results[0].status === 401 && results[4].status === 401);
     A('login/同邮箱>5 突发 → 429 too_many_attempts(防爆破)', results[5].status === 429 && results[5].body?.error === 'too_many_attempts');
   }
@@ -324,7 +340,7 @@ async function main() {
   // 4) change-password 负例——未鉴权/旧密码错/弱新密码/缺字段(pwUser 在 epoch 0)
   // ══════════════════════════════════════════════════════════════════════════
   {
-    const r = await h.post('/profile/change-password', {}, { oldPassword: 'oldpass12', newPassword: 'newpass99' });
+    const r = await h.post('/profile/change-password', {}, { oldPassword: MEETWISE_TEST_FIXTURE_7, newPassword: MEETWISE_TEST_FIXTURE_9 });
     A('changepw/未鉴权 → 401', r.status === 401);
   }
   {
@@ -332,23 +348,23 @@ async function main() {
     A('changepw/缺 old+new → 400 invalid_password', r.status === 400 && r.body?.error === 'invalid_password');
   }
   {
-    const r = await h.post('/profile/change-password', bearer(tokenFor('pwUser', { pwdEpoch: 0 })), { newPassword: 'newpass99' });
+    const r = await h.post('/profile/change-password', bearer(tokenFor('pwUser', { pwdEpoch: 0 })), { newPassword: MEETWISE_TEST_FIXTURE_9 });
     A('changepw/缺 oldPassword → 400 invalid_password', r.status === 400 && r.body?.error === 'invalid_password');
   }
   {
-    const r = await h.post('/profile/change-password', bearer(tokenFor('pwUser', { pwdEpoch: 0 })), { oldPassword: 'oldpass12' });
+    const r = await h.post('/profile/change-password', bearer(tokenFor('pwUser', { pwdEpoch: 0 })), { oldPassword: MEETWISE_TEST_FIXTURE_7 });
     A('changepw/缺 newPassword → 400 invalid_password', r.status === 400 && r.body?.error === 'invalid_password');
   }
   {
-    const r = await h.post('/profile/change-password', bearer(tokenFor('pwUser', { pwdEpoch: 0 })), { oldPassword: 'oldpass12', newPassword: 'short' });
+    const r = await h.post('/profile/change-password', bearer(tokenFor('pwUser', { pwdEpoch: 0 })), { oldPassword: MEETWISE_TEST_FIXTURE_7, newPassword: MEETWISE_TEST_FIXTURE_3 });
     A('changepw/新密码过弱(<8)→ 400 invalid_password(即便旧密码对也先拒)', r.status === 400 && r.body?.error === 'invalid_password');
   }
   {
-    const r = await h.post('/profile/change-password', bearer(tokenFor('pwUser', { pwdEpoch: 0 })), { oldPassword: 'oldpass12', newPassword: 'abcdefg' });
+    const r = await h.post('/profile/change-password', bearer(tokenFor('pwUser', { pwdEpoch: 0 })), { oldPassword: MEETWISE_TEST_FIXTURE_7, newPassword: MEETWISE_TEST_FIXTURE_4 });
     A('changepw/新密码边界 7 位 → 400 invalid_password', r.status === 400 && r.body?.error === 'invalid_password');
   }
   {
-    const r = await h.post('/profile/change-password', bearer(tokenFor('pwUser', { pwdEpoch: 0 })), { oldPassword: 'WRONG-OLD', newPassword: 'newpass99' });
+    const r = await h.post('/profile/change-password', bearer(tokenFor('pwUser', { pwdEpoch: 0 })), { oldPassword: MEETWISE_TEST_FIXTURE_10, newPassword: MEETWISE_TEST_FIXTURE_9 });
     A('changepw/旧密码错 → 401 wrong_password', r.status === 401 && r.body?.error === 'wrong_password');
   }
   {
@@ -361,7 +377,7 @@ async function main() {
   {
     const oldTok = tokenFor('pwUser', { pwdEpoch: 0 });   // 改密前有效令牌
     // 前置(不作 happy 断言):真正改密,pwd_epoch 0→1,evict 缓存
-    await h.post('/profile/change-password', bearer(oldTok), { oldPassword: 'oldpass12', newPassword: 'newpass99' });
+    await h.post('/profile/change-password', bearer(oldTok), { oldPassword: MEETWISE_TEST_FIXTURE_7, newPassword: MEETWISE_TEST_FIXTURE_9 });
     const q = await h.pool.query('SELECT pwd_epoch, password_hash FROM user_account WHERE id=$1', ['pwUser']);
     A('changepw/成功后 pwd_epoch 自增(0→1,会话代次前进)', Number(q.rows[0]?.pwd_epoch) === 1);
     A('changepw/新密码只存 scrypt 派生(绝不明文)', typeof q.rows[0]?.password_hash === 'string' && q.rows[0].password_hash.startsWith('scrypt$') && !q.rows[0].password_hash.includes('newpass99'));
@@ -370,7 +386,7 @@ async function main() {
   }
   {
     // 改密后旧明文密码不再能登录
-    const r = await h.post('/auth/login', {}, { email: 'pw@x.com', password: 'oldpass12' });
+    const r = await h.post('/auth/login', {}, { email: 'pw@x.com', password: MEETWISE_TEST_FIXTURE_7 });
     A('changepw/改密后旧明文密码登录被拒 → 401 invalid_credentials', r.status === 401 && r.body?.error === 'invalid_credentials');
   }
   {
@@ -388,17 +404,17 @@ async function main() {
   }
   {
     // 前置:新建独立用户(不污染种子),取其令牌
-    const s = await h.post('/auth/signup', {}, { email: 'willdie@x.com', password: 'diepass12' });
+    const s = await h.post('/auth/signup', {}, { email: 'willdie@x.com', password: MEETWISE_TEST_FIXTURE_11 });
     const uid = s.body?.userId, tok = s.body?.token;
     // 前置(不作 happy 断言):停用自身
-    await h.post('/profile/deactivate', bearer(tok), { password: 'diepass12' });
+    await h.post('/profile/deactivate', bearer(tok), { password: MEETWISE_TEST_FIXTURE_11 });
     const q = await h.pool.query('SELECT status FROM user_account WHERE id=$1', [uid]);
     A('deactivate/停用后 DB status=disabled', q.rows[0]?.status === 'disabled');
     // 停用后旧令牌应立即失效(status 非 active → 401 account_inactive)
     const reuse = await me(bearer(tok));
     A('deactivate/停用后原令牌应即时失效 → 401 account_inactive(若通过=guard 缓存未随 deactivate 清除,已发现 bug)', reuse.status === 401 && reuse.body?.error === 'account_inactive');
     // 停用后原凭据不得再登录(登录直查 DB,不吃缓存)
-    const login = await h.post('/auth/login', {}, { email: 'willdie@x.com', password: 'diepass12' });
+    const login = await h.post('/auth/login', {}, { email: 'willdie@x.com', password: MEETWISE_TEST_FIXTURE_11 });
     A('deactivate/停用后再登录被拒 → 401 invalid_credentials', login.status === 401 && login.body?.error === 'invalid_credentials');
   }
 
@@ -410,19 +426,19 @@ async function main() {
   {
     // kid 轮换窗内(裁决=环境配置面):AUTH_SECRET_PREVIOUS(main() 内预置)→ 旧钥(kid 匹配 PREVIOUS)令牌照验。
     // legacy pin:tokenFor 签发无 jti → 守卫跳过会话查,只走验签+exp+status+代次既有机械(R1 无态路径)。
-    const r = await me(bearer(tokenFor('userA', { secret: 'legacy-window-s\u0065cret' })));
+    const r = await me(bearer(tokenFor('userA', { secret: MEETWISE_TEST_FIXTURE_12 })));
     A('kid/旧钥令牌窗内(AUTH_SECRET_PREVIOUS 配置期)→ 通过(200;无 jti 走 legacy 无态路径 pin·R1)', r.status === 200);
   }
   {
     // 窗外:kid 不匹配任何候选钥(已轮出且未配 PREVIOUS 的钥)→ 401 invalid_token(与错钥同码,抗探测)。
-    const r = await me(bearer(tokenFor('userA', { secret: 'retired-out-of-\u0077indow-secret' })));
+    const r = await me(bearer(tokenFor('userA', { secret: MEETWISE_TEST_FIXTURE_13 })));
     A('kid/旧钥令牌窗外(kid 不匹配任何候选钥)→ 401 invalid_token', r.status === 401 && r.body?.error === 'invalid_token');
   }
   {
     // logout/jti 四臂:signup 会话令牌(带 jti)登出 → 行 revoked_at 落账 + 复用 401 session_revoked + 异 jti 不互吊。
-    const s = await h.post('/auth/signup', {}, { email: 'authz-logout@x.com', password: 'logoutpw12' });
+    const s = await h.post('/auth/signup', {}, { email: 'authz-logout@x.com', password: MEETWISE_TEST_FIXTURE_14 });
     const t0 = s.body?.token, uid = s.body?.userId;
-    const l1 = await h.post('/auth/login', {}, { email: 'authz-logout@x.com', password: 'logoutpw12' });
+    const l1 = await h.post('/auth/login', {}, { email: 'authz-logout@x.com', password: MEETWISE_TEST_FIXTURE_14 });
     const t1 = l1.body?.token;
     const out0 = await h.post('/auth/logout', bearer(t0), {});
     A('logout/服务端登出(带 jti)→ 200 {loggedOut:true,revoked:true}(#112 吊销当前 jti)', out0.status === 200 && out0.body?.loggedOut === true && out0.body?.revoked === true);

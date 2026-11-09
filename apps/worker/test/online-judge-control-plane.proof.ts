@@ -12,14 +12,18 @@ import {
   provisionRuntimeLogin, runMigrations,
 } from '@meetwise/db';
 import type { Client } from '@meetwise/db';
+const MEETWISE_TEST_FIXTURE_SCHEDULERPASSWORD_OJC1 = 'online-judge-scheduler-proof-password-2026';
+const MEETWISE_TEST_FIXTURE_EXECUTORPASSWORD_OJC2 = 'online-judge-executor-proof-password-2026';
+const MEETWISE_TEST_FIXTURE_RUNTIMEPASSWORD_OJC3 = 'online-judge-runtime-proof-password-2026';
+
 
 const admin = createPool();
 const schedulerRole = `judge_scheduler_${process.pid}`;
 const executorRole = `judge_executor_${process.pid}`;
 const runtimeRole = `judge_runtime_${process.pid}`;
-const schedulerPassword = 'online-judge-scheduler-proof-password-2026';
-const executorPassword = 'online-judge-executor-proof-password-2026';
-const runtimePassword = 'online-judge-runtime-proof-password-2026';
+const schedulerPassword = MEETWISE_TEST_FIXTURE_SCHEDULERPASSWORD_OJC1;
+const executorPassword = MEETWISE_TEST_FIXTURE_EXECUTORPASSWORD_OJC2;
+const runtimePassword = MEETWISE_TEST_FIXTURE_RUNTIMEPASSWORD_OJC3;
 const utcDay = new Date().toISOString().slice(0, 10);
 let failures = 0;
 const A = (name: string, ok: boolean) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`); if (!ok) failures++; };

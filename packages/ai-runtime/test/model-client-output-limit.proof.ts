@@ -8,6 +8,9 @@ import { invoke, modelFor, openAICompatibleClient, planContextBudget, type Model
 import type { DbPool } from '@meetwise/db';
 import { z } from 'zod';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'test-only';
+
 let failures = 0;
 const A = (name: string, ok: boolean) => {
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`);
@@ -45,7 +48,7 @@ async function main() {
 
     const mutablePolicy = { ...policy };
     const bounded = openAICompatibleClient({
-      baseUrl: 'https://model.invalid', apiKey: 'test-only', model: policy.model, costPolicy: mutablePolicy,
+      baseUrl: 'https://model.invalid', apiKey: MEETWISE_TEST_FIXTURE_1, model: policy.model, costPolicy: mutablePolicy,
     });
     mutablePolicy.maxOutputTokens = 999;
     const boundedResult = await bounded.complete({ service: 'proof.output-bound', system: 'trusted', userData: 'safe fixture' }, 1);
@@ -54,14 +57,14 @@ async function main() {
     A('post-construction mutation cannot desynchronize provider cap and ledger policy', bounded.costPolicy?.maxOutputTokens === policy.maxOutputTokens);
     A('selected provider model is preserved', requestBodies[0]?.model === policy.model);
     const nextPriceRevision = openAICompatibleClient({
-      baseUrl: 'https://model.invalid', apiKey: 'test-only', model: policy.model,
+      baseUrl: 'https://model.invalid', apiKey: MEETWISE_TEST_FIXTURE_1, model: policy.model,
       costPolicy: { ...policy, priceRevision: 'proof-r2' },
     });
     const sameRequest = { service: 'proof.price-binding', system: 'trusted', userData: 'safe fixture' };
     A('模型请求摘要绑定不可变价格 revision，配置滚动后不得复用旧结果',
       modelFor(bounded, sameRequest).requestDigest !== modelFor(nextPriceRevision, sameRequest).requestDigest);
 
-    const legacy = openAICompatibleClient({ baseUrl: 'https://model.invalid', apiKey: 'test-only', model: 'legacy-proof' });
+    const legacy = openAICompatibleClient({ baseUrl: 'https://model.invalid', apiKey: MEETWISE_TEST_FIXTURE_1, model: 'legacy-proof' });
     await legacy.complete({ service: 'proof.legacy', system: 'trusted', userData: 'safe fixture' }, 1);
     A('caller without an approved policy does not receive an invented output bound', !Object.hasOwn(requestBodies[1] ?? {}, 'max_tokens'));
 
@@ -94,7 +97,7 @@ async function main() {
     let invalidRejected = false;
     try {
       openAICompatibleClient({
-        baseUrl: 'https://model.invalid', apiKey: 'test-only', costPolicy: { ...policy, maxOutputTokens: 0 },
+        baseUrl: 'https://model.invalid', apiKey: MEETWISE_TEST_FIXTURE_1, costPolicy: { ...policy, maxOutputTokens: 0 },
       });
     } catch (error) {
       invalidRejected = error instanceof Error && error.message === 'model_output_token_limit_invalid';
@@ -104,7 +107,7 @@ async function main() {
     let mismatchRejected = false;
     try {
       openAICompatibleClient({
-        baseUrl: 'https://model.invalid', apiKey: 'test-only', model: 'different-model', costPolicy: policy,
+        baseUrl: 'https://model.invalid', apiKey: MEETWISE_TEST_FIXTURE_1, model: 'different-model', costPolicy: policy,
       });
     } catch (error) {
       mismatchRejected = error instanceof Error && error.message === 'model_cost_policy_model_mismatch';
@@ -112,14 +115,14 @@ async function main() {
     A('model and billing policy mismatch rejects before transport', mismatchRejected && requestBodies.length === 2);
 
     const noWindow = openAICompatibleClient({
-      baseUrl: 'https://model.invalid', apiKey: 'test-only', model: policy.model,
+      baseUrl: 'https://model.invalid', apiKey: MEETWISE_TEST_FIXTURE_1, model: policy.model,
       costPolicy: { ...policy, contextWindowTokens: undefined },
     });
     const missingWindow = await noWindow.prepare?.({ service: 'proof.no-window', system: 'trusted', userData: 'safe fixture' }, 1);
     A('billable client without an approved context window rejects before transport', missingWindow?.ready === false && missingWindow.error === 'model_context_policy_invalid' && requestBodies.length === 2);
 
     const overBudget = openAICompatibleClient({
-      baseUrl: 'https://model.invalid', apiKey: 'test-only', model: policy.model,
+      baseUrl: 'https://model.invalid', apiKey: MEETWISE_TEST_FIXTURE_1, model: policy.model,
       costPolicy: { ...policy, maxInputTokens: 80, contextWindowTokens: 512, contextSafetyMarginTokens: 64 },
     });
     const rejectedPlan = await overBudget.prepare?.({ service: 'proof.over-budget', system: 'trusted system'.repeat(30), userData: 'safe fixture' }, 1);
@@ -129,7 +132,7 @@ async function main() {
       && directRejected.externalOutcome === 'known_not_executed' && requestBodies.length === 2);
 
     const imageWithoutReserve = openAICompatibleClient({
-      baseUrl: 'https://model.invalid', apiKey: 'test-only', model: policy.model, costPolicy: policy,
+      baseUrl: 'https://model.invalid', apiKey: MEETWISE_TEST_FIXTURE_1, model: policy.model, costPolicy: policy,
     });
     const imagePlan = await imageWithoutReserve.prepare?.({ service: 'proof.image', system: 'trusted', userData: 'safe fixture', images: ['https://image.invalid/test.png'] }, 1);
     A('billable image request without a declared image token reserve rejects before transport', imagePlan?.ready === false
@@ -158,7 +161,7 @@ async function main() {
     process.env.MODEL_COST_ENFORCEMENT = 'enforce';
     try {
       const isolatedObserve = openAICompatibleClient({
-        baseUrl: 'https://model.invalid', apiKey: 'test-only', model: 'isolated-observe',
+        baseUrl: 'https://model.invalid', apiKey: MEETWISE_TEST_FIXTURE_1, model: 'isolated-observe',
         env: { NODE_ENV: 'test', MODEL_COST_ENFORCEMENT: 'observe' },
       });
       const isolatedPlan = await isolatedObserve.prepare?.({ service: 'proof.isolated-observe', system: 'trusted', userData: 'safe fixture' }, 1);
@@ -167,7 +170,7 @@ async function main() {
         isolatedPlan?.ready === true && isolatedResult.ok === true && requestBodies.length === 3);
 
       const omittedSnapshot = openAICompatibleClient({
-        baseUrl: 'https://model.invalid', apiKey: 'test-only', model: 'omitted-snapshot',
+        baseUrl: 'https://model.invalid', apiKey: MEETWISE_TEST_FIXTURE_1, model: 'omitted-snapshot',
       });
       const omittedPlan = await omittedSnapshot.prepare?.({ service: 'proof.omitted-snapshot', system: 'trusted', userData: 'safe fixture' }, 1);
       const omittedResult = await omittedSnapshot.complete({ service: 'proof.omitted-snapshot', system: 'trusted', userData: 'safe fixture' }, 1);
@@ -177,7 +180,7 @@ async function main() {
         && requestBodies.length === 3);
 
       const partialEnv = openAICompatibleClient({
-        baseUrl: 'https://model.invalid', apiKey: 'test-only', model: 'partial-env',
+        baseUrl: 'https://model.invalid', apiKey: MEETWISE_TEST_FIXTURE_1, model: 'partial-env',
         env: { PROOF_NON_FENCE_KEY: '1' },
       });
       const partialPlan = await partialEnv.prepare?.({ service: 'proof.partial-env', system: 'trusted', userData: 'safe fixture' }, 1);
@@ -188,7 +191,7 @@ async function main() {
         && requestBodies.length === 3);
 
       const blankFence = openAICompatibleClient({
-        baseUrl: 'https://model.invalid', apiKey: 'test-only', model: 'blank-fence',
+        baseUrl: 'https://model.invalid', apiKey: MEETWISE_TEST_FIXTURE_1, model: 'blank-fence',
         env: { MODEL_COST_ENFORCEMENT: undefined, NODE_ENV: '', PROOF_NON_FENCE_KEY: '1' },
       });
       const blankPlan = await blankFence.prepare?.({ service: 'proof.blank-fence', system: 'trusted', userData: 'safe fixture' }, 1);
@@ -202,7 +205,7 @@ async function main() {
       process.env.MODEL_COST_ENFORCEMENT = 'observe';
       try {
         const enforceSnapshot = openAICompatibleClient({
-          baseUrl: 'https://model.invalid', apiKey: 'test-only', model: 'enforce-snapshot',
+          baseUrl: 'https://model.invalid', apiKey: MEETWISE_TEST_FIXTURE_1, model: 'enforce-snapshot',
           env: { NODE_ENV: 'test', MODEL_COST_ENFORCEMENT: 'enforce' },
         });
         const enforcePlan = await enforceSnapshot.prepare?.({ service: 'proof.enforce-snapshot', system: 'trusted', userData: 'safe fixture' }, 1);

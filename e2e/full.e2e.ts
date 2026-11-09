@@ -12,11 +12,13 @@ import { createAssert } from './helpers/assert.ts';
 import { adminHeaders, signupOrLogin, uidFromToken } from './helpers/auth.ts';
 import { createOrder, entitlement, isWebhookCreditResult, paidWebhookSignature, payWebhook, postPayWebhook } from './helpers/commerce.ts';
 import { createE2EReviewLedger, emitClassifiedE2EFailure, emitE2EFailure } from './helpers/failure.ts';
-import { BASE, readJson } from './helpers/http.ts';
+import { e2eUrl, readJson } from './helpers/http.ts';
 import { driveInterviewToTerminal } from './helpers/interview.ts';
 import { consentResumeProcessing, getResumeProfile, uploadImageResume, uploadTextResume } from './helpers/resume.ts';
 import { pollTerminal } from './helpers/sse.ts';
 import { callLiveVoiceGateway } from './helpers/voice.ts';
+const MEETWISE_TEST_FIXTURE_PASSWORD_FULL27 = 'strongpw123';
+
 
 const { A, passed } = createAssert();
 const reviews = createE2EReviewLedger();
@@ -24,7 +26,7 @@ const reviews = createE2EReviewLedger();
 async function main() {
   const tag = process.env.E2E_TAG ?? 'run';
   const email = `e2e_${tag}@x.com`;
-  const password = 'strongpw123';
+  const password = MEETWISE_TEST_FIXTURE_PASSWORD_FULL27;
 
   // 1. 注册(或已存在则登录)→ 真 Bearer 令牌
   const session = await signupOrLogin(email, password);
@@ -94,13 +96,13 @@ async function main() {
     const beforeUnits = unitsBefore.availableUnits ?? 0;
     A(beforeUnits >= 1, `[UC018] abandon 前置额度≥1(${beforeUnits})`);
 
-    r = await fetch(`${BASE}/interview`, { method: 'POST', headers: H, body: '{}' });
+    r = await fetch(e2eUrl(`/interview`), { method: 'POST', headers: H, body: '{}' });
     b = await readJson(r);
     const abandonInterviewId = b.interviewId ?? b.id ?? b.resultId;
     A((r.status === 200 || r.status === 201) && typeof abandonInterviewId === 'string',
       `[UC018] 建放弃面试 → interviewId(${abandonInterviewId})`);
 
-    r = await fetch(`${BASE}/interview/${abandonInterviewId}/begin`, {
+    r = await fetch(e2eUrl(`/interview/${abandonInterviewId}/begin`), {
       method: 'POST', headers: { ...H, 'resume-id': resumeId }, body: '{}',
     });
     A(r.status === 202, `[UC018] begin 预留 → 202(${JSON.stringify(await readJson(r)).slice(0, 60)})`);
@@ -109,7 +111,7 @@ async function main() {
     A((unitsAfterBegin.availableUnits ?? 0) === beforeUnits - 1,
       `[UC018] begin 后额度 -1(${unitsAfterBegin.availableUnits})`);
 
-    r = await fetch(`${BASE}/interview/${abandonInterviewId}/abandon`, {
+    r = await fetch(e2eUrl(`/interview/${abandonInterviewId}/abandon`), {
       method: 'POST', headers: H, body: '{}',
     });
     b = await readJson(r);
@@ -120,10 +122,10 @@ async function main() {
     A((unitsAfterAbandon.availableUnits ?? 0) === beforeUnits,
       `[UC018] abandon 后额度净变 0(${unitsAfterAbandon.availableUnits})`);
 
-    const got = await readJson(await fetch(`${BASE}/interview/${abandonInterviewId}`, { headers: H }));
+    const got = await readJson(await fetch(e2eUrl(`/interview/${abandonInterviewId}`), { headers: H }));
     A(got.status === 'abandoned', `[UC018] GET interview → status=abandoned(${got.status})`);
 
-    r = await fetch(`${BASE}/interview/${abandonInterviewId}/begin`, {
+    r = await fetch(e2eUrl(`/interview/${abandonInterviewId}/begin`), {
       method: 'POST', headers: { ...H, 'resume-id': resumeId }, body: '{}',
     });
     b = await readJson(r);
@@ -144,7 +146,7 @@ async function main() {
   }
 
   // 4. 建面试
-  r = await fetch(`${BASE}/interview`, { method: 'POST', headers: H, body: '{}' });
+  r = await fetch(e2eUrl(`/interview`), { method: 'POST', headers: H, body: '{}' });
   b = await readJson(r);
   const interviewId = b.interviewId ?? b.id ?? b.resultId;
   A(r.status === 200 || r.status === 201, `建面试 → interviewId(${interviewId})`);
@@ -159,14 +161,14 @@ async function main() {
     console.log('⊘ 真实双向语音闭环 → skipped (DASHSCOPE_TTS/ASR_API_KEY unset; text model key ≠ voice)');
   } else {
     const voicePrompt = '请用中文回答，如何设计 Redis 令牌桶限流？';
-    const spoken = await callLiveVoiceGateway('TTS', () => fetch(`${BASE}/interview/${interviewId}/speak`, {
+    const spoken = await callLiveVoiceGateway('TTS', () => fetch(e2eUrl(`/interview/${interviewId}/speak`), {
       method: 'POST', headers: H, body: JSON.stringify({ text: voicePrompt }),
     }));
     const spokenBody: any = spoken.body;
     A(spoken.response.status === 200 && spokenBody.mimeType === 'audio/wav'
       && typeof spokenBody.audioBase64 === 'string' && Buffer.from(spokenBody.audioBase64, 'base64').byteLength > 1_000,
     `真实 TTS → 有效 WAV 音频（非本地假实现，${spoken.attempts} 次请求）`, 'provider');
-    const transcribed = await callLiveVoiceGateway('ASR', () => fetch(`${BASE}/interview/${interviewId}/transcribe`, {
+    const transcribed = await callLiveVoiceGateway('ASR', () => fetch(e2eUrl(`/interview/${interviewId}/transcribe`), {
       method: 'POST', headers: H,
       body: JSON.stringify({
         audioBase64: spokenBody.audioBase64,
@@ -184,7 +186,7 @@ async function main() {
   }
 
   // 5. begin(入队 start job;worker 规划 + 出首题)
-  r = await fetch(`${BASE}/interview/${interviewId}/begin`, { method: 'POST', headers: { ...H, 'resume-id': resumeId }, body: '{}' });
+  r = await fetch(e2eUrl(`/interview/${interviewId}/begin`), { method: 'POST', headers: { ...H, 'resume-id': resumeId }, body: '{}' });
   A(r.status === 202, `begin → 202 受理(${JSON.stringify(await readJson(r)).slice(0, 60)})`);
 
   // 6. 轮询 SSE：每出一道题就答；直到终态。答题只走服务端发放的 question identity。
@@ -212,14 +214,14 @@ async function main() {
     `出处审查: 不把 AI 分/progress 当 B 端分（identities=${provenance.identities.length}, forgedScores=${provenance.forgedScores}）`);
   if (!terminal) {
     emitE2EFailure({ class: 'worker', code: 'interview_terminal_timeout' });
-    const diagnostic = await readJson(await fetch(`${BASE}/interview/${interviewId}/report`, { headers: H }));
+    const diagnostic = await readJson(await fetch(e2eUrl(`/interview/${interviewId}/report`), { headers: H }));
     console.error(`E2E_INTERVIEW_TERMINAL_TIMEOUT interview=${interviewId} elapsedMs=${Date.now() - interviewStartedAt} lastSeq=${lastSeq} questions=${questions} turns=${turn} events=${[...kinds].join(',')} reportStatus=${String(diagnostic.status ?? 'unknown')}`);
   }
   if (terminal) reviews.recordTerminal(terminal);
   A(terminal !== '', `面试跑到终态事件(${terminal})——无死胡同 ✅`, 'worker');
 
   // 7. 报告端点可查,且 status 与终态一致(不能只断 200——卡在 queued 也会过)
-  r = await fetch(`${BASE}/interview/${interviewId}/report`, { headers: H });
+  r = await fetch(e2eUrl(`/interview/${interviewId}/report`), { headers: H });
   b = await readJson(r);
   A(r.status === 200, `报告端点可查 → status=${b.status}`);
   // eslint-disable-next-line @typescript-eslint/naming-convention -- elapsed_ms 为 NDJSON wire 字段名(§0.2b 白名单/consent-capture 同族),非代码标识符,不可改名(行内豁免·authz34 先例同形)
@@ -229,10 +231,10 @@ async function main() {
   // 7a. 报告失败隔离: isolated worker 在第二份报告注入故障后必须落到 report_unavailable。
   {
     reviews.record({ class: 'worker', code: 'seg3_7a_enter' }); // G7W 案A seg3 R3: 7a 段进
-    const cr = await readJson(await fetch(`${BASE}/interview`, { method: 'POST', headers: H, body: '{}' }));
+    const cr = await readJson(await fetch(e2eUrl(`/interview`), { method: 'POST', headers: H, body: '{}' }));
     const failIv = cr.interviewId ?? cr.id ?? cr.resultId;
     A(typeof failIv === 'string', `[兜底] 建失败测试面试 → id(${failIv})`);
-    const bg = await fetch(`${BASE}/interview/${failIv}/begin`, { method: 'POST', headers: { ...H, 'resume-id': resumeId }, body: '{}' });
+    const bg = await fetch(e2eUrl(`/interview/${failIv}/begin`), { method: 'POST', headers: { ...H, 'resume-id': resumeId }, body: '{}' });
     A(bg.status === 202, '[兜底] 失败测试面试 begin → 202');
     const failLoop = await driveInterviewToTerminal({
       interviewId: failIv,
@@ -243,7 +245,7 @@ async function main() {
       questionAcceptedLabel: () => '[兜底] canonical /turn → 202',
       clarificationAcceptedLabel: '[兜底] 澄清 canonical /turn → 202',
     });
-    const rep = await readJson(await fetch(`${BASE}/interview/${failIv}/report`, { headers: H }));
+    const rep = await readJson(await fetch(e2eUrl(`/interview/${failIv}/report`), { headers: H }));
     if (failLoop.terminal) reviews.recordTerminal(failLoop.terminal);
     reviews.record({ class: 'worker', code: 'seg3_7a_loop_terminal' }); // G7W 案A seg3 R4: 7a 循环出(绿红两态皆记)
     segEmit({ step: 'seg3_7a_loop', terminal: failLoop.terminal, questions: failLoop.questions, turns: failLoop.turns, batches: failLoop.batchWallClock }); // G7W 案A seg3 F3: 7a 循环批级 wall-clock 直读
@@ -261,18 +263,18 @@ async function main() {
   }
 
   // 7b. 押题 + 诊断全栈(真 HTTP → worker 消费 → 图执行 → 终态,无死胡同)。
-  let qz: any = await readJson(await fetch(`${BASE}/quiz`, { method: 'POST', headers: H, body: '{}' }));
+  let qz: any = await readJson(await fetch(e2eUrl(`/quiz`), { method: 'POST', headers: H, body: '{}' }));
   const quizId = qz.id ?? qz.quizId;
   A(typeof quizId === 'string', `押题:建 → id(${quizId})`);
-  r = await fetch(`${BASE}/quiz/${quizId}/begin`, { method: 'POST', headers: { ...H, 'resume-id': resumeId }, body: '{}' });
+  r = await fetch(e2eUrl(`/quiz/${quizId}/begin`), { method: 'POST', headers: { ...H, 'resume-id': resumeId }, body: '{}' });
   A(r.status === 202, '押题:begin → 202 受理');
   const quizTerm = await pollTerminal(`/quiz/${quizId}`, token, ['quiz_ready', 'quiz_unavailable', 'error']);
   if (quizTerm) reviews.recordTerminal(quizTerm);
   A(quizTerm !== '', `押题:跑到终态(${quizTerm})——无死胡同 ✅`, 'worker');
-  let dg: any = await readJson(await fetch(`${BASE}/diagnosis`, { method: 'POST', headers: H, body: '{}' }));
+  let dg: any = await readJson(await fetch(e2eUrl(`/diagnosis`), { method: 'POST', headers: H, body: '{}' }));
   const diagId = dg.id ?? dg.diagnosisId;
   A(typeof diagId === 'string', `诊断:建 → id(${diagId})`);
-  r = await fetch(`${BASE}/diagnosis/${diagId}/begin`, { method: 'POST', headers: { ...H, 'resume-id': resumeId }, body: '{}' });
+  r = await fetch(e2eUrl(`/diagnosis/${diagId}/begin`), { method: 'POST', headers: { ...H, 'resume-id': resumeId }, body: '{}' });
   A(r.status === 202, '诊断:begin → 202 受理');
   const diagTerm = await pollTerminal(`/diagnosis/${diagId}`, token, ['diagnosis_ready', 'diagnosis_unavailable', 'error']);
   if (diagTerm) reviews.recordTerminal(diagTerm);
@@ -285,13 +287,13 @@ async function main() {
   const HR = recruiter.headers;
   // B110 处方2 审批活契约(pending 落库为 0155 signup 默认):发岗先吃 403 分码,admin approve 后原 200 断言照旧兑现。
   // 403 无副作用:RecruiterGuard 先于限流/解析,零桶消耗。拒绝支线 API 级已证(neg-bend),此处不加。
-  r = await fetch(`${BASE}/recruiter/jobs`, { method: 'POST', headers: HR, body: JSON.stringify({ title: '审批门前岗位', competencies: ['审批门'] }) });
+  r = await fetch(e2eUrl(`/recruiter/jobs`), { method: 'POST', headers: HR, body: JSON.stringify({ title: '审批门前岗位', competencies: ['审批门'] }) });
   b = await readJson(r);
   A(r.status === 403 && b.error === 'recruiter_pending_review', 'B端审批活契约:pending 发岗 → 403 分码 recruiter_pending_review', 'data_or_permission');
-  r = await fetch(`${BASE}/admin/recruiter-approvals/${uidFromToken(recruiter.token)}/decision`, { method: 'POST', headers: adminHeaders(), body: JSON.stringify({ decision: 'approve' }) });
+  r = await fetch(e2eUrl(`/admin/recruiter-approvals/${uidFromToken(recruiter.token)}/decision`), { method: 'POST', headers: adminHeaders(), body: JSON.stringify({ decision: 'approve' }) });
   b = await readJson(r);
   A(r.status === 200 && b.decided === true, 'B端审批活契约:admin approve → decided=true');
-  r = await fetch(`${BASE}/recruiter/jobs`, { method: 'POST', headers: HR, body: JSON.stringify({ title: '后端工程师', competencies: ['高并发', '分布式锁', '限流'] }) });
+  r = await fetch(e2eUrl(`/recruiter/jobs`), { method: 'POST', headers: HR, body: JSON.stringify({ title: '后端工程师', competencies: ['高并发', '分布式锁', '限流'] }) });
   b = await readJson(r);
   A(r.status === 200 && typeof b.id === 'string', `B端:招聘方发岗位 → jobId(${b.id})`);
   const jobId = b.id;
@@ -308,25 +310,25 @@ async function main() {
   A((entUnits.enterpriseAvailableUnits ?? 0) >= 1, `[第4件·0157] 企业额度到账(${entUnits.enterpriseAvailableUnits} 次·enterpriseAvailableUnits 并列读)`);
   const createJobKey = `e2e-job-${tag}-${randomUUID()}`;
   const createJobBody = { title: '幂等岗位', competencies: ['幂等', 'outbox'] };
-  const idempotentOne = await readJson(await fetch(`${BASE}/recruiter/jobs`, { method: 'POST', headers: { ...HR, 'idempotency-key': createJobKey }, body: JSON.stringify(createJobBody) }));
-  const duplicateJob = await readJson(await fetch(`${BASE}/recruiter/jobs`, { method: 'POST', headers: { ...HR, 'idempotency-key': createJobKey }, body: JSON.stringify(createJobBody) }));
+  const idempotentOne = await readJson(await fetch(e2eUrl(`/recruiter/jobs`), { method: 'POST', headers: { ...HR, 'idempotency-key': createJobKey }, body: JSON.stringify(createJobBody) }));
+  const duplicateJob = await readJson(await fetch(e2eUrl(`/recruiter/jobs`), { method: 'POST', headers: { ...HR, 'idempotency-key': createJobKey }, body: JSON.stringify(createJobBody) }));
   A(typeof idempotentOne.id === 'string' && duplicateJob.id === idempotentOne.id, 'B端:同 idempotency-key 重试复用同一岗位(不重复创建)');
-  r = await fetch(`${BASE}/recruiter/jobs`, { method: 'POST', headers: { ...HR, 'idempotency-key': createJobKey }, body: JSON.stringify({ ...createJobBody, title: '冲突岗位' }) });
+  r = await fetch(e2eUrl(`/recruiter/jobs`), { method: 'POST', headers: { ...HR, 'idempotency-key': createJobKey }, body: JSON.stringify({ ...createJobBody, title: '冲突岗位' }) });
   A(r.status === 409, 'B端:同 idempotency-key 换载荷 → 409(不静默覆盖/重复创建)');
-  r = await fetch(`${BASE}/recruiter/jobs`, { method: 'POST', headers: H, body: JSON.stringify({ title: 'x', competencies: [] }) });
+  r = await fetch(e2eUrl(`/recruiter/jobs`), { method: 'POST', headers: H, body: JSON.stringify({ title: 'x', competencies: [] }) });
   A(r.status === 403, `B端门禁:候选人发岗位 → 403(role=candidate 被 RecruiterGuard 拦)`, 'data_or_permission');
-  r = await fetch(`${BASE}/recruiter/jobs`, { headers: HR });
+  r = await fetch(e2eUrl(`/recruiter/jobs`), { headers: HR });
   b = await readJson(r);
   A(r.status === 200 && (b.jobs ?? []).some((x: any) => x.id === jobId), 'B端:招聘方看到自己的岗位');
   const recruiter2 = await signupOrLogin(`e2e_rec2_${tag}@x.com`, password, 'recruiter');
   // B110 处方2: recruiter2 须在 RLS 断言前过审批门(只令过门,不加第二遍分码断言/不加 reject 支线)。
-  r = await fetch(`${BASE}/admin/recruiter-approvals/${uidFromToken(recruiter2.token)}/decision`, { method: 'POST', headers: adminHeaders(), body: JSON.stringify({ decision: 'approve' }) });
+  r = await fetch(e2eUrl(`/admin/recruiter-approvals/${uidFromToken(recruiter2.token)}/decision`), { method: 'POST', headers: adminHeaders(), body: JSON.stringify({ decision: 'approve' }) });
   b = await readJson(r);
   A(r.status === 200 && b.decided === true, 'B端审批活契约:recruiter2 admin approve → decided=true');
-  r = await fetch(`${BASE}/recruiter/jobs`, { headers: { authorization: `Bearer ${recruiter2.token}` } });
+  r = await fetch(e2eUrl(`/recruiter/jobs`), { headers: { authorization: `Bearer ${recruiter2.token}` } });
   b = await readJson(r);
   A(r.status === 200 && !(b.jobs ?? []).some((x: any) => x.id === jobId), 'B端 RLS:另一招聘方看不到他人岗位(租户隔离 ✅)', 'data_or_permission');
-  r = await fetch(`${BASE}/recruiter/jobs/${jobId}`, { headers: { authorization: `Bearer ${recruiter2.token}` } });
+  r = await fetch(e2eUrl(`/recruiter/jobs/${jobId}`), { headers: { authorization: `Bearer ${recruiter2.token}` } });
   A(r.status === 404, 'B端 RLS:越权取他人岗位 → 404', 'data_or_permission');
 
   // 9. 候选人闭环(多方 RLS)
@@ -334,17 +336,17 @@ async function main() {
   const token2 = candidate2.token;
   const user2Id = uidFromToken(token2);
   const H2 = candidate2.headers;
-  r = await fetch(`${BASE}/jobs`, { headers: H2 });
+  r = await fetch(e2eUrl(`/jobs`), { headers: H2 });
   b = await readJson(r);
   A(r.status === 200 && (b.jobs ?? []).some((x: any) => x.id === jobId), '候选人:浏览开放岗位(公开可读)看到岗位');
-  r = await fetch(`${BASE}/jobs/${jobId}/apply`, { method: 'POST', headers: H2, body: '{}' });
+  r = await fetch(e2eUrl(`/jobs/${jobId}/apply`), { method: 'POST', headers: H2, body: '{}' });
   b = await readJson(r);
   A(r.status === 200 && typeof b.applicationId === 'string', `候选人:投递岗位 → applicationId(${b.applicationId})`);
   const applicationId = b.applicationId;
-  r = await fetch(`${BASE}/applications`, { headers: H2 });
+  r = await fetch(e2eUrl(`/applications`), { headers: H2 });
   b = await readJson(r);
   A(r.status === 200 && (b.applications ?? []).some((x: any) => x.id === applicationId && x.status === 'invited'), '候选人:看到自己的投递(status=invited,非仅长度)');
-  r = await fetch(`${BASE}/recruiter/jobs/${jobId}/candidates`, { headers: HR });
+  r = await fetch(e2eUrl(`/recruiter/jobs/${jobId}/candidates`), { headers: HR });
   b = await readJson(r);
   A(r.status === 200 && (b.candidates ?? []).some((x: any) => x.candidate_user_id === user2Id), `招聘方:看到该候选人本人(多方 RLS,candidate=${String(user2Id).slice(0, 8)})`);
   reviews.record({ class: 'worker', code: 'seg_step9_green' }); // CMOP03-D M3: step8/9 区全绿(岔A 排除)
@@ -375,23 +377,23 @@ async function main() {
   A(r.status === 200 && typeof trialUserResume.resumeId === 'string', '[异常前置] trial 赠与用户持有合法且本人所属的 resumeId');
   // 第一步：trial 赠与正面行使——begin 预留成功（0154 注册赠 1.00 恰够一场）+ 桶扣减相对差值证据（沿 UC018 形）。
   const trialUnitsBefore = (await entitlement(H3)).availableUnits ?? 0;
-  const iv3 = (await readJson(await fetch(`${BASE}/interview`, { method: 'POST', headers: H3, body: '{}' }))).interviewId;
-  r = await fetch(`${BASE}/interview/${iv3}/begin`, { method: 'POST', headers: { ...H3, 'resume-id': trialUserResume.resumeId }, body: '{}' });
+  const iv3 = (await readJson(await fetch(e2eUrl(`/interview`), { method: 'POST', headers: H3, body: '{}' }))).interviewId;
+  r = await fetch(e2eUrl(`/interview/${iv3}/begin`), { method: 'POST', headers: { ...H3, 'resume-id': trialUserResume.resumeId }, body: '{}' });
   b = await readJson(r);
   A(r.status === 202 && b.accepted === true && typeof b.jobId === 'string', `[异常] trial 赠与生效:首场 begin 预留 → 202 accepted+jobId(${JSON.stringify(b).slice(0, 60)})`);
   const trialUnitsAfterBegin = (await entitlement(H3)).availableUnits ?? 0;
   A(trialUnitsAfterBegin === trialUnitsBefore - 1, `[异常] trial 桶扣减证据:begin 后额度 -1(${trialUnitsBefore}→${trialUnitsAfterBegin})`);
   // 第二步a：同用户「再建面试」如实断言复用语义（不假称 402）——iv4 拿回 iv3（create reused:true 语义），
   // begin 幂等 202 alreadyBegun（不二次预留）。
-  const iv4 = (await readJson(await fetch(`${BASE}/interview`, { method: 'POST', headers: H3, body: '{}' }))).interviewId;
-  r = await fetch(`${BASE}/interview/${iv4}/begin`, { method: 'POST', headers: { ...H3, 'resume-id': trialUserResume.resumeId }, body: '{}' });
+  const iv4 = (await readJson(await fetch(e2eUrl(`/interview`), { method: 'POST', headers: H3, body: '{}' }))).interviewId;
+  r = await fetch(e2eUrl(`/interview/${iv4}/begin`), { method: 'POST', headers: { ...H3, 'resume-id': trialUserResume.resumeId }, body: '{}' });
   b = await readJson(r);
   A(r.status === 202 && b.accepted === true && b.alreadyBegun === true, `[异常] 同用户开放面试复用:再建拿回 iv3(${iv4 === iv3}) → begin 幂等 202 alreadyBegun(不二次预留)`);
   // 第二步b：trial 已耗尽（FIFO 无可凑桶）→ 押题 begin 行使原 402 insufficient_entitlement 映射面（文案逐字保留）。
-  const quiz4 = await readJson(await fetch(`${BASE}/quiz`, { method: 'POST', headers: H3, body: '{}' }));
+  const quiz4 = await readJson(await fetch(e2eUrl(`/quiz`), { method: 'POST', headers: H3, body: '{}' }));
   const quiz4Id = quiz4.id ?? quiz4.quizId;
   A(typeof quiz4Id === 'string', '[异常前置] trial 耗尽用户仍可建押题空壳(begin 前不扣费)');
-  r = await fetch(`${BASE}/quiz/${quiz4Id}/begin`, { method: 'POST', headers: { ...H3, 'resume-id': trialUserResume.resumeId }, body: '{}' });
+  r = await fetch(e2eUrl(`/quiz/${quiz4Id}/begin`), { method: 'POST', headers: { ...H3, 'resume-id': trialUserResume.resumeId }, body: '{}' });
   b = await readJson(r);
   A(r.status === 402 && b.error === 'insufficient_entitlement', '[异常] 额度不足 begin → 402 insufficient_entitlement（不再被 mask 成 500）', 'data_or_permission');
   const trialUnitsAfter402 = (await entitlement(H3)).availableUnits ?? 0;
@@ -447,9 +449,9 @@ async function main() {
     const r1ResumeId: string = r1Up.body.resumeId;
     const r1UnitsBefore = (await entitlement(H4)).availableUnits ?? 0;
     A(r1UnitsBefore >= 1, `[路由R1] trial 赠与前置额度≥1(${r1UnitsBefore})`);
-    const ivR1 = (await readJson(await fetch(`${BASE}/interview`, { method: 'POST', headers: H4, body: '{}' }))).interviewId;
+    const ivR1 = (await readJson(await fetch(e2eUrl(`/interview`), { method: 'POST', headers: H4, body: '{}' }))).interviewId;
     A(typeof ivR1 === 'string', `[路由R1] 建面试 → interviewId(${ivR1})`);
-    const r1Begin = await fetch(`${BASE}/interview/${ivR1}/begin`, { method: 'POST', headers: { ...H4, 'resume-id': r1ResumeId }, body: '{}' });
+    const r1Begin = await fetch(e2eUrl(`/interview/${ivR1}/begin`), { method: 'POST', headers: { ...H4, 'resume-id': r1ResumeId }, body: '{}' });
     const r1BeginBody = await readJson(r1Begin);
     A(r1Begin.status === 202 && r1BeginBody.accepted === true && typeof r1BeginBody.jobId === 'string',
       `[路由R1] 规整 fixture begin → 202 accepted+jobId(§0.3 B 定谳 backend/nodejs·非 409; ${JSON.stringify(r1BeginBody).slice(0, 60)})`);
@@ -469,7 +471,7 @@ async function main() {
           `[路由R1·DB] decision/snapshot 双行 leaf+bps 同值一致性(${String(snap.rows[0]?.leaf_track_id ?? 'none')})`);
       } finally { await pgc.end().catch(() => {}); }
     }
-    const r1Abandon = await fetch(`${BASE}/interview/${ivR1}/abandon`, { method: 'POST', headers: H4, body: '{}' });
+    const r1Abandon = await fetch(e2eUrl(`/interview/${ivR1}/abandon`), { method: 'POST', headers: H4, body: '{}' });
     const r1AbandonBody = await readJson(r1Abandon);
     A(r1Abandon.status === 200 && r1AbandonBody.abandoned === true && r1AbandonBody.released === 'released',
       `[路由R1] abandon → abandoned+released(UC018 同形·设计内还池如实记账·本场后续零消费; ${JSON.stringify(r1AbandonBody).slice(0, 80)})`);
@@ -487,9 +489,9 @@ async function main() {
     A(r2Up.response.status === 200 && typeof r2Up.body.resumeId === 'string', '[路由R2] 歧义语料(fixture D)上传 → resumeId');
     const r2ResumeId: string = r2Up.body.resumeId;
     const r2UnitsBefore = (await entitlement(H5)).availableUnits ?? 0;
-    const ivR2 = (await readJson(await fetch(`${BASE}/interview`, { method: 'POST', headers: H5, body: '{}' }))).interviewId;
+    const ivR2 = (await readJson(await fetch(e2eUrl(`/interview`), { method: 'POST', headers: H5, body: '{}' }))).interviewId;
     A(typeof ivR2 === 'string', `[路由R2] 建面试 → interviewId(${ivR2})`);
-    const r2Begin = await fetch(`${BASE}/interview/${ivR2}/begin`, { method: 'POST', headers: { ...H5, 'resume-id': r2ResumeId }, body: '{}' });
+    const r2Begin = await fetch(e2eUrl(`/interview/${ivR2}/begin`), { method: 'POST', headers: { ...H5, 'resume-id': r2ResumeId }, body: '{}' });
     const r2BeginBody = await readJson(r2Begin);
     A(r2Begin.status === 202 && r2BeginBody.accepted === true,
       `[路由R2] 歧义简历 begin 硬断言 202 accepted(≠409/begin_failed·#133/#195 P1 旅程不变量·409 candidate_route_undecided 仅 profile_unavailable 防御可达本夹具结构不可触发; got ${r2Begin.status}/${JSON.stringify(r2BeginBody).slice(0, 60)})`);
@@ -533,9 +535,9 @@ async function main() {
     A(r3Up.response.status === 200 && typeof r3Up.body.resumeId === 'string', '[路由R3] #270 语料(fixture E)上传 → resumeId');
     const r3ResumeId: string = r3Up.body.resumeId;
     const r3UnitsBefore = (await entitlement(H6)).availableUnits ?? 0;
-    const ivR3 = (await readJson(await fetch(`${BASE}/interview`, { method: 'POST', headers: H6, body: '{}' }))).interviewId;
+    const ivR3 = (await readJson(await fetch(e2eUrl(`/interview`), { method: 'POST', headers: H6, body: '{}' }))).interviewId;
     A(typeof ivR3 === 'string', `[路由R3] 建面试 → interviewId(${ivR3})`);
-    const r3Begin = await fetch(`${BASE}/interview/${ivR3}/begin`, { method: 'POST', headers: { ...H6, 'resume-id': r3ResumeId }, body: '{}' });
+    const r3Begin = await fetch(e2eUrl(`/interview/${ivR3}/begin`), { method: 'POST', headers: { ...H6, 'resume-id': r3ResumeId }, body: '{}' });
     const r3BeginBody = await readJson(r3Begin);
     A(r3Begin.status === 202 && r3BeginBody.accepted === true,
       `[路由R3] #270 误判语料 begin → 202 accepted(误判面与 409 面互斥·两态共同预期·#270 原文「不报 409」; got ${r3Begin.status})`);
@@ -555,7 +557,7 @@ async function main() {
           `[路由R3·DB] #270 静默误判现状锚·随演(§1-R3-2 两向): policy=${CANDIDATE_ROUTE_POLICY_VERSION} → 预期叶=${expectedLeaf ?? `unsupported_policy_${CANDIDATE_ROUTE_POLICY_VERSION}`}(v3→qa 现状/≥v4→general 降级·route_outcome 恒 route_decided; got ${JSON.stringify(dec.rows[0] ?? null)})`);
       } finally { await pgc.end().catch(() => {}); }
     }
-    const r3Abandon = await fetch(`${BASE}/interview/${ivR3}/abandon`, { method: 'POST', headers: H6, body: '{}' });
+    const r3Abandon = await fetch(e2eUrl(`/interview/${ivR3}/abandon`), { method: 'POST', headers: H6, body: '{}' });
     const r3AbandonBody = await readJson(r3Abandon);
     A(r3Abandon.status === 200 && r3AbandonBody.abandoned === true && r3AbandonBody.released === 'released',
       `[路由R3] abandon → abandoned+released(UC018 同形·设计内还池如实记账; ${JSON.stringify(r3AbandonBody).slice(0, 80)})`);
@@ -574,13 +576,13 @@ async function main() {
   const unknownOrder = await postPayWebhook('nope', 't', paidWebhookSignature('nope', 't', unknownTs), unknownTs);
   A(unknownOrder.response.status === 404, '[异常] webhook 未知订单 → 404(查不到单不入账)');
 
-  const apply2 = await readJson(await fetch(`${BASE}/jobs/${jobId}/apply`, { method: 'POST', headers: H2, body: '{}' }));
+  const apply2 = await readJson(await fetch(e2eUrl(`/jobs/${jobId}/apply`), { method: 'POST', headers: H2, body: '{}' }));
   A(apply2.applicationId === applicationId, '[特殊] 重复投递 → 同 applicationId(幂等不重复建)');
   const user1Id = uidFromToken(token);
-  const app1 = (await readJson(await fetch(`${BASE}/jobs/${jobId}/apply`, { method: 'POST', headers: H, body: '{}' }))).applicationId;
-  r = await fetch(`${BASE}/applications/${app1}/finalize`, { method: 'POST', headers: H, body: '{}' });
+  const app1 = (await readJson(await fetch(e2eUrl(`/jobs/${jobId}/apply`), { method: 'POST', headers: H, body: '{}' }))).applicationId;
+  r = await fetch(e2eUrl(`/applications/${app1}/finalize`), { method: 'POST', headers: H, body: '{}' });
   A(r.status === 409, '[防伪造] 未开始岗位绑定面试 finalize → 409(历史面试不可移花接木)');
-  r = await fetch(`${BASE}/applications/${app1}/finalize`, { method: 'POST', headers: H, body: JSON.stringify({ interviewId }) });
+  r = await fetch(e2eUrl(`/applications/${app1}/finalize`), { method: 'POST', headers: H, body: JSON.stringify({ interviewId }) });
   A(r.status === 400, '[防伪造] finalize 夹带历史 interviewId → 400(strict DTO 拒绝)');
 
   reviews.record({ class: 'worker', code: 'seg_bound_start_enter' }); // CMOP03-D M5: 岗位绑定 start 面入口
@@ -597,7 +599,7 @@ async function main() {
         throw new Error(`[g7fix1] route not decided within 60000ms cap — revision_status=${raw}`); }
       await new Promise((res) => setTimeout(res, 1_000)); } }
     finally { await pgc.end().catch(() => {}); } }
-  const startT0 = Date.now(); try { r = await fetch(`${BASE}/applications/${app1}/start`, { method: 'POST', headers: H, body: JSON.stringify({ resumeId }) }); fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'app_start', status: r.status, elapsed_ms: Date.now() - startT0, body: (await r.clone().text()).slice(0, 200) })}\n`); }
+  const startT0 = Date.now(); try { r = await fetch(e2eUrl(`/applications/${app1}/start`), { method: 'POST', headers: H, body: JSON.stringify({ resumeId }) }); fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'app_start', status: r.status, elapsed_ms: Date.now() - startT0, body: (await r.clone().text()).slice(0, 200) })}\n`); }
   catch (e: any) { fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'app_start', thrown: `${e.name}/${e.code}/${e.cause?.code}` })}\n`); throw e; }
   const started = await readJson(r);
   reviews.record({ class: 'worker', code: 'seg2_start_readjson' }); // CMOP03-F F1: 首发 start fetch/readJson 已完整返回
@@ -607,14 +609,14 @@ async function main() {
     typeof started.redirectTo === 'string' && started.redirectTo.includes(boundInterviewId),
     `[状态机] start 原子创建岗位专属会话(${String(boundInterviewId).slice(0, 12)})并返回可信跳转 (实际 ${r.status})`);
   reviews.record({ class: 'worker', code: 'seg2_start_assert_post' }); const idemT0 = Date.now(); // CMOP03-F F2.5: start 断言已通过·幂等臂计时起点
-  r = await fetch(`${BASE}/applications/${app1}/start`, { method: 'POST', headers: H, body: JSON.stringify({ resumeId }) });
+  r = await fetch(e2eUrl(`/applications/${app1}/start`), { method: 'POST', headers: H, body: JSON.stringify({ resumeId }) });
   const reused = await readJson(r);
   fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'app_start_reid', status: r.status, elapsed_ms: Date.now() - idemT0, body: JSON.stringify(reused ?? {}).slice(0, 200) })}\n`);
   A(r.status === 200 && reused.status === 'reused' && reused.interviewId === boundInterviewId,
     '[幂等] 重试岗位 start → reused 同一 interviewId(不重复建会话)');
   reviews.record({ class: 'worker', code: 'seg2_idem_assert_post' }); // CMOP03-F F3: 幂等断言已完整通过
 
-  r = await fetch(`${BASE}/interview/${boundInterviewId}/begin`, { method: 'POST', headers: { ...H, 'resume-id': resumeId }, body: '{}' });
+  r = await fetch(e2eUrl(`/interview/${boundInterviewId}/begin`), { method: 'POST', headers: { ...H, 'resume-id': resumeId }, body: '{}' });
   A(r.status === 202, '[状态机] 岗位绑定会话 begin → 202');
   reviews.record({ class: 'worker', code: 'seg2_begin_assert_post' }); // CMOP03-F F4: begin 断言已通过(M6 前)
   reviews.record({ class: 'worker', code: 'seg_boundloop_enter' }); // CMOP03-D M6: boundLoop 调用前(子型1 域)
@@ -637,7 +639,7 @@ async function main() {
   A(boundLoop.provenance.trustedBSideScore === null && boundLoop.provenance.identities.length === boundLoop.questions + boundLoop.clarifications,
     '[状态机] 岗位会话出处审查: AI 分/progress 不是 B 端分(identities=q+c 孪生同步 1789e321)');
   reviews.record({ class: 'worker', code: 'seg3_finalize_pre' }); // G7W 案A seg3 R5: 结算段进
-  r = await fetch(`${BASE}/applications/${app1}/finalize`, { method: 'POST', headers: H, body: '{}' });
+  r = await fetch(e2eUrl(`/applications/${app1}/finalize`), { method: 'POST', headers: H, body: '{}' });
   const finalized = await readJson(r);
   // eslint-disable-next-line @typescript-eslint/naming-convention -- t_ms 为 NDJSON wire 字段名(§0.2b 白名单/consent-capture 同族),非代码标识符,不可改名(行内豁免·authz34 先例同形)
   segEmit({ step: 'seg3_finalize', status: r.status, outcome: finalized.outcome, t_ms: Date.now() - capT0 }); // G7W 案A seg3 F5: W5 结算段(t_ms 基准=capT0 :35 boot 区)
@@ -651,14 +653,14 @@ async function main() {
   fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'postm7_a3_finalize', status: r.status, outcome: finalized.outcome, terminal: boundLoop.terminal, scorelessBound, reason: (boundLoop.terminalPayload as any)?.reason ?? null })}\n`); // G7FIX-3: reason 入账(abandoned sweep vs generation 族归因判别)
   A(r.status === 200 && finalized.applicationId === app1 && finalized.interviewId === boundInterviewId && finalized.replayed === false && finalized.outcome === (scorelessBound ? 'assessment_unavailable' : 'completed'), `[状态机] 岗位终态后 {} finalize 统一面: 200 服务端仅认已绑定 interview+replayed:false(scoreless 族→assessment_unavailable·其余 completed)(term=${boundLoop.terminal}, outcome=${finalized.outcome ?? 'none'}, status=${r.status}, reason=${(boundLoop.terminalPayload as any)?.reason ?? 'n/a'})`); // G7FIX-5 收敛: 三元 409 死支消解+replayed:false 契约钉(G7FIX-4 prove final3:21-22 形状 200+assessment_unavailable+replayed:false)
   reviews.record({ class: 'worker', code: 'seg3_finalize_assert_post' }); // G7W 案A seg3 R6: 结算段断言面过
-  r = await fetch(`${BASE}/recruiter/jobs/${jobId}/candidates`, { headers: HR });
+  r = await fetch(e2eUrl(`/recruiter/jobs/${jobId}/candidates`), { headers: HR });
   b = await readJson(r);
   const cand = (b.candidates ?? []).find((x: any) => x.candidate_user_id === user1Id);
   fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'postm7_a4_cand', candStatus: cand?.status, score: cand?.score, scorelessBound })}\n`);
   if (scorelessBound) {
     A(cand?.status === 'assessment_unavailable' && cand.score === null,
       '[状态机·可信] 无评分证据时招聘方只见 assessment_unavailable + score=NULL（不伪造 0 分）');
-    const retry = await fetch(`${BASE}/applications/${app1}/start`, { method: 'POST', headers: H, body: JSON.stringify({ resumeId }) });
+    const retry = await fetch(e2eUrl(`/applications/${app1}/start`), { method: 'POST', headers: H, body: JSON.stringify({ resumeId }) });
     const retried = await readJson(retry);
     fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'postm7_a5_retry', retryStatus: retry.status, retriedStatus: retried?.status, retriedError: retried?.error ?? null, newInterviewId: typeof retried?.interviewId === 'string' })}\n`);
     // 【第6发现·断言随演（I2 W1 修法④ d4e51105 2026-10-11 落线·裁定⑥）】held（绑定面试 completed 的
@@ -691,37 +693,37 @@ async function main() {
   const noCT = (h: Record<string, string>): Record<string, string> => Object.fromEntries(Object.entries(h).filter(([k]) => k !== 'content-type'));
   {
     // R4-A-1 前置读:主旅程既有 resumeId 在册(软删前证据·resume.service list 过滤 :226 尚未排除)。
-    const listBefore = await readJson(await fetch(`${BASE}/resume`, { headers: H }));
+    const listBefore = await readJson(await fetch(e2eUrl(`/resume`), { headers: H }));
     A(Array.isArray(listBefore.resumes) && listBefore.resumes.some((x: any) => x.id === resumeId),
       `[R4-A-1] 软删前 GET /resume 在册:resumes 含主旅程 resumeId(${String(resumeId).slice(0, 8)})`);
 
     // R4-A-2 DELETE → 202 软删受理:mode=logical+purgePending(恒真)+resumesFenced≥1+requestId 在场。
-    const eraseRes = await fetch(`${BASE}/privacy/resume-data`, { method: 'DELETE', headers: noCT(H) });
+    const eraseRes = await fetch(e2eUrl(`/privacy/resume-data`), { method: 'DELETE', headers: noCT(H) });
     const eraseBody = await readJson(eraseRes);
     A(eraseRes.status === 202 && eraseBody.mode === 'logical' && eraseBody.purgePending === true
       && Number(eraseBody.resumesFenced) >= 1 && typeof eraseBody.requestId === 'string',
       `[R4-A-2] DELETE /privacy/resume-data → 202 软删受理(mode=logical+purgePending=true·S2 前 residual 非完成态)+resumesFenced=${eraseBody.resumesFenced}≥1+requestId 在场`);
 
     // R4-A-3 重放 → 202 ∧ resumesFenced=0(空集同形幂等·不建第二份账)。
-    const eraseReplayRes = await fetch(`${BASE}/privacy/resume-data`, { method: 'DELETE', headers: noCT(H) });
+    const eraseReplayRes = await fetch(e2eUrl(`/privacy/resume-data`), { method: 'DELETE', headers: noCT(H) });
     const eraseReplay = await readJson(eraseReplayRes);
     A(eraseReplayRes.status === 202 && eraseReplay.mode === 'logical' && eraseReplay.purgePending === true
       && eraseReplay.resumesFenced === 0,
       `[R4-A-3] 重放 DELETE → 202 ∧ resumesFenced=0(空集同形幂等·202 形如实)`);
 
     // R4-A-4 list 重读:resumes 零含 resumeId(S1 即时可见面)。
-    const listAfter = await readJson(await fetch(`${BASE}/resume`, { headers: H }));
+    const listAfter = await readJson(await fetch(e2eUrl(`/resume`), { headers: H }));
     A(Array.isArray(listAfter.resumes) && !listAfter.resumes.some((x: any) => x.id === resumeId),
       `[R4-A-4] 软删后 list 零含:resumes 不再含 resumeId(即时可见面)`);
 
     // R4-A-5 profile → 404(0063 active-read RLS 0 行链·父行非 ingested)。直 fetch 取 Response(helper 丢 status 面·席2 登记3)。
-    const profileRes = await fetch(`${BASE}/resume/${resumeId}/profile`, { headers: H });
+    const profileRes = await fetch(e2eUrl(`/resume/${resumeId}/profile`), { headers: H });
     const profileBody = await readJson(profileRes);
     A(profileRes.status === 404 && profileBody.error === 'not_found_or_forbidden',
       `[R4-A-5] 软删后 profile → 404 not_found_or_forbidden(0063 active-read RLS 0 行→404)`, 'data_or_permission');
 
     // R4-A-6 数据可携导出排除已删(privacy.service export :52 NOT IN erasure_fenced,erased)。
-    const exportBody = await readJson(await fetch(`${BASE}/privacy/export`, { headers: H }));
+    const exportBody = await readJson(await fetch(e2eUrl(`/privacy/export`), { headers: H }));
     A(Array.isArray(exportBody.resumes) && !exportBody.resumes.some((x: any) => x.id === resumeId),
       `[R4-A-6] GET /privacy/export 零含 resumeId(数据可携不含已删数据)`);
 
@@ -732,7 +734,7 @@ async function main() {
   {
     const fenceTag = randomUUID();
     // R4-B-1 新建空壳:主用户既有面试全终态(completed/failed/abandoned 均被 create 复用过滤排除)→ reused=false。
-    const createRes = await fetch(`${BASE}/interview`, { method: 'POST', headers: H, body: '{}' });
+    const createRes = await fetch(e2eUrl(`/interview`), { method: 'POST', headers: H, body: '{}' });
     const created = await readJson(createRes);
     const fencedIv = created.interviewId ?? created.id ?? created.resultId;
     A((createRes.status === 200 || createRes.status === 201) && created.reused === false && typeof fencedIv === 'string',
@@ -740,20 +742,20 @@ async function main() {
 
     // R4-B-2 公开 DELETE → 503 正面行使(冻结面·privacy.service :67-71 恒 throw·重放同形)。
     const fenceKey = `e2e-erase-${tag}-${fenceTag}`;
-    const delRes = await fetch(`${BASE}/privacy/interview-data/${fencedIv}`, { method: 'DELETE', headers: { ...noCT(H), 'idempotency-key': fenceKey } });
+    const delRes = await fetch(e2eUrl(`/privacy/interview-data/${fencedIv}`), { method: 'DELETE', headers: { ...noCT(H), 'idempotency-key': fenceKey } });
     const delBody = await readJson(delRes);
     A(delRes.status === 503 && delBody.error === 'interview_erasure_authorization_not_available',
       `[R4-B-2] 公开 DELETE interview-data → 503 interview_erasure_authorization_not_available(503 pin 正面行使·冻结面不开闸)`);
 
     // R4-B-2b 同键重放仍 503(不因重放建账·proof 同形)。
-    const delReplayRes = await fetch(`${BASE}/privacy/interview-data/${fencedIv}`, { method: 'DELETE', headers: { ...noCT(H), 'idempotency-key': fenceKey } });
+    const delReplayRes = await fetch(e2eUrl(`/privacy/interview-data/${fencedIv}`), { method: 'DELETE', headers: { ...noCT(H), 'idempotency-key': fenceKey } });
     const delReplayBody = await readJson(delReplayRes);
     A(delReplayRes.status === 503 && delReplayBody.error === 'interview_erasure_authorization_not_available',
       `[R4-B-2b] 同键重放 DELETE 仍 503(不建账本)`);
 
     // R4-B-3 预览 → 202 local_fenced+预览版+sinks≥22(user_memory=honest_unresolved)。
     const previewKey = `e2e-preview-${tag}-${fenceTag}`;
-    const previewRes = await fetch(`${BASE}/privacy/erasure-preview`, {
+    const previewRes = await fetch(e2eUrl(`/privacy/erasure-preview`), {
       method: 'POST', headers: { ...H, 'idempotency-key': previewKey },
       body: JSON.stringify({ scope: 'interview_data', subjectId: fencedIv }),
     });
@@ -765,7 +767,7 @@ async function main() {
       `[R4-B-3] 预览擦除 → 202 local_fenced:预览版+productionSloClaimed=false+preview_incomplete+sinks=${sinkLines.length}≥22(user_memory=honest_unresolved 如实)`);
 
     // R4-B-4 GET 回执同 requestId。
-    const receiptRes = await fetch(`${BASE}/privacy/erasure-preview/${previewBody.requestId}`, { headers: H });
+    const receiptRes = await fetch(e2eUrl(`/privacy/erasure-preview/${previewBody.requestId}`), { headers: H });
     const receiptBody = await readJson(receiptRes);
     A(receiptRes.status === 200 && receiptBody.requestId === previewBody.requestId,
       `[R4-B-4] GET 预览回执 → 200 ∧ 同 requestId(${String(previewBody.requestId ?? '').slice(0, 8)})`);
@@ -803,18 +805,18 @@ async function main() {
         answer: turnAnswer,
       };
       const scan: Array<[string, Response]> = [];
-      scan.push(['GET interview', await fetch(`${BASE}/interview/${fencedIv}`, { headers: H })]);
-      scan.push(['POST begin', await fetch(`${BASE}/interview/${fencedIv}/begin`, { method: 'POST', headers: { ...H, 'resume-id': '00000000-0000-4000-8000-000000000002' }, body: '{}' })]);
-      scan.push(['POST abandon', await fetch(`${BASE}/interview/${fencedIv}/abandon`, { method: 'POST', headers: H, body: '{}' })]);
-      scan.push(['GET events', await fetch(`${BASE}/interview/${fencedIv}/events`, { headers: H })]);
-      scan.push(['GET report', await fetch(`${BASE}/interview/${fencedIv}/report`, { headers: H })]);
-      scan.push(['POST report/retry', await fetch(`${BASE}/interview/${fencedIv}/report/retry`, { method: 'POST', headers: noCT(H) })]);
-      scan.push(['GET report/export', await fetch(`${BASE}/interview/${fencedIv}/report/export`, { headers: H })]);
-      scan.push(['GET transcript', await fetch(`${BASE}/interview/${fencedIv}/transcript`, { headers: H })]);
-      const turnFenceRes = await fetch(`${BASE}/interview/${fencedIv}/turn`, { method: 'POST', headers: H, body: JSON.stringify(legalTurn) });
+      scan.push(['GET interview', await fetch(e2eUrl(`/interview/${fencedIv}`), { headers: H })]);
+      scan.push(['POST begin', await fetch(e2eUrl(`/interview/${fencedIv}/begin`), { method: 'POST', headers: { ...H, 'resume-id': '00000000-0000-4000-8000-000000000002' }, body: '{}' })]);
+      scan.push(['POST abandon', await fetch(e2eUrl(`/interview/${fencedIv}/abandon`), { method: 'POST', headers: H, body: '{}' })]);
+      scan.push(['GET events', await fetch(e2eUrl(`/interview/${fencedIv}/events`), { headers: H })]);
+      scan.push(['GET report', await fetch(e2eUrl(`/interview/${fencedIv}/report`), { headers: H })]);
+      scan.push(['POST report/retry', await fetch(e2eUrl(`/interview/${fencedIv}/report/retry`), { method: 'POST', headers: noCT(H) })]);
+      scan.push(['GET report/export', await fetch(e2eUrl(`/interview/${fencedIv}/report/export`), { headers: H })]);
+      scan.push(['GET transcript', await fetch(e2eUrl(`/interview/${fencedIv}/transcript`), { headers: H })]);
+      const turnFenceRes = await fetch(e2eUrl(`/interview/${fencedIv}/turn`), { method: 'POST', headers: H, body: JSON.stringify(legalTurn) });
       scan.push(['POST turn', turnFenceRes]);
-      scan.push(['POST feedback', await fetch(`${BASE}/interview/${fencedIv}/questions/0/feedback`, { method: 'POST', headers: H, body: JSON.stringify({ rating: 'up' }) })]);
-      const offList = await readJson(await fetch(`${BASE}/interview`, { headers: H }));
+      scan.push(['POST feedback', await fetch(e2eUrl(`/interview/${fencedIv}/questions/0/feedback`), { method: 'POST', headers: H, body: JSON.stringify({ rating: 'up' }) })]);
+      const offList = await readJson(await fetch(e2eUrl(`/interview`), { headers: H }));
       A(scan.length === 10 && scan.every(([, res]) => res.status === 410),
         `[R4-B-5] 围栏后十端点扫 → 全 410(GET interview/begin/abandon/events/report/report.retry/report.export/transcript/turn[合法 TurnDto]/feedback)`);
       const turnFenceBody = await readJson(turnFenceRes);
@@ -848,7 +850,7 @@ async function main() {
       `[R5-1] POST /privacy/consent → 200 ∧ recorded=true ∧ policyVersion 非空(${grant.body.policyVersion})`);
 
     // R5-2 状态读。
-    const st1 = await readJson(await fetch(`${BASE}/privacy/consent?purpose=resume_processing`, { headers: WH }));
+    const st1 = await readJson(await fetch(e2eUrl(`/privacy/consent?purpose=resume_processing`), { headers: WH }));
     A(st1.consented === true, `[R5-2] GET consent 状态 → consented=true`);
 
     // R5-3 文本上传(纯本地摄取·零模型零额度)。
@@ -859,13 +861,13 @@ async function main() {
     const resumeId7: string = up1.body.resumeId;
 
     // R5-4 撤回(G4:撤回=停止后续使用·已落 checkpoint/事件不回溯)。
-    const wdRes = await fetch(`${BASE}/privacy/consent?purpose=resume_processing`, { method: 'DELETE', headers: noCT(WH) });
+    const wdRes = await fetch(e2eUrl(`/privacy/consent?purpose=resume_processing`), { method: 'DELETE', headers: noCT(WH) });
     const wdBody = await readJson(wdRes);
     A(wdRes.status === 200 && wdBody.withdrawn === true,
       `[R5-4] DELETE /privacy/consent 撤回 → 200 ∧ withdrawn=true`);
 
     // R5-5 状态翻 false。
-    const st2 = await readJson(await fetch(`${BASE}/privacy/consent?purpose=resume_processing`, { headers: WH }));
+    const st2 = await readJson(await fetch(e2eUrl(`/privacy/consent?purpose=resume_processing`), { headers: WH }));
     A(st2.consented === false, `[R5-5] 撤回后 GET 状态 → consented=false`);
 
     // R5-6 重上传 → 403 consent_required(resume.service :203 硬门·先于扣费预留)。
@@ -878,14 +880,14 @@ async function main() {
       `[R5-6b] 403 后额度零泄漏(同意门先于扣费预留:${unitsBefore403}→${unitsAfter403})`);
 
     // R5-7 撤回≠擦除定谳面(Non-claims 行为证:已落数据不回溯清除)。
-    const prof7Res = await fetch(`${BASE}/resume/${resumeId7}/profile`, { headers: WH });
+    const prof7Res = await fetch(e2eUrl(`/resume/${resumeId7}/profile`), { headers: WH });
     const prof7 = await readJson(prof7Res);
     A(prof7Res.status === 200 && prof7.structured && typeof prof7.structured === 'object' && Object.keys(prof7.structured).length >= 1,
       `[R5-7] 撤回≠擦除:既有 profile 仍 200 ∧ structured 非空(不回溯清除·Non-claims 行为证)`);
 
     // R5-8 重授予。
     const regrant = await consentResumeProcessing(WH);
-    const st3 = await readJson(await fetch(`${BASE}/privacy/consent?purpose=resume_processing`, { headers: WH }));
+    const st3 = await readJson(await fetch(e2eUrl(`/privacy/consent?purpose=resume_processing`), { headers: WH }));
     A(regrant.response.status === 200 && regrant.body.recorded === true && st3.consented === true,
       `[R5-8] 重授予 POST consent → 200 ∧ 状态翻回 consented=true`);
 

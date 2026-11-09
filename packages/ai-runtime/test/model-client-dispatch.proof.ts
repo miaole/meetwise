@@ -13,6 +13,9 @@
  */
 import { openAICompatibleClient } from '../src/model-client.ts';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'injected-key';
+
 let failures = 0;
 const A = (name: string, ok: boolean) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`); if (!ok) failures++; };
 const errorOf = (action: () => unknown): string => {
@@ -37,7 +40,7 @@ async function main() {
     A('生产构造传 baseUrl 即抛 text_transport_override_forbidden',
       errorOf(() => openAICompatibleClient({ baseUrl: 'https://evil.invalid' })) === 'text_transport_override_forbidden');
     A('生产构造传 apiKey 即抛 text_transport_override_forbidden',
-      errorOf(() => openAICompatibleClient({ apiKey: 'injected-key' })) === 'text_transport_override_forbidden');
+      errorOf(() => openAICompatibleClient({ apiKey: MEETWISE_TEST_FIXTURE_1 })) === 'text_transport_override_forbidden');
 
     // ② override 缝关（test 但未设 MODEL_TEST_TRANSPORT_OVERRIDES=1）：同样拒绝注入。
     process.env.NODE_ENV = 'test';

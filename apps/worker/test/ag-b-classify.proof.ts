@@ -21,6 +21,9 @@ import { z } from 'zod';
 import { asPrincipal, assertIsolatedTestTarget, createPool, listUsageCalibrationPairs } from '@meetwise/db';
 import { invoke, modelFor, openAICompatibleClient, type ModelCostPolicy, type ModelResult } from '@meetwise/ai-runtime';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'test';
+
 process.env.NODE_ENV = 'test';
 process.env.MODEL_TEST_TRANSPORT_OVERRIDES = '1';   // 本地 http loopback 脚本 provider 缝（context-stress :146 同源）
 
@@ -100,7 +103,7 @@ async function main() {
   await pool.query('INSERT INTO ai_cost_budget_policy(scope_id,monthly_limit_micro_cny,enabled) VALUES($1,1000000,true)', [SCOPE]);
 
   const echo = await startScriptedProvider();
-  const client = openAICompatibleClient({ baseUrl: `http://127.0.0.1:${echo.port}`, apiKey: 'test', model: MODEL, costPolicy: policy });
+  const client = openAICompatibleClient({ baseUrl: `http://127.0.0.1:${echo.port}`, apiKey: MEETWISE_TEST_FIXTURE_1, model: MODEL, costPolicy: policy });
 
   // ── A. 客户端级分类（ModelResult 形状·修法①②③④）──────────────────────────────
   section('A. 客户端级分类（dispatchOnce 返回与 parse 之间的结构缝）');

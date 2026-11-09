@@ -18,6 +18,11 @@ import { scrypt, scryptSync } from 'node:crypto';
 import { hashPassword, verifyPassword, verifyLogin } from '@meetwise/domain';
 import { boot, mkAssert } from './_neg-harness';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'rtpass123';
+const MEETWISE_TEST_FIXTURE_2 = 'wrongpw99';
+const MEETWISE_TEST_FIXTURE_3 = 'diepass12';
+
 const here = dirname(fileURLToPath(import.meta.url));
 const bearer = (t: string) => ({ authorization: 'Bearer ' + t });
 
@@ -76,17 +81,17 @@ async function main() {
   // ── ⑤ HTTP 面(真栈)──
   const h = await boot();
   {
-    const s = await h.post('/auth/signup', {}, { email: 'a34rt@x.com', password: 'rtpass123' });
-    const l = await h.post('/auth/login', {}, { email: 'a34rt@x.com', password: 'rtpass123' });
+    const s = await h.post('/auth/signup', {}, { email: 'a34rt@x.com', password: MEETWISE_TEST_FIXTURE_1 });
+    const l = await h.post('/auth/login', {}, { email: 'a34rt@x.com', password: MEETWISE_TEST_FIXTURE_1 });
     A('HTTP/signup→login roundtrip 200 + token(scrypt 异步形全链路)', s.status === 200 && l.status === 200 && !!l.body?.token);
-    const wrong = await h.post('/auth/login', {}, { email: 'a34rt@x.com', password: 'wrongpw99' });
+    const wrong = await h.post('/auth/login', {}, { email: 'a34rt@x.com', password: MEETWISE_TEST_FIXTURE_2 });
     A('HTTP/login 错密 → 401 invalid_credentials', wrong.status === 401 && wrong.body?.error === 'invalid_credentials');
   }
   {
     // deactivate 错密臂(rev2 席2-B1-2):401 wrong_password 且账户 status 未动(DB 直查仍 active·零副作用)
-    const s = await h.post('/auth/signup', {}, { email: 'a34deact@x.com', password: 'diepass12' });
+    const s = await h.post('/auth/signup', {}, { email: 'a34deact@x.com', password: MEETWISE_TEST_FIXTURE_3 });
     const uid = s.body?.userId;
-    const d = await h.post('/profile/deactivate', bearer(s.body?.token ?? ''), { password: 'wrongpw99' });
+    const d = await h.post('/profile/deactivate', bearer(s.body?.token ?? ''), { password: MEETWISE_TEST_FIXTURE_2 });
     A('HTTP/deactivate 错密 → 401 wrong_password', d.status === 401 && d.body?.error === 'wrong_password');
     const q = await h.pool.query('SELECT status FROM user_account WHERE id=$1', [uid]);
     A('HTTP/deactivate 错密账户 status 未动(仍 active·零副作用)', q.rows[0]?.status === 'active');

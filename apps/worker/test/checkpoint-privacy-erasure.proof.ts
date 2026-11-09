@@ -14,12 +14,16 @@ import {
 } from '@meetwise/db';
 import { invoke } from '@meetwise/ai-runtime';
 import { drainReportsOnce } from '../src/report-worker.ts';
+const MEETWISE_TEST_FIXTURE_RUNTIMEPASSWORD_CPE1 = 'privacy-api-proof-password-2026';
+const MEETWISE_TEST_FIXTURE_WORKERPASSWORD_CPE2 = 'privacy-worker-proof-password-2026';
+const MEETWISE_TEST_FIXTURE_ROGUEPASSWORD_CPE3 = 'privacy-rogue-proof-password-2026';
+
 
 const admin = createPool();
 const runtimeRole = `privacy_api_${process.pid}`;
 const workerRole = `privacy_worker_${process.pid}`;
-const runtimePassword = 'privacy-api-proof-password-2026';
-const workerPassword = 'privacy-worker-proof-password-2026';
+const runtimePassword = MEETWISE_TEST_FIXTURE_RUNTIMEPASSWORD_CPE1;
+const workerPassword = MEETWISE_TEST_FIXTURE_WORKERPASSWORD_CPE2;
 let failures = 0;
 // Output only a fixed test identifier.  This proof intentionally creates raw
 // privacy sentinels, so a runner may count failures without ever persisting or
@@ -316,7 +320,7 @@ async function main() {
     A('PPRIV011', replayPurge.deletedCount === 0 && replayPurge.requestStatus === 'pending_external');
 
     const rogueRole = `privacy_rogue_${process.pid}`;
-    const roguePassword = 'privacy-rogue-proof-password-2026';
+    const roguePassword = MEETWISE_TEST_FIXTURE_ROGUEPASSWORD_CPE3;
     await admin.query(`CREATE ROLE ${rogueRole} LOGIN NOINHERIT PASSWORD '${roguePassword}'`);
     const rogue = createPool({ user: rogueRole, password: roguePassword });
     try {

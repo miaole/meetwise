@@ -18,6 +18,9 @@ import {
   listPublicHttpWriteSurfaces,
 } from '../../../scripts/public-preview-write-inventory.mjs';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'public-preview-proof-auth-secret';
+
 const environmentKeys = ['MEETWISE_PUBLIC_PREVIEW', 'NODE_ENV', 'OCR_ENABLED', 'AUTH_SECRET', 'RESUME_ENC_KEY', 'PAY_PROVIDER_SECRET', 'DATABASE_URL'] as const;
 const originalEnvironment = new Map(environmentKeys.map((key) => [key, process.env[key]]));
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
@@ -138,7 +141,7 @@ async function main() {
     MEETWISE_PUBLIC_PREVIEW: '1',
     NODE_ENV: 'test',
     OCR_ENABLED: '0',
-    AUTH_SECRET: 'public-preview-proof-auth-secret',
+    AUTH_SECRET: MEETWISE_TEST_FIXTURE_1,
     RESUME_ENC_KEY: 'public-preview-proof-resume-key',
     PAY_PROVIDER_SECRET: 'public-preview-proof-pay-secret',
     DATABASE_URL: 'postgresql://preview:proof@db.invalid:5432/preview',

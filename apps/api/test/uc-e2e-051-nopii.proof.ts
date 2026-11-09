@@ -403,7 +403,7 @@ const sha256Hex = (s: string): string => createHash('sha256').update(s, 'utf8').
   A('ISO', 'child-env egress-strip: no assembled model-key-shaped key survives',
     Object.keys(childEnvBase).every((k) => !EGRESS_STRIP_RE.test(k)));
 
-  const child = spawn(process.execPath, ['--import', '@swc-node/register/esm-register', childSourcePath], {
+  const child = spawn(process.execPath, ['--import', '@swc-node/register/esm-register', '--', childSourcePath], {
     cwd: apiRoot,
     env: childEnvBase,
     stdio: ['ignore', 'pipe', 'pipe'],

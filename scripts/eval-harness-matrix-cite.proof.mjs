@@ -16,7 +16,7 @@ const units = [
   {
     id: 'privacy-erasure-http-503-pin',
     harness: 'ai-docs/delivery/harness/privacy-erasure-http-503-pin.md',
-    evalDoc: 'ai-docs/delivery/eval/privacy-erasure-http-503-pin.eval.md',
+    evalDoc: 'receipts/archive/2026-09-batch23/eval/privacy-erasure-http-503-pin.eval.md',
     rowIds: ['UC-E2E-050–052', 'PRIVACY-HTTP', 'GAP-PRIV-02', 'BUG-PRIV-503'],
     mustPins: [
       [/DELETE\s*=\s*503|DELETE.*503/i, 'DELETE=202 软删受理(purge_pending) supersession window'],
@@ -30,7 +30,7 @@ const units = [
   {
     id: 'uc-e2e-015-resume-ingest-failures',
     harness: 'ai-docs/delivery/harness/uc-e2e-015-resume-ingest-failures.md',
-    evalDoc: 'ai-docs/delivery/eval/uc-e2e-015-resume-ingest-failures.eval.md',
+    evalDoc: 'receipts/archive/2026-09-batch23/eval/uc-e2e-015-resume-ingest-failures.eval.md',
     rowIds: ['UC-E2E-015'],
     mustPins: [
       [/\bpartial\b/i, 'pins partial'],
@@ -51,7 +51,7 @@ const units = [
   {
     id: 'uc-e2e-017-orphan-reservation',
     harness: 'ai-docs/delivery/harness/uc-e2e-017-orphan-reservation.md',
-    evalDoc: 'ai-docs/delivery/eval/uc-e2e-017-orphan-reservation.eval.md',
+    evalDoc: 'receipts/archive/2026-09-batch23/eval/uc-e2e-017-orphan-reservation.eval.md',
     rowIds: ['UC-E2E-017'],
     mustPins: [
       [/\bpartial\b/i, 'pins partial'],
@@ -65,8 +65,8 @@ const units = [
   },
   {
     id: 'uc-e2e-018-user-abandon',
-    harness: 'ai-docs/delivery/harness/uc-e2e-018-user-abandon.md',
-    evalDoc: 'ai-docs/delivery/eval/uc-e2e-018-user-abandon.eval.md',
+    harness: 'receipts/archive/2026-09-batch23/harness/uc-e2e-018-user-abandon.md',
+    evalDoc: 'receipts/archive/2026-09-batch23/eval/uc-e2e-018-user-abandon.eval.md',
     rowIds: ['UC-E2E-018'],
     mustPins: [
       [/\bpartial\b/i, 'pins partial'],
@@ -95,7 +95,7 @@ const units = [
   {
     id: 'uc-e2e-011-report-refund',
     harness: 'ai-docs/delivery/harness/uc-e2e-011-report-refund.md',
-    evalDoc: 'ai-docs/delivery/eval/uc-e2e-011-report-refund.eval.md',
+    evalDoc: 'receipts/archive/2026-09-batch23/eval/uc-e2e-011-report-refund.eval.md',
     rowIds: ['UC-E2E-011'],
     mustPins: [
       [/\bpartial\b/i, 'pins partial'],
@@ -118,7 +118,7 @@ const units = [
   {
     id: 'uc-e2e-010-sse-resume',
     harness: 'ai-docs/delivery/harness/uc-e2e-010-sse-resume.md',
-    evalDoc: 'ai-docs/delivery/eval/uc-e2e-010-sse-resume.eval.md',
+    evalDoc: 'receipts/archive/2026-09-batch23/eval/uc-e2e-010-sse-resume.eval.md',
     rowIds: ['UC-E2E-010'],
     mustPins: [
       [/\bpartial\b/i, 'pins partial'],
@@ -139,7 +139,7 @@ const units = [
   {
     id: 'uc-e2e-019-report-regenerate',
     harness: 'ai-docs/delivery/harness/uc-e2e-019-report-regenerate.md',
-    evalDoc: 'ai-docs/delivery/eval/uc-e2e-019-report-regenerate.eval.md',
+    evalDoc: 'receipts/archive/2026-09-batch23/eval/uc-e2e-019-report-regenerate.eval.md',
     rowIds: ['UC-E2E-019'],
     mustPins: [
       [/\bpartial\b/i, 'pins partial'],
@@ -160,7 +160,7 @@ const units = [
   {
     id: 'uc-e2e-003-i18n-locale',
     harness: 'ai-docs/delivery/harness/uc-e2e-003-i18n-locale.md',
-    evalDoc: 'ai-docs/delivery/eval/uc-e2e-003-i18n-locale.eval.md',
+    evalDoc: 'receipts/archive/2026-09-batch23/eval/uc-e2e-003-i18n-locale.eval.md',
     rowIds: ['UC-E2E-003'],
     mustPins: [
       [/\bpartial\b/i, 'pins partial'],
@@ -179,7 +179,7 @@ const units = [
   {
     id: 'uc-e2e-033-cross-user-authz',
     harness: 'ai-docs/delivery/harness/uc-e2e-033-cross-user-authz.md',
-    evalDoc: 'ai-docs/delivery/eval/uc-e2e-033-cross-user-authz.eval.md',
+    evalDoc: 'receipts/archive/2026-09-batch23/eval/uc-e2e-033-cross-user-authz.eval.md',
     rowIds: ['UC-E2E-033'],
     mustPins: [
       [/\bpartial\b/i, 'pins partial'],
@@ -201,7 +201,7 @@ const units = [
   {
     id: 'uc-e2e-004-career-path',
     harness: 'ai-docs/delivery/harness/uc-e2e-004-career-path.md',
-    evalDoc: 'ai-docs/delivery/eval/uc-e2e-004-career-path.eval.md',
+    evalDoc: 'receipts/archive/2026-09-batch23/eval/uc-e2e-004-career-path.eval.md',
     rowIds: ['UC-E2E-004'],
     mustPins: [
       [/\bgap\b/i, 'pins gap'],
@@ -224,7 +224,7 @@ const units = [
   {
     id: 'uc-e2e-025-stale-quiz-expiry',
     harness: 'ai-docs/delivery/harness/uc-e2e-025-stale-quiz-expiry.md',
-    evalDoc: 'ai-docs/delivery/eval/uc-e2e-025-stale-quiz-expiry.eval.md',
+    evalDoc: 'receipts/archive/2026-09-batch23/eval/uc-e2e-025-stale-quiz-expiry.eval.md',
     rowIds: ['UC-E2E-025'],
     mustPins: [
       [/\bgap\b/i, 'pins gap'],
@@ -246,7 +246,7 @@ const units = [
   {
     id: 'uc-e2e-028-trace-ledger-fail-open',
     harness: 'ai-docs/delivery/harness/uc-e2e-028-trace-ledger-fail-open.md',
-    evalDoc: 'ai-docs/delivery/eval/uc-e2e-028-trace-ledger-fail-open.eval.md',
+    evalDoc: 'receipts/archive/2026-09-batch23/eval/uc-e2e-028-trace-ledger-fail-open.eval.md',
     rowIds: ['UC-E2E-028'],
     mustPins: [
       [/\bgap\b/i, 'pins gap'],
@@ -269,7 +269,7 @@ const units = [
   {
     id: 'uc-e2e-027-manual-review-appeal',
     harness: 'ai-docs/delivery/harness/uc-e2e-027-manual-review-appeal.md',
-    evalDoc: 'ai-docs/delivery/eval/uc-e2e-027-manual-review-appeal.eval.md',
+    evalDoc: 'receipts/archive/2026-09-batch23/eval/uc-e2e-027-manual-review-appeal.eval.md',
     rowIds: ['UC-E2E-027'],
     mustPins: [
       [/\bgap\b/i, 'pins gap'],
@@ -293,7 +293,7 @@ const units = [
   {
     id: 'uc-e2e-040-043-batch-qbank-seat',
     harness: 'ai-docs/delivery/harness/uc-e2e-040-043-batch-qbank-seat.md',
-    evalDoc: 'ai-docs/delivery/eval/uc-e2e-040-043-batch-qbank-seat.eval.md',
+    evalDoc: 'receipts/archive/2026-09-batch23/eval/uc-e2e-040-043-batch-qbank-seat.eval.md',
     rowIds: ['UC-E2E-040–043', 'UC-E2E-040'],
     mustPins: [
       [/\bpartial\b/i, 'pins partial'],
@@ -316,7 +316,7 @@ const units = [
   {
     id: 'uc-e2e-031-032-injection-jailbreak',
     harness: 'ai-docs/delivery/harness/uc-e2e-031-032-injection-jailbreak.md',
-    evalDoc: 'ai-docs/delivery/eval/uc-e2e-031-032-injection-jailbreak.eval.md',
+    evalDoc: 'receipts/archive/2026-09-batch23/eval/uc-e2e-031-032-injection-jailbreak.eval.md',
     rowIds: ['UC-E2E-031', 'UC-E2E-032'],
     mustPins: [
       [/\bgap\b/i, 'pins gap'],

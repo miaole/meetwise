@@ -19,13 +19,15 @@ import {
   QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST, QBANK_CONTROL_DEFINER_VIEW_MANIFEST, QBANK_CONTROL_DEFINER_TABLE_MANIFEST, QBANK_CONTROL_DEFINER_ROLE,
 } from '../src/index.ts';
 import { ingestQuestionBankArtifacts } from '../src/index.ts';
+const MEETWISE_TEST_FIXTURE_PASSWORD_QHC = 'qbank-handoff-closure-2026';
+
 
 const admin = createPool();
 const runtimeRole = `qbank_handoff_runtime_${process.pid}`;
 const controlRole = `qbank_handoff_control_${process.pid}`;
 const preHandoffOwner = `qbank_pre_handoff_${process.pid}`;
 const definerRole = QBANK_CONTROL_DEFINER_ROLE;
-const password = 'qbank-handoff-closure-2026';
+const password = MEETWISE_TEST_FIXTURE_PASSWORD_QHC;
 const proofEmbedder = {
   id: 'qbank-handoff-closure-proof', dim: 512,
   async embed(texts: string[]) { return texts.map(() => new Array<number>(512).fill(0)); },

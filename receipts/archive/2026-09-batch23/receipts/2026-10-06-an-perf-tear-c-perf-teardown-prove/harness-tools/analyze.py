@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 # harness analyzer (not product code): python3 analyze.py <cell> <attemptDir>
 import json, re, sys, os
+from pathlib import Path
 cell, d = sys.argv[1], sys.argv[2]
+_real = os.path.realpath(d)
+_base = os.path.realpath(os.getcwd())
+if not (_real == _base or _real.startswith(_base + os.sep)):
+    raise SystemExit('attempt_dir_outside_cwd_forbidden')
+d = _real
 meta = json.load(open(f'{d}/meta.json'))
 log = open(f'{d}/prove.log').read()
 lines = log.split('\n')
@@ -23,7 +29,7 @@ if unh_idx:
     i0 = max(0, unh_idx[0] - 3); j = unh_idx[0]
     while j < len(lines) and not lines[j].startswith('Node.js v'): j += 1
     block = '\n'.join(lines[i0:j + 1])
-    open(f'{d}/unhandled-block.txt', 'w').write(block + '\n')
+    (Path(d) / 'unhandled-block.txt').write_text(block + '\n')
 em = re.search(r"Emitted 'error' event on (\w+) instance at:", block)
 obs['emitted_on'] = em.group(1) if em else None
 emitted_section = block[em.start():] if em else ''
@@ -200,5 +206,5 @@ else:
             else:
                 fails.append(f'J2_NOT_L3SIM({j2})')
 res = {'cell': cell, 'attempt': os.path.basename(d), 'pass': not fails, 'fails': fails, 'obs': obs}
-json.dump(res, open(f'{d}/verdict.json', 'w'), indent=1, default=str)
+    (Path(d) / 'verdict.json').write_text(json.dumps(res, indent=1, default=str))
 print(json.dumps({'attempt': res['attempt'], 'pass': res['pass'], 'fails': fails, 'exit': EXIT, 'J2': j2, 'emitted': E, 'frames': obs['emitted_at_pg_frames'][:2], 'dpe': obs['db_pool_error_n'], 'marker': obs.get('marker'), 'form': obs['form']}, default=str))

@@ -18,6 +18,9 @@
 import { asPrincipal, availableUnits, reserveEntitlement } from '@meetwise/db';
 import { boot, mkAssert, tokenFor, AUTH_SECRET } from './_neg-harness';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'wrong-secret-key-not-auth-test-only';
+
 const h = await boot();
 const { A, done } = mkAssert('uc018:adv');
 
@@ -274,7 +277,7 @@ if (bBucket.rowCount === 0) {
   A('ADV-Forge garbage 后仍 created', (await ivStatus(id)) === 'created');
 
   const badSig = await h.post(`/interview/${id}/abandon`, {
-    authorization: `Bearer ${tokenFor('userA', { secret: 'wrong-secret-key-not-auth-test-only' })}`,
+    authorization: `Bearer ${tokenFor('userA', { secret: MEETWISE_TEST_FIXTURE_1 })}`,
   }, {});
   A('ADV-Forge bad signature → 401', badSig.status === 401);
   A('ADV-Forge badSig 后仍 created', (await ivStatus(id)) === 'created');

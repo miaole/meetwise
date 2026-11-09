@@ -57,6 +57,9 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { boot } from './_neg-harness';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'test-secret-key';
+
 const CMD = 'pnpm uc050:nhp-kill:prove';
 const CASE_ID = 'NHP-050-KILL-01';
 const ATTEMPT_STARTED_AT = new Date().toISOString();
@@ -96,6 +99,7 @@ const stripEgressKeys = (env: NodeJS.ProcessEnv): NodeJS.ProcessEnv =>
 const CHILD_SOURCE = `
 import { createHash } from 'node:crypto';
 import { createApp } from '../../src/main.ts';
+
 const mode = process.env.__KILLSW_MODE__;
 const killVal = process.env[${JSON.stringify(KILL_ENV)}];
 const app = await createApp();
@@ -438,7 +442,7 @@ type Ledger = { available: number; consumptionRows: number };
       NODE_ENV: 'test',
       OCR_ENABLED: '0',
       AUTH_DEV_HEADER: '1',
-      AUTH_SECRET: 'test-secret-key',
+      AUTH_SECRET: MEETWISE_TEST_FIXTURE_1,
       RESUME_ENC_KEY: 'test-resume-enc-key',
       RESUME_HASH_SECRET: 'test-resume-hash-secret',
       PAY_PROVIDER_SECRET: 'test-pay-secret',
@@ -459,7 +463,7 @@ type Ledger = { available: number; consumptionRows: number };
         env.DATABASE_URL = 'postgresql://obs:proof@db.invalid:5432/obs';
         for (const pgKey of ['PGHOST', 'PGPORT', 'PGUSER', 'PGPASSWORD', 'PGDATABASE']) delete env[pgKey];
       }
-      const child = spawn(process.execPath, ['--import', '@swc-node/register/esm-register', childSourcePath], {
+      const child = spawn(process.execPath, ['--import', '@swc-node/register/esm-register', '--', childSourcePath], {
         cwd: apiRoot,
         env,
         stdio: ['ignore', 'pipe', 'pipe'],

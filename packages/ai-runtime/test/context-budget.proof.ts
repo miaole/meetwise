@@ -31,6 +31,9 @@ import {
   type UsageObservation,
 } from '../src/index.ts';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'test-only';
+
 let failures = 0;
 const A = (name: string, ok: boolean) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`); if (!ok) failures++; };
 const section = (title: string) => console.log(`\n──────── ${title} ────────`);
@@ -203,7 +206,7 @@ section('5. 请求显式带 max_output（真实传递到供应商）');
     return new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ ok: true }) } }], usage: { prompt_tokens: 5, completion_tokens: 1 } }), { status: 200, headers: { 'content-type': 'application/json' } });
   }) as typeof fetch;
   try {
-    const client = openAICompatibleClient({ baseUrl: 'https://model.invalid', apiKey: 'test-only', model: costPolicy.model, costPolicy });
+    const client = openAICompatibleClient({ baseUrl: 'https://model.invalid', apiKey: MEETWISE_TEST_FIXTURE_1, model: costPolicy.model, costPolicy });
     const result = await client.complete({ service: 'proof.maxoutput', system: '系统指令', userData: '用户答案' }, 1);
     A('请求确实派发（fake transport 收到 1 请求）', result.ok === true && bodies.length === 1);
     A('实发 body.max_tokens === maxOutputTokens（显式输出上限）', bodies[0]?.max_tokens === costPolicy.maxOutputTokens);

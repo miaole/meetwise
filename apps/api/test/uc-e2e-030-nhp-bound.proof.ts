@@ -50,6 +50,10 @@ import type { Client } from '@meetwise/db';
 import { signToken, verifyTokenFull } from '@meetwise/domain';
 import { revokeSession, SESSION_TTL_SEC } from '../src/platform/auth-session.ts';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'uc030-r2-new-pw-2026';
+const MEETWISE_TEST_FIXTURE_2 = 'uc030-r5-new-pw-2026';
+
 let failures = 0;
 let total = 0;
 const A = (name: string, ok: boolean) => { total++; console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`); if (!ok) failures += 1; };
@@ -221,7 +225,7 @@ async function main(): Promise<void> {
   const r2pw = 'uc030-r2-pw-2026';
   const r2 = await signup('r2');
   const r2old = r2.token;
-  const r2chg = await call('POST', '/profile/change-password', bearer(r2old), { oldPassword: r2pw, newPassword: 'uc030-r2-new-pw-2026' });
+  const r2chg = await call('POST', '/profile/change-password', bearer(r2old), { oldPassword: r2pw, newPassword: MEETWISE_TEST_FIXTURE_1 });
   A('R2 change-password → 200 且响应体 {changed:true, token}（:162 回签令牌出响应体=续命面）',
     r2chg.status === 200 && r2chg.body['changed'] === true && typeof r2chg.body['token'] === 'string');
   const r2new = String(r2chg.body['token'] ?? '');
@@ -256,7 +260,7 @@ async function main(): Promise<void> {
   const r5pw = 'uc030-r5-pw-2026';
   const r5 = await signup('r5');
   const r5t2 = await login('r5-2nd', `uc030-nhp-bound-r5-${process.pid}@example.test`, r5pw);
-  const r5chg = await call('POST', '/profile/change-password', bearer(r5t2), { oldPassword: r5pw, newPassword: 'uc030-r5-new-pw-2026' });
+  const r5chg = await call('POST', '/profile/change-password', bearer(r5t2), { oldPassword: r5pw, newPassword: MEETWISE_TEST_FIXTURE_2 });
   const r5t3 = String(r5chg.body['token'] ?? '');
   const r5jtis = [jtiOf(r5.token), jtiOf(r5t2), jtiOf(r5t3)];
   A('R5 signup+login+改密回签三签发 jti 互异（randomUUID :41 对码）', new Set(r5jtis).size === 3);

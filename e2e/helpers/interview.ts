@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { appendFileSync, mkdirSync } from 'node:fs';
-import { BASE, readJson } from './http.ts';
+import { e2eUrl, readJson } from './http.ts';
 import { readSseEvents, rejectForgedProgressScores, type SseEvent } from './sse.ts';
 import type { AssertFn } from './assert.ts';
 
@@ -259,7 +259,7 @@ export async function submitTurn(
   answer: string,
   idempotencyKey: string,
 ): Promise<{ status: number; body: any }> {
-  const response = await fetch(`${BASE}/interview/${interviewId}/turn`, {
+  const response = await fetch(e2eUrl(`/interview/${interviewId}/turn`), {
     method: 'POST',
     headers: { ...headers, 'idempotency-key': idempotencyKey },
     body: JSON.stringify(answerBody(identity, answer)),

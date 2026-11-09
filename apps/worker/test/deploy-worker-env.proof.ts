@@ -18,6 +18,8 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolveModelCostGovernance } from '../src/model-cost-governance.ts';
+const MEETWISE_TEST_FIXTURE_MODEL_BACKUP_API_KEY_DWE = 'backup-key-proof-only';
+
 
 let failures = 0;
 const A = (name: string, ok: boolean) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`); if (!ok) failures++; };
@@ -85,7 +87,7 @@ const literal: NodeJS.ProcessEnv = {
   MODEL_BACKUP_NAME: 'qwen-plus-backup',
   MODEL_FAST_BACKUP_NAME: 'qwen-turbo-backup',
   // 备用端点的启用开关（isTextBackupEnabled）只看 Key 是否挂载；这是 worker 块原本就有的。
-  MODEL_BACKUP_API_KEY: 'backup-key-proof-only',
+  MODEL_BACKUP_API_KEY: MEETWISE_TEST_FIXTURE_MODEL_BACKUP_API_KEY_DWE,
   ...endpointValues('MODEL_PRIMARY', 'qwen-plus'),
   ...endpointValues('MODEL_FAST', 'qwen-turbo'),
   ...endpointValues('MODEL_BACKUP', 'qwen-plus-backup'),

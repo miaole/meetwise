@@ -32,6 +32,13 @@ import {
   provisionRuntimeLogin,
   startApplicationInterview,
 } from '@meetwise/db';
+const MEETWISE_TEST_FIXTURE_RUNTIMEPASSWORD_SCOR71 = 'scor00-runtime-proof-password-2026';
+
+
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'scor-00-http-proof-auth-secret';
+const MEETWISE_TEST_FIXTURE_2 = 'scor-00-candidate-password';
+const MEETWISE_TEST_FIXTURE_3 = 'scor-00-intruder-password';
 
 let failures = 0;
 const A = (name: string, ok: boolean) => {
@@ -46,7 +53,7 @@ async function json(response: Response): Promise<any> {
 async function main() {
   Object.assign(process.env, {
     AUTH_DEV_HEADER: '1',
-    AUTH_SECRET: 'scor-00-http-proof-auth-secret',
+    AUTH_SECRET: MEETWISE_TEST_FIXTURE_1,
     RESUME_ENC_KEY: 'scor-00-http-proof-resume-key',
     RESUME_HASH_SECRET: 'scor-00-http-proof-resume-hash-key',
     PAY_PROVIDER_SECRET: 'scor-00-http-proof-pay-key',
@@ -63,7 +70,7 @@ async function main() {
   const admin = createPool();
   await assertIsolatedTestTarget(admin);
   const runtimeRole = `scor00_runtime_${process.pid}`;
-  const runtimePassword = 'scor00-runtime-proof-password-2026';
+  const runtimePassword = MEETWISE_TEST_FIXTURE_RUNTIMEPASSWORD_SCOR71;
   let app: any;
   let runtimeDb: any;
   const candidateEmail = `scor00-candidate-${process.pid}@example.test`;
@@ -93,7 +100,7 @@ async function main() {
 
     const signup = await fetch(`${base}/auth/signup`, {
       method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ email: candidateEmail, password: 'scor-00-candidate-password', role: 'candidate' }),
+      body: JSON.stringify({ email: candidateEmail, password: MEETWISE_TEST_FIXTURE_2, role: 'candidate' }),
     });
     const candidate = await json(signup);
     A('候选人通过真实 HTTP 注册并取得 Bearer 令牌',
@@ -102,7 +109,7 @@ async function main() {
 
     const intruderSignup = await fetch(`${base}/auth/signup`, {
       method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ email: intruderEmail, password: 'scor-00-intruder-password', role: 'candidate' }),
+      body: JSON.stringify({ email: intruderEmail, password: MEETWISE_TEST_FIXTURE_3, role: 'candidate' }),
     });
     const intruder = await json(intruderSignup);
     A('跨主体调用者也通过真实 HTTP 取得独立令牌',

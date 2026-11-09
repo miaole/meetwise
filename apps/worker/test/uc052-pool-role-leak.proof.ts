@@ -18,6 +18,8 @@ import {
   __setCheckpointPrincipalCleanupOverrideForTest,
   type CheckpointAccess,
 } from '../src/checkpoint-principal.ts';
+const MEETWISE_TEST_FIXTURE_PASSWORD_UC052 = 'pool-role-leak-password-2026';
+
 
 const REQUIRED_CASES = [
   'NHP-POOL-NEG-01',
@@ -30,7 +32,7 @@ const REQUIRED_CASES = [
 
 const admin = createPool();
 const role = `pool_leak_rt_${process.pid}`;
-const password = 'pool-role-leak-password-2026';
+const password = MEETWISE_TEST_FIXTURE_PASSWORD_UC052;
 let failures = 0;
 const seen = new Set<string>();
 const caseStatus = new Map<string, string>();

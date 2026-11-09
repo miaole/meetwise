@@ -1,5 +1,7 @@
 import { test, expect, type BrowserContext, type Page, type APIRequestContext } from '@playwright/test';
 import { createHmac, randomUUID } from 'node:crypto';
+const MEETWISE_TEST_FIXTURE_PASSWORD_VDX = 'strongpw123';
+
 
 const voiceKeysReady = Boolean(String(process.env.DASHSCOPE_TTS_API_KEY ?? '').trim())
   && Boolean(String(process.env.DASHSCOPE_ASR_API_KEY ?? '').trim());
@@ -10,7 +12,7 @@ test.beforeEach(({ }, testInfo) => {
 });
 
 const API = process.env.E2E_API_BASE ?? 'http://127.0.0.1:8787';
-const PASSWORD = 'strongpw123';
+const PASSWORD = MEETWISE_TEST_FIXTURE_PASSWORD_VDX;
 const VOICE_RESUME_FACT = '负责 Redis 限流与幂等订单改造';
 
 async function signUp(page: Page, email: string) {

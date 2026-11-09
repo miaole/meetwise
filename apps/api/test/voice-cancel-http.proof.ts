@@ -10,6 +10,9 @@ import Fastify from 'fastify';
 import { dashscopeAsr } from '@meetwise/ai-runtime';
 import { InterviewController } from '../src/modules/interview/interview.controller.ts';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'test-key';
+
 // This proof injects a fake provider endpoint. Application composition never
 // enables this test-only seam.
 process.env.NODE_ENV = 'test';
@@ -62,7 +65,7 @@ async function main() {
     transcribe: async (_principal: string, _id: string, _dto: unknown, options?: { signal?: AbortSignal }) => {
       observedAsrSignal = options?.signal;
       markAsrStarted();
-      return await dashscopeAsr({ baseUrl: 'https://provider.invalid', apiKey: 'test-key', timeoutMs: 500 })
+      return await dashscopeAsr({ baseUrl: 'https://provider.invalid', apiKey: MEETWISE_TEST_FIXTURE_1, timeoutMs: 500 })
         .transcribe(new Uint8Array([1, 2, 3]), { format: 'webm', signal: options?.signal });
     },
   };

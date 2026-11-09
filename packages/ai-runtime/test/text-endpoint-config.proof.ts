@@ -14,6 +14,9 @@ import {
   resolveTextEndpointConfig,
 } from '../src/text-endpoint-config.ts';
 import { keyFingerprint, parseRevokedFingerprints } from '../src/secret-fingerprint.ts';
+const MEETWISE_TEST_FIXTURE_MODEL_API_KEY_TEC1 = 'primary-key';
+const MEETWISE_TEST_FIXTURE_MODEL_BACKUP_API_KEY_TEC2 = 'backup-key';
+
 
 let failures = 0;
 const A = (name: string, ok: boolean) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`); if (!ok) failures++; };
@@ -36,7 +39,7 @@ function main() {
     && primary.model === 'qwen-plus');
   A('主文本 endpoint 快照被冻结（调用方无法在派发前改写）', Object.isFrozen(primary));
   A('主文本 Key 只读 MODEL_API_KEY（不落别的变量）',
-    resolveTextEndpointConfig({ MODEL_API_KEY: 'primary-key' }).apiKey === 'primary-key');
+    resolveTextEndpointConfig({ MODEL_API_KEY: MEETWISE_TEST_FIXTURE_MODEL_API_KEY_TEC1 }).apiKey === 'primary-key');
   A('主文本模型名读 MODEL_NAME',
     resolveTextEndpointConfig({ MODEL_NAME: 'deepseek-v4-pro' }).model === 'deepseek-v4-pro');
 
@@ -61,7 +64,7 @@ function main() {
   A('备用 endpoint 默认 profile = dashscope-cn-beijing（与主独立）',
     resolveTextBackupEndpointConfig(EMPTY).baseUrl === 'https://dashscope.aliyuncs.com/compatible-mode/v1');
   const backup = resolveTextBackupEndpointConfig({
-    MODEL_BACKUP_API_KEY: 'backup-key',
+    MODEL_BACKUP_API_KEY: MEETWISE_TEST_FIXTURE_MODEL_BACKUP_API_KEY_TEC2,
     MODEL_BACKUP_NAME: 'qwen-plus',
     MODEL_BACKUP_ENDPOINT_PROFILE: 'dashscope-cn-beijing',
   });

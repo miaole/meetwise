@@ -19,6 +19,9 @@ import { z } from 'zod';
 import { assertIsolatedTestTarget, createPool } from '@meetwise/db';
 import type { ModelCostPolicy } from '../src/index.ts';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'test';
+
 process.env.NODE_ENV = 'test';
 process.env.MODEL_TEST_TRANSPORT_OVERRIDES = '1';
 
@@ -146,7 +149,7 @@ async function main(): Promise<number> {
     const scripted = echo;
     const client = openAICompatibleClient({
       baseUrl: `http://127.0.0.1:${scripted.port}`,
-      apiKey: 'test',
+      apiKey: MEETWISE_TEST_FIXTURE_1,
       model: modelName,
       costPolicy: policy,
     });

@@ -6,10 +6,12 @@
 import 'reflect-metadata';
 import { fileURLToPath } from 'node:url';
 import { asGateway, assertIsolatedTestTarget, createPool, loadMigrations, provisionRuntimeLogin, runMigrations } from '@meetwise/db';
+const MEETWISE_TEST_FIXTURE_PASSWORD_RT = 'api-runtime-role-password-2026';
+
 
 const admin = createPool();
 const role = `api_runtime_${process.pid}`;
-const password = 'api-runtime-role-password-2026';
+const password = MEETWISE_TEST_FIXTURE_PASSWORD_RT;
 let failures = 0;
 const A = (name: string, ok: boolean) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`); if (!ok) failures++; };
 const rejects = async (fn: () => Promise<unknown>) => { try { await fn(); return false; } catch { return true; } };

@@ -23,6 +23,8 @@ import {
   resolveG7TestProfile,
   selectPaidFallback,
 } from '../src/g7-freetier-reprove-guard.ts';
+const MEETWISE_TEST_FIXTURE_MODEL_API_KEY_G7G = 'test-not-a-real-secret';
+
 
 let failures = 0;
 const A = (name: string, ok: boolean) => {
@@ -125,7 +127,7 @@ function main() {
     'missing MODEL_API_KEY fail-closed',
     throws(() => assertModelApiKeyPresent({}), 'g7_model_api_key_missing'),
   );
-  const fp = assertModelApiKeyPresent({ MODEL_API_KEY: 'test-not-a-real-secret' });
+  const fp = assertModelApiKeyPresent({ MODEL_API_KEY: MEETWISE_TEST_FIXTURE_MODEL_API_KEY_G7G });
   A('key fingerprint is 8 hex chars', /^[0-9a-f]{8}$/.test(fp));
   A('fingerprint helper stable', keyFingerprintPrefix('test-not-a-real-secret') === fp);
 

@@ -1,5 +1,5 @@
 import { createHmac } from 'node:crypto';
-import { BASE, PAY_SECRET, readJson } from './http.ts';
+import { PAY_SECRET, e2eUrl, readJson } from './http.ts';
 
 /** HMAC event the live webhook verifies. Helpers never sign another event or skip verification. */
 export const PAID_WEBHOOK_EVENT = 'paid' as const;
@@ -14,7 +14,7 @@ export function isWebhookCreditResult(result: unknown): result is (typeof WEBHOO
 }
 
 export async function createOrder(headers: Record<string, string>, productId: string, idempotencyKey: string): Promise<CommerceHttpResult> {
-  const response = await fetch(`${BASE}/commerce/orders`, {
+  const response = await fetch(e2eUrl(`/commerce/orders`), {
     method: 'POST',
     headers: { ...headers, 'idempotency-key': idempotencyKey },
     body: JSON.stringify({ productId }),
@@ -45,7 +45,7 @@ export function paidWebhookSignature(orderId: string, providerTxn: string, ts: n
  * 5A-2 #100:body 携 `{providerTxn, sig, ts}`(ts 由调用方绑定,sig 必须对同一 ts 计算)。
  */
 export async function postPayWebhook(orderId: string, providerTxn: string, sig: string, ts: number): Promise<CommerceHttpResult> {
-  const response = await fetch(`${BASE}/commerce/webhook/pay/${orderId}`, {
+  const response = await fetch(e2eUrl(`/commerce/webhook/pay/${orderId}`), {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ providerTxn, sig, ts }),
@@ -61,5 +61,5 @@ export async function payWebhook(orderId: string, providerTxn: string, secret = 
 }
 
 export async function entitlement(headers: Record<string, string>): Promise<any> {
-  return readJson(await fetch(`${BASE}/commerce/entitlement`, { headers }));
+  return readJson(await fetch(e2eUrl(`/commerce/entitlement`), { headers }));
 }

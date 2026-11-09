@@ -45,7 +45,7 @@ interface RedisCommandClient {
   on(event: string, listener: (...args: unknown[]) => void): unknown;
   get(key: string): Promise<string | null>;
   set(key: string, value: string, options: { expiration: { type: 'PX'; value: number }; condition: 'NX' }): Promise<string | null>;
-  eval(script: string, options: { keys: string[]; arguments: string[] }): Promise<unknown>;
+  evalScript(script: string, options: { keys: string[]; arguments: string[] }): Promise<unknown>;
 }
 
 export interface RagRedisCacheConfig {
@@ -219,7 +219,7 @@ export class RedisQbankRetrievalCache implements QbankRetrievalCacheBackend {
   }
 
   async renew(address: QbankRetrievalCacheAddress, lock: QbankRetrievalCacheLock, leaseMs: number): Promise<boolean> {
-    return asNumber(await this.command('renew', () => this.client.eval(RENEW_SCRIPT, {
+    return asNumber(await this.command('renew', () => this.client.evalScript(RENEW_SCRIPT, {
       keys: [lockKey(address)], arguments: [lock.token, String(leaseMs)],
     }))) === 1;
   }
@@ -227,12 +227,12 @@ export class RedisQbankRetrievalCache implements QbankRetrievalCacheBackend {
   async publish(address: QbankRetrievalCacheAddress, lock: QbankRetrievalCacheLock, hits: QbankRetrievalHit[], ttlMs: number): Promise<boolean> {
     const value = JSON.stringify({ schema: VALUE_SCHEMA, epoch: address.corpusEpoch, hits } satisfies StoredValue);
     if (Buffer.byteLength(value, 'utf8') > MAX_VALUE_BYTES) throw new RagCacheValueError();
-    return asNumber(await this.command('publish', () => this.client.eval(PUBLISH_SCRIPT, {
+    return asNumber(await this.command('publish', () => this.client.evalScript(PUBLISH_SCRIPT, {
       keys: [valueKey(address), lockKey(address)], arguments: [lock.token, value, String(ttlMs)],
     }))) === 1;
   }
 
   async release(address: QbankRetrievalCacheAddress, lock: QbankRetrievalCacheLock): Promise<void> {
-    await this.command('release', () => this.client.eval(RELEASE_SCRIPT, { keys: [lockKey(address)], arguments: [lock.token] }));
+    await this.command('release', () => this.client.evalScript(RELEASE_SCRIPT, { keys: [lockKey(address)], arguments: [lock.token] }));
   }
 }

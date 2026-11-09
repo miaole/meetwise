@@ -9,10 +9,12 @@ import { buildAdaptiveInterviewGraph, createEphemeralAnswerVault } from '@meetwi
 import { assertIsolatedTestTarget, asPrincipal, createPool, enrollCheckpointThread, revokeCheckpointThread, loadMigrations, provisionRuntimeLogin, runMigrations } from '@meetwise/db';
 import { createCheckpointer } from '../src/main.ts';
 import { withCheckpointAccess } from '../src/checkpoint-principal.ts';
+const MEETWISE_TEST_FIXTURE_PASSWORD_CRR = 'checkpoint-runtime-role-password-2026';
+
 
 const admin = createPool();
 const role = `checkpoint_runtime_${process.pid}`;
-const password = 'checkpoint-runtime-role-password-2026';
+const password = MEETWISE_TEST_FIXTURE_PASSWORD_CRR;
 let failures = 0;
 const A = (name: string, ok: boolean) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`); if (!ok) failures++; };
 const rejects = async (fn: () => Promise<unknown>) => { try { await fn(); return false; } catch { return true; } };

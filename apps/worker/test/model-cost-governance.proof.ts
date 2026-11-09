@@ -1,4 +1,6 @@
 import { modelCostPriceBindings, resolveModelCostGovernance, verifyModelCostGovernance } from '../src/model-cost-governance.ts';
+const MEETWISE_TEST_FIXTURE_MODEL_BACKUP_API_KEY_MCG = 'backup-test-only';
+
 
 let failures = 0;
 const A = (name: string, ok: boolean) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`); if (!ok) failures++; };
@@ -32,7 +34,7 @@ A('模型窗口不足以容纳输入、输出和安全余量时拒绝启动', fa
 const parsed = resolveModelCostGovernance(base);
 A('生产配置生成 primary 与 fast 两个受限费用策略', parsed.mode === 'enforce' && parsed.priceRows.length === 2 && parsed.policies.primary?.model === 'qwen-plus' && parsed.policies.fastPrimary?.model === 'qwen-turbo');
 const backup = resolveModelCostGovernance({
-  ...base, MODEL_BACKUP_API_KEY: 'backup-test-only', MODEL_BACKUP_NAME: 'qwen-plus-backup', MODEL_FAST_BACKUP_NAME: 'qwen-turbo-backup',
+  ...base, MODEL_BACKUP_API_KEY: MEETWISE_TEST_FIXTURE_MODEL_BACKUP_API_KEY_MCG, MODEL_BACKUP_NAME: 'qwen-plus-backup', MODEL_FAST_BACKUP_NAME: 'qwen-turbo-backup',
   ...endpoint('MODEL_BACKUP', 'qwen-plus-backup'), ...endpoint('MODEL_FAST_BACKUP', 'qwen-turbo-backup'),
 });
 A('启用备用端点（以备用 Key 挂载为准）时，两个备用模型均须有独立费率且被加载', backup.priceRows.length === 4 && backup.policies.backup?.model === 'qwen-plus-backup' && backup.policies.fastBackup?.model === 'qwen-turbo-backup');

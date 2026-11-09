@@ -1,6 +1,8 @@
 import { test, expect, type BrowserContext, type Page, type APIRequestContext } from '@playwright/test';
 import { createHmac, randomUUID } from 'node:crypto';
 import { createRequire } from 'node:module';
+const MEETWISE_TEST_FIXTURE_PASSWORD_REC = 'strongpw123';
+
 
 /**
  * 真浏览器 C→B 闭环：两个独立 cookie context 分别扮演候选人/招聘方。
@@ -10,7 +12,7 @@ import { createRequire } from 'node:module';
  * 都必须经 production Next UI 和 Server Action 完成。
  */
 const API = process.env.E2E_API_BASE ?? 'http://127.0.0.1:8787';
-const PASSWORD = 'strongpw123';
+const PASSWORD = MEETWISE_TEST_FIXTURE_PASSWORD_REC;
 
 // 0155_recruiter_approval_gate 后 recruiter 注册落 approval_status='pending'，signup server action
 // 早退反馈审核中（auth-actions.ts:29-31:零 cookie 零跳转），不再直落 /recruiter/jobs。recruiter 臂

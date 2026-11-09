@@ -13,11 +13,13 @@ import {
   createPool,
 } from '../src/index.ts';
 import { ingestQuestionBankArtifacts } from '../src/index.ts';
+const MEETWISE_TEST_FIXTURE_PASSWORD_MC = 'migration-cli-proof-password-2026';
+
 
 const pool = createPool();
 const root = fileURLToPath(new URL('../../..', import.meta.url));
 const suffix = String(process.pid);
-const password = 'migration-cli-proof-password-2026';
+const password = MEETWISE_TEST_FIXTURE_PASSWORD_MC;
 const qbankControlUser = `cli_qbank_${suffix}`;
 let failures = 0;
 const check = (name: string, ok: boolean) => {

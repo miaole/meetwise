@@ -21,6 +21,8 @@ import {
   type CalibratedFactor, type CompletionRequest, type ModelCostPolicy,
 } from '@meetwise/ai-runtime';
 import { resolveModelCostGovernance } from '../src/model-cost-governance.ts';
+const MEETWISE_TEST_FIXTURE_MODEL_BACKUP_API_KEY_EST = 'backup-test-only';
+
 
 let failures = 0;
 const A = (name: string, ok: boolean) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`); if (!ok) failures++; };
@@ -134,7 +136,7 @@ const baseEnv = (primaryEstimator: string, fastEstimator: string) => ({
   ...endpointEnv('MODEL_PRIMARY', 'qwen-plus', primaryEstimator), ...endpointEnv('MODEL_FAST', 'qwen-turbo', fastEstimator),
 } as NodeJS.ProcessEnv);
 const backupEnv = (backupEstimator: string, fastBackupEstimator: string) => ({
-  ...baseEnv('utf8-bytes-v1', 'utf8-bytes-v1'), MODEL_BACKUP_API_KEY: 'backup-test-only',
+  ...baseEnv('utf8-bytes-v1', 'utf8-bytes-v1'), MODEL_BACKUP_API_KEY: MEETWISE_TEST_FIXTURE_MODEL_BACKUP_API_KEY_EST,
   MODEL_BACKUP_NAME: 'qwen-plus-backup', MODEL_FAST_BACKUP_NAME: 'qwen-turbo-backup',
   ...endpointEnv('MODEL_BACKUP', 'qwen-plus-backup', backupEstimator), ...endpointEnv('MODEL_FAST_BACKUP', 'qwen-turbo-backup', fastBackupEstimator),
 } as NodeJS.ProcessEnv);

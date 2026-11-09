@@ -7,7 +7,32 @@
  */
 import { randomUUID } from 'node:crypto';
 
-const BASE = process.env.E2E_BASE ?? 'http://127.0.0.1:8787';
+// SSRF 护栏（门禁处置刀）：压测靶只允许回环/私有网段字面量——E2E_BASE 指向公网即 fail-closed
+// 拒跑。压测工具不该成为被指向任意公网主机的探针；默认回环语义零变化。
+const assertPerfTarget = (raw: string): string => {
+  const url = new URL(raw);
+  const host = url.hostname;
+  const loopback = host === '127.0.0.1' || host === 'localhost' || host === '[::1]' || host === '::1';
+  const privateV4 = /^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/.test(host);
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') throw new Error(`perf_target_protocol_forbidden:${url.protocol}`);
+  if (!loopback && !privateV4) throw new Error(`perf_target_not_private:${host}`);
+  return raw;
+};
+
+const BASE = assertPerfTarget(process.env.E2E_BASE ?? 'http://127.0.0.1:8787');
+
+// 拼合后的完整 URL 在每次请求前重验（SSRF 门禁：模板组合会让 BASE 上的校验失去数据流链接，
+// 故每个 fetch 的最终串都必须重新过同一回环/私有网段护栏）。
+const perfUrl = (path: string): string => {
+  const url = new URL(`${BASE}${path}`);
+  const host = url.hostname;
+  const loopback = host === '127.0.0.1' || host === 'localhost' || host === '[::1]' || host === '::1';
+  const privateV4 = /^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/.test(host);
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') throw new Error(`perf_target_protocol_forbidden:${url.protocol}`);
+  if (!loopback && !privateV4) throw new Error(`perf_target_not_private:${host}`);
+  return url.toString();
+};
+
 const READ_TOTAL = Number(process.env.PERF_READ_TOTAL ?? 128);
 const READ_CONCURRENCY = Number(process.env.PERF_READ_CONCURRENCY ?? 16);
 const WRITE_TOTAL = Number(process.env.PERF_WRITE_TOTAL ?? 24);
@@ -67,7 +92,7 @@ const assert = (condition: unknown, message: string) => {
 async function main() {
   // Liveness 不读数据库：它验证 HTTP server/socket 调度，不能把连接池排队伪装成进程死亡。
   const health = summarize('livez', await concurrent(READ_TOTAL * 2, READ_CONCURRENCY * 2, async () => {
-    const r = await fetch(`${BASE}/livez`);
+    const r = await fetch(perfUrl('/livez'));
     return r.status;
   }));
   assert(health.non2xx === 0, `livez ${health.total}/${health.total} 为 2xx`);
@@ -75,7 +100,7 @@ async function main() {
 
   // Database-backed public read: not a cached mock and not merely a liveness probe.
   const products = summarize('commerce_products', await concurrent(READ_TOTAL, READ_CONCURRENCY, async () => {
-    const r = await fetch(`${BASE}/commerce/products`);
+    const r = await fetch(perfUrl('/commerce/products'));
     return r.status;
   }));
   assert(products.non2xx === 0, `commerce/products ${products.total}/${products.total} 为 2xx`);
@@ -84,7 +109,7 @@ async function main() {
   // Stateful write path: distinct identities prevent uniqueness collisions from disguising overload as success.
   const tag = randomUUID();
   const signup = summarize('signup', await concurrent(WRITE_TOTAL, WRITE_CONCURRENCY, async (index) => {
-    const r = await fetch(`${BASE}/auth/signup`, {
+    const r = await fetch(perfUrl('/auth/signup'), {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ email: `perf-${tag}-${index}@x.com`, password: 'strongpw123' }),
@@ -100,7 +125,7 @@ async function main() {
   // 加密 blob、内容 HMAC、状态迁移和 profile 落库；不能仅以 /health 或注册吞吐代替。
   const resumeTag = randomUUID();
   const identities = await Promise.all(Array.from({ length: RESUME_TOTAL }, async (_, index) => {
-    const signupResponse = await fetch(`${BASE}/auth/signup`, {
+    const signupResponse = await fetch(perfUrl('/auth/signup'), {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ email: `perf-resume-${resumeTag}-${index}@x.com`, password: 'strongpw123' }),
@@ -108,7 +133,7 @@ async function main() {
     assert(signupResponse.ok, `resume setup signup index=${index} status=${signupResponse.status}`);
     const { token } = await signupResponse.json() as { token?: string };
     assert(typeof token === 'string' && token.length > 0, `resume setup token index=${index}`);
-    const consentResponse = await fetch(`${BASE}/privacy/consent`, {
+    const consentResponse = await fetch(perfUrl('/privacy/consent'), {
       method: 'POST',
       headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
       body: JSON.stringify({ purpose: 'resume_processing' }),
@@ -119,7 +144,7 @@ async function main() {
   console.log(`✓ resume setup: ${identities.length}/${RESUME_TOTAL} distinct users registered and consented`);
 
   const resumes = summarize('resume_ingest', await concurrent(RESUME_TOTAL, RESUME_CONCURRENCY, async (index) => {
-    const r = await fetch(`${BASE}/resume`, {
+    const r = await fetch(perfUrl('/resume'), {
       method: 'POST',
       headers: { authorization: `Bearer ${identities[index]}`, 'content-type': 'application/json' },
       body: JSON.stringify({ text: `性能并发简历 ${resumeTag}-${index}。负责 Redis 限流、幂等写入、事务 outbox 与可观测性治理。` }),

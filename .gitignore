@@ -36,3 +36,15 @@ __pycache__/
 # *.tsbuildinfo = tsc incremental 增量索引(apps/web/tsconfig.json incremental:true 副产·内嵌 clone 路径指纹)
 test-results/
 *.tsbuildinfo
+# preview-site/ = 本地预览部署残料（preview-manifest-origin.txt 单行 URL·非仓库内容·2026-11-07 门禁批刀随批处理）
+preview-site/
+# .mimosa/ = mimosa 插件 hook 会话态/finding ledger（运行时产物·非仓库内容）
+.mimosa/
+apps/api/.mimosa/
+# 本地工具状态/传输残料不进仓库(2026-11-07 i6-gates 预跑发现未跟踪杂物污染改动集·只 ignore 不删):
+# .sync/ = git bundle 同步传输残料; .playwright-cli/ = 控制台日志; output/ = playwright 输出;
+# .zcodeignore = ZCode 本地工作区忽略配置(仅本地态)
+.sync/
+.playwright-cli/
+output/
+.zcodeignore

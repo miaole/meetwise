@@ -34,6 +34,8 @@ import {
 } from '../src/context-budget.ts';
 import type { ModelCostPolicy } from '../src/invoke.ts';
 import type { CalibratedFactor } from '../src/usage-reconciliation.ts';
+const MEETWISE_TEST_FIXTURE_MODEL_API_KEY_G7P = 'sk-test-not-live';
+
 
 let failures = 0;
 const A = (name: string, cond: boolean, detail = '') => {
@@ -90,7 +92,7 @@ async function main(): Promise<void> {
       G7_RUN_COST_CAP_CNY: '5',
       G7_RUN_TOKEN_CAP: '100000',
       G7_RUN_CALL_CAP: '10',
-      MODEL_API_KEY: 'sk-test-not-live',
+      MODEL_API_KEY: MEETWISE_TEST_FIXTURE_MODEL_API_KEY_G7P,
     },
     async () => {
       A('G7 flag enabled', isG7FreetierReproveEnabled(process.env));

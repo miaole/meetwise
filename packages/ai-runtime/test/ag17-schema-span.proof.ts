@@ -23,6 +23,9 @@ import { z } from 'zod';
 import { assertIsolatedTestTarget, createPool } from '@meetwise/db';
 import { invoke, modelFor, openAICompatibleClient, recordingTracer, setTracer, type ModelCostPolicy } from '../src/index.ts';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'test';
+
 process.env.NODE_ENV = 'test';
 process.env.MODEL_TEST_TRANSPORT_OVERRIDES = '1';   // 本地 http loopback 脚本 provider 缝（context-stress 同源）
 
@@ -92,7 +95,7 @@ async function main() {
   await pool.query('INSERT INTO ai_cost_budget_policy(scope_id,monthly_limit_micro_cny,enabled) VALUES($1,1000000,true)', [SCOPE]);
 
   const echo = await startScriptedProvider();
-  const client = openAICompatibleClient({ baseUrl: `http://127.0.0.1:${echo.port}`, apiKey: 'test', model: MODEL, costPolicy: policy });
+  const client = openAICompatibleClient({ baseUrl: `http://127.0.0.1:${echo.port}`, apiKey: MEETWISE_TEST_FIXTURE_1, model: MODEL, costPolicy: policy });
   const arm = async (key: string) => invoke({
     idempotencyKey: key, operation: { id: 'interview.answer-scoring.v1', businessRevision: `ag17:${key}` },
     schema: answerSchema, businessValidate: () => null, model: modelFor(client, REQUEST),

@@ -3,6 +3,9 @@ import { spawn } from 'node:child_process';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'obs-proof-auth-secret';
+
 /**
  * obs-logging.proof — 审计#89 可观测性刀的日志收据门(全本地·live=0·est live=0)。
  * 以子进程 boot 真 HTTP 服务器(obs-logging.runner.ts,带全量 Nest 过滤器/hooks/pino),抓其 stdout
@@ -35,7 +38,7 @@ async function main() {
       ...process.env,
       NODE_ENV: 'test',
       OCR_ENABLED: '0',
-      AUTH_SECRET: 'obs-proof-auth-secret',
+      AUTH_SECRET: MEETWISE_TEST_FIXTURE_1,
       RESUME_ENC_KEY: 'obs-proof-resume-key',
       PAY_PROVIDER_SECRET: 'obs-proof-pay-secret',
       DATABASE_URL: 'postgresql://obs:proof@db.invalid:5432/obs',   // 池惰性连接,本 proof 不触 DB

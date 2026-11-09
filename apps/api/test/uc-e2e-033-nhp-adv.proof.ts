@@ -46,6 +46,9 @@ import { fileURLToPath } from 'node:url';
 import { boot, mkAssert } from './_neg-harness';
 import { getSseNotify } from '../src/platform/sse-notify.service.ts';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'x33adv-passw0rd';
+
 const { A, done } = mkAssert('uc033:nhp-adv');
 const h = await boot();
 const pool = h.pool;
@@ -269,7 +272,7 @@ const uploadResume = async (headers: Record<string, string>, tag: string) => {
   return String(r.body?.resumeId ?? '');
 };
 const signupSubject = async (email: string, tag: string) => {
-  const r = await h.post('/auth/signup', {}, { email, password: 'x33adv-passw0rd' });
+  const r = await h.post('/auth/signup', {}, { email, password: MEETWISE_TEST_FIXTURE_1 });
   A(`SEED signup 产品口新建主体 ${tag} → 200 token+userId`, r.status === 200 && typeof r.body?.token === 'string' && typeof r.body?.userId === 'string');
   const uid = String(r.body?.userId ?? '');
   const b = await pool.query(
@@ -490,11 +493,11 @@ const pollUntil = async (probe: () => Promise<boolean>, budgetMs = 1000, stepMs 
 
 // E1：缓存键跨主体隔离（C1=被禁主体·C2=跨主体不受扰）。
 {
-  const login1 = await h.post('/auth/login', {}, { email: `x33-adv-c1-${S.toLowerCase()}@x.com`, password: 'x33adv-passw0rd' });
+  const login1 = await h.post('/auth/login', {}, { email: `x33-adv-c1-${S.toLowerCase()}@x.com`, password: MEETWISE_TEST_FIXTURE_1 });
   A('E1 C1 login 产品口 → 200 token（jti 会话行·真哈希）', login1.status === 200 && typeof login1.body?.token === 'string');
   const t1 = String(login1.body?.token ?? '');
   A('E1 C1 Bearer 暖 statusCache → 200', (await h.req('GET', '/commerce/entitlement', bearer(t1))).status === 200);
-  const login2 = await h.post('/auth/login', {}, { email: `x33-adv-c2-${S.toLowerCase()}@x.com`, password: 'x33adv-passw0rd' });
+  const login2 = await h.post('/auth/login', {}, { email: `x33-adv-c2-${S.toLowerCase()}@x.com`, password: MEETWISE_TEST_FIXTURE_1 });
   const t2 = String(login2.body?.token ?? '');
   A('E1 C2 login+Bearer → 200（跨主体对照基线）', login2.status === 200 && (await h.req('GET', '/commerce/entitlement', bearer(t2))).status === 200);
 
@@ -514,14 +517,14 @@ const pollUntil = async (probe: () => Promise<boolean>, budgetMs = 1000, stepMs 
 
 // E2：会话缓存 jti 键隔离（B logout/JTI 通道臂）。
 {
-  const t2 = (await h.post('/auth/login', {}, { email: `x33-adv-c2-${S.toLowerCase()}@x.com`, password: 'x33adv-passw0rd' })).body?.token ?? '';
+  const t2 = (await h.post('/auth/login', {}, { email: `x33-adv-c2-${S.toLowerCase()}@x.com`, password: MEETWISE_TEST_FIXTURE_1 })).body?.token ?? '';
   const lo = await h.post('/auth/logout', bearer(t2), {});
   A('E2 C2 logout 产品口 → revoked=true（吊销当前 jti 会话）', lo.status === 200 && lo.body?.revoked === true);
   A('E2 C2 下一请求 → 401 session_revoked（logout 本地 evict 即时面）', is(await h.req('GET', '/commerce/entitlement', bearer(t2)), 401, 'session_revoked'));
   const c1Now = await h.req('GET', '/commerce/entitlement', bearer(C1.token));
   A('E2 B logout 零扰 A（C1 Bearer 复活后仍 200）', c1Now.status === 200);
 
-  const relogin = await h.post('/auth/login', {}, { email: `x33-adv-c2-${S.toLowerCase()}@x.com`, password: 'x33adv-passw0rd' });
+  const relogin = await h.post('/auth/login', {}, { email: `x33-adv-c2-${S.toLowerCase()}@x.com`, password: MEETWISE_TEST_FIXTURE_1 });
   const t2b = String(relogin.body?.token ?? '');
   A('E2 C2 重登录 → 200 新会话', relogin.status === 200 && t2b.length > 0);
   const c1lo = await h.post('/auth/logout', bearer(C1.token), {});

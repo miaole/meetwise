@@ -2,12 +2,12 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
+import { upstreamUrl } from '@/lib/api/server';
 
 /**
  * 鉴权 Server Actions(变更跑在服务端,表单无需客户端 fetch)。成功 → 设 **httpOnly cookie**(防 XSS 偷令牌)→ 服务端跳转。
  * 这是 App Router 的 Server Action 能力:`<form action={loginAction}>`,提交直接进服务端,RSC 立刻能用 cookie 取数。
  */
-const API_BASE = process.env.API_BASE_INTERNAL ?? process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:8787';
 
 /** 单 action:从表单的提交按钮 name="mode" 读 login/signup(useActionState 友好)。 */
 // #64 错误码本地化映射（2026-10-12·5E）：后端码 → 用户可读文案；未登记码走状态码兜底文案
@@ -32,7 +32,7 @@ export async function authAction(_prev: { error?: string }, formData: FormData):
   try {
     const payload = mode === 'signup' ? { email, password, role } : { email, password };
     // #64：fetch 超时（沿本文件 logoutAction 的 AbortSignal.timeout 既有形；10s 覆盖 argon2 校验+限流判定）。
-    const res = await fetch(`${API_BASE}/auth/${mode}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload), signal: AbortSignal.timeout(10_000) });
+    const res = await fetch(upstreamUrl(`/auth/${mode}`), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload), signal: AbortSignal.timeout(10_000) });
     body = await res.json().catch(() => ({}));
     if (!res.ok || !body.token) {
       if (res.status === 429) return { error: '尝试过于频繁，请稍后再试' };
@@ -63,7 +63,7 @@ export async function logoutAction(): Promise<void> {
   const token = c.get('mw_token')?.value;
   if (token) {
     try {
-      await fetch(`${API_BASE}/auth/logout`, {
+      await fetch(upstreamUrl(`/auth/logout`), {
         method: 'POST', headers: { authorization: `Bearer ${token}` },
         signal: AbortSignal.timeout(3000),
       });
