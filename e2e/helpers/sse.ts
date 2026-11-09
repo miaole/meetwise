@@ -1,4 +1,5 @@
 import { e2eUrl } from './http.ts';
+import { testHttp } from './http.ts';
 
 export type SseEvent = { seq: number; kind: string; payload: any };
 
@@ -67,7 +68,7 @@ export async function readSseEvents(path: string, token: string, lastSeq: number
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   let buf = '';
   try {
-    const response = await fetch(e2eUrl(`${path}`), {
+    const response = await testHttp(`${path}`, {
       headers: {
         authorization: `Bearer ${token}`,
         ...(lastSeq ? { 'last-event-id': String(lastSeq) } : {}),
