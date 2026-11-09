@@ -219,6 +219,15 @@ export function assertDocxZipWithinCaps(buffer: Buffer): void {
 - **rev r6 状态维持 · `executed:awaiting_post_prove_dual`**（2026-11-07 r5 post-prove 双席甲 PASS/乙 FAIL（P1-1 机密隔离逃逸面 containment 句容器实测证伪）→协调方裁诚实降级登记路线落卷：码注+件⑧ 如实改写+件⑧-a 已知残余威胁登记块+并线 cap union 2501·+12 承登（@`26c7c3d3b` 沿常设预授权先例形·r6 届核 main 已前进 `6c67dace2` 届扫 2500·union 届时实测取大重算·详 §9 rev r6 注记）·零代码语义改零撤授权·前值 rev r5/r4/EXEC 史录保留·修订缘由/处置详 §9 rev r6 注记·post-prove 复审待重派·状态钉=Status/本节/§9/卷尾 四处同值）。
 - **rev r4 状态维持 · `executed:awaiting_post_prove_dual`**（2026-11-06 post-prove 复验报告 FAIL→本刀 FAIL 处置修订落卷：别名读放大 P0 关闭+§3 如实改写+门矩阵全绿·前值 EXEC 史录保留·修订缘由/处置详见 §9 rev r4 注记·post-prove 复审待重派·状态钉=Status/本节/§9/卷尾 四处同值）。
 
+## §9-rev-r7（2026-11-09 · 挂账裁定落码：撤 --allow-child-process + 能力白名单）
+
+**Status 推进**：`executed:awaiting_post_prove_dual`（r6 态）→ r7 落码 → 待 post-prove 双审（本注后）。
+
+- **裁定来源**：用户 2026-11-09 口头裁定「撤宽开关换白名单」（挂账建议案 s3caps 项）。
+- **落码 r7→r8**：`packages/domain/src/resume-extract.ts` CHILD_PERM_ARGS 撤 `--allow-child-process`（r7）**继而撤 `--allow-worker`（r8·席甲 P1-1：worker 经 execArgv 可重取 child-process 权限=node permission model worker 逃逸面·两级复现）**；能力面收敛为白名单两项（`--allow-fs-read=<CHILD_APP_ROOT>/` 目录限定 + `--allow-addons`）。件⑧-a 残余威胁（child-process 逃逸读宿主 env）从根消除；dev 机 hermes shim 形态自此不兼容（本地形态面·非生产路径·如实登记）。
+- **门读数（亲跑·r8 两项白名单形）**：`prove:resume-extract` EXIT=0 **73 断言全绿**（pdf fake-worker 主线程模式无需真 worker 权限·实测验证）（docx/pdf 解析在无 child-process 授权下正常=白名单三项充分）；`prove:resume-512m-dual` 本机重跑 ✗ 宿主存活（容器未写 host-exit·复跑同形·colima 重启后环境面·非撤旗引入·该证明不进 CI·如实登记待环境恢复复验）。
+- **cap**：零新受管文件（in-place 码改+卷面注记）→ 届值不变。
+
 ## §9 门读数（起草席亲跑·EXIT 原值在案）
 
 | 门 | 命令 | 读数 |

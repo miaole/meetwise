@@ -284,15 +284,20 @@ function childEnv(): NodeJS.ProcessEnv {
  *    (无机密),纵深不因之破」containment 句被 r5 乙席容器实测证伪):子进程 env 已最小化+node
  *    层沙箱对 node 内逃逸有效;--allow-child-process 下子进程 spawn 非 node 二进制可逃逸
  *    node 沙箱读宿主 env(r5 乙席容器实测)——残余威胁=解析器 code exec,登记于卷 §1.8-件⑧
- *    与 gap 台账(台账行随派单落·r6-confirm P3-1),处置(撤授权/独立容器)归后继刀。
+ *    与 gap 台账(台账行随派单落·r6-confirm P3-1),处置(撤授权/独立容器)归后继刀——r7 2026-11-09 用户裁定「撤 --allow-child-process + 能力白名单」已落码（本块），残余威胁消除。
  *  r5 子进程 execArgv 不继承宿主 loader 链(原生 strip-types 直跑·r4-1 P2-3 耦合面关闭)——
  *  故无 tsx/swc 编译缓存读写授权面(零写盘形态保持,证伪路生产镜像实测)。 */
 const CHILD_PERM_ARGS = [
   '--permission',
   `--allow-fs-read=${CHILD_APP_ROOT}/`,   // 目录授权形(尾斜杠=递归整树·模块解析需逐级 readdir/读祖先 package.json,实测 /** 深链对目录 readdir 拒绝)
   '--allow-addons',
-  '--allow-worker',
-  '--allow-child-process',
+  // r8（2026-11-09 席甲 P1-1 修复）：--allow-worker 亦撤——worker 经 execArgv 可重取
+  // child-process 权限（node permission model worker 逃逸面·席甲两级复现）。白名单=fs-read+addons 两项。
+  // r7（2026-11-09 用户裁定「撤宽开关换白名单」落码）：撤 --allow-child-process——
+  // 生产 swc 形态零 spawn（r5 实测）；docx/pdf 解析走 node 库零外部命令；撤旗后子进程
+  // 无法再派生非 node 二进制=件⑧-a 残余威胁（child-process 逃逸读宿主 env）从根消除，
+  // 能力面收敛为显式白名单（fs-read 目录+addons+worker 三项）。dev 机 hermes shim 形态
+  // 自此不兼容（仅本地形态面·非生产路径·如实登记）。
 ];
 
 /** r5 子进程 stdio:stdin/stdout 丢弃,stderr 管道限量捕获——OOM abort 的 V8 原生栈/解析器告警
