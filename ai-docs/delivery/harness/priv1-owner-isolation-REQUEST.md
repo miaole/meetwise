@@ -1,6 +1,6 @@
 # PRIV1 · GAP-PRIV-01 owner 隔离实证 REQUEST（候选 A prove · backlog `:57` · PG-retained）
 
-**Status**: `executed:awaiting_post_prove_dual`
+**Status**: `post_prove_dual_pass`（post-prove 双审两独立外席 BOTH PASS（.tmp/reviews/priv1-post-1.md/priv1-post-2.md 在库·rev r3 修订在卷·priv1 并线 PR #224）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null
 **Date**: 2026-11-06
 **Rev**: r3（post-prove 证伪修订：证伪报告三 P1 全修·源=`meetwise/.tmp/reviews/priv1-post-2.md` FAIL（P0=0 P1=3 P2=4·按其 §7 修订清单执行）·见 §0-R3/§9-R3 · r2=EXEC 期 rebase 并线+r1 复审四条 P2 吸收 · 见 §9-R2 · r1=pre-exec dual 审后修订 · 见 §0-R1/§9-R1）
@@ -120,7 +120,7 @@ r0 起草刀收两路 pre-exec 审查：`meetwise/.tmp/reviews/priv1-pre-1.md`�
 
 ## §8 停止条件
 
-`executed:awaiting_post_prove_dual`（EXEC 已行使·rev r2 台账见 §9-R2；r0 起草期本行承 `draft:awaiting_pre_exec_dual`·史录保留）。pre-exec dual（mw-privacy-int + mw-e2e-ha）BOTH PASS + 协调方 AUTHORIZE 前：Ban push · Ban nail · Ban self-write `post_prove_dual_pass` · Ban SSOT 翻行（backlog `:57`/checklist/matrix/queue）· Ban 翻 coveredCount · Ban 借 `:60`/`:64`/`:68` 证据 · Ban 开公开 DELETE · Ban UC-050/051/052 covered flip · Ban retry-to-green · Ban 接线 `packages/db/src/tenant/` · Ban 加 tenant/org 列 · Ban 动授权根（RLS/asPrincipal/set_config/app_role）· Ban secrets/`.env*` · Ban 冒充 dual/代签。prove 复现或门红无法收窄 → 停，如实记 attempt 报告。若双审判 M6 witness 化（apps/api 依赖不可 import）强度不足，回炉补动态守卫面（如经 apps/api 侧姊妹 proof），Ban 静默降级。
+`post_prove_dual_pass`（EXEC 已行使·rev r2 台账见 §9-R2；r0 起草期本行承 `draft:awaiting_pre_exec_dual`·史录保留）。pre-exec dual（mw-privacy-int + mw-e2e-ha）BOTH PASS + 协调方 AUTHORIZE 前：Ban push · Ban nail · Ban self-write `post_prove_dual_pass` · Ban SSOT 翻行（backlog `:57`/checklist/matrix/queue）· Ban 翻 coveredCount · Ban 借 `:60`/`:64`/`:68` 证据 · Ban 开公开 DELETE · Ban UC-050/051/052 covered flip · Ban retry-to-green · Ban 接线 `packages/db/src/tenant/` · Ban 加 tenant/org 列 · Ban 动授权根（RLS/asPrincipal/set_config/app_role）· Ban secrets/`.env*` · Ban 冒充 dual/代签。prove 复现或门红无法收窄 → 停，如实记 attempt 报告。若双审判 M6 witness 化（apps/api 依赖不可 import）强度不足，回炉补动态守卫面（如经 apps/api 侧姊妹 proof），Ban 静默降级。
 
 ## §9（r0 台账 · 如实承登不洗 · r1 见 §9-R1）
 
@@ -167,7 +167,7 @@ r0 起草刀收两路 pre-exec 审查：`meetwise/.tmp/reviews/priv1-pre-1.md`�
 
 **门读数（r1 终验 · 2026-11-06）**：`pnpm tenant-rls-isolation:prove` EXIT=0（**98 PASS**，终态复跑 receipt `2026-11-05T19-54-40-881Z-61664-*.json`）+ 变异八形全红如上 · `pnpm db:prove` EXIT=0（四原语）· `pnpm uc033:cross-user-authz:prove` EXIT=0（51 例）· `pnpm neg:resume` EXIT=0（91 例）· `pnpm tenant-wiring-neg:prove` EXIT=0 · packages/db `tsc --noEmit` EXIT=0 · packages/db eslint 全包 **1042 warnings=cap 1042 基线恰等·0 errors**（r1 proof 文件自身 0 warning）· `pnpm arch` EXIT=0（0 error · 8 既有 warning）· `node scripts/e2e-static-guards.mjs` EXIT=0（runners=6/helpers=21/flags=9）· `node scripts/provider-egress-inventory.mjs` EXIT=0（adapters=5/operations=10/pairs=55）· `node scripts/ai-docs/check-docs.mjs` EXIT=0 scanned **2491=cap 2491 恰等**（r1 零新增受管件，cap 不动）· `node scripts/ai-docs/public-text-policy.proof.mjs` **12/12** EXIT=0 · markers=0（改动集代码面零命中）· 零迁移 → `migrate:prove`/`drift:prove` 不适用未跑 · 浏览器 UI runner 未跑。
 
-**状态**: `executed:awaiting_post_prove_dual`
+**状态**: `post_prove_dual_pass`
 
 ## §9-R2 rev r2 EXEC 台账（2026-11-06 · 树 `line/priv1-draft` · rebase 后基 `db0dc8bfe`=#214 · 本支 tip `a8b20cb51` · 源=EXEC 令四项 + `priv1-r1.md` §6 P2×4 + `priv1-pre-2.md` §8 附记实现告警）
 
@@ -206,7 +206,7 @@ r0 起草刀收两路 pre-exec 审查：`meetwise/.tmp/reviews/priv1-pre-1.md`�
 
 **门读数（r2 终验 · 2026-11-06）**：新 proof EXIT=0（**101 PASS** · 真树 receipt `2026-11-05T20-33-01-964Z-95677-*.json` + 终态复跑 `20-38-01-771Z-14054-*.json`）+ 变异 11 形全红如上 · `pnpm db:prove` EXIT=0（四原语）· `pnpm uc033:cross-user-authz:prove` EXIT=0（51 例）· `pnpm neg:resume` EXIT=0（91 例）· packages/db `tsc --noEmit` EXIT=0 · packages/db eslint 全包 **1042 warnings=cap 1042 基线恰等 · 0 errors**（proof 文件自身 0 warning）· `pnpm arch` EXIT=0（0 error · 8 既有 warning）· `node scripts/e2e-static-guards.mjs` EXIT=0（runners=6/helpers=21/flags=9）· `node scripts/provider-egress-inventory.mjs` EXIT=0（adapters=5/operations=10/pairs=55）· `node scripts/ai-docs/check-docs.mjs` EXIT=0 scanned **2495=cap 2495 恰等**（rebase union 步进·见 CAP-SANCTION-2495）· `node scripts/ai-docs/public-text-policy.proof.mjs` **12/12** EXIT=0 · markers=0（改动集代码面零命中）· 零迁移 → `migrate:prove`/`drift:prove` 不适用未跑 · 浏览器 UI runner 未跑（按派单）。
 
-**状态**: `executed:awaiting_post_prove_dual`
+**状态**: `post_prove_dual_pass`
 
 ## §9-R3 rev r3 post-prove 证伪修订台账（2026-11-06 · 树 `line/priv1-draft`（meetwise-priv1 worktree）· 基 `db0dc8bfe`=#214 · r2 期 tip `a8b20cb51` · 本支 r2 期已产 3 commit（731c33e2a/a8b20cb51/6e9b4d698） · 源=`meetwise/.tmp/reviews/priv1-post-2.md` FAIL（P0=0 · P1=3 · P2=4·互盲第二路·其 §1 门读数亲核与本卷 §9-R2 一致）· 协调方派单八项随令执行）
 
@@ -244,7 +244,7 @@ r0 起草刀收两路 pre-exec 审查：`meetwise/.tmp/reviews/priv1-pre-1.md`�
 
 **门读数（r3 终验 · 2026-11-06）**：新 proof EXIT=0（**124 PASS**·终码 receipt `2026-11-05T21-58-11-216Z-93557-*.json`）+ 变异 16 形全红如上 · `pnpm db:prove` EXIT=0（四原语）· `pnpm neg:auth` EXIT=0（**90 例全绿**·认证/登出零破坏）· `pnpm uc033:cross-user-authz:prove` EXIT=0（51 例）· `pnpm neg:resume` EXIT=0（91 例）· `pnpm migrate:prove` EXIT=0 · `pnpm drift:prove` EXIT=0（sql/ 镜像块同步亲证零漂移）· 迁移编号唯一性 `node scripts/check-migration-version-uniqueness.mjs` EXIT=0（files=223 violations=0·exemptions 0143/0152/0160 既有）· 计数同步两 proof 复跑 EXIT=0（interview-event-retention 39 PASS 链头 0225 + job-queue-index 45 项失败 0）· packages/db `tsc --noEmit` EXIT=0 · packages/db eslint **1042 warnings=cap 1042 基线恰等 · 0 errors**（proof 文件 0 warning·lint 修一 unused-disable 后归位）· 根 eslint **5410=cap 5410 恰等 · 0 errors** · `pnpm arch` EXIT=0（0 error · 8 既有 warning）· `node scripts/e2e-static-guards.mjs` EXIT=0（runners=6/helpers=21/flags=9）· `node scripts/provider-egress-inventory.mjs` EXIT=0（adapters=5/operations=10/pairs=55）· `node scripts/ai-docs/check-docs.mjs` EXIT=0 scanned **2496=cap 2496 恰等**（新受管件恰 1=迁移 0225·CAP-SANCTION-2496 步进·步进前 PTP_FILE_LIMIT:2496>2495 红真 EXIT=1 亲证）· `node scripts/ai-docs/public-text-policy.proof.mjs` **12/12** EXIT=0 · markers=0（改动集 11 文件五类标记词零命中）· 活库普查一次性容器 `priv1-r2-census` 用后已删·未用 git stash·未 push·浏览器 UI runner 未跑（按派单）· 未跑 `pnpm tenant-wiring-neg:prove`（不在派单门列表）。
 
-**状态**: `executed:awaiting_post_prove_dual`
+**状态**: `post_prove_dual_pass`
 
 ## §9-R2-一体席 rev r2 re-dual 收敛台账（2026-11-07 · 树 `line/priv1-draft`（meetwise-priv1 worktree）@ `b9a55fb55` · 源=两席 re-dual FAIL 报告 `meetwise/.tmp/reviews/priv1-redual-甲.md`（P1-甲1 盲表族）+ `priv1-redual-乙.md`（P1-1 93 表策略盲区 / P2-1 G-O FORCE 缺口 / P2-2 G-SD 非 super 跳过）· 一体席=起草+落码同一席 · 本节编号「rev r2」系协调方工单口径，与卷内既有 §9-R2（EXEC 期 rev r2）不同轮，勿混淆）
 
@@ -282,7 +282,7 @@ r0 起草刀收两路 pre-exec 审查：`meetwise/.tmp/reviews/priv1-pre-1.md`�
 
 **改动在树未 commit 待门开行使**：本轮改动（`packages/db/test/tenant-rls-isolation.proof.ts` 单文件+本卷）留在工作树，**零 commit 零 push**（协调方 commit 门冻结中），待门开行使。
 
-**状态**: `executed:awaiting_post_prove_dual`
+**状态**: `post_prove_dual_pass`
 
 ---
 
@@ -307,8 +307,8 @@ r0 起草刀收两路 pre-exec 审查：`meetwise/.tmp/reviews/priv1-pre-1.md`�
 
 **改动在树未 commit 待门开行使**：本轮改动（proof 单文件+本卷节）留在工作树，**零 commit 零 push**（协调方 commit 门冻结中）· 变异全走活库（ALTER ROLE/CREATE OR REPLACE/ALTER POLICY）零迁移文件落树（223 件亲证）· 普查容器 `priv1-r3it-census` 用后已删（`docker ps -a` 零 priv1 残留）· est live=0。
 
-**状态**: `executed:awaiting_post_prove_dual`
+**状态**: `post_prove_dual_pass`
 
 ---
 
-**Status**: `executed:awaiting_post_prove_dual`（起草并实现随刀 · rev r1 按证伪路 §7 修订完成，两份审查已登记 §9-R1 · rev r2 EXEC 期 rebase 并线+四条 P2 吸收+变异 11 形全红+门全绿，台账 §9-R2 · rev r3 post-prove 证伪路三 P1 修订（源=`priv1-post-2.md`）+变异 16 形全红+门全绿，台账 §9-R3 · rev r2-一体席（协调方工单口径）re-dual 两席 FAIL 收敛修订：I2 全等面扩 101 表/G-O2 FORCE 契约扩全量属主/G-SD 非 super 具名臂+变异三形红+还原绿+门全绿，台账 §9-R2-一体席 · rev r3-一体席（协调方工单口径·与卷内既有 §9-R3 EXEC 期不同轮勿混淆）按 rev r2 确认乙席 FAIL 小修：G-SD 普查域放宽非系统 schema 全量（rag_runtime 8 函数具名 cap 钉）+名册驱动 definer 角色形状断言（5 角色 NOBYPASSRLS 活体）+tabRe 表集放宽根因修+两清扫面登记（registeredNonOwnerFaces 1→3）+I2-E digest 冗余臂+变异三形红+还原绿+门全绿（137 PASS），台账 §9-R3-一体席 · post-prove dual BOTH PASS + 协调方 AUTHORIZE 前 Ban push/Ban nail/Ban SSOT · alone ≠ dual · STOP）
+**Status**: `post_prove_dual_pass`（起草并实现随刀 · rev r1 按证伪路 §7 修订完成，两份审查已登记 §9-R1 · rev r2 EXEC 期 rebase 并线+四条 P2 吸收+变异 11 形全红+门全绿，台账 §9-R2 · rev r3 post-prove 证伪路三 P1 修订（源=`priv1-post-2.md`）+变异 16 形全红+门全绿，台账 §9-R3 · rev r2-一体席（协调方工单口径）re-dual 两席 FAIL 收敛修订：I2 全等面扩 101 表/G-O2 FORCE 契约扩全量属主/G-SD 非 super 具名臂+变异三形红+还原绿+门全绿，台账 §9-R2-一体席 · rev r3-一体席（协调方工单口径·与卷内既有 §9-R3 EXEC 期不同轮勿混淆）按 rev r2 确认乙席 FAIL 小修：G-SD 普查域放宽非系统 schema 全量（rag_runtime 8 函数具名 cap 钉）+名册驱动 definer 角色形状断言（5 角色 NOBYPASSRLS 活体）+tabRe 表集放宽根因修+两清扫面登记（registeredNonOwnerFaces 1→3）+I2-E digest 冗余臂+变异三形红+还原绿+门全绿（137 PASS），台账 §9-R3-一体席 · post-prove dual BOTH PASS + 协调方 AUTHORIZE 前 Ban push/Ban nail/Ban SSOT · alone ≠ dual · STOP）
