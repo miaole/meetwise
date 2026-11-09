@@ -33,7 +33,7 @@ interface RedisCommandClient {
   get(key: string): Promise<string | null>;
   set(key: string, value: string, options: { expiration: { type: 'PX'; value: number }; condition?: 'NX' }): Promise<string | null>;
   del(key: string): Promise<number>;
-  eval(script: string, options: { keys: string[]; arguments: string[] }): Promise<unknown>;
+  sendCommand(args: ReadonlyArray<string>): Promise<unknown>;
 }
 
 const RELEASE_SCRIPT = `
@@ -137,7 +137,7 @@ class RedisEmbeddingComputeLockBackend implements EmbeddingComputeLockBackend {
   async release(cacheKey: string, lock: EmbeddingComputeLock): Promise<void> {
     if (!this.client.isReady) return;
     try {
-      await this.client.eval(RELEASE_SCRIPT, { keys: [LOCK_KEY_PREFIX + cacheKey], arguments: [lock.token] });
+      await this.client.sendCommand(['EVAL', RELEASE_SCRIPT, '1', LOCK_KEY_PREFIX + cacheKey, lock.token]);
     } catch {
       // best-effort release
     }
