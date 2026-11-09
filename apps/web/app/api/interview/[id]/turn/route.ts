@@ -10,6 +10,19 @@ import { proxyInterviewTurn } from '../../../../../lib/api/turn-proxy';
  */
 const API = process.env.API_BASE_INTERNAL ?? process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:8787';
 const TURN_TIMEOUT_MS = Number(process.env.PROXY_TURN_TIMEOUT_MS ?? 15_000) || 15_000;
+export const dynamic = 'force-dynamic';
+
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const token = await getServerToken();
+  if (!token) return Response.json({ error: 'unauthorized' }, { status: 401 });
+  const body = await req.text();
+  const idem = req.headers.get('idempotency-key');
+  if (!idem) return Response.json({ error: 'missing_idempotency_key' }, { status: 400 });
+  return await proxyInterviewTurn({
+    apiBase: API,
+    interviewId: id,
+    bearerToken: token,
     body,
     idempotencyKey: idem,
     signal: req.signal,
