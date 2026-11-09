@@ -1,6 +1,6 @@
 # PROOF-MAINT-A REQUEST（proof 维护批 A · 主线长期红 proof 四类收口：搬家缺文档 / 随新迁移过期 / 竞态崩溃 / 跑完回写 tracked · 草稿含代码 · 起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（2026-11-06 起草席落卷·四类修法已随四个 commit 落码并亲跑在卷·待 pre-exec 双审两独立外席 · ⛔push ⛔merge 主线 · Ban self-approve · alone ≠ dual · est live=0 · `actualSpendCny=null`）
+**Status**: **`executed:awaiting_post_prove_dual`**（2026-11-06 起草席落卷·四类修法已随四个 commit 落码并亲跑在卷·pre-exec 双审两独立外席 PASS（pmaint-pre-2 + pre-1-redual 在卷）→ **2026-11-09 EXEC 期 rebase 到 #225 后主线并线**（cap 2524→2526 恰等步进·policy dual-keep）·EXEC 期门矩阵抽验亲跑六条全绿（conn-stack:r4-domain-isolation/r1-tech-role-fail-closed/eval-uc-e2e-001-002-cite/bill3-settlement(43 PASS)/r4-g-r4-5-product-close/r4-eg1-dual-claim-product-close）·待 post-prove 双审两独立外席 · Ban self-approve · alone ≠ dual · est live=0 · `actualSpendCny=null`）
 
 **席位**：proof 维护批 A 起草席（协调方派单令：DOC-MISS-PTP 93 条 + TEST-EXPIRED 3 条 + HARNESS-BUG 1 条 + 回写 tracked 16 条）。
 **基线**：`origin/main` @ **`db0dc8bfe`**（#214 sbg 已并；起草开工时 fetch 亲证 tip=`d549a497b`=#212，worktree `meetwise-pmaint`（`git worktree add ../meetwise-pmaint -b line/pmaint-draft origin/main`）立于该点；起草期再 fetch 见 #213/#214 前进，工作树尚无 commit，`git merge --ff-only origin/main` 快进并线、零冲突，此后四类 commit 均落在 `db0dc8bfe` 之上）。`pnpm install --frozen-lockfile` EXIT=0。
@@ -222,7 +222,7 @@ Ban 把「断言过期」当真缺口放过、Ban 把真缺口改断言洗绿、
 
 ## §8 STOP + 停止条件
 
-**`draft:awaiting_pre_exec_dual`**（起草席落卷即停 · Status 头 / §8 / §9 / 卷尾四处一致）。后续任一席遇下列情形即停、回协调方：
+**`executed:awaiting_post_prove_dual`**（起草席落卷即停 · Status 头 / §8 / §9 / 卷尾四处一致）。后续任一席遇下列情形即停、回协调方：
 
 1. 任一改过的 proof 复跑红，或跑完 `git status` 不干净；
 2. typecheck/lint 任一包高于 §2 基线，或 check-docs 不恰等、PTP 非 12/12、markers 非 0；
@@ -231,7 +231,7 @@ Ban 把「断言过期」当真缺口放过、Ban 把真缺口改断言洗绿、
 5. 主线前进致两 policy 冲突——按常设预授权「cap 以合并树实测恰等步进」重算，链注追加、不改写既有注记，否则停；
 6. 需动其他工作树、需 Key、需 push。
 
-## §9 pre-exec dual 交接（状态：**`draft:awaiting_pre_exec_dual`**）
+## §9 pre-exec dual 交接（状态：**`executed:awaiting_post_prove_dual`**）
 
 ### 9.1 请双席重点核
 
@@ -253,4 +253,4 @@ Ban 把「断言过期」当真缺口放过、Ban 把真缺口改断言洗绿、
 
 ---
 
-*PROOF-MAINT-A REQUEST · 2026-11-06 起草 · **`draft:awaiting_pre_exec_dual`** · ⛔push ⛔merge 主线 · alone ≠ dual · base `origin/main` @`db0dc8bfe` · worktree `meetwise-pmaint` · branch `line/pmaint-draft` · 新增受管件 2（判据模块 + 本卷）· est live=0 · `actualSpendCny=null`*
+*PROOF-MAINT-A REQUEST · 2026-11-06 起草 · **`executed:awaiting_post_prove_dual`** · ⛔push ⛔merge 主线 · alone ≠ dual · base `origin/main` @`db0dc8bfe` · worktree `meetwise-pmaint` · branch `line/pmaint-draft` · 新增受管件 2（判据模块 + 本卷）· est live=0 · `actualSpendCny=null`*
