@@ -18,12 +18,22 @@ import { isOcrFeatureEnabled } from './ocr-model-client.ts';
 import { resumeDisplayName } from './resume-display.ts';
 
 const MAX_RESUME_BYTES = 8 * 1024 * 1024;   // 8MB 上限(防大文件 DoS)
-const MAX_RESUME_TEXT = 60_000;             // 提取文本末线(对齐文本路径契约;防解压炸弹/超大文档提取出 MB 级文本无界落库+喂模型,安全审计 F3)
+const MAX_RESUME_TEXT = 60_000;             // 提取文本末线(对齐文本路径契约;防解压炸弹/超大文档提取出 MB 级文本无界落库+喂模型,安全审计 F3)。r5:域层子进程按此帽截断回传(帽+1 字),本判定语义不变
 const PARSE_MAX = Number(process.env.RESUME_PARSE_MAX ?? 6);   // 全站同时解析上限(安全审计 F2 纵深:并发炸弹不堆积压垮事件循环)
+// r5 排队与公平(证伪路 P2:单账号突发 15 次可独占两槽约 100s):每用户同时最多 1 个解析
+// (per-user lane·FIFO),同用户第二请求排队等待;等待越限=可重试 503(server_busy·对外码面零
+// 新增)。与域层 FIFO(RESUME_PARSE_CONCURRENCY)共用同一等待上限 env,双层等待合计 ≤2×WAIT。
+const RESUME_PARSE_QUEUE_WAIT_MS = Math.max(0, Number(process.env.RESUME_PARSE_QUEUE_WAIT_MS ?? 10_000));
 // #85 单源化（5E 2026-10-12）：正则本体迁 apps/api/src/platform/uuid.ts（UUID_RE 通用形），语义表见单源头注。
 // 简历 id(uuid 列)守卫:非 uuid 直查会 22P02→500,提前当 not_found 兜成 404。
 /** OCR 视觉模型客户端 DI token:组合根(app.module)决定真(qwen-vl)/假(scripted,测试)——service 不硬编、只认注入的 seam,故 /resume/file 可真端到端测(非 demo)。 */
 export const OCR_VISION_CLIENT = Symbol.for('meetwise.OCR_VISION_CLIENT');
+
+// ── r5 每用户解析 lane(进程内零依赖 FIFO:同时最多 1 个解析/用户,排队等待有上限)──
+// 结构:userLaneTails[principal] = 尾 promise(前序全部 done 后 resolve)。登记=同步把
+// 「prev→本请求 done」挂为尾(事件循环单线程内原子,FIFO 有序);弃权/完成都 resolve 自己的
+// done——队列永不因弃权卡死。等待越限或客户端断开(signal.abort)→ 可重试 503。
+type UserLaneRelease = () => void;
 
 /**
  * 简历应用服务(拥有 asPrincipal 事务边界 + 业务编排)。controller 只解析/校验/映射 HTTP,不碰 SQL(修审计 F1)。
@@ -34,18 +44,67 @@ export class ResumeService {
   // vision 客户端由组合根注入(真 qwen-vl / 测试 scripted),service 不硬编 → 可端到端测。
   constructor(private readonly db: DbService, @Inject(OCR_VISION_CLIENT) private readonly vision: ModelClient, private readonly rl: RateLimitService) {}
 
+  private readonly userLaneTails = new Map<string, Promise<unknown>>();
+
+  /** r5:登记进该用户 lane 尾(同步·FIFO),等待前序完成;等待越 RESUME_PARSE_QUEUE_WAIT_MS 或
+   *  signal 已断 → 抛可重试 503(对外码=既有 server_busy)。弃权路径立即 resolve 自己的 done,
+   *  后继不被卡死。返回 release(完成/失败时都调,恰一次)。 */
+  private async acquireUserLane(principal: string, signal?: AbortSignal): Promise<UserLaneRelease> {
+    const prev = this.userLaneTails.get(principal) ?? Promise.resolve();
+    let release!: UserLaneRelease;
+    const done = new Promise<void>((r) => { release = r; });
+    this.userLaneTails.set(principal, prev.then(() => done));
+    let bail: (() => void) | null = null;
+    let timer: NodeJS.Timeout | null = null;
+    const onAbort = () => bail?.();
+    try {
+      await Promise.race([
+        prev,
+        new Promise<never>((_, reject) => {
+          bail = () => {
+            reject(new HttpException({ error: 'server_busy', message: '解析排队超时,请稍候重试' }, HttpStatus.SERVICE_UNAVAILABLE));
+          };
+          timer = setTimeout(bail, RESUME_PARSE_QUEUE_WAIT_MS);
+          if (signal) {
+            if (signal.aborted) bail();
+            else signal.addEventListener('abort', onAbort, { once: true });
+          }
+        }),
+      ]);
+    } catch (e) {
+      release();   // 弃权(等待越限/断开)也 resolve 自己的 done——后继不被卡死
+      throw e;
+    } finally {
+      if (timer) clearTimeout(timer);
+      signal?.removeEventListener('abort', onAbort);
+    }
+    return () => release();
+  }
+
   // 文件上传 = CPU 重的解析(PDF/docx,可炸弹)+ 可能触发付费 OCR → per-principal 令牌桶(安全审计 F2)。突发 15、稳态 0.1/秒(~6/分),正常传够、滥用循环被摁住。
   private async uploadGate(principal: string) {
     if (!(await this.rl.allow(`resume-file:${principal}`, 15, 0.1)))
       throw new HttpException({ error: 'too_many_requests', message: '文件上传过于频繁,请稍候' }, HttpStatus.TOO_MANY_REQUESTS);
   }
 
-  /** 文件上传(PDF/Word/图片):解码 → **提取+清洗文本** → 复用文本上传链路(consent/加密/结构化)。图片走 OCR(按次计费)。 */
-  async uploadFile(principal: string, dto: UploadResumeFileDto) {
+  /** 文件上传(PDF/Word/图片):解码 → **提取+清洗文本** → 复用文本上传链路(consent/加密/结构化)。图片走 OCR(按次计费)。
+   *  r5:options.signal=客户端断开缝(controller 接线·interview transcribe/speak 同款 once('aborted')/reply close 形)
+   *  ——排队弃权/子进程 terminate 双收口;每用户同时最多 1 个解析(acquireUserLane·排队等待有上限)。 */
+  async uploadFile(principal: string, dto: UploadResumeFileDto, options?: { signal?: AbortSignal }) {
     await this.uploadGate(principal);                                              // 限流先行:解码/解析前就摁住滥用(防炸弹并发压事件循环)
     const buffer = Buffer.from(dto.contentBase64, 'base64');
     if (buffer.length === 0) throw new HttpException({ error: 'empty_file' }, HttpStatus.BAD_REQUEST);
     if (buffer.length > MAX_RESUME_BYTES) throw new HttpException({ error: 'file_too_large' }, HttpStatus.PAYLOAD_TOO_LARGE);
+    const releaseLane = await this.acquireUserLane(principal, options?.signal);   // r5:每用户最多 1 个解析;第二请求排队,等待越限/断开→可重试 503
+    try {
+      await this.doUploadFile(principal, dto, buffer, options);
+    } finally {
+      releaseLane();
+    }
+  }
+
+  /** r5 拆出:原 uploadFile 解析+落库主体(每用户 lane 作用域内执行,异常上抛由 uploadFile 释 lane)。 */
+  private async doUploadFile(principal: string, dto: UploadResumeFileDto, buffer: Buffer, options?: { signal?: AbortSignal }) {
     // **全局解析并发闸(安全审计 F2 纵深)**:PDF/docx 解析是 CPU 重活压事件循环;即使多用户各自限流内并发涌入,
     // 全站同时最多 PARSE_MAX 个在解析,超出快速失败(503)不堆积——把"并发炸弹压垮事件循环"的爆炸半径钉死。配合已有 8s 提取超时 + 字节/文本封顶。
     if (!(await this.rl.acquireSlot('resume-parse:global', PARSE_MAX)))
@@ -54,7 +113,7 @@ export class ResumeService {
     let extracted!: { text: string; format: string };
     let imageNeedsOcr = false;
     try {
-      extracted = await extractResumeText(buffer, dto.mimeType, dto.filename);
+      extracted = await extractResumeText(buffer, dto.mimeType, dto.filename, options);
     } catch (e: unknown) {
       if (errCode(e) === 'unsupported_file_format') {
         throw new HttpException({ error: 'unsupported_file_format', filename: dto.filename, hint: '该格式尚未接入简历解析；请上传 PDF、Word、图片或纯文本。Excel/PPT/音视频请走全格式知识库摄取管线。' }, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
@@ -67,11 +126,23 @@ export class ResumeService {
       if (errCode(e) === 'magic_mismatch') {
         throw new HttpException({ error: 'magic_mismatch', hint: '文件内容与声明的格式不符，请确认文件类型后重传' }, HttpStatus.UNPROCESSABLE_ENTITY);
       }
+      // r5:域层排队等待越限 → 可重试 503(对外码=既有 server_busy·映射表见卷 §9 r5 注记)。
+      if (errCode(e) === 'extract_queue_timeout') {
+        throw new HttpException({ error: 'server_busy', message: '解析繁忙,请稍候重试' }, HttpStatus.SERVICE_UNAVAILABLE);
+      }
       // 图片简历 → OCR 路径(qwen-vl 转写 → 回灌文本链路);转写文本随后与文本简历同一道门(注入清洗/stripPii/结构化)。
       // OCR 分支置标、finally 释放解析槽后再转向——禁跨带 await 的 finally 直接 `return 未决 promise`:
       // 其拒绝若落在 finally 的 await 窗口内即成 unhandledRejection(进程致命);先释槽后转向,时序与原形一致。
       if (errCode(e) === 'image_needs_ocr') imageNeedsOcr = true;
-      else throw new HttpException({ error: 'parse_failed', format: undefined }, HttpStatus.UNPROCESSABLE_ENTITY);   // 解析失败可解释,不裸崩
+      else {
+        // r5:child_oom/child_crash/child_start_failed 结构化落日志(宿主日志可辨因·无 PII),对外仍
+        // 落既有 parse_failed 422 可解释拒绝——服务层对外错误码面零新增(r5 映射表见卷 §9)。
+        const c = errCode(e);
+        if (c === 'child_oom' || c === 'child_crash' || c === 'child_start_failed') {
+          console.warn(`RESUME_PARSE_CHILD_FAIL code=${c}`);
+        }
+        throw new HttpException({ error: 'parse_failed', format: undefined }, HttpStatus.UNPROCESSABLE_ENTITY);   // 解析失败可解释,不裸崩
+      }
     } finally {
       await this.rl.releaseSlot('resume-parse:global');   // 所有路径(成功/图片重定向/解析失败 throw)都恰好释放一次
     }
