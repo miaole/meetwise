@@ -339,7 +339,7 @@ export async function runMigrateProof(
       && manifestStrictlyIncreasing
       && laterVersionsAreSuccessors
       && loaded.some((migration) => migration.version === RESUME_PGCRYPTO_0122_VERSION));
-  A('加载迁移(0001_baseline 起,≥3)', loaded[0]?.version === '0001_baseline' && loaded.length >= 3);
+  A('加载迁移(0000 原语起·0001_baseline 随后,≥4)', loaded[0]?.version === '0000_admin_provision_primitives' && loaded.some((m) => m.version === '0001_baseline') && loaded.length >= 4);
   A('加载 P0 commerce 迁移 0020', loaded.some((m) => m.version === '0020_commerce_terminal_integrity'));
   A('加载 question identity 迁移 0021', loaded.some((m) => m.version === '0021_interview_question_identity'));
   A('加载 event 唯一约束对齐迁移 0027', loaded.some((m) => m.version === '0027_interview_event_unique_constraint_reconcile'));
