@@ -228,6 +228,12 @@ export function assertDocxZipWithinCaps(buffer: Buffer): void {
 - **门读数（亲跑·r8 两项白名单形）**：`prove:resume-extract` EXIT=0 **73 断言全绿**（pdf fake-worker 主线程模式无需真 worker 权限·实测验证）（docx/pdf 解析在无 child-process 授权下正常=白名单三项充分）；`prove:resume-512m-dual` 本机重跑 ✗ 宿主存活（容器未写 host-exit·复跑同形·colima 重启后环境面·非撤旗引入·该证明不进 CI·如实登记待环境恢复复验）。
 - **cap**：零新受管文件（in-place 码改+卷面注记）→ 届值不变。
 
+### §9-rev-r7 收口（2026-11-09 晚）
+
+- **512m-dual 演练闭合**：根因=colima 仅共享 $HOME，原跑法用 os.tmpdir()（/var/folders 不共享）→ bind mount 空 → 「容器未写 host-exit」假红。修复跑法：`RESUME_512M_IMAGE=meetwise-resume-512m:r8 RESUME_512M_WORKDIR=$HOME/.tmp-resume-512m`（r8 镜像=当前 main 树 Dockerfile 原样构建）→ **5 断言全绿**（host 存活/双路收场/oom_score_adj=1000 全集）。
+- **addons 残余面裁定（代裁·用户未在席·可改判）**：按 zero-new-infra 最小面原则，**接受已登记残余威胁**——撤两旗后子进程已无法派生任何程序；仅剩「已加载构建器 addon 若被内存利用可绕 JS 沙箱」理论面（解析器与 addon 均固定版本无已知利用）。不立项容器化独立刀；若日后 addon 出现已知漏洞或解析器换型，再按卷内登记启动容器化评估。
+
+
 ### §9-rev-r7 post-prove 双审双席分歧登记（2026-11-09）
 
 - **席甲（s3caps-r7-post-1.md）**：r8 复审 **PASS**——撤 --allow-child-process+--allow-worker 后 Worker 创建与直接 spawn 均 ERR_ACCESS_DENIED（node 22.23.2 生产同版两级复现关闭）；73 断言+512m 5 断言全绿。
