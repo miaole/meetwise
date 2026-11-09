@@ -34,8 +34,11 @@ export const SCORING_OPERATION_POLICY_VERSION = 'scor-factroot-v1';
 /**
  * 提示词策略版本（#52 v6 · SCORE-WRITER S2）：v6 模型直出 criterionId+quote+disposition，
  * S1 的 v5→disposition 过渡桥已废除（rg 门零残留），issue 契约 prompt_policy_version 同步升版。
+ * v7（SCORE-STABILITY 稳定性刀）：档位锚细化+quote 逐字纪律（评分温度缺省维持 0.2，0 候选单测
+ * 无显著改善不采纳）——prompt 注册表 mock-interview.evaluate 升 v7，issue 契约
+ * prompt_policy_version 随升（prompts.ts 单源）。
  */
-export const SCORING_PROMPT_POLICY_VERSION = 'mock-interview.evaluate.v6';
+export const SCORING_PROMPT_POLICY_VERSION = 'mock-interview.evaluate.v7';
 /** 出题路由标签（issue 契约 route 列；自适应图为唯一供题来源）。 */
 export const SCORING_ROUTE = 'adaptive-interview';
 /** 发题语言 + rubric 语言适用范围（issue 校验 language ∈ scope，二者必须一致）。 */

@@ -773,6 +773,7 @@ const isolatedReceiptSources = {
   'scoring:eval:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/smoke/scoring-eval.ts', 'apps/worker/src/interview-service.ts',
+    'packages/ai-runtime/src/prompts.ts', 'packages/ai-runtime/src/model-client.ts',
     'packages/ai-runtime/src/invoke.ts', 'packages/db/src/principal.ts',
     'packages/db/src/isolated-test-target.ts',
   ],

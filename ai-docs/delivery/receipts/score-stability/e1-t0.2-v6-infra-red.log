@@ -1,0 +1,94 @@
+
+> meetwise@0.1.0 scoring:eval /Users/miaole/Desktop/golucky/meetwise-score
+> node scripts/run-e2e-isolated.mjs scoring:eval:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-37200-1793906508780 on 127.0.0.1:33292
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-score/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=222 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+=== 评分官真模型质量信号(温度已钉低;唯一key破cache)===
+
+── 单调性(组内成对序 · minGap=2)──
+  MG-限流          成对序正确率=1.00(比3对,逆序0) Kendallτ=0.63  分:[100,0,0,0,0]
+  MG-分布式锁        成对序正确率=1.00(比5对,逆序0) Kendallτ=0.84  分:[100,50,0,0,0]
+  MG-支付幂等        成对序正确率=1.00(比5对,逆序0) Kendallτ=0.84  分:[100,50,0,0,0]
+  MG-RAG缓存       成对序正确率=1.00(比5对,逆序0) Kendallτ=0.84  分:[100,50,0,0,0]
+  MG-图恢复并发:poor rejected=business:evidence_quote_not_in_answer
+  MG-图恢复并发       成对序正确率=1.00(比3对,逆序0) Kendallτ=0.91  分:[100,50,0,0]
+  MG-评分可信:excellent rejected=business:evidence_quote_not_in_answer
+  MG-评分可信:mediocre rejected=business:evidence_quote_not_in_answer
+  MG-评分可信        成对序正确率=1.00(比2对,逆序0) Kendallτ=0.82  分:[50,0,0]
+  合计:传统成对序正确率=1.000(可比23,并列7,逆序0)
+  严格单调性=0.639=23/36; Wilson95%下界=0.476 (发布候选:样本≥36且下界≥0.90)
+  评分器信度 ICC(1,1) = NaN(题数<2/档不全→inconclusive)(阈≥0.75:两道独立题对质量档的区分一致)
+
+── 扰动不变性(换说法别乱跳 · 组内离散度)──
+{"event":"db_pool_error","purpose":"default","count":1,"error_name":"Error","error_message":"Connection terminated unexpectedly"}
+  PG-限流-good:v0 rejected=external_outcome_unknown
+  PG-限流-good:v1 rejected=threw
+  PG-限流-good:v2 rejected=threw
+  PG-限流-good:v3 rejected=threw
+  PG-限流-good         变体分=[]  组内SD=NaN
+  PG-分布式锁-good:v0 rejected=threw
+  PG-分布式锁-good:v1 rejected=threw
+  PG-分布式锁-good:v2 rejected=threw
+  PG-分布式锁-good:v3 rejected=threw
+  PG-分布式锁-good       变体分=[]  组内SD=NaN
+  PG-支付幂等-good:v0 rejected=threw
+  PG-支付幂等-good:v1 rejected=threw
+  PG-支付幂等-good:v2 rejected=threw
+  PG-支付幂等-good:v3 rejected=threw
+  PG-支付幂等-good       变体分=[]  组内SD=NaN
+  PG-RAG缓存-good:v0 rejected=threw
+  PG-RAG缓存-good:v1 rejected=threw
+  PG-RAG缓存-good:v2 rejected=threw
+  PG-RAG缓存-good:v3 rejected=threw
+  PG-RAG缓存-good      变体分=[]  组内SD=NaN
+  中位组内SD=NaN, p90=NaN, max=NaN (tripwire:中位≤8,p90≤12,max≤15)
+
+── 相关性(跑题/指代/攻击 → relevant=false, score=0)──
+  OT-01 expected=model actual=rejected reason=threw 🔴
+  OT-02 expected=deterministic actual=deterministic relevant=false score=0 ✅
+  OT-03 expected=model actual=rejected reason=threw 🔴
+  OT-04 expected=model actual=rejected reason=threw 🔴
+  OT-05 expected=model actual=rejected reason=threw 🔴
+  OT-06 expected=model actual=rejected reason=threw 🔴
+  OT-07 expected=model actual=rejected reason=threw 🔴
+  OT-08 expected=deterministic actual=deterministic relevant=false score=0 ✅
+  OT-09 expected=model actual=rejected reason=threw 🔴
+  OT-10 expected=model actual=rejected reason=threw 🔴
+  OT-11 expected=model actual=rejected reason=threw 🔴
+  OT-12 expected=deterministic actual=deterministic relevant=false score=0 ✅
+  OT-13 expected=deterministic actual=deterministic relevant=false score=0 ✅
+  OT-14 expected=model actual=rejected reason=threw 🔴
+  OT-15 expected=model actual=rejected reason=threw 🔴
+  OT-16 expected=model actual=rejected reason=threw 🔴
+  OT-17 expected=deterministic actual=deterministic relevant=false score=0 ✅
+  OT-18 expected=model actual=rejected reason=threw 🔴
+  全部相关性=5/18, Wilson95%下界=0.125; 模型判别子集=0/13, 下界=0.000 (发布候选:模型子集≥36且下界≥0.90)
+
+── 评分操纵不变性(先剥离，再评分)──
+  MI-限流-中文尾巴:v0 strip=PASS rejected=threw
+  MI-限流-中文尾巴:v1 strip=PASS rejected=threw
+  MI-限流-中文尾巴: 无足够真模型结果，不据此下结论
+  MI-锁-英文尾巴:v0 strip=PASS rejected=threw
+  MI-锁-英文尾巴:v1 strip=PASS rejected=threw
+  MI-锁-英文尾巴: 无足够真模型结果，不据此下结论
+  MI-支付-角色伪造:v0 strip=PASS rejected=threw
+  MI-支付-角色伪造:v1 strip=PASS rejected=threw
+  MI-支付-角色伪造: 无足够真模型结果，不据此下结论
+  MI-RAG-伪截断:v0 strip=PASS rejected=threw
+  MI-RAG-伪截断:v1 strip=PASS rejected=threw
+  MI-RAG-伪截断: 无足够真模型结果，不据此下结论
+  剥离精确率=8/8, Wilson95%下界=0.676; 可比模型对=0, 最大分差=NaN (tripwire:所有剥离通过; Δ≤15)
+
+=== 汇总:评分请求 71 · 实际供应商调用 31 · quote 二次调用 0（固定） · quote 拒绝 3 · 确定性短路 5 · 业务/证据拒绝 3 · 跳过(model_transient) 41(58%)===
+⚠ INCONCLUSIVE:跳过率 >20%,供应商当天可能不稳,本轮不下质量结论(既不绿也不红)。
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-11-05T19-23-08-038Z-37200-2708edde-09bd-402e-b580-dc5634c5f7c8.json release_evidence=false
