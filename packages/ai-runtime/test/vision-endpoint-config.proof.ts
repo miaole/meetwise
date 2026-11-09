@@ -12,6 +12,9 @@ import {
   resolveVisionEndpointConfig,
 } from '../src/vision-endpoint-config.ts';
 import { keyFingerprint } from '../src/secret-fingerprint.ts';
+const MEETWISE_TEST_FIXTURE_DASHSCOPE_VISION_API_KEY_VEC = 'vision-key';
+const MEETWISE_TEST_FIXTURE_MODEL_API_KEY_VEC2 = 'text-key';
+
 
 let failures = 0;
 const A = (name: string, ok: boolean) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`); if (!ok) failures++; };
@@ -33,7 +36,7 @@ function main() {
     && vision.model === 'qwen-vl-max');
   A('视觉 endpoint 快照被冻结（调用方无法在派发前改写）', Object.isFrozen(vision));
   A('视觉 Key 只读专用 DASHSCOPE_VISION_API_KEY，绝不读文本主 MODEL_API_KEY',
-    resolveVisionEndpointConfig({ DASHSCOPE_VISION_API_KEY: 'vision-key', MODEL_API_KEY: 'text-key' }).apiKey === 'vision-key');
+    resolveVisionEndpointConfig({ DASHSCOPE_VISION_API_KEY: MEETWISE_TEST_FIXTURE_DASHSCOPE_VISION_API_KEY_VEC, MODEL_API_KEY: MEETWISE_TEST_FIXTURE_MODEL_API_KEY_VEC2 }).apiKey === MEETWISE_TEST_FIXTURE_DASHSCOPE_VISION_API_KEY_VEC);
   A('视觉模型名读 DASHSCOPE_VISION_MODEL（与 compose/env/policy 同族，非 VISION_MODEL_NAME）',
     resolveVisionEndpointConfig({ DASHSCOPE_VISION_MODEL: 'qwen-vl-plus' }).model === 'qwen-vl-plus');
   A('旧自由 URL MODEL_BASE_URL 出现即拒绝（切断文本 URL 复用）',

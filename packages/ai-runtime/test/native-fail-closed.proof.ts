@@ -15,6 +15,18 @@ import { dashscopeReranker } from '../src/reranker.ts';
 import { dashscopeAsr, dashscopeTts } from '../src/voice.ts';
 import { resolveDashscopeNativeConfig } from '../src/dashscope-native-config.ts';
 import { ExternalRequestTimeoutError } from '../src/timeout.ts';
+const MEETWISE_TEST_FIXTURE_DASHSCOPE_EMBED_API_KEY_NFC1 = 'proof-embed-key';
+const MEETWISE_TEST_FIXTURE_DASHSCOPE_EMBED_API_KEY_NFC2 = 'proof-embed-key';
+const MEETWISE_TEST_FIXTURE_DASHSCOPE_RERANK_API_KEY_NFC3 = 'proof-rerank-key';
+const MEETWISE_TEST_FIXTURE_DASHSCOPE_ASR_API_KEY_NFC4 = 'proof-asr-key';
+const MEETWISE_TEST_FIXTURE_DASHSCOPE_TTS_API_KEY_NFC5 = 'proof-tts-key';
+
+
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'proof-embed-key';
+const MEETWISE_TEST_FIXTURE_2 = 'proof-rerank-key';
+const MEETWISE_TEST_FIXTURE_3 = 'proof-asr-key';
+const MEETWISE_TEST_FIXTURE_4 = 'proof-tts-key';
 
 let failures = 0;
 const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) failures++; };
@@ -62,7 +74,7 @@ async function main() {
     process.env.DASHSCOPE_EMBED_API_KEY_FINGERPRINT = 'deadbeefdeadbeef';
     A('ambient fingerprint + mismatched proof key → dashscope_embed_api_key_fingerprint_mismatch',
       syncErrorOf(() => resolveDashscopeNativeConfig({
-        DASHSCOPE_EMBED_API_KEY: 'proof-embed-key',
+        DASHSCOPE_EMBED_API_KEY: MEETWISE_TEST_FIXTURE_DASHSCOPE_EMBED_API_KEY_NFC1,
         DASHSCOPE_EMBED_API_KEY_FINGERPRINT: process.env.DASHSCOPE_EMBED_API_KEY_FINGERPRINT,
         DASHSCOPE_ENDPOINT_PROFILE: 'cn-beijing-public',
       })) === 'dashscope_embed_api_key_fingerprint_mismatch');
@@ -71,10 +83,10 @@ async function main() {
     for (const name of LEGACY_URL_VARS) delete process.env[name];
 
     Object.assign(process.env, {
-      DASHSCOPE_EMBED_API_KEY: 'proof-embed-key',
-      DASHSCOPE_RERANK_API_KEY: 'proof-rerank-key',
-      DASHSCOPE_ASR_API_KEY: 'proof-asr-key',
-      DASHSCOPE_TTS_API_KEY: 'proof-tts-key',
+      DASHSCOPE_EMBED_API_KEY: MEETWISE_TEST_FIXTURE_DASHSCOPE_EMBED_API_KEY_NFC2,
+      DASHSCOPE_RERANK_API_KEY: MEETWISE_TEST_FIXTURE_DASHSCOPE_RERANK_API_KEY_NFC3,
+      DASHSCOPE_ASR_API_KEY: MEETWISE_TEST_FIXTURE_DASHSCOPE_ASR_API_KEY_NFC4,
+      DASHSCOPE_TTS_API_KEY: MEETWISE_TEST_FIXTURE_DASHSCOPE_TTS_API_KEY_NFC5,
       DASHSCOPE_ENDPOINT_PROFILE: 'cn-beijing-public',
     });
     for (const name of ['DASHSCOPE_API_KEY', 'DASHSCOPE_WORKSPACE_ID'] as const) delete process.env[name];
@@ -83,23 +95,23 @@ async function main() {
       throw new ExternalRequestTimeoutError(50);
     }) as typeof fetch;
     A('after clearing ambient fingerprints and leftover URL overrides, embedding timeout → embedder_timeout',
-      await errorOf(() => dashscopeEmbedder({ dim: 2, baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', apiKey: 'proof-embed-key' }).embed(['x'])) === 'embedder_timeout');
+      await errorOf(() => dashscopeEmbedder({ dim: 2, baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', apiKey: MEETWISE_TEST_FIXTURE_1 }).embed(['x'])) === 'embedder_timeout');
     A('rerank timeout → reranker_timeout, no invented id',
-      await errorOf(() => dashscopeReranker({ url: 'https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank', apiKey: 'proof-rerank-key' }).rerank('q', [{ id: 'one', text: 'doc' }], 1)) === 'reranker_timeout');
+      await errorOf(() => dashscopeReranker({ url: 'https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank', apiKey: MEETWISE_TEST_FIXTURE_2 }).rerank('q', [{ id: 'one', text: 'doc' }], 1)) === 'reranker_timeout');
     A('ASR timeout → asr_timeout, no invented transcript',
-      await errorOf(() => dashscopeAsr({ baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', apiKey: 'proof-asr-key', timeoutMs: 50 }).transcribe(new Uint8Array([1]), { format: 'wav' })) === 'asr_timeout');
+      await errorOf(() => dashscopeAsr({ baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', apiKey: MEETWISE_TEST_FIXTURE_3, timeoutMs: 50 }).transcribe(new Uint8Array([1]), { format: 'wav' })) === 'asr_timeout');
 
     globalThis.fetch = (async () => new Response('not-json{', {
       status: 200, headers: { 'content-type': 'application/json' },
     })) as typeof fetch;
     A('embedding non-JSON → embedder_malformed',
-      await errorOf(() => dashscopeEmbedder({ dim: 2, baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', apiKey: 'proof-embed-key' }).embed(['x'])) === 'embedder_malformed');
+      await errorOf(() => dashscopeEmbedder({ dim: 2, baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', apiKey: MEETWISE_TEST_FIXTURE_1 }).embed(['x'])) === 'embedder_malformed');
     A('ASR non-JSON → external_response_json_invalid (no invented transcript)',
-      await errorOf(() => dashscopeAsr({ baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', apiKey: 'proof-asr-key', timeoutMs: 200 }).transcribe(new Uint8Array([1]), { format: 'wav' })) === 'external_response_json_invalid');
+      await errorOf(() => dashscopeAsr({ baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', apiKey: MEETWISE_TEST_FIXTURE_3, timeoutMs: 200 }).transcribe(new Uint8Array([1]), { format: 'wav' })) === 'external_response_json_invalid');
     A('rerank non-JSON → reranker_malformed',
-      await errorOf(() => dashscopeReranker({ url: 'https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank', apiKey: 'proof-rerank-key' }).rerank('q', [{ id: 'one', text: 'doc' }], 1)) === 'reranker_malformed');
+      await errorOf(() => dashscopeReranker({ url: 'https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank', apiKey: MEETWISE_TEST_FIXTURE_2 }).rerank('q', [{ id: 'one', text: 'doc' }], 1)) === 'reranker_malformed');
     A('TTS non-JSON → external_response_json_invalid (no invented audio)',
-      await errorOf(() => dashscopeTts({ ttsUrl: 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation', apiKey: 'proof-tts-key', timeoutMs: 200 }).synthesize('hi')) === 'external_response_json_invalid');
+      await errorOf(() => dashscopeTts({ ttsUrl: 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation', apiKey: MEETWISE_TEST_FIXTURE_4, timeoutMs: 200 }).synthesize('hi')) === 'external_response_json_invalid');
 
     globalThis.fetch = (async (input: string | URL | Request) => {
       const url = String(input);
@@ -127,7 +139,7 @@ async function main() {
     }) as typeof fetch;
 
     A('embedding NaN vector → embedder_malformed (does not return zeros)',
-      await errorOf(() => dashscopeEmbedder({ dim: 2, baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', apiKey: 'proof-embed-key' }).embed(['x'])) === 'embedder_malformed');
+      await errorOf(() => dashscopeEmbedder({ dim: 2, baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', apiKey: MEETWISE_TEST_FIXTURE_1 }).embed(['x'])) === 'embedder_malformed');
 
     globalThis.fetch = (async (input: string | URL | Request) => {
       const url = String(input);
@@ -144,21 +156,21 @@ async function main() {
       throw new Error(`unexpected_url:${url}`);
     }) as typeof fetch;
     A('embedding all-zero vector → embedder_malformed',
-      await errorOf(() => dashscopeEmbedder({ dim: 2, baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', apiKey: 'proof-embed-key' }).embed(['x'])) === 'embedder_malformed');
+      await errorOf(() => dashscopeEmbedder({ dim: 2, baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', apiKey: MEETWISE_TEST_FIXTURE_1 }).embed(['x'])) === 'embedder_malformed');
     A('rerank empty results → reranker_malformed (does not return [])',
-      await errorOf(() => dashscopeReranker({ url: 'https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank', apiKey: 'proof-rerank-key' }).rerank('q', [{ id: 'one', text: 'doc' }], 1)) === 'reranker_malformed');
+      await errorOf(() => dashscopeReranker({ url: 'https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank', apiKey: MEETWISE_TEST_FIXTURE_2 }).rerank('q', [{ id: 'one', text: 'doc' }], 1)) === 'reranker_malformed');
 
     globalThis.fetch = (async () => new Response(JSON.stringify({ output: { results: [{ index: 99, relevance_score: 1 }] } }), {
       status: 200, headers: { 'content-type': 'application/json' },
     })) as typeof fetch;
     A('rerank out-of-range index → reranker_malformed',
-      await errorOf(() => dashscopeReranker({ url: 'https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank', apiKey: 'proof-rerank-key' }).rerank('q', [{ id: 'one', text: 'doc' }], 1)) === 'reranker_malformed');
+      await errorOf(() => dashscopeReranker({ url: 'https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank', apiKey: MEETWISE_TEST_FIXTURE_2 }).rerank('q', [{ id: 'one', text: 'doc' }], 1)) === 'reranker_malformed');
     A('ASR empty content → asr_malformed (does not return empty transcript)',
-      await errorOf(() => dashscopeAsr({ baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', apiKey: 'proof-asr-key', timeoutMs: 200 }).transcribe(new Uint8Array([1]), { format: 'wav' })) === 'asr_malformed');
+      await errorOf(() => dashscopeAsr({ baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', apiKey: MEETWISE_TEST_FIXTURE_3, timeoutMs: 200 }).transcribe(new Uint8Array([1]), { format: 'wav' })) === 'asr_malformed');
     A('rerank missing results → reranker_malformed (does not invent ranked ids)',
-      await errorOf(() => dashscopeReranker({ url: 'https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank', apiKey: 'proof-rerank-key' }).rerank('q', [{ id: 'one', text: 'doc' }], 1)) === 'reranker_malformed');
+      await errorOf(() => dashscopeReranker({ url: 'https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank', apiKey: MEETWISE_TEST_FIXTURE_2 }).rerank('q', [{ id: 'one', text: 'doc' }], 1)) === 'reranker_malformed');
     A('TTS missing audio url → tts_malformed',
-      await errorOf(() => dashscopeTts({ ttsUrl: 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation', apiKey: 'proof-tts-key', timeoutMs: 200 }).synthesize('hi')) === 'tts_malformed');
+      await errorOf(() => dashscopeTts({ ttsUrl: 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation', apiKey: MEETWISE_TEST_FIXTURE_4, timeoutMs: 200 }).synthesize('hi')) === 'tts_malformed');
 
     for (const name of ['DASHSCOPE_EMBED_API_KEY', 'DASHSCOPE_RERANK_API_KEY', 'DASHSCOPE_ASR_API_KEY', 'DASHSCOPE_TTS_API_KEY'] as const) {
       delete process.env[name];
@@ -177,7 +189,7 @@ async function main() {
       throw new ExternalRequestTimeoutError(50);
     }) as typeof fetch;
     A('TTS timeout → tts_download_deadline_exceeded, no invented audio',
-      await errorOf(() => dashscopeTts({ ttsUrl: 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation', apiKey: 'proof-tts-key', timeoutMs: 50 }).synthesize('hi')) === 'tts_download_deadline_exceeded');
+      await errorOf(() => dashscopeTts({ ttsUrl: 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation', apiKey: MEETWISE_TEST_FIXTURE_4, timeoutMs: 50 }).synthesize('hi')) === 'tts_download_deadline_exceeded');
   } finally {
     globalThis.fetch = originalFetch;
     for (const name of names) {

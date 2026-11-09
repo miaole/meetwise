@@ -11,12 +11,14 @@ import {
   assertRagControlExecutorIdentity, asGateway, asPrincipal, asRagControlExecutor, createPool, loadMigrations,
   provisionRagControlLogin, provisionRuntimeLogin, runMigrations,
 } from '../src/index.ts';
+const MEETWISE_TEST_FIXTURE_PASSWORD_RCR = 'rag-control-role-proof-2026';
+
 
 const admin = createPool();
 const runtimeRole = `rag_runtime_${process.pid}`;
 const controlRole = `rag_control_${process.pid}`;
 const extraRole = `rag_extra_${process.pid}`;
-const password = 'rag-control-role-proof-2026';
+const password = MEETWISE_TEST_FIXTURE_PASSWORD_RCR;
 const expectedMigrations = [
   '0073_rag_control_plane_identity_isolation',
   '0079_rag_control_acl_allowlist',

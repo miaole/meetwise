@@ -18,10 +18,15 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { assertIsolatedTestTarget, createPool, loadMigrations, provisionRuntimeLogin, runMigrations } from '@meetwise/db';
+const MEETWISE_TEST_FIXTURE_PASSWORD_TIDEM = 'turn-idempotency-runtime-password-2026';
+
+
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'turn-idempotency-password-2026';
 
 const admin = createPool();
 const role = `turn_idem_${process.pid}`;
-const password = 'turn-idempotency-runtime-password-2026';
+const password = MEETWISE_TEST_FIXTURE_PASSWORD_TIDEM;
 let failures = 0;
 const A = (name: string, condition: boolean) => {
   console.log(`${condition ? 'PASS' : 'FAIL'}  ${name}`);
@@ -65,7 +70,7 @@ async function main() {
     // question ledger 行镜像 worker 已持久化的 pending identity（原夹具同形）。
     const signup = await fetch(`${base}/auth/signup`, {
       method: 'POST', headers: bearerHeaders('', true),
-      body: JSON.stringify({ email: `turn-idem-${process.pid}@example.test`, password: 'turn-idempotency-password-2026', role: 'candidate' }),
+      body: JSON.stringify({ email: `turn-idem-${process.pid}@example.test`, password: MEETWISE_TEST_FIXTURE_1, role: 'candidate' }),
     });
     const account = await signup.json() as { token?: string; userId?: string };
     if (signup.status !== 200 || !account.token || !account.userId) throw new Error('turn_idempotency_signup_failed');

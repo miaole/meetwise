@@ -11,6 +11,9 @@
 import 'reflect-metadata';
 import { createPool, assertIsolatedTestTarget } from '@meetwise/db';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'preview-submit-http-proof-auth-secret';
+
 const ENC_KEY = 'proof_answer_enc_key_v1_16chars';
 
 const SEED_R = '33333333-3333-4333-8333-333333333333';
@@ -127,7 +130,7 @@ async function main() {
     NODE_ENV: 'test',
     MEETWISE_PUBLIC_PREVIEW: '1',
     AUTH_DEV_HEADER: '1',
-    AUTH_SECRET: 'preview-submit-http-proof-auth-secret',
+    AUTH_SECRET: MEETWISE_TEST_FIXTURE_1,
     WEB_ORIGIN: 'https://web.example.test',
     INTERVIEW_ANSWER_ENC_KEY: ENC_KEY,
     INTERVIEW_ANSWER_HMAC_SECRET: HMAC_SECRET,

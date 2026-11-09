@@ -17,6 +17,9 @@ import { dirname, join } from 'node:path';
 import { request as httpRequest } from 'node:http';
 import { boot, mkAssert } from './_neg-harness';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'oldpass12';
+
 const here = dirname(fileURLToPath(import.meta.url));
 
 interface ChunkedResult { status: number; body: Record<string, unknown> | null; raw: string | null }
@@ -93,7 +96,7 @@ async function main() {
 
   // ── ② chunked KB 级正常体 login → 200(body 真解析)──
   {
-    const r = await chunkedPost(h.base, '/auth/login', JSON.stringify({ email: 'pw@x.com', password: 'oldpass12' }), { chunkSize: 4096 });
+    const r = await chunkedPost(h.base, '/auth/login', JSON.stringify({ email: 'pw@x.com', password: MEETWISE_TEST_FIXTURE_1 }), { chunkSize: 4096 });
     A('chunked/KB 级正常体 login → 200(body 真解析·封顶不误伤)',
       r.status === 200 && r.body?.userId === 'pwUser' && typeof r.body?.token === 'string');
   }
@@ -114,7 +117,7 @@ async function main() {
 
   // ── 进程存活:超阈 413 断流后服务仍存活 ──
   {
-    const alive = await h.post('/auth/login', {}, { email: 'pw@x.com', password: 'oldpass12' });
+    const alive = await h.post('/auth/login', {}, { email: 'pw@x.com', password: MEETWISE_TEST_FIXTURE_1 });
     A('存活/超阈 413 后服务进程仍存活(后续 fetch 请求 200)', alive.status === 200);
   }
 

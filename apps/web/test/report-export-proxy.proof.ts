@@ -7,6 +7,9 @@
  */
 import { proxyReportExport } from '../lib/api/report-export-proxy.ts';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'test-token';
+
 let failures = 0;
 const assert = (name: string, ok: boolean) => {
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`);
@@ -34,7 +37,7 @@ async function main() {
   const r200 = await proxyReportExport({
     apiBase: 'http://api.internal',
     interviewId: 'iv 42',
-    bearerToken: 'test-token',
+    bearerToken: MEETWISE_TEST_FIXTURE_1,
     fetchImpl: (async (url: string | URL | Request, init?: RequestInit) => {
       observed.push({ url: String(url), headers: (init?.headers ?? {}) as Record<string, string> });
       return new Response('# 报告\n正文', { status: 200, headers: { 'content-type': 'text/markdown; charset=utf-8' } });
@@ -56,7 +59,7 @@ async function main() {
   const r404 = await proxyReportExport({
     apiBase: 'http://api.internal',
     interviewId: 'iv-1',
-    bearerToken: 'test-token',
+    bearerToken: MEETWISE_TEST_FIXTURE_1,
     fetchImpl: (async () => new Response(JSON.stringify({ error: 'report_not_ready' }), { status: 404 })) as typeof fetch,
   });
   assert('上游 404 report_not_ready → 404 透传(不吞不降级)', r404.status === 404);

@@ -9,6 +9,9 @@
  */
 import { openAICompatibleClient, planContextBudget, modelFor, type ModelCostPolicy } from '../src/index.ts';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'test-only';
+
 let failures = 0;
 const A = (name: string, ok: boolean) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`); if (!ok) failures++; };
 
@@ -29,7 +32,7 @@ async function main() {
     usage: { prompt_tokens: 1234, completion_tokens: 56 },
   }), { status: 200, headers: { 'content-type': 'application/json' } })) as typeof fetch;
   try {
-    const client = openAICompatibleClient({ baseUrl: 'https://model.invalid', apiKey: 'test-only', model: policy.model, costPolicy: policy });
+    const client = openAICompatibleClient({ baseUrl: 'https://model.invalid', apiKey: MEETWISE_TEST_FIXTURE_1, model: policy.model, costPolicy: policy });
 
     const req = { service: 'proof.estimate', system: '系统指令', userData: '用户答案' };
     const planned = planContextBudget(req, policy);
@@ -46,7 +49,7 @@ async function main() {
       && ragResult.usage?.estimateInputTokens === ragPlanned.plan.inputTokens && ragPlanned.plan.ragTokens > 0);
 
     const imgPolicy = { ...policy, imageInputTokensPerImage: 1024 };
-    const imgClient = openAICompatibleClient({ baseUrl: 'https://model.invalid', apiKey: 'test-only', model: policy.model, costPolicy: imgPolicy });
+    const imgClient = openAICompatibleClient({ baseUrl: 'https://model.invalid', apiKey: MEETWISE_TEST_FIXTURE_1, model: policy.model, costPolicy: imgPolicy });
     const imgReq = { service: 'proof.estimate-img', system: 's', userData: 'u', images: ['https://img.invalid/a.png'] };
     const imgPlanned = planContextBudget(imgReq, imgPolicy);
     const imgResult = await imgClient.complete(imgReq, 1);

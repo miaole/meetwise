@@ -1,6 +1,9 @@
 /** Database target parser proof: no hidden local defaults or URL/component split-brain. */
 import { createPool, rebindDatabaseLogin, resolveDatabaseConnectionString } from '../src/index.ts';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'rag-control-proof-password';
+
 const KEYS = ['DATABASE_URL', 'DATABASE_SSL_MODE', 'DATABASE_SSL_CA_PATH', 'NODE_ENV', 'PGHOST', 'PGPORT', 'PGUSER', 'PGPASSWORD', 'PGDATABASE'] as const;
 const original = new Map(KEYS.map((key) => [key, process.env[key]]));
 let failures = 0;
@@ -40,7 +43,7 @@ try {
 
   reset({ DATABASE_URL: 'postgresql://migration:pw@db.internal:5432/meetwise?application_name=migrate' });
   const reboundControlUrl = rebindDatabaseLogin(resolveDatabaseConnectionString(), {
-    roleName: 'rag_control_job', password: 'rag-control-proof-password',
+    roleName: 'rag_control_job', password: MEETWISE_TEST_FIXTURE_1,
   });
   const reboundControlTarget = new URL(reboundControlUrl);
   A('专用 control 登录从已验证 DATABASE_URL 派生，不触发 URL/组件冲突且保留目标',

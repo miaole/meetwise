@@ -4,7 +4,8 @@ import { assertIsolatedTestTarget, createPool, asGateway, asPrincipal, loadMigra
 
 const admin = createPool();
 const role = `runtime_role_${process.pid}`;
-const password = 'runtime-role-proof-password-2026';
+const MEETWISE_TEST_FIXTURE_PASSWORD_RR = 'runtime-role-proof-password-2026';
+const password = MEETWISE_TEST_FIXTURE_PASSWORD_RR;
 let failures = 0;
 const A = (name: string, condition: boolean) => { console.log(`${condition ? 'PASS' : 'FAIL'}  ${name}`); if (!condition) failures++; };
 

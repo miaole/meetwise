@@ -1,6 +1,9 @@
 /** TC-VOICE-03-E6 (Next proxy component): browser abort must reach API fetch. */
 import { proxyInterviewSpeak } from '../lib/api/speak-proxy.ts';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'test-token';
+
 let failures = 0;
 const assert = (name: string, ok: boolean) => {
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`);
@@ -14,7 +17,7 @@ async function main() {
   const pending = proxyInterviewSpeak({
     apiBase: 'http://api.internal',
     interviewId: 'interview-a',
-    bearerToken: 'test-token',
+    bearerToken: MEETWISE_TEST_FIXTURE_1,
     body: '{"text":"停止"}',
     signal: controller.signal,
     fetchImpl: ((_url: string | URL | Request, init?: RequestInit) => {

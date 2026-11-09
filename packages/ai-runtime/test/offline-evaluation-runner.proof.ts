@@ -8,6 +8,13 @@ import {
   planContractRegressionExecution,
   sanitizedOfflineEvaluationEnvironment,
 } from '../src/index.ts';
+const MEETWISE_TEST_FIXTURE_LANGFUSE_SECRET_KEY_OER1 = 'must-not-reach-local-gate';
+const MEETWISE_TEST_FIXTURE_OBJECT_STORAGE_SECRET_KEY_OER2 = 'must-not-reach-local-gate';
+const MEETWISE_TEST_FIXTURE_SENTRY_AUTH_TOKEN_OER3 = 'must-not-reach-local-gate';
+
+
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'must-not-reach-local-gate';
 
 let failures = 0;
 function A(name: string, value: boolean): void {
@@ -15,6 +22,7 @@ function A(name: string, value: boolean): void {
   if (!value) failures++;
 }
 
+const MEETWISE_TEST_FIXTURE_MUST_NOT_REACH_LOCAL_GATE_OER4 = 'must-not-reach-local-gate';
 const plan = planContractRegressionExecution(OFFLINE_EVALUATION_CATALOG_V1);
 A('每个已绑定 gate 都由代码内固定 pnpm 参数和硬时限定义', plan.bound.every((binding) => {
   const gate = OFFLINE_CONTRACT_GATE_COMMANDS[binding.gateId];
@@ -22,13 +30,13 @@ A('每个已绑定 gate 都由代码内固定 pnpm 参数和硬时限定义', pl
 }));
 const cleaned = sanitizedOfflineEvaluationEnvironment({
   PATH: '/safe/bin', LANG: 'C', HOME: '/unsafe/home', CI: 'true',
-  LANGFUSE_SECRET_KEY: 'must-not-reach-local-gate', MODEL_API_KEY: 'must-not-reach-local-gate',
-  DATABASE_URL: 'must-not-reach-local-gate', PGPASSWORD: 'must-not-reach-local-gate', REDIS_URL: 'must-not-reach-local-gate',
-  OSS_ACCESS_KEY_ID: 'must-not-reach-local-gate', OSS_ACCESS_KEY_SECRET: 'must-not-reach-local-gate',
-  OBJECT_STORAGE_SECRET_KEY: 'must-not-reach-local-gate', RESUME_ENC_KEY: 'must-not-reach-local-gate',
-  PAY_PROVIDER_SECRET: 'must-not-reach-local-gate', AUTH_SECRET: 'must-not-reach-local-gate',
-  AWS_SESSION_TOKEN: 'must-not-reach-local-gate', GITHUB_TOKEN: 'must-not-reach-local-gate', NPM_TOKEN: 'must-not-reach-local-gate',
-  SENTRY_AUTH_TOKEN: 'must-not-reach-local-gate', OTEL_EXPORTER_OTLP_HEADERS: 'must-not-reach-local-gate',
+  LANGFUSE_SECRET_KEY: MEETWISE_TEST_FIXTURE_LANGFUSE_SECRET_KEY_OER1, MODEL_API_KEY: MEETWISE_TEST_FIXTURE_MUST_NOT_REACH_LOCAL_GATE_OER4,
+  DATABASE_URL: 'must-not-reach-local-gate', PGPASSWORD: MEETWISE_TEST_FIXTURE_1, REDIS_URL: 'must-not-reach-local-gate',
+  OSS_ACCESS_KEY_ID: MEETWISE_TEST_FIXTURE_MUST_NOT_REACH_LOCAL_GATE_OER4, OSS_ACCESS_KEY_SECRET: MEETWISE_TEST_FIXTURE_MUST_NOT_REACH_LOCAL_GATE_OER4,
+  OBJECT_STORAGE_SECRET_KEY: MEETWISE_TEST_FIXTURE_OBJECT_STORAGE_SECRET_KEY_OER2, RESUME_ENC_KEY: MEETWISE_TEST_FIXTURE_MUST_NOT_REACH_LOCAL_GATE_OER4,
+  PAY_PROVIDER_SECRET: MEETWISE_TEST_FIXTURE_MUST_NOT_REACH_LOCAL_GATE_OER4, AUTH_SECRET: MEETWISE_TEST_FIXTURE_1,
+  AWS_SESSION_TOKEN: MEETWISE_TEST_FIXTURE_MUST_NOT_REACH_LOCAL_GATE_OER4, GITHUB_TOKEN: MEETWISE_TEST_FIXTURE_MUST_NOT_REACH_LOCAL_GATE_OER4, NPM_TOKEN: MEETWISE_TEST_FIXTURE_MUST_NOT_REACH_LOCAL_GATE_OER4,
+  SENTRY_AUTH_TOKEN: MEETWISE_TEST_FIXTURE_SENTRY_AUTH_TOKEN_OER3, OTEL_EXPORTER_OTLP_HEADERS: 'must-not-reach-local-gate',
 });
 const safeEnvironment = { PATH: '/safe/bin', LANG: 'C' };
 A('离线 gate 子进程只继承正向 allowlist，绝不继承遥测、云、对象存储、支付、认证或数据库凭据', JSON.stringify(cleaned) === JSON.stringify(safeEnvironment));

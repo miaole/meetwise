@@ -24,13 +24,13 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 const paths = {
-  parent: join(root, 'ai-docs/delivery/harness/uc-e2e-018-user-abandon.md'),
-  knife: join(root, 'ai-docs/delivery/harness/uc-e2e-018-sole-stack-pg-retained.md'),
+  parent: join(root, 'receipts/archive/2026-09-batch23/harness/uc-e2e-018-user-abandon.md'),
+  knife: join(root, 'receipts/archive/2026-09-batch23/harness/uc-e2e-018-sole-stack-pg-retained.md'),
   slice: join(root, 'ai-docs/delivery/uc-e2e-018-sole-stack-pg-retained.slice.md'),
   adr: join(root, 'ai-docs/delivery/adr-postgres-retained.md'),
   matrix: join(root, 'ai-docs/delivery/e2e-requirement-coverage-matrix.md'),
   backlog: join(root, 'ai-docs/delivery/e2e-covered-path-backlog.md'),
-  evalDoc: join(root, 'ai-docs/delivery/eval/uc-e2e-018-user-abandon.eval.md'),
+  evalDoc: join(root, 'receipts/archive/2026-09-batch23/eval/uc-e2e-018-user-abandon.eval.md'),
   pkg: join(root, 'package.json'),
   r5Status: join(root, 'ai-docs/delivery/harness/r5-retirement-sole-stack-status.md'),
   r5MarkRed: join(root, 'ai-docs/delivery/harness/r5-pgvector-fixture-mark-red.md'),

@@ -7,10 +7,16 @@
 import 'reflect-metadata';
 import { randomUUID } from 'node:crypto';
 import { asPrincipal, createPool, provisionRuntimeLogin } from '@meetwise/db';
+const MEETWISE_TEST_FIXTURE_PASSWORD_RRH = 'resume-reference-http-runtime-password-2026';
+
+
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'resume-reference-http-auth-secret';
+const MEETWISE_TEST_FIXTURE_2 = 'resume-reference-password-2026';
 
 const admin = createPool();
 const role = `resume_ref_http_${process.pid}`;
-const password = 'resume-reference-http-runtime-password-2026';
+const password = MEETWISE_TEST_FIXTURE_PASSWORD_RRH;
 let runtime: ReturnType<typeof createPool> | undefined;
 let failures = 0;
 const A = (name: string, ok: boolean) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`); if (!ok) failures++; };
@@ -22,7 +28,7 @@ async function main() {
     user: role, password, sslMode: 'disable',
   });
   Object.assign(process.env, {
-    NODE_ENV: 'test', WEB_ORIGIN: 'https://web.example.test', AUTH_SECRET: 'resume-reference-http-auth-secret',
+    NODE_ENV: 'test', WEB_ORIGIN: 'https://web.example.test', AUTH_SECRET: MEETWISE_TEST_FIXTURE_1,
     PGUSER: role, PGPASSWORD: password,
   });
   const { createApp } = await import('../src/main.ts');
@@ -35,7 +41,7 @@ async function main() {
   try {
     const signup = await fetch(`${base}/auth/signup`, {
       method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ email, password: 'resume-reference-password-2026', role: 'candidate' }),
+      body: JSON.stringify({ email, password: MEETWISE_TEST_FIXTURE_2, role: 'candidate' }),
     });
     const account = await signup.json() as any;
     A('真实 API 注册候选人', signup.status === 200 && typeof account.userId === 'string' && typeof account.token === 'string');

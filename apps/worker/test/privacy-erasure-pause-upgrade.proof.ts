@@ -13,14 +13,18 @@ import {
   provisionPrivacyWorkerLogin, provisionRuntimeLogin, runMigrations,
 } from '@meetwise/db';
 import { initializePrivacyWorkerStartup } from '../src/privacy-worker-runtime.ts';
+const MEETWISE_TEST_FIXTURE_RUNTIMEPASSWORD_PEPU1 = 'privacy-pause-runtime-proof-password-2026';
+const MEETWISE_TEST_FIXTURE_WORKERPASSWORD_PEPU2 = 'privacy-pause-worker-proof-password-2026';
+const MEETWISE_TEST_FIXTURE_MISWIREDWORKERPASSWORD_PEPU3 = 'privacy-pause-miswired-proof-password-2026';
+
 
 const admin = createPool();
 const runtimeRole = `privacy_pause_runtime_${process.pid}`;
 const workerRole = `privacy_pause_worker_${process.pid}`;
 const miswiredWorkerRole = `privacy_pause_miswired_${process.pid}`;
-const runtimePassword = 'privacy-pause-runtime-proof-password-2026';
-const workerPassword = 'privacy-pause-worker-proof-password-2026';
-const miswiredWorkerPassword = 'privacy-pause-miswired-proof-password-2026';
+const runtimePassword = MEETWISE_TEST_FIXTURE_RUNTIMEPASSWORD_PEPU1;
+const workerPassword = MEETWISE_TEST_FIXTURE_WORKERPASSWORD_PEPU2;
+const miswiredWorkerPassword = MEETWISE_TEST_FIXTURE_MISWIREDWORKERPASSWORD_PEPU3;
 const owner = `privacy-pause-owner-${process.pid}`;
 const thread = `privacy-pause-thread-${process.pid}`;
 const dispatchThread = `privacy-pause-dispatch-thread-${process.pid}`;

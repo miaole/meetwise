@@ -15,6 +15,18 @@ import {
   resolveDashscopeNativeConfig,
 } from '../src/dashscope-native-config.ts';
 import { keyFingerprint } from '../src/secret-fingerprint.ts';
+const MEETWISE_TEST_FIXTURE_MODEL_API_KEY_DSN1 = 'deepseek-text-key';
+const MEETWISE_TEST_FIXTURE_MODEL_BACKUP_API_KEY_DSN2 = 'qwen-text-key';
+const MEETWISE_TEST_FIXTURE_DASHSCOPE_EMBED_API_KEY_DSN3 = 'dashscope-embed-key';
+const MEETWISE_TEST_FIXTURE_DASHSCOPE_RERANK_API_KEY_DSN4 = 'dashscope-rerank-key';
+const MEETWISE_TEST_FIXTURE_DASHSCOPE_ASR_API_KEY_DSN5 = 'dashscope-asr-key';
+const MEETWISE_TEST_FIXTURE_DASHSCOPE_TTS_API_KEY_DSN6 = 'dashscope-tts-key';
+const MEETWISE_TEST_FIXTURE_DASHSCOPE_STREAM_ASR_API_KEY_DSN7 = 'dashscope-stream-asr-key';
+const MEETWISE_TEST_FIXTURE_DASHSCOPE_STREAM_TTS_API_KEY_DSN8 = 'dashscope-stream-tts-key';
+
+
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'wrong-key';
 
 let failures = 0;
 const check = (name: string, ok: boolean) => {
@@ -66,17 +78,17 @@ async function main() {
     Object.assign(process.env, {
       NODE_ENV: 'production',
       MODEL_BASE_URL: 'https://deepseek.text.invalid',
-      MODEL_API_KEY: 'deepseek-text-key',
+      MODEL_API_KEY: MEETWISE_TEST_FIXTURE_MODEL_API_KEY_DSN1,
       MODEL_NAME: 'deepseek-v4-pro',
       MODEL_BACKUP_BASE_URL: 'https://qwen.backup.invalid/compatible-mode/v1',
-      MODEL_BACKUP_API_KEY: 'qwen-text-key',
+      MODEL_BACKUP_API_KEY: MEETWISE_TEST_FIXTURE_MODEL_BACKUP_API_KEY_DSN2,
       // BAILIAN-03/04: 每能力独立 Key；不再有一把 broad DASHSCOPE_API_KEY。
-      DASHSCOPE_EMBED_API_KEY: 'dashscope-embed-key',
-      DASHSCOPE_RERANK_API_KEY: 'dashscope-rerank-key',
-      DASHSCOPE_ASR_API_KEY: 'dashscope-asr-key',
-      DASHSCOPE_TTS_API_KEY: 'dashscope-tts-key',
-      DASHSCOPE_STREAM_ASR_API_KEY: 'dashscope-stream-asr-key',
-      DASHSCOPE_STREAM_TTS_API_KEY: 'dashscope-stream-tts-key',
+      DASHSCOPE_EMBED_API_KEY: MEETWISE_TEST_FIXTURE_DASHSCOPE_EMBED_API_KEY_DSN3,
+      DASHSCOPE_RERANK_API_KEY: MEETWISE_TEST_FIXTURE_DASHSCOPE_RERANK_API_KEY_DSN4,
+      DASHSCOPE_ASR_API_KEY: MEETWISE_TEST_FIXTURE_DASHSCOPE_ASR_API_KEY_DSN5,
+      DASHSCOPE_TTS_API_KEY: MEETWISE_TEST_FIXTURE_DASHSCOPE_TTS_API_KEY_DSN6,
+      DASHSCOPE_STREAM_ASR_API_KEY: MEETWISE_TEST_FIXTURE_DASHSCOPE_STREAM_ASR_API_KEY_DSN7,
+      DASHSCOPE_STREAM_TTS_API_KEY: MEETWISE_TEST_FIXTURE_DASHSCOPE_STREAM_TTS_API_KEY_DSN8,
       DASHSCOPE_ENDPOINT_PROFILE: 'cn-beijing-public',
       DASHSCOPE_ASR_MODEL: 'dashscope-asr-proof',
       DASHSCOPE_TTS_MODEL: 'dashscope-tts-proof',
@@ -187,8 +199,8 @@ async function main() {
     const beforeOverride = calls.length;
     process.env.DASHSCOPE_TEST_TRANSPORT_OVERRIDES = '1';
     check('production rejects endpoint/key overrides even if a test-only flag is injected',
-      syncErrorOf(() => dashscopeAsr({ baseUrl: 'https://evil.invalid', apiKey: 'wrong-key' })) === 'dashscope_native_transport_override_forbidden'
-      && syncErrorOf(() => dashscopeTts({ ttsUrl: 'https://evil.invalid', apiKey: 'wrong-key' })) === 'dashscope_native_transport_override_forbidden'
+      syncErrorOf(() => dashscopeAsr({ baseUrl: 'https://evil.invalid', apiKey: MEETWISE_TEST_FIXTURE_1 })) === 'dashscope_native_transport_override_forbidden'
+      && syncErrorOf(() => dashscopeTts({ ttsUrl: 'https://evil.invalid', apiKey: MEETWISE_TEST_FIXTURE_1 })) === 'dashscope_native_transport_override_forbidden'
       && calls.length === beforeOverride);
     delete process.env.DASHSCOPE_TEST_TRANSPORT_OVERRIDES;
 

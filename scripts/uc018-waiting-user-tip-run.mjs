@@ -25,8 +25,8 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const RECEIPT_DIR_REL = 'ai-docs/delivery/receipts/uc018-waiting-user-tip';
-const BACKFILL_PREFIX = 'ai-docs/delivery/receipts/uc018-receipt-backfill';
+const RECEIPT_DIR_REL = 'receipts/archive/2026-09-batch23/receipts/uc018-waiting-user-tip';
+const BACKFILL_PREFIX = 'receipts/archive/2026-09-batch23/receipts/uc018-receipt-backfill';
 const RECEIPT_REL = `${RECEIPT_DIR_REL}/waiting-user-tip.json`;
 const BANNED_HISTORICAL_PREFIXES = Object.freeze([
   '85d36c7',

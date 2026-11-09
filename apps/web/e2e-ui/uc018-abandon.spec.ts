@@ -1,5 +1,7 @@
 import { test, expect, type BrowserContext, type APIRequestContext } from '@playwright/test';
 import { createHmac, randomUUID } from 'node:crypto';
+const MEETWISE_TEST_FIXTURE_PASSWORD_UC018 = 'strongpw123';
+
 
 /**
  * UC-E2E-018 §1b #5 · GAP-UC018-UI dedicated browser prove.
@@ -15,7 +17,7 @@ import { createHmac, randomUUID } from 'node:crypto';
  * The assert nails the **UI trigger → same HTTP contract**, not the worker happy-path.
  */
 const API = process.env.E2E_API_BASE ?? 'http://127.0.0.1:8787';
-const PASSWORD = 'strongpw123';
+const PASSWORD = MEETWISE_TEST_FIXTURE_PASSWORD_UC018;
 
 async function tokenOf(context: BrowserContext): Promise<string> {
   const token = (await context.cookies()).find((c) => c.name === 'mw_token')?.value;

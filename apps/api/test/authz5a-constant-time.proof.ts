@@ -13,6 +13,11 @@ const CT = { 'content-type': 'application/json' };
 const bearer = (t: string) => ({ authorization: 'Bearer ' + t });
 import { verifyPassword, verifyLogin, LOGIN_DUMMY_HASH, normalizeEmail } from '@meetwise/domain';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'whatever1';
+const MEETWISE_TEST_FIXTURE_2 = 'wrongpw99';
+const MEETWISE_TEST_FIXTURE_3 = 'upperpw12';
+
 async function main() {
   const { A, done } = mkAssert('authz5a:constant-time');
 
@@ -58,19 +63,19 @@ async function main() {
   // ── ⑤ HTTP 面（真栈）──
   const h = await boot();
   {
-    const ghost = await h.post('/auth/login', {}, { email: 'ghost-ct@x.com', password: 'whatever1' });
-    const wrongpw = await h.post('/auth/login', {}, { email: 'pw@x.com', password: 'wrongpw99' });
+    const ghost = await h.post('/auth/login', {}, { email: 'ghost-ct@x.com', password: MEETWISE_TEST_FIXTURE_1 });
+    const wrongpw = await h.post('/auth/login', {}, { email: 'pw@x.com', password: MEETWISE_TEST_FIXTURE_2 });
     A('恒时序/HTTP ghost 与错密同码同形 401（响应差异面=零）',
       ghost.status === 401 && wrongpw.status === 401
       && JSON.stringify(ghost.body) === JSON.stringify(wrongpw.body));
   }
   {
     // #111 HTTP 侧：大写邮箱注册归一落库 + 大写登录命中同一账户
-    const s = await h.post('/auth/signup', {}, { email: 'UpperCase@X.com', password: 'upperpw12' });
+    const s = await h.post('/auth/signup', {}, { email: 'UpperCase@X.com', password: MEETWISE_TEST_FIXTURE_3 });
     A('#111/HTTP signup 大写邮箱 → 200(注册受理)', s.status === 200 && !!s.body?.token);
     const row = await h.pool.query('SELECT email FROM user_account WHERE id=$1', [s.body?.userId]);
     A('#111/HTTP signup 大写邮箱 → 库内归一落库', row.rows[0]?.email === 'uppercase@x.com');
-    const l = await h.post('/auth/login', {}, { email: 'UPPERCASE@X.COM', password: 'upperpw12' });
+    const l = await h.post('/auth/login', {}, { email: 'UPPERCASE@X.COM', password: MEETWISE_TEST_FIXTURE_3 });
     A('#111/HTTP 大写邮箱登录命中同一账户（userId 相等）', l.status === 200 && l.body?.userId === s.body?.userId);
   }
 

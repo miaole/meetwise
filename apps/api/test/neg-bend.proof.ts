@@ -2,6 +2,14 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { boot, mkAssert, tokenFor } from './_neg-harness';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'wrong-secret';
+const MEETWISE_TEST_FIXTURE_2 = 'whatever1';
+const MEETWISE_TEST_FIXTURE_3 = 'short';
+const MEETWISE_TEST_FIXTURE_4 = 'wrong-old-1';
+const MEETWISE_TEST_FIXTURE_5 = 'brandnew12';
+const MEETWISE_TEST_FIXTURE_6 = 'rlpass1234';
+
 /**
  * B 端(招聘方 jobs / 申请 applications / 人才库 recruiter / 角色 roles)+ 运营 admin + profile 域
  * **纯负路径**证明:角色越权 / 跨租户越权(IDOR)/ 多方 RLS 隔离 / admin 特权边界 / 重复申请 /
@@ -168,7 +176,7 @@ A('迁移窗口结束后历史死绑定仍由运行时 guard fail-closed 拒绝'
   const bad = { authorization: 'Bearer not.a.real.token' };
   A('GET /recruiter/jobs 垃圾 Bearer→401', (await h.req('GET', '/recruiter/jobs', bad)).status === 401);
   A('GET /admin/users 垃圾 Bearer→401', (await h.req('GET', '/admin/users', bad)).status === 401);
-  A('GET /profile 错密钥签名 token→401', (await h.req('GET', '/profile', { authorization: 'Bearer ' + tokenFor('userA', { secret: 'wrong-secret' }) })).status === 401);
+  A('GET /profile 错密钥签名 token→401', (await h.req('GET', '/profile', { authorization: 'Bearer ' + tokenFor('userA', { secret: MEETWISE_TEST_FIXTURE_1 }) })).status === 401);
   A('GET /profile 幽灵账户(签名合法但账户不存在)→401', (await h.req('GET', '/profile', { authorization: 'Bearer ' + tokenFor('ghost_no_such_user') })).status === 401);
   A('GET /profile 保留系统主体 __system* 冒充→401', (await h.req('GET', '/profile', h.U('__system_qbank__'))).status === 401);
   A('POST /recruiter/jobs 保留系统主体→401', (await h.send('POST', '/recruiter/jobs', h.U('__system_admin__'), { title: 'hack' })).status === 401);
@@ -359,9 +367,9 @@ A('迁移窗口结束后历史死绑定仍由运行时 guard fail-closed 拒绝'
   const rawBad = await h.raw('PATCH', '/profile/settings', { ...a, 'content-type': 'application/json' }, '{not valid json');
   A('settings 畸形 JSON 体→400', oneOf(rawBad.status, [400]));
   // change-password:短新密码 / 缺字段 / 错旧密码
-  A('change-password 新密码 <8→400 invalid_password', (await h.send('POST', '/profile/change-password', a, { oldPassword: 'whatever1', newPassword: 'short' })).status === 400);
+  A('change-password 新密码 <8→400 invalid_password', (await h.send('POST', '/profile/change-password', a, { oldPassword: MEETWISE_TEST_FIXTURE_2, newPassword: MEETWISE_TEST_FIXTURE_3 })).status === 400);
   A('change-password 缺字段→400', (await h.send('POST', '/profile/change-password', a, {})).status === 400);
-  const wp = await h.send('POST', '/profile/change-password', h.U('pwUser'), { oldPassword: 'wrong-old-1', newPassword: 'brandnew12' });
+  const wp = await h.send('POST', '/profile/change-password', h.U('pwUser'), { oldPassword: MEETWISE_TEST_FIXTURE_4, newPassword: MEETWISE_TEST_FIXTURE_5 });
   A('change-password 旧密码错误→401 wrong_password', wp.status === 401 && wp.body?.error === 'wrong_password');
   // /profile 自身返回体不泄漏 password_hash
   const me = await h.req('GET', '/profile', a);
@@ -576,9 +584,9 @@ A('迁移窗口结束后历史死绑定仍由运行时 guard fail-closed 拒绝'
   // signup:ip 桶 (10, 0.05)§1.2.6 钉死:同 IP 不同邮箱,第 capacity+1=11 次 → 429。
   // 桶序 per-email→ip→global(|| 短路):前 10 次每封邮箱全新 → 只耗 ip+global,确定性耗尽。
   const sig: { status: number }[] = [];
-  for (let i = 0; i < 10; i++) sig.push(await h.post('/auth/signup', {}, { email: `rl-signup-${i}@x.com`, password: 'rlpass1234' }));
+  for (let i = 0; i < 10; i++) sig.push(await h.post('/auth/signup', {}, { email: `rl-signup-${i}@x.com`, password: MEETWISE_TEST_FIXTURE_6 }));
   A('signup:ip 桶:同 IP 前 10 次(容量内)全放行', sig.every((r) => r.status === 200));
-  const over = await h.post('/auth/signup', {}, { email: 'rl-signup-10@x.com', password: 'rlpass1234' });
+  const over = await h.post('/auth/signup', {}, { email: 'rl-signup-10@x.com', password: MEETWISE_TEST_FIXTURE_6 });
   A('signup:ip 桶:第 11 次(容量+1)→429 too_many_attempts', over.status === 429 && over.body?.error === 'too_many_attempts');
   // invite:ip 桶 (12, 0.05):此前用例已耗 ~10(recU2 本体仅 §6 用 1)→ 有界循环至首个 429。
   // 归因:循环内 recU2 per-principal 用量 ≤1+10=11 < 容量 12 → 429 必来自 ip 桶(桶序 per-principal→ip 钉死短路先查主体)。

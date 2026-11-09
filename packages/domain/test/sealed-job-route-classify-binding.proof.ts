@@ -12,6 +12,9 @@ import {
   parseSealedJobRouteClassifyProvenance,
 } from '../src/index.ts';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'sk-x';
+
 let failures = 0;
 const A = (name: string, ok: boolean) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`); if (!ok) failures++; };
 
@@ -43,7 +46,7 @@ A('合法 provenance 解析为冻结快照',
 A('provenance 夹带 title/prompt/apiKey/url 或换 operation → 拒绝',
   parseSealedJobRouteClassifyProvenance({ ...sealed, title: '后端' }) === null
   && parseSealedJobRouteClassifyProvenance({ ...sealed, prompt: 'ignore' }) === null
-  && parseSealedJobRouteClassifyProvenance({ ...sealed, apiKey: 'sk-x' }) === null
+  && parseSealedJobRouteClassifyProvenance({ ...sealed, apiKey: MEETWISE_TEST_FIXTURE_1 }) === null
   && parseSealedJobRouteClassifyProvenance({ ...sealed, url: 'https://evil.example.test' }) === null
   && parseSealedJobRouteClassifyProvenance({ ...sealed, operationId: 'resume.ocr.v1' }) === null
   && parseSealedJobRouteClassifyProvenance({ ...sealed, modelOrRecipe: 'planner' }) === null

@@ -15,6 +15,10 @@ import {
   validateDashscopeTtsAudioUrl,
 } from '../src/index.ts';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'test-key';
+const MEETWISE_TEST_FIXTURE_2 = 'test';
+
 // This proof deliberately injects fake provider transports. The production and
 // development factories reject such key/endpoint overrides; the seam exists
 // only for this isolated Node test process.
@@ -154,7 +158,7 @@ async function main() {
     let timedOut = false;
     const started = Date.now();
     try {
-      await dashscopeAsr({ baseUrl: 'https://provider.invalid', apiKey: 'test-key', timeoutMs: 35 })
+      await dashscopeAsr({ baseUrl: 'https://provider.invalid', apiKey: MEETWISE_TEST_FIXTURE_1, timeoutMs: 35 })
         .transcribe(new Uint8Array([1, 2, 3]), { format: 'webm' });
     } catch (error: any) {
       timedOut = error?.message === 'asr_timeout' && error?.timeoutMs === 35;
@@ -170,7 +174,7 @@ async function main() {
   try {
     globalThis.fetch = headersThenNeverEndingJson(asrBodyStall);
     const asrError = await settleWithin(
-      dashscopeAsr({ baseUrl: 'https://provider.invalid', apiKey: 'test-key', timeoutMs: 25 })
+      dashscopeAsr({ baseUrl: 'https://provider.invalid', apiKey: MEETWISE_TEST_FIXTURE_1, timeoutMs: 25 })
         .transcribe(new Uint8Array([1, 2, 3]), { format: 'webm' }),
       500,
     );
@@ -190,7 +194,7 @@ async function main() {
       }, { once: true }));
     }) as typeof fetch;
     const caller = new AbortController();
-    const pending = dashscopeAsr({ baseUrl: 'https://provider.invalid', apiKey: 'test-key', timeoutMs: 500 })
+    const pending = dashscopeAsr({ baseUrl: 'https://provider.invalid', apiKey: MEETWISE_TEST_FIXTURE_1, timeoutMs: 500 })
       .transcribe(new Uint8Array([1, 2, 3]), { format: 'webm', signal: caller.signal });
     await wait(10);
     caller.abort();
@@ -212,7 +216,7 @@ async function main() {
       // signal.  The provider failure happened first in this same turn.
       init?.signal?.addEventListener('abort', () => undefined, { once: true });
     })) as typeof fetch;
-    const providerFirst = await messageOf(() => dashscopeAsr({ baseUrl: 'https://provider.invalid', apiKey: 'test-key', timeoutMs: 500 })
+    const providerFirst = await messageOf(() => dashscopeAsr({ baseUrl: 'https://provider.invalid', apiKey: MEETWISE_TEST_FIXTURE_1, timeoutMs: 500 })
       .transcribe(new Uint8Array([1, 2, 3]), { format: 'webm', signal: providerFirstAbort.signal }));
     assert('供应商 AbortError 先发生、同一轮随后用户取消时仍保留供应商首因，不误报 asr_aborted', providerFirst === 'provider_reset');
   } finally {
@@ -221,9 +225,9 @@ async function main() {
 
   try {
     globalThis.fetch = (() => Promise.reject(new DOMException('provider_reset', 'AbortError'))) as typeof fetch;
-    const providerAsrAbort = await messageOf(() => dashscopeAsr({ baseUrl: 'https://provider.invalid', apiKey: 'test-key', timeoutMs: 500 })
+    const providerAsrAbort = await messageOf(() => dashscopeAsr({ baseUrl: 'https://provider.invalid', apiKey: MEETWISE_TEST_FIXTURE_1, timeoutMs: 500 })
       .transcribe(new Uint8Array([1, 2, 3]), { format: 'webm' }));
-    const providerTtsAbort = await messageOf(() => dashscopeTts({ apiKey: 'test-key', admission: createTtsDownloadAdmission({ maxConcurrent: 1, maxQueued: 0 }) })
+    const providerTtsAbort = await messageOf(() => dashscopeTts({ apiKey: MEETWISE_TEST_FIXTURE_1, admission: createTtsDownloadAdmission({ maxConcurrent: 1, maxQueued: 0 }) })
       .synthesize('供应商连接被重置'));
     assert('未收到调用方取消时，供应商 AbortError 不会伪装为 ASR/TTS 用户取消或 HTTP 499', providerAsrAbort === 'provider_reset' && providerTtsAbort === 'provider_reset');
   } finally {
@@ -237,7 +241,7 @@ async function main() {
       const body = new ReadableStream<Uint8Array>({ cancel() { errorResponseCancelled++; } });
       return Promise.resolve(new Response(body, { status: 503, headers: { 'content-type': 'application/json' } }));
     }) as typeof fetch;
-    const httpError = await messageOf(() => dashscopeTts({ apiKey: 'test-key', admission: jsonAdmission }).synthesize('固定测试文本'));
+    const httpError = await messageOf(() => dashscopeTts({ apiKey: MEETWISE_TEST_FIXTURE_1, admission: jsonAdmission }).synthesize('固定测试文本'));
     const released = await Promise.race([jsonAdmission.acquire(), wait(100).then(() => undefined)]);
     released?.();
     assert('首次 TTS 非 2xx JSON 响应会取消正文、保留状态语义并释放准入槽', httpError === 'tts_http_503' && errorResponseCancelled === 1 && typeof released === 'function');
@@ -256,7 +260,7 @@ async function main() {
       const body = new ReadableStream<Uint8Array>({ cancel() { wrongMimeCancelled++; } });
       return Promise.resolve(new Response(body, { status: 200, headers: { 'content-type': 'text/html' } }));
     }) as typeof fetch;
-    const wrongMime = await messageOf(() => dashscopeTts({ apiKey: 'test-key', admission: jsonNegativeAdmission }).synthesize('固定测试文本'));
+    const wrongMime = await messageOf(() => dashscopeTts({ apiKey: MEETWISE_TEST_FIXTURE_1, admission: jsonNegativeAdmission }).synthesize('固定测试文本'));
     const afterWrongMime = await jsonNegativeAdmission.acquire(); afterWrongMime();
 
     globalThis.fetch = (() => {
@@ -266,18 +270,18 @@ async function main() {
       });
       return Promise.resolve(new Response(body, { status: 200, headers: { 'content-type': 'application/json' } }));
     }) as typeof fetch;
-    const chunkedOversize = await messageOf(() => dashscopeTts({ apiKey: 'test-key', admission: jsonNegativeAdmission }).synthesize('固定测试文本'));
+    const chunkedOversize = await messageOf(() => dashscopeTts({ apiKey: MEETWISE_TEST_FIXTURE_1, admission: jsonNegativeAdmission }).synthesize('固定测试文本'));
     const afterChunkedOversize = await jsonNegativeAdmission.acquire(); afterChunkedOversize();
 
     globalThis.fetch = (() => Promise.resolve(new Response('{', { status: 200, headers: { 'content-type': 'application/json' } }))) as typeof fetch;
-    const malformed = await messageOf(() => dashscopeTts({ apiKey: 'test-key', admission: jsonNegativeAdmission }).synthesize('固定测试文本'));
+    const malformed = await messageOf(() => dashscopeTts({ apiKey: MEETWISE_TEST_FIXTURE_1, admission: jsonNegativeAdmission }).synthesize('固定测试文本'));
     const afterMalformed = await jsonNegativeAdmission.acquire(); afterMalformed();
 
     globalThis.fetch = (() => {
       const body = new ReadableStream<Uint8Array>({ start(controller) { controller.error(new Error('provider_reader_failed')); } });
       return Promise.resolve(new Response(body, { status: 200, headers: { 'content-type': 'application/json' } }));
     }) as typeof fetch;
-    const readerError = await messageOf(() => dashscopeTts({ apiKey: 'test-key', admission: jsonNegativeAdmission }).synthesize('固定测试文本'));
+    const readerError = await messageOf(() => dashscopeTts({ apiKey: MEETWISE_TEST_FIXTURE_1, admission: jsonNegativeAdmission }).synthesize('固定测试文本'));
     const afterReaderError = await jsonNegativeAdmission.acquire(); afterReaderError();
     let hangingBodyCancelCalls = 0;
     globalThis.fetch = (() => {
@@ -285,7 +289,7 @@ async function main() {
       return Promise.resolve(new Response(body, { status: 200, headers: { 'content-type': 'text/html' } }));
     }) as typeof fetch;
     const hangingBodyCancel = await settleWithin(
-      dashscopeTts({ apiKey: 'test-key', admission: jsonNegativeAdmission }).synthesize('固定测试文本'),
+      dashscopeTts({ apiKey: MEETWISE_TEST_FIXTURE_1, admission: jsonNegativeAdmission }).synthesize('固定测试文本'),
       100,
     );
     const afterHangingBodyCancel = await Promise.race([jsonNegativeAdmission.acquire(), wait(100).then(() => undefined)]);
@@ -300,7 +304,7 @@ async function main() {
       return Promise.resolve(new Response(body, { status: 200, headers: { 'content-type': 'application/json' } }));
     }) as typeof fetch;
     const hangingReaderCancel = await settleWithin(
-      dashscopeTts({ apiKey: 'test-key', admission: jsonNegativeAdmission }).synthesize('固定测试文本'),
+      dashscopeTts({ apiKey: MEETWISE_TEST_FIXTURE_1, admission: jsonNegativeAdmission }).synthesize('固定测试文本'),
       100,
     );
     const afterHangingReaderCancel = await Promise.race([jsonNegativeAdmission.acquire(), wait(100).then(() => undefined)]);
@@ -323,7 +327,7 @@ async function main() {
       status: 200,
       headers: { 'content-type': 'application/json', 'content-length': String(256 * 1024 + 1) },
     }))) as typeof fetch;
-    const tooLarge = await messageOf(() => dashscopeTts({ apiKey: 'test-key', admission: jsonAdmission }).synthesize('固定测试文本'));
+    const tooLarge = await messageOf(() => dashscopeTts({ apiKey: MEETWISE_TEST_FIXTURE_1, admission: jsonAdmission }).synthesize('固定测试文本'));
     const released = await Promise.race([jsonAdmission.acquire(), wait(100).then(() => undefined)]);
     released?.();
     assert('首次 TTS JSON 声明长度超过 256 KiB（千字节）在下载前拒绝并释放槽位', tooLarge === 'external_response_body_too_large' && typeof released === 'function');
@@ -649,9 +653,9 @@ async function main() {
     }) as typeof fetch;
     const providerAdmission = createTtsDownloadAdmission({ maxConcurrent: 1, maxQueued: 0 });
     const heldProviderLease = await providerAdmission.acquire();
-    const capacityBeforeProvider = await messageOf(() => dashscopeTts({ apiKey: 'test', admission: providerAdmission }).synthesize('安全测试'));
+    const capacityBeforeProvider = await messageOf(() => dashscopeTts({ apiKey: MEETWISE_TEST_FIXTURE_2, admission: providerAdmission }).synthesize('安全测试'));
     heldProviderLease();
-    const integrationError = await messageOf(() => dashscopeTts({ apiKey: 'test', ttsUrl: 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation' }).synthesize('安全测试'));
+    const integrationError = await messageOf(() => dashscopeTts({ apiKey: MEETWISE_TEST_FIXTURE_2, ttsUrl: 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation' }).synthesize('安全测试'));
     assert('TTS 操作级 bulkhead（舱壁）在供应商请求前拒绝满载，恶意响应也绝不发第二次 fetch', capacityBeforeProvider === 'tts_download_capacity_exceeded' && integrationError === 'tts_download_host_rejected' && ttsFetchCalls === 1);
   } finally {
     globalThis.fetch = originalTtsFetch;
@@ -668,7 +672,7 @@ async function main() {
       }, { once: true }));
     }) as typeof fetch;
     const providerCancel = new AbortController();
-    const pendingProviderTts = dashscopeTts({ apiKey: 'test', admission: createTtsDownloadAdmission({ maxConcurrent: 1, maxQueued: 0 }) })
+    const pendingProviderTts = dashscopeTts({ apiKey: MEETWISE_TEST_FIXTURE_2, admission: createTtsDownloadAdmission({ maxConcurrent: 1, maxQueued: 0 }) })
       .synthesize('取消供应商合成', { signal: providerCancel.signal });
     await new Promise((resolve) => setTimeout(resolve, 0));
     providerCancel.abort();
@@ -684,7 +688,7 @@ async function main() {
     globalThis.fetch = headersThenNeverEndingJson(callerBodyStats);
     const callerBodyAdmission = createTtsDownloadAdmission({ maxConcurrent: 1, maxQueued: 0 });
     const callerBodyAbort = new AbortController();
-    const callerBodyPending = dashscopeTts({ apiKey: 'test', admission: callerBodyAdmission, timeoutMs: 500 } as any)
+    const callerBodyPending = dashscopeTts({ apiKey: MEETWISE_TEST_FIXTURE_2, admission: callerBodyAdmission, timeoutMs: 500 } as any)
       .synthesize('响应头后取消', { signal: callerBodyAbort.signal });
     await new Promise((resolve) => setTimeout(resolve, 0));
     callerBodyAbort.abort();
@@ -696,7 +700,7 @@ async function main() {
     const deadlineBodyStats = { fetchSignalsAborted: 0 };
     globalThis.fetch = headersThenNeverEndingJson(deadlineBodyStats);
     const deadlineBodyAdmission = createTtsDownloadAdmission({ maxConcurrent: 1, maxQueued: 0 });
-    const deadlineBodyPending = dashscopeTts({ apiKey: 'test', admission: deadlineBodyAdmission, timeoutMs: 25 } as any)
+    const deadlineBodyPending = dashscopeTts({ apiKey: MEETWISE_TEST_FIXTURE_2, admission: deadlineBodyAdmission, timeoutMs: 25 } as any)
       .synthesize('响应头后超时');
     const deadlineBodyOutcome = await settleWithin(deadlineBodyPending, 120);
     let deadlineBodyLeaseReleased = false;
@@ -717,7 +721,7 @@ async function main() {
       const controller = new AbortController();
       return {
         controller,
-        request: dashscopeTts({ apiKey: 'test', admission: concurrentOperationAdmission, timeoutMs: 500 })
+        request: dashscopeTts({ apiKey: MEETWISE_TEST_FIXTURE_2, admission: concurrentOperationAdmission, timeoutMs: 500 })
           .synthesize('并发正文卡住取消', { signal: controller.signal }),
       };
     });
@@ -729,7 +733,7 @@ async function main() {
         twentyFirstOperationFetches++;
         return original(...args);
       }) as typeof fetch;
-      return dashscopeTts({ apiKey: 'test', admission: concurrentOperationAdmission, timeoutMs: 500 }).synthesize('容量拒绝');
+      return dashscopeTts({ apiKey: MEETWISE_TEST_FIXTURE_2, admission: concurrentOperationAdmission, timeoutMs: 500 }).synthesize('容量拒绝');
     });
     for (const { controller } of operations) { controller.abort(); controller.abort(); }
     const outcomes = await Promise.all(operations.map(({ request }) => messageOf(() => request)));

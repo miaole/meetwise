@@ -1,4 +1,4 @@
-import { BASE, readJson } from './http.ts';
+import { e2eUrl, readJson } from './http.ts';
 
 export type ResumeFilePayload = {
   filename: string;
@@ -10,7 +10,7 @@ export type ResumeFilePayload = {
  * PIPL resume-processing consent. Upload helpers do not invent a consent cookie.
  */
 export async function consentResumeProcessing(headers: Record<string, string>): Promise<any> {
-  const response = await fetch(`${BASE}/privacy/consent`, {
+  const response = await fetch(e2eUrl(`/privacy/consent`), {
     method: 'POST',
     headers,
     body: JSON.stringify({ purpose: 'resume_processing' }),
@@ -19,7 +19,7 @@ export async function consentResumeProcessing(headers: Record<string, string>): 
 }
 
 export async function uploadTextResume(headers: Record<string, string>, text: string): Promise<any> {
-  const response = await fetch(`${BASE}/resume`, {
+  const response = await fetch(e2eUrl(`/resume`), {
     method: 'POST',
     headers,
     body: JSON.stringify({ text }),
@@ -28,7 +28,7 @@ export async function uploadTextResume(headers: Record<string, string>, text: st
 }
 
 export async function uploadImageResume(headers: Record<string, string>, file: ResumeFilePayload): Promise<any> {
-  const response = await fetch(`${BASE}/resume/file`, {
+  const response = await fetch(e2eUrl(`/resume/file`), {
     method: 'POST',
     headers,
     body: JSON.stringify(file),
@@ -37,5 +37,5 @@ export async function uploadImageResume(headers: Record<string, string>, file: R
 }
 
 export async function getResumeProfile(headers: Record<string, string>, resumeId: string): Promise<any> {
-  return readJson(await fetch(`${BASE}/resume/${resumeId}/profile`, { headers }));
+  return readJson(await fetch(e2eUrl(`/resume/${resumeId}/profile`), { headers }));
 }

@@ -85,7 +85,7 @@ function childEnv(extra = {}) {
 const wrapperSha = git(tipRoot, 'rev-parse HEAD');
 const targetFull = git(tipRoot, `rev-parse ${targetSha}`);
 const ranAt = new Date().toISOString();
-const receiptDir = join(tipRoot, 'ai-docs/delivery/receipts/uc018-receipt-backfill');
+const receiptDir = join(tipRoot, 'receipts/archive/2026-09-batch23/receipts/uc018-receipt-backfill');
 const logRel = `ai-docs/delivery/receipts/uc018-receipt-backfill/logs/${key}-${targetSha.slice(0, 7)}.log`;
 const logAbs = join(tipRoot, logRel);
 const attemptsPath = join(receiptDir, 'attempts.jsonl');
@@ -309,7 +309,7 @@ mkdirSync(worktreeBase, { recursive: true });
 
 const tipDirty = porcelain(tipRoot).filter((line) => {
   const path = line.replace(/^\?\? /, '').replace(/^[ MADRCU]{1,2} /, '').trim();
-  if (path.startsWith('ai-docs/delivery/receipts/uc018-receipt-backfill')) return false;
+  if (path.startsWith('receipts/archive/2026-09-batch23/receipts/uc018-receipt-backfill')) return false;
   if (path.startsWith('.tmp/')) return false;
   return true;
 });

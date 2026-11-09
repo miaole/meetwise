@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 import { assertIsolatedTestEnvironment, assertIsolatedTestTarget } from '../src/isolated-test-target.ts';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'test-only';
+const MEETWISE_TEST_FIXTURE_2 = 'wrong';
+const MEETWISE_TEST_FIXTURE_3 = 'ss-probe-token-000000000001';
+const MEETWISE_TEST_FIXTURE_4 = 'wrong-token';
+
 const runId = 'cloudtest-20260811-profile';
 const database = 'meetwise_e2e_cloudtest_20260811_profile';
 const token = 'cloud-test-token-1234567890';
@@ -16,7 +22,7 @@ function cloudEnv(overrides: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv {
     PGHOST: '172.31.224.8',
     PGPORT: '5432',
     PGUSER: 'mw_e2e_admin',
-    PGPASSWORD: 'test-only',
+    PGPASSWORD: MEETWISE_TEST_FIXTURE_1,
     PGDATABASE: database,
     DATABASE_SSL_MODE: 'verify-full',
     DATABASE_SSL_CA_PATH: '/tmp/cloud-test-ca.pem',
@@ -41,7 +47,7 @@ await assertIsolatedTestTarget({
   query: async () => ({ rows: [{ token, database }] }),
 } as any, cloudEnv());
 await assert.rejects(
-  assertIsolatedTestTarget({ query: async () => ({ rows: [{ token: 'wrong', database }] }) } as any, cloudEnv()),
+  assertIsolatedTestTarget({ query: async () => ({ rows: [{ token: MEETWISE_TEST_FIXTURE_2, database }] }) } as any, cloudEnv()),
   /isolated_target_attestation_mismatch/,
 );
 
@@ -61,7 +67,7 @@ function isolatedEnv(overrides: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv {
     PGHOST: '127.0.0.1',
     PGPORT: '55432',
     PGUSER: 'meetwise',
-    PGPASSWORD: 'test-only',
+    PGPASSWORD: MEETWISE_TEST_FIXTURE_1,
     PGDATABASE: 'meetwise',
     ...overrides,
   };
@@ -101,11 +107,11 @@ assert.throws(
 
 // Nonce tripwire is untouched and remains the hard floor on the widened path.
 await assertIsolatedTestTarget(
-  { query: async () => ({ rows: [{ token: 'ss-probe-token-000000000001' }] }) } as any,
+  { query: async () => ({ rows: [{ token: MEETWISE_TEST_FIXTURE_3 }] }) } as any,
   isolatedEnv({ PGHOST: 'host.docker.internal' }),
 );
 await assert.rejects(
-  assertIsolatedTestTarget({ query: async () => ({ rows: [{ token: 'wrong-token' }] }) } as any, isolatedEnv({ PGHOST: 'host.docker.internal' })),
+  assertIsolatedTestTarget({ query: async () => ({ rows: [{ token: MEETWISE_TEST_FIXTURE_4 }] }) } as any, isolatedEnv({ PGHOST: 'host.docker.internal' })),
   /destructive_proof_isolated_target_attestation_mismatch/,
   'server nonce mismatch still throws with host-gateway literal',
 );

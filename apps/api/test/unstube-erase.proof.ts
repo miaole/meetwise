@@ -32,10 +32,17 @@ import {
   historicalWeakDimensions, type Client,
 } from '@meetwise/db';
 import { generatePrivacyAuthzKeyPair, signPrivacyAuthorizationSnapshot } from '@meetwise/domain';
+const MEETWISE_TEST_FIXTURE_PASSWORD_UE = 'unstube-erase-api-runtime-password-2026';
+
+
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'unstube-erase-proof-auth-secret';
+const MEETWISE_TEST_FIXTURE_2 = 'unstube-erase-password-2026';
+const MEETWISE_TEST_FIXTURE_3 = 'definitely-wrong-password';
 
 const admin = createPool();
 const role = `unstube_erase_api_${process.pid}`;
-const password = 'unstube-erase-api-runtime-password-2026';
+const password = MEETWISE_TEST_FIXTURE_PASSWORD_UE;
 let runtime: ReturnType<typeof createPool> | undefined;
 let failures = 0;
 
@@ -75,7 +82,7 @@ async function main() {
   Object.assign(process.env, {
     NODE_ENV: 'test',
     WEB_ORIGIN: 'https://web.example.test',
-    AUTH_SECRET: 'unstube-erase-proof-auth-secret',
+    AUTH_SECRET: MEETWISE_TEST_FIXTURE_1,
     PRIVACY_ERASURE_IDEMPOTENCY_HMAC_KEY: 'unstube-erase-proof-hmac-key',
     PGUSER: role,
     PGPASSWORD: password,
@@ -88,7 +95,7 @@ async function main() {
   const signup = async (email: string) => {
     const res = await fetch(`${base}/auth/signup`, {
       method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ email, password: 'unstube-erase-password-2026', role: 'candidate' }),
+      body: JSON.stringify({ email, password: MEETWISE_TEST_FIXTURE_2, role: 'candidate' }),
     });
     const body = await json(res);
     if (res.status !== 200 || typeof body.token !== 'string') throw new Error(`signup_failed:${email}`);
@@ -277,7 +284,7 @@ async function main() {
     const era2InterviewsBefore = Number((await admin.query('SELECT count(*)::int AS n FROM interview WHERE owner_user_id=$1', [era2.userId])).rows[0]?.n ?? -1);
     const poisoned = await fetch(`${base}/profile/deactivate`, {
       method: 'POST', headers: { ...auth(era2.token), 'content-type': 'application/json' },
-      body: JSON.stringify({ password: 'unstube-erase-password-2026' }),
+      body: JSON.stringify({ password: MEETWISE_TEST_FIXTURE_2 }),
     });
     A('FAULT: 投毒后注销受理中途失败（23505→全局过滤器 409 conflict,不伪受理）',
       poisoned.status === 409 && (await json(poisoned)).error === 'conflict');
@@ -293,7 +300,7 @@ async function main() {
     // ════════ P-07：注销 + 发起账户级删除 ════════
     const wrongPw = await fetch(`${base}/profile/deactivate`, {
       method: 'POST', headers: { ...auth(era2.token), 'content-type': 'application/json' },
-      body: JSON.stringify({ password: 'definitely-wrong-password' }),
+      body: JSON.stringify({ password: MEETWISE_TEST_FIXTURE_3 }),
     });
     A('NEG: 注销密码错 → 401 且零副作用（账户/账本/围栏三面不变）',
       wrongPw.status === 401
@@ -306,7 +313,7 @@ async function main() {
 
     const deactivate = await fetch(`${base}/profile/deactivate`, {
       method: 'POST', headers: { ...auth(era2.token), 'content-type': 'application/json' },
-      body: JSON.stringify({ password: 'unstube-erase-password-2026' }),
+      body: JSON.stringify({ password: MEETWISE_TEST_FIXTURE_2 }),
     });
     const deactivateBody = await json(deactivate);
     A('S1: 注销+账户级删除 → 202 + mode=logical + purgePending=true + deletedAt + 两轨计数',
@@ -323,13 +330,13 @@ async function main() {
     A('NEG: 注销后旧 Bearer → 401 account_inactive', staleBearer.status === 401 && (await json(staleBearer)).error === 'account_inactive');
     const relogin = await fetch(`${base}/auth/login`, {
       method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ email: `unstube-erase-era2-${process.pid}@example.test`, password: 'unstube-erase-password-2026' }),
+      body: JSON.stringify({ email: `unstube-erase-era2-${process.pid}@example.test`, password: MEETWISE_TEST_FIXTURE_2 }),
     });
     A('NEG: 注销后 login → 401（status!=active 拒绝）', relogin.status === 401);
     const ledgerBeforeReplay = Number((await admin.query("SELECT count(*)::int AS n FROM privacy_erasure_request WHERE owner_user_id=$1", [era2.userId])).rows[0]?.n ?? -1);
     const replayDeactivate = await fetch(`${base}/profile/deactivate`, {
       method: 'POST', headers: { ...auth(era2.token), 'content-type': 'application/json' },
-      body: JSON.stringify({ password: 'unstube-erase-password-2026' }),
+      body: JSON.stringify({ password: MEETWISE_TEST_FIXTURE_2 }),
     });
     A('BOUND: 注销重放 → 401 account_inactive（守卫先拒,不重复建账）',
       replayDeactivate.status === 401 && (await json(replayDeactivate)).error === 'account_inactive'

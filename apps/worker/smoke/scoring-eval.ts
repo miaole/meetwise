@@ -7,7 +7,7 @@
  *
  * **这是信号不是硬门**:真模型有抖动,阈值破线只打印告警不 exit(1)(nightly 本就 cron 不阻断合并);唯一真硬门是 scoring-eval:prove(度量数学)。
  * 跳过率(model_transient)超 20% → 整轮判 inconclusive(既不绿也不红,不拿走运样本洗结论)。绝对分区间(band)未定标,不在此断言。
- *   用法:pnpm scoring:eval   (需受控测试环境的 MODEL_*)
+ *   用法:pnpm run scoring:eval —— 需受控测试环境的 MODEL_*
  *
  * 这个脚本绝不自建 schema 或角色。根命令将它放进一次性的隔离 PostgreSQL
  * runner，先执行版本化迁移；直接执行 raw 脚本会因 target attestation 失败而

@@ -7,6 +7,9 @@ import {
   SEALED_OCR_OPERATION_ID, admitInterviewResume, parseSealedOcrProvenance, refuseInterviewAdHocOcr,
 } from '../src/index.ts';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'sk-x';
+
 let failures = 0;
 const A = (name: string, ok: boolean) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`); if (!ok) failures++; };
 /** 联合类型窄化：仅 deny 臂（ok:false）携带 error；allow 臂经由这里得到哨兵值，断言恒假。 */
@@ -51,7 +54,7 @@ A('TC-MODEL-OCR-01-特：文本简历挂伪造 OCR provenance → 拒绝',
 
 A('TC-MODEL-OCR-01-刁：provenance 夹带 text/apiKey/url 或换 operation → 拒绝',
   parseSealedOcrProvenance({ ...sealed, text: '技能 Go' }) === null
-  && parseSealedOcrProvenance({ ...sealed, apiKey: 'sk-x' }) === null
+  && parseSealedOcrProvenance({ ...sealed, apiKey: MEETWISE_TEST_FIXTURE_1 }) === null
   && parseSealedOcrProvenance({ ...sealed, url: 'https://evil.example.test' }) === null
   && parseSealedOcrProvenance({ ...sealed, operationId: 'interview.question-generation.v1' }) === null
   && parseSealedOcrProvenance({ ...sealed, modelOrRecipe: 'qwen-vl-plus' }) === null

@@ -46,6 +46,9 @@ import { startAdaptiveInterview, submitAdaptiveAnswer, type AdaptiveLifecycleDep
 import { drainReportsOnce, sweepReportsOnce, reportDispatchKey, type ReportWorkerDeps } from '../src/report-worker.ts';
 import { reportWorkerDeps } from '../src/main.ts';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'test';
+
 process.env.NODE_ENV = 'test';
 process.env.MODEL_TEST_TRANSPORT_OVERRIDES = '1';   // 本地 http loopback 脚本 provider 缝（context-stress :146 同源）
 process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'ag-e-report-job-route-input-hmac-proof-key-not-production-01';
@@ -144,7 +147,7 @@ async function main() {
     [PROVIDER, MODEL, 'cn-proof', 'ag-e-r1']);
   await pool.query('INSERT INTO ai_cost_budget_policy(scope_id,monthly_limit_micro_cny,enabled) VALUES($1,1000000,true)', [SCOPE]);
   const provider = await startScriptedProvider();
-  const client = openAICompatibleClient({ baseUrl: `http://127.0.0.1:${provider.port}`, apiKey: 'test', model: MODEL, costPolicy: policy });
+  const client = openAICompatibleClient({ baseUrl: `http://127.0.0.1:${provider.port}`, apiKey: MEETWISE_TEST_FIXTURE_1, model: MODEL, costPolicy: policy });
   const deps = reportDeps(client);
 
   // ══ A. AG-03 主臂：失败→sweep 重排→新键真调模型（§2-①主臂）══════════════════

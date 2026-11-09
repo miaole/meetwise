@@ -17,7 +17,8 @@ import { drainQuizJobOnce } from '../src/quiz-consumer.ts';
 
 const admin = createPool();
 const runtimeRole = `resume_derivative_ref_${process.pid}`;
-const runtimePassword = 'resume-derivative-reference-proof-password-2026';
+const MEETWISE_TEST_FIXTURE_RUNTIMEPASSWORD_RDR = 'resume-derivative-reference-proof-password-2026';
+const runtimePassword = MEETWISE_TEST_FIXTURE_RUNTIMEPASSWORD_RDR;
 let failures = 0;
 let phase = 'PRES007';
 const A = (id: string, ok: boolean) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${id}`); if (!ok) failures++; };

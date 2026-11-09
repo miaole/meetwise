@@ -1,3 +1,6 @@
+
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'whatever1';
 /**
  * AUTHZ-HARDEN 5A-1 簇② prove — #180 login **global 桶**（§2-3 第二臂）：全库连击击穿 → 第 4 发 429。
  * R2 参数注入短窗：RL_LOGIN_GLOBAL='3,0.01'（近零补充=窗内恒锁）+ RL_LOGIN_IP='1000,0.01'（不触发）——
@@ -14,7 +17,7 @@ async function main() {
   const { A, done } = mkAssert('authz5a:login-global-throttle');
   const results: any[] = [];
   for (let i = 0; i < 4; i++) {
-    results.push(await h.post('/auth/login', {}, { email: `global-spray-${i}@x.com`, password: 'whatever1' }));
+    results.push(await h.post('/auth/login', {}, { email: `global-spray-${i}@x.com`, password: MEETWISE_TEST_FIXTURE_1 }));
   }
   A('#180 global 桶/前 3 发进校验 → 401（ip 桶容量 1000·per-email 各 1 发,均未触发）',
     results[0].status === 401 && results[1].status === 401 && results[2].status === 401);

@@ -9,6 +9,17 @@ import { redirect } from 'next/navigation';
  */
 const API_BASE = process.env.API_BASE_INTERNAL ?? process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:8787';
 
+/**
+ * SSRF 守卫：上游 URL 只允许 http/https，且 origin 必须钉在配置的上游 API_BASE 上
+ * （路径段全部由本仓调用方字面量/encodeURIComponent 组成；钉 origin 使任何 host 漂移 fail-closed）。
+ */
+export function upstreamUrl(path: string): string {
+  const u = new URL(`${API_BASE}${path}`);
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') throw new Error(`upstream_protocol_forbidden:${u.protocol}`);
+  if (u.origin !== new URL(API_BASE).origin) throw new Error(`upstream_origin_forbidden:${u.origin}`);
+  return u.toString();
+}
+
 export async function getServerToken(): Promise<string | undefined> {
   return (await cookies()).get('mw_token')?.value;
 }
@@ -20,7 +31,7 @@ export async function serverFetch(path: string, init: RequestInit = {}): Promise
   // Fastify 会把空体当非法 JSON → 400(而非业务码 402)——曾导致"开始面试"经 UI 永远 400→进死会话页/不提示额度。真测才抓到。
   if (init.body != null && headers['content-type'] === undefined) headers['content-type'] = 'application/json';
   if (token) headers['authorization'] = `Bearer ${token}`;
-  return fetch(`${API_BASE}${path}`, { ...init, headers, cache: 'no-store' });   // 用户态数据不缓存
+  return fetch(upstreamUrl(path), { ...init, headers, cache: 'no-store' });   // 用户态数据不缓存
 }
 
 /** 服务端 GET JSON。401(令牌过期)→ 跳登录(不把过期当"暂不可用"假死,修审计 #3);其余失败返 null 让 RSC 降级渲染。 */

@@ -11,10 +11,12 @@ import { createPool, asPrincipal, provisionRuntimeLogin, reserveEntitlement, cre
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
 import { ingestResume } from '@meetwise/domain';
 import { drainInterviewJobOnce, type ConsumerDeps } from '../src/interview-consumer.ts';
+const MEETWISE_TEST_FIXTURE_RUNTIMEPASSWORD_ADC = 'adaptive-consumer-runtime-password-2026';
+
 
 const admin = createPool();
 const runtimeRole = `adaptive_consumer_${process.pid}`;
-const runtimePassword = 'adaptive-consumer-runtime-password-2026';
+const runtimePassword = MEETWISE_TEST_FIXTURE_RUNTIMEPASSWORD_ADC;
 let pool!: ReturnType<typeof createPool>;
 let fail = 0; const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
 let stage = 'BOOT';

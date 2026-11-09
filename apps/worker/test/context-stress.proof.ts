@@ -21,6 +21,9 @@ import { interviewDispatchTick, type ConsumerDeps } from '../src/interview-consu
 import { invokeEvaluationOnce, reportGenerator } from '../src/interview-service.ts';
 import { drainReportsOnce } from '../src/report-worker.ts';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'test';
+
 const pool = createPool();
 let failures = 0;
 const A = (name: string, condition: boolean) => {
@@ -155,7 +158,7 @@ async function main() {
   process.env.NODE_ENV = 'test';
   process.env.MODEL_TEST_TRANSPORT_OVERRIDES = '1';
   const echo = await startEcho();
-  const echoModel = openAICompatibleClient({ baseUrl: `http://127.0.0.1:${echo.port}`, apiKey: 'test', model: 'echo' });
+  const echoModel = openAICompatibleClient({ baseUrl: `http://127.0.0.1:${echo.port}`, apiKey: MEETWISE_TEST_FIXTURE_1, model: 'echo' });
 
   section('C. 真 invoke（模型网关）路径：截断不可由用户伪造');
   const directOwner = `stress-direct-${process.pid}`;

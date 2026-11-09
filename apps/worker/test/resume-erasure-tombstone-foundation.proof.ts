@@ -9,10 +9,12 @@ import {
   asPrincipal, assertIsolatedTestTarget, createPool, createResumeWithBlob, decryptResumeBlob,
   loadMigrations, provisionRuntimeLogin, runMigrations,
 } from '@meetwise/db';
+const MEETWISE_TEST_FIXTURE_RUNTIMEPASSWORD_RETF = 'resume-tombstone-api-proof-password-2026';
+
 
 const admin = createPool();
 const runtimeRole = `resume_tombstone_api_${process.pid}`;
-const runtimePassword = 'resume-tombstone-api-proof-password-2026';
+const runtimePassword = MEETWISE_TEST_FIXTURE_RUNTIMEPASSWORD_RETF;
 let failures = 0;
 const A = (id: string, ok: boolean) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${id}`); if (!ok) failures++; };
 const rejects = async (fn: () => Promise<unknown>) => { try { await fn(); return false; } catch { return true; } };

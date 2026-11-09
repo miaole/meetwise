@@ -200,7 +200,7 @@ async function main() {
     ? '结论：真实 512-d embedding + 真实 PG FTS lexical + 完整 question 聚合；此 run 的指标已可支撑 RRF 发布决策。'
     : '结论：真实 PG FTS lexical + 真实 pgvector ANN + 完整 question 聚合已跑通；但 dense 通道是确定性词袋（缺 DASHSCOPE_EMBED_API_KEY），本 run 的召回率只证明机械管道正确，不作为 RRF 语义发布的发布证据。');
 
-  console.log(`\n${fail === 0 ? '✓ qbank retrieval eval (real PG hybrid path) passed' : `✗ ${fail} qbank retrieval eval assertions failed`}`);
+  console.log(`\n${fail === 0 ? '✓ qbank retrieval eval of the real PG hybrid path passed' : `✗ ${fail} qbank retrieval eval assertions failed`}`);
   await pool.end();
   process.exit(fail ? 1 : 0);
 }

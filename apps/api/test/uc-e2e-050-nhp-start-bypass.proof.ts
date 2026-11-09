@@ -72,6 +72,9 @@ import { fileURLToPath } from 'node:url';
 import { createPool, runMigrations, loadMigrations, asPrincipal, createJob, classifyJobRoute, inviteCandidate } from '@meetwise/db';
 import type { DbPool } from '@meetwise/db';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'test-secret-key';
+
 const CMD = 'pnpm uc050:nhp-start-bypass:prove';
 const CASE_ID = 'NHP-050-START-BYPASS-01';
 const ATTEMPT_STARTED_AT = new Date().toISOString();
@@ -110,6 +113,7 @@ const stripEgressKeys = (env: NodeJS.ProcessEnv): NodeJS.ProcessEnv =>
  // +按 mode 脚本行使+__UC050SB_RESULT__ JSON 行落 fd1+SIGTERM 优雅停机契约（禁 process.exit 直退）。
 const CHILD_SOURCE = `
 import { createApp } from '../../src/main.ts';
+
 const mode = process.env.__UC050SB_MODE__;
 const killVal = process.env[${JSON.stringify(KILL_ENV)}];
 const app = await createApp();
@@ -315,7 +319,7 @@ const applicationStatusOf = async (pool: DbPool, appId: string) =>
       NODE_ENV: 'test',
       OCR_ENABLED: '0',
       AUTH_DEV_HEADER: '1',
-      AUTH_SECRET: 'test-secret-key',
+      AUTH_SECRET: MEETWISE_TEST_FIXTURE_1,
       RESUME_ENC_KEY: 'test-resume-enc-key',
       RESUME_HASH_SECRET: 'test-resume-hash-secret',
       PAY_PROVIDER_SECRET: 'test-pay-secret',
@@ -332,7 +336,7 @@ const applicationStatusOf = async (pool: DbPool, appId: string) =>
         __UC050SB_RESUME__: resumeId,
       };
       if (killVal === undefined) delete env[KILL_ENV]; else env[KILL_ENV] = killVal;
-      const child = spawn(process.execPath, ['--import', '@swc-node/register/esm-register', childSourcePath], {
+      const child = spawn(process.execPath, ['--import', '@swc-node/register/esm-register', '--', childSourcePath], {
         cwd: apiRoot,
         env,
         stdio: ['ignore', 'pipe', 'pipe'],

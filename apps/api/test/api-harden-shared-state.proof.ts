@@ -35,6 +35,8 @@ import { RateLimitService } from '../src/platform/rate-limit.service.ts';
 import { accountState } from '../src/platform/principal.guard.ts';
 import { isSessionActive, issueSessionToken, revokeSession } from '../src/platform/auth-session.ts';
 import { getSseNotify, notePrincipalEvicted as noteEvict, principalEvictGeneration } from '../src/platform/sse-notify.service.ts';
+const MEETWISE_TEST_FIXTURE_PASSWORD_AHSS = 'n1-noinherit-proof-passw0rd';
+
 
 /** 双实例模拟:每池一个结构形 DbService(DbService 构造器自建池,proof 需指定池故按同形薄封装)。 */
 function dbFromPool(pool: DbPool) {
@@ -275,7 +277,7 @@ async function main() {
   // ── N1 生产身份线:provisionRuntimeLogin 形 NOINHERIT 低权 login(post 修复席·B1 仲裁处方式)──
   {
     const roleName = `n1_p_${randomUUID().replaceAll('-', '').slice(0, 12)}`;
-    const password = 'n1-noinherit-proof-passw0rd';
+    const password = MEETWISE_TEST_FIXTURE_PASSWORD_AHSS;
     await provisionRuntimeLogin(poolA, { roleName, password });
     const lowPool: DbPool = createPool({
       purpose: 'api',

@@ -35,6 +35,9 @@ import {
   type MemoryEmbeddingRecipe, type MemoryEmbedder,
 } from '@meetwise/domain';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = '00000000-0000-0000-0000-000000000000';
+
 const admin = createPool({ max: 40 });
 const owner = `mem10-owner-${process.pid}`;
 const otherOwner = `mem10-other-${process.pid}`;
@@ -396,7 +399,7 @@ async function main() {
     claim2 === null);
   // 旧 lease / 篡改 token：complete 用错误 token 被拒。
   A('T1 tamper: 篡改/错误 token complete → lease_lost（拒绝）',
-    await rejects(() => workerComplete(otherOwner, { targetId: claim1!.targetId, token: '00000000-0000-0000-0000-000000000000', receipt: 'bad' })));
+    await rejects(() => workerComplete(otherOwner, { targetId: claim1!.targetId, token: MEETWISE_TEST_FIXTURE_1, receipt: 'bad' })));
   // 重复外部 receipt：正确 token complete 成功后，再 complete 幂等回放 completed（不重复删除）。
   const okComplete = await workerComplete(otherOwner, { targetId: claim1!.targetId, token: claim1!.leaseToken, receipt: 'receipt-t1' });
   const replayComplete = await workerComplete(otherOwner, { targetId: claim1!.targetId, token: claim1!.leaseToken, receipt: 'receipt-t1-again' });

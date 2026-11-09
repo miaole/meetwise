@@ -1,5 +1,8 @@
 /** Preview OCR composition: dual-flag, production still refuse-closed, failures invent nothing. */
 import { createOcrVisionClient, isOcrFeatureEnabled, isOcrPreviewRequested, isProductionOcrLocked } from '../src/modules/resume/ocr-model-client.ts';
+const MEETWISE_TEST_FIXTURE_DASHSCOPE_VISION_API_KEY_OCR = 'vision-test-only';
+const MEETWISE_TEST_FIXTURE_DASHSCOPE_VISION_API_KEY_OCR2 = 'vision-test-only';
+
 
 let failures = 0;
 const assert = (name: string, condition: boolean) => {
@@ -8,7 +11,7 @@ const assert = (name: string, condition: boolean) => {
 };
 
 const visionKeys = {
-  DASHSCOPE_VISION_API_KEY: 'vision-test-only',
+  DASHSCOPE_VISION_API_KEY: MEETWISE_TEST_FIXTURE_DASHSCOPE_VISION_API_KEY_OCR,
   DASHSCOPE_VISION_MODEL: 'vision-proof',
 } as const;
 
@@ -43,7 +46,7 @@ assert('non-production OCR_ENABLED=1 without OCR_PREVIEW still refuses',
   throwsUnconfigured({
     NODE_ENV: 'test',
     MODEL_COST_ENFORCEMENT: 'observe',
-    DASHSCOPE_VISION_API_KEY: 'vision-test-only',
+    DASHSCOPE_VISION_API_KEY: MEETWISE_TEST_FIXTURE_DASHSCOPE_VISION_API_KEY_OCR2,
     OCR_ENABLED: '1',
   }));
 assert('public-preview write-gate + both flags still refuses paid OCR',

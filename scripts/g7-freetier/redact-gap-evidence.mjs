@@ -16,8 +16,8 @@ import { dirname, join, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
-const RAW_DIR = join(ROOT, 'ai-docs/delivery/receipts/g7-key-x3-freetieronly-reprove/gap-evidence/raw');
-const RED_DIR = join(ROOT, 'ai-docs/delivery/receipts/g7-key-x3-freetieronly-reprove/gap-evidence/redacted');
+const RAW_DIR = join(ROOT, 'receipts/archive/2026-09-batch23/receipts/g7-key-x3-freetieronly-reprove/gap-evidence/raw');
+const RED_DIR = join(ROOT, 'receipts/archive/2026-09-batch23/receipts/g7-key-x3-freetieronly-reprove/gap-evidence/redacted');
 
 /** Ordered, deterministic substitutions. */
 const RULES = [

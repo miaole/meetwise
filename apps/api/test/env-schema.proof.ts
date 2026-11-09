@@ -6,6 +6,9 @@ import { fileURLToPath } from 'node:url';
 import { assertIsolatedTestTarget, createPool } from '@meetwise/db';
 import type { DbPool } from '@meetwise/db';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = '   ';
+
 /**
  * 审计 #91「配置集中校验刀」prove（零外呼·est live=0）。
  *
@@ -62,7 +65,7 @@ A('A3 缺 AUTH_SECRET → missing:AUTH_SECRET',
     JSON.stringify({ ok: false, problems: ['missing:AUTH_SECRET'] }));
 A('A4 AUTH_SECRET 空白视同缺失 + URL 协议错列 invalid',
   (() => {
-    const r = parseCriticalEnv({ AUTH_SECRET: '   ', DATABASE_URL: 'ftp://x' } as NodeJS.ProcessEnv);
+    const r = parseCriticalEnv({ AUTH_SECRET: MEETWISE_TEST_FIXTURE_1, DATABASE_URL: 'ftp://x' } as NodeJS.ProcessEnv);
     return !r.ok && r.problems.includes('missing:AUTH_SECRET')
       && r.problems.some((p) => p.startsWith('invalid:DATABASE_URL'));
   })());

@@ -35,7 +35,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const RECEIPT_BASE = join(REPO_ROOT, 'ai-docs/delivery/receipts/tokstream-s2-probe');
+const RECEIPT_BASE = join(REPO_ROOT, 'receipts/archive/2026-09-batch23/receipts/tokstream-s2-probe');
 const SELF_PATH = fileURLToPath(import.meta.url);
 const RUN_STARTED_AT = new Date().toISOString();
 /** Probe A answer text (module-scoped so B's stitch grading can consume it). */

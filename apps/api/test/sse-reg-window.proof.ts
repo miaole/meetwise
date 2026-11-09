@@ -426,7 +426,7 @@ function memStore(seed: SseEventRow[]) {
   const rows = seed.slice();
   return {
     append(row: SseEventRow): void { rows.push(row); },
-    async fetch(lastSeq: number): Promise<{ rows: SseEventRow[] }> {
+    async fetchRows(lastSeq: number): Promise<{ rows: SseEventRow[] }> {
       return { rows: rows.filter((r) => r.seq > lastSeq) };
     },
     get rows(): SseEventRow[] { return rows; },
@@ -502,7 +502,7 @@ function startArmPump(deps: PumpDeps, sink: Sink, o: StartArmOptions): Promise<v
 }
 
 // ── RW-6 动态镜像块（S8 锚面：六业务键按控制器形书写 + 三注入键）─────────────────
-interface MirrorStore { fetch(lastSeq: number): Promise<{ rows: SseEventRow[] }> }
+interface MirrorStore { fetchRows(lastSeq: number): Promise<{ rows: SseEventRow[] }> }
 
 function startMirrorPump(
   reply: FastifyReply,
@@ -519,7 +519,7 @@ function startMirrorPump(
     reqRaw: req.raw,
     streamKey: id,
     initial,
-    fetchMore: (lastSeq) => store.fetch(lastSeq),
+    fetchMore: (lastSeq) => store.fetchRows(lastSeq),
     isTerminal,
     notify,
     registry,
@@ -792,7 +792,7 @@ async function main(): Promise<void> {
     const pumpP = startArmPump(arm, sink, {
       streamKey: key,
       initial,
-      fetchMore: (lastSeq) => store.fetch(lastSeq),
+      fetchMore: (lastSeq) => store.fetchRows(lastSeq),
       fallbackMsHealthy: 60,
     });
     const delivered = await until(() => sink.writes.some((w) => w.startsWith('id: 3\n')), 2000);
@@ -827,7 +827,7 @@ async function main(): Promise<void> {
     const pumpP = startArmPump(arm, sink, {
       streamKey: key,
       initial,
-      fetchMore: (lastSeq) => store.fetch(lastSeq),
+      fetchMore: (lastSeq) => store.fetchRows(lastSeq),
       fallbackMsHealthy: 1000,
     });
     const countAtSyncReturn = notify.waitingCount();
@@ -877,7 +877,7 @@ async function main(): Promise<void> {
     const pumpP = startArmPump({ notify, registry }, sink, {
       streamKey: 'RW4',
       initial,
-      fetchMore: (lastSeq) => store.fetch(lastSeq),
+      fetchMore: (lastSeq) => store.fetchRows(lastSeq),
       fallbackMsHealthy: 60,
     });
     const delivered = await until(() => sink.writes.some((w) => w.startsWith('id: 1\n')), 6000);
@@ -915,7 +915,7 @@ async function main(): Promise<void> {
     const pumpP = startArmPump(arm, sink, {
       streamKey: key,
       initial,
-      fetchMore: (lastSeq) => store.fetch(lastSeq),
+      fetchMore: (lastSeq) => store.fetchRows(lastSeq),
       isTerminal: (kind) => kind === 'report_ready',
       fallbackMsHealthy: 60,
     });

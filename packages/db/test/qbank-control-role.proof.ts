@@ -12,6 +12,8 @@ import {
   QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST, QBANK_CONTROL_DEFINER_ROLE, QBANK_CONTROL_DEFINER_TABLE_MANIFEST, QBANK_CONTROL_DEFINER_VIEW_MANIFEST,
 } from '../src/index.ts';
 import { ingestQuestionBankArtifacts } from '../src/index.ts';
+const MEETWISE_TEST_FIXTURE_PASSWORD_QCR = 'qbank-control-role-proof-2026';
+
 
 const admin = createPool();
 const runtimeRole = `qbank_runtime_${process.pid}`;
@@ -19,7 +21,7 @@ const controlRole = `qbank_control_${process.pid}`;
 const extraRole = `qbank_extra_${process.pid}`;
 const definerRole = QBANK_CONTROL_DEFINER_ROLE;
 const readerDriftRole = `qbank_reader_drift_${process.pid}`;
-const password = 'qbank-control-role-proof-2026';
+const password = MEETWISE_TEST_FIXTURE_PASSWORD_QCR;
 const proofEmbedder = {
   id: 'qbank-control-role-proof', dim: 512,
   async embed(texts: string[]) { return texts.map(() => new Array<number>(512).fill(0)); },

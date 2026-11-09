@@ -1,4 +1,4 @@
-import { BASE, jsonHeaders, readJson } from './http.ts';
+import { e2eUrl, jsonHeaders, readJson } from './http.ts';
 
 export type AuthSession = {
   token: string;
@@ -14,7 +14,7 @@ async function postAuth(
   path: '/auth/signup' | '/auth/login',
   body: { email: string; password: string; role?: 'recruiter' | 'candidate' },
 ): Promise<{ status: number; payload: AuthPayload; response: Response }> {
-  const response = await fetch(`${BASE}${path}`, {
+  const response = await fetch(e2eUrl(`${path}`), {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(body),

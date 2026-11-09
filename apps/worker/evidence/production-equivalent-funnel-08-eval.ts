@@ -345,7 +345,7 @@ export function runProductionEquivalentFunnel08Eval(
     'hard-zero': true,
     assert: 'wrong-track=0 hard-zero assert passed',
     hardZeroAssert: 'wrong-track=0 hard-zero assert passed',
-    thresholdsRef: 'ai-docs/delivery/receipts/production-equivalent-funnel-08-thresholds.json',
+    thresholdsRef: 'receipts/archive/2026-09-batch23/receipts/production-equivalent-funnel-08-thresholds.json',
     note:
       'G-R4-5 / FUNNEL-08 production-equivalent eval matrix release receipt · Ban invent · Ban docs-only fake cover · local fake alone ≠ passed · releaseEvidence=false · ≠HA · ≠ product close',
   };

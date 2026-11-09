@@ -413,7 +413,7 @@ function setPath(root, path, mode) {
   if (dualPeer.ragRoute !== 'PASS') fail(`rag slot want PASS got ${dualPeer.ragRoute}`);
   else pass('FX-DUAL-SINGLE-FILE-NAMES-PEER: body names mw-e2e-ha but path-only ⇒ e2eHa=null (MISSING-DUAL if used alone)');
 
-  const realE2e = join(root, 'ai-docs/delivery/reviews/REQUEST-2026-09-23-uc-e2e-018-covered-criterion-post-prove-mw-e2e-ha.md');
+  const realE2e = join(root, 'receipts/archive/2026-09-batch23/reviews/REQUEST-2026-09-23-uc-e2e-018-covered-criterion-post-prove-mw-e2e-ha.md');
   const realV = parseReviewFileVerdict(read(realE2e));
   // Post-nail dual BOTH PASS (fc7dc24/6d2841c): last-line Verdict: PASS is authoritative
   if (realV !== 'PASS') fail(`real e2e-ha post-prove dual must parse PASS got ${realV}`);
@@ -593,8 +593,8 @@ function setPath(root, path, mode) {
   } else pass('explicit exit:0 retained with allPass');
 
   // C-NO-GIT-AUTHOR: distinct identities observed — enforce role↔author
-  const soleE2e = join(root, 'ai-docs/delivery/reviews/REQUEST-2026-09-23-uc-e2e-018-sole-stack-pg-retained-post-prove-mw-e2e-ha.md');
-  const soleRag = join(root, 'ai-docs/delivery/reviews/REQUEST-2026-09-23-uc-e2e-018-sole-stack-pg-retained-post-prove-mw-rag-route.md');
+  const soleE2e = join(root, 'receipts/archive/2026-09-batch23/reviews/REQUEST-2026-09-23-uc-e2e-018-sole-stack-pg-retained-post-prove-mw-e2e-ha.md');
+  const soleRag = join(root, 'receipts/archive/2026-09-batch23/reviews/REQUEST-2026-09-23-uc-e2e-018-sole-stack-pg-retained-post-prove-mw-rag-route.md');
   const aE = latestCommitAuthor(root, soleE2e);
   const aR = latestCommitAuthor(root, soleRag);
   note(`C-NO-GIT-AUTHOR authors: e2e-ha=${aE} · rag-route=${aR}`);
@@ -662,7 +662,7 @@ if (!realVerdict.reasons.includes(REFUSE_REASONS.PERF_LOCAL_ONLY)) {
 } else pass('real UC-018 reasons include PERF-LOCAL-ONLY');
 
 {
-  const parentHarness = read(join(root, 'ai-docs/delivery/harness/uc-e2e-018-user-abandon.md'));
+  const parentHarness = read(join(root, 'receipts/archive/2026-09-batch23/harness/uc-e2e-018-user-abandon.md'));
   const oldStyle = /GAP-UC018-FULL-E2E[^\n]{0,40}CLOSED/i.test(parentHarness);
   const newStyle = gapClosedInText(parentHarness, 'GAP-UC018-FULL-E2E');
   note(`businessPathMet fix: old-regex-FULL-E2E=${oldStyle} new-gapClosedInText-FULL-E2E=${newStyle} computed=${gathered.section11.businessPathMet}`);
@@ -749,7 +749,7 @@ note(`PINS: no UC-018/§1.1 flip · no covered written · coveredCount=${pins.co
 pass('pins restated (no flip · coveredCount=8 · NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · ms3EqualsR4Closed=false · PG-retained)');
 pass('Ban: this prove does not write covered into docs/matrix');
 
-const receiptDir = join(root, 'ai-docs/delivery/receipts/uc018-covered-criterion');
+const receiptDir = join(root, 'receipts/archive/2026-09-batch23/receipts/uc018-covered-criterion');
 const tmpDir = join(root, '.tmp/uc018-covered-criterion');
 mkdirSync(receiptDir, { recursive: true });
 mkdirSync(tmpDir, { recursive: true });

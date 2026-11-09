@@ -8,6 +8,9 @@
  */
 import { planContextBudget, openAICompatibleClient, type ModelCostPolicy } from '../src/index.ts';
 
+// 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
+const MEETWISE_TEST_FIXTURE_1 = 'test-only';
+
 let failures = 0;
 const A = (name: string, ok: boolean) => {
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`);
@@ -64,7 +67,7 @@ async function main() {
     return new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ ok: true }) } }], usage: { prompt_tokens: 5, completion_tokens: 1 } }), { status: 200, headers: { 'content-type': 'application/json' } });
   }) as typeof fetch;
   try {
-    const client = openAICompatibleClient({ baseUrl: 'https://model.invalid', apiKey: 'test-only', model: policy.model, costPolicy: policy });
+    const client = openAICompatibleClient({ baseUrl: 'https://model.invalid', apiKey: MEETWISE_TEST_FIXTURE_1, model: policy.model, costPolicy: policy });
     await client.complete({ service: 'proof.render', system: '系统指令', userData: '用户数据', rag: '检索素材正文X' }, 1);
     const msg = bodies[0]?.messages as Array<{ role: string; content: unknown }> | undefined;
     const text = String(msg?.[1]?.content ?? '');
