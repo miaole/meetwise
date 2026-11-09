@@ -1,6 +1,6 @@
 # ROUTE-RETRY-BILLING REQUEST（meetwise 路由分类重试二次计费修复刀 · GAP-ROUTE-RETRY-UNKNOWN-REBILL · retryJobRoute 同键前账 unknown 冷却窗抑制闸 · 红先证修复后全绿 · 起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（2026-11-06 EXEC 行使落卷（pre-exec 双审两独立外席 PASS·报告 `meetwise/.tmp/reviews/rretry-pre-1.md`/`rretry-pre-2.md`·协调方 EXEC 授权随令）· rebase 并线届值 origin/main `6ecce7705`=#217（两 policy 冲突 dual-keep·CAP-SANCTION-2498 union 注记·cap 2497→2498 合并树实测恰等）· P2 三件就地修+勘误登记（§9 EXEC 交接段）· 全门绿（§2 EXEC 复跑表）· ⛔push · Ban self-approve · est live=0 · `actualSpendCny=null`）
+**Status**: **`post_prove_dual_pass`**（post-prove 双审两独立外席收口 PASS（卷 §9 记录在案；.tmp/reviews/rretry-post-1.md 在库，证伪席报告随 .tmp 轮换·rretry 并线 PR #221）·2026-11-06 EXEC 行使落卷（pre-exec 双审两独立外席 PASS·报告 `meetwise/.tmp/reviews/rretry-pre-1.md`/`rretry-pre-2.md`·协调方 EXEC 授权随令）· rebase 并线届值 origin/main `6ecce7705`=#217（两 policy 冲突 dual-keep·CAP-SANCTION-2498 union 注记·cap 2497→2498 合并树实测恰等）· P2 三件就地修+勘误登记（§9 EXEC 交接段）· 全门绿（§2 EXEC 复跑表）· ⛔push · Ban self-approve · est live=0 · `actualSpendCny=null`）
 
 **席位**：路由分类重试二次计费修复刀 起草席（协调方派单令「起草并实现 · 草稿含代码 · 之后走双审」随令 · 缺陷登记源=rtx 路由分类事务刀 EXEC 期 pre-exec 双审 P2-1 · `ai-docs/delivery/gap-bug-backlog.md` GAP-ROUTE-RETRY-UNKNOWN-REBILL 行 · 机制与建议修法源=`route-classify-tx-REQUEST.md` §9.1-1）。
 **基线**：`origin/main` @ **`d549a497b`**（#212 rtx merge 点 · 本 worktree `git rev-parse origin/main` 亲证=派单令文届值恒等 · fetch 两试网络不可达（HTTP2 framing layer / 443 connect 超时）· 本地 ref=令文届值恒等无前进证据零 rebase 如实承登 · worktree **`meetwise-rretry`**（`git worktree add ../meetwise-rretry -b line/rretry-draft origin/main` 本起草席立 · `pnpm install --frozen-lockfile` EXIT=0）· branch **`line/rretry-draft`** · 主仓唯一改动=建此 worktree）。
@@ -152,7 +152,7 @@ FAIL  r2-p-worker-route-classify prove (3 failures)  · run EXIT=1
 
 ## §8 STOP + 停止条件
 
-**`executed:awaiting_post_prove_dual`**（2026-11-06 EXEC 行使落卷 · 状态四处实测一致=Status 头/§8/§9/卷尾 · pre-exec 双审两独立外席 PASS+协调方 EXEC 授权随令已行使 · ⛔push · post-prove dual 待派 · alone ≠ dual）。
+**`post_prove_dual_pass`**（2026-11-06 EXEC 行使落卷 · 状态四处实测一致=Status 头/§8/§9/卷尾 · pre-exec 双审两独立外席 PASS+协调方 EXEC 授权随令已行使 · ⛔push · post-prove dual 待派 · alone ≠ dual）。
 
 **停止条件（命中即停手上报）**：
 1. **现场漂移**：pre-exec/EXEC 对届时 tip 重 pin，§0 锚漂移超 ±3 且结论受影响、或根因面（retryJobRoute/invoke/0209/ai_model_invocation/路由状态机）被他刀改动 → 停。
@@ -160,7 +160,7 @@ FAIL  r2-p-worker-route-classify prove (3 failures)  · run EXIT=1
 3. **越界需要**：需触 §3 任一域才能继续 → 停。
 4. **机制不符**：修复后闸臂若复现二次派发（门 1 绿不可稳）或 known_not_sent 被误拦 → 停。
 
-## §9 pre-exec dual 交接（状态：**`executed:awaiting_post_prove_dual`**）
+## §9 pre-exec dual 交接（状态：**`post_prove_dual_pass`**）
 
 - **双审对象**：§0 锚表逐条 file:line+红读数原值保真 · §1.1 修法结构（同键重构式与 ai-runtime :154 同式防漂）· §1.2 四问逐条 · §1.3 候选比较与窗值取舍 · §1.4 proof 面（红先证链）· §2 门矩阵与基线红单列 · §3 范围外。
 - **悬决项（归协调方/产品）**：pre-exec 双席派定 · EXEC 排程 · post-prove 双席 · ~~冷却窗值（10min 缺省）与 web 文案措辞产品确认~~（**已裁定 2026-11-06**：缺省 2min + env `ROUTE_RETRY_UNKNOWN_COOLDOWN_MS` 可覆盖·理由见 §1.3/小改记·文案已同步） · `gap-bug-backlog.md` GAP-ROUTE-RETRY-UNKNOWN-REBILL 行翻面权（append-only 纪律归协调方·本刀零触） · free-text funnel 面与编辑回退同 digest 残余窗（§3-1/2）后继处置立项与否。
@@ -180,4 +180,4 @@ FAIL  r2-p-worker-route-classify prove (3 failures)  · run EXIT=1
 
 ---
 
-*ROUTE-RETRY-BILLING REQUEST · 2026-11-06 起草→小改→**EXEC 行使 `executed:awaiting_post_prove_dual`**（pre-exec 双审两独立外席 PASS（`meetwise/.tmp/reviews/rretry-pre-1.md`/`rretry-pre-2.md`）+协调方 EXEC 授权随令已行使 · ⛔push · post-prove dual 待派 · alone ≠ dual · worktree `meetwise-rretry` · branch `line/rretry-draft` · rebase 并线届值 origin/main `6ecce7705`=#217（两 policy 冲突 dual-keep·CAP-SANCTION-2498 union 注记·cap 合并树实测恰等 2498·本支 CAP-SANCTION-2491 注并留史录）· 改动集史录=修复 commit（五 src 勘正：recruiter.ts 闸+常量/db index 导出/contracts additive 枚举/web actions 文案披露/api service 注释）+proof 既有文件加臂一 pin+两 policy cap 步进 2490→2491+本卷（唯一新受管件）；小改 commit=九改零新增（缺省 2min+env resolver+文案 ok:false+proof pin/覆盖臂+inventory 401→405+披露）；**EXEC 期=六改零新增**（resolver fail-closed 回退缺省+警告一次·文案自 env 同源生成+compose web 披露·proof 跨 owner 隔离臂+resolver 断言六例回退警告恰一次·inventory 405→406·api.env.example 语义同步·本卷 §0.1b 重 pin/§2 EXEC 表/§9 EXEC 记/勘误三件）· 修复前红已证（§0.2）· 修复后全绿→并线+P2 后全门复跑绿（§2 EXEC 复跑表·arch 与届时 base 恒等 1192/3787）· 勘误三件如实登记（净增行 246→ins 238/net +224·四 src→五 src·Ban 一 commit→两 commit 归协调方追认）· est live=0 · pins 十一值照抄 · markers=0 · 停止条件四类届时核查不触 · Ban self-approve · **STOP（EXEC 落卷即停·待 post-prove 双审）***
+*ROUTE-RETRY-BILLING REQUEST · 2026-11-06 起草→小改→**EXEC 行使 `post_prove_dual_pass`**（pre-exec 双审两独立外席 PASS（`meetwise/.tmp/reviews/rretry-pre-1.md`/`rretry-pre-2.md`）+协调方 EXEC 授权随令已行使 · ⛔push · post-prove dual 待派 · alone ≠ dual · worktree `meetwise-rretry` · branch `line/rretry-draft` · rebase 并线届值 origin/main `6ecce7705`=#217（两 policy 冲突 dual-keep·CAP-SANCTION-2498 union 注记·cap 合并树实测恰等 2498·本支 CAP-SANCTION-2491 注并留史录）· 改动集史录=修复 commit（五 src 勘正：recruiter.ts 闸+常量/db index 导出/contracts additive 枚举/web actions 文案披露/api service 注释）+proof 既有文件加臂一 pin+两 policy cap 步进 2490→2491+本卷（唯一新受管件）；小改 commit=九改零新增（缺省 2min+env resolver+文案 ok:false+proof pin/覆盖臂+inventory 401→405+披露）；**EXEC 期=六改零新增**（resolver fail-closed 回退缺省+警告一次·文案自 env 同源生成+compose web 披露·proof 跨 owner 隔离臂+resolver 断言六例回退警告恰一次·inventory 405→406·api.env.example 语义同步·本卷 §0.1b 重 pin/§2 EXEC 表/§9 EXEC 记/勘误三件）· 修复前红已证（§0.2）· 修复后全绿→并线+P2 后全门复跑绿（§2 EXEC 复跑表·arch 与届时 base 恒等 1192/3787）· 勘误三件如实登记（净增行 246→ins 238/net +224·四 src→五 src·Ban 一 commit→两 commit 归协调方追认）· est live=0 · pins 十一值照抄 · markers=0 · 停止条件四类届时核查不触 · Ban self-approve · **STOP（EXEC 落卷即停·待 post-prove 双审）***
