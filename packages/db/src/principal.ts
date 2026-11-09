@@ -52,28 +52,7 @@ export const QBANK_CONTROL_DEFINER_ROLE = 'qbank_control_definer';
  * 未知动词一律 fail-closed）。标识符无法参数化（REVOKE/GRANT 语法限制），此护栏在执行前
  * 把可执行面收窄到「单动词管理语句」，即使结果行被篡改也无法携带任意 SQL。
  */
-const DDL_STATEMENT_RE = /^\s*(?:REVOKE|GRANT|ALTER|CREATE|COMMENT|SET)\s[^;]*;?\s*$/i;
 
-let adminDdlExecutorReady = false;
-async function execFormatDdl(c: Client, statement: unknown): Promise<void> {
-  const sql = typeof statement === 'string' ? statement : '';
-  if (!DDL_STATEMENT_RE.test(sql)) throw new Error(`ddl_statement_shape_rejected:${sql.slice(0, 60)}`);
-  if (!adminDdlExecutorReady) {
-    // 服务端 DDL 执行器自举（幂等）：REVOKE/GRANT 标识符无法参数化，动态面整体移入服务端
-    // 白名单函数（与客户端 DDL_STATEMENT_RE 双层校验）；客户端只以参数化字面量调用，不拼接。
-    await c.query(`CREATE OR REPLACE FUNCTION mw_admin_exec_ddl(stmt text) RETURNS void LANGUAGE plpgsql AS $fn$ BEGIN IF stmt !~ '^[[:space:]]*(REVOKE|GRANT|ALTER|CREATE|COMMENT|SET)[[:space:]][^;]*$' THEN RAISE EXCEPTION 'ddl_statement_shape_rejected'; END IF; EXECUTE stmt; END $fn$;`);
-    await c.query('REVOKE ALL ON FUNCTION public.mw_admin_exec_ddl(text) FROM PUBLIC');
-    // 部署交接窗（provisionQbankControlDefiner 的 SET LOCAL ROLE qbank_control_definer 段）以
-    // 交接身份继续跑 ACL 归一/默认特权白名单语句——此窗正是历史客户端直执行的同语义面。
-    // 显式授 EXECUTE 给唯一合法交接身份（NOLOGIN·仅迁移账户可 SET ROLE 进入）；PUBLIC 保持全撤。
-    // 条件式（DBDDL-HARDEN r1·席甲 P1 修复）：legacy fixture（<=0075）等早期库该角色尚未创建
-    // （0144 才建），无条件 GRANT 会 42704 炸掉 privacy 证明的 legacy 阶段。角色存在才授——
-    // 全链库/生产恒存在（多一次 catalog 探测），早期库跳过（该窗本就不存在）。
-    await c.query(`DO $bootstrap$ BEGIN IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'qbank_control_definer') THEN EXECUTE 'GRANT EXECUTE ON FUNCTION public.mw_admin_exec_ddl(text) TO qbank_control_definer'; END IF; END $bootstrap$;`);
-    adminDdlExecutorReady = true;
-  }
-  await c.query('SELECT public.mw_admin_exec_ddl($1)', [sql]);
-}
 
 export const QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST = [
   // Generation/artifact/taxonomy guards (0086/0087/0089 sealed anchors).  All
@@ -239,42 +218,21 @@ async function normalizeQbankRelationAcl(
     [relation],
   );
   for (const { role_name: roleName } of grantees.rows) {
-    const revoke = await c.query<{ statement: string }>(
-      `SELECT format(
-          'REVOKE ALL PRIVILEGES ON TABLE %s FROM %s',
-          $1::regclass,
-          CASE WHEN $2::text='PUBLIC' THEN 'PUBLIC' ELSE format('%I', $2::text) END
-        ) AS statement`,
-      [relation, roleName],
-    );
-    await execFormatDdl(c, revoke.rows[0]?.statement);
+    await c.query('SELECT mw_admin_revoke_all_table($1, $2)', [relation, roleName]);
   }
   const columnGrantees = await c.query<{ column_name: string; role_name: string }>(
     'SELECT * FROM mw_qbank_column_grantees($1)',
     [relation],
   );
   for (const { column_name: columnName, role_name: roleName } of columnGrantees.rows) {
-    const revoke = await c.query<{ statement: string }>(
-      `SELECT format(
-          'REVOKE ALL PRIVILEGES (%I) ON TABLE %s FROM %s',
-          $2::text,
-          $1::regclass,
-          CASE WHEN $3::text='PUBLIC' THEN 'PUBLIC' ELSE format('%I', $3::text) END
-        ) AS statement`,
-      [relation, columnName, roleName],
-    );
-    await execFormatDdl(c, revoke.rows[0]?.statement);
+    await c.query('SELECT mw_admin_revoke_col_table($1, $2, $3)', [relation, columnName, roleName]);
   }
   for (const [roleName, privileges] of [
     ['app_role', appRolePrivileges],
     ['qbank_control_executor', executorPrivileges],
   ] as const) {
     if (privileges.length === 0) continue;
-    const grant = await c.query<{ statement: string }>(
-      "SELECT format('GRANT %s ON TABLE %s TO %I', $2::text, $1::regclass, $3::text) AS statement",
-      [relation, privileges.join(', '), roleName],
-    );
-    await execFormatDdl(c, grant.rows[0]?.statement);
+    await c.query('SELECT mw_admin_grant_table_privs($1, $2, $3)', [relation, privileges.join(', '), roleName]);
   }
 }
 
@@ -305,6 +263,8 @@ export async function provisionQbankControlDefiner(pool: DbPool): Promise<void> 
 
     try {
       await c.query('SELECT mw_admin_grant_schema_public($1)', [QBANK_CONTROL_DEFINER_ROLE]);
+    // 临时直接成员（ALTER ... OWNER 需要目标角色成员资格·事务内撤回——r3 重放恢复）
+    await c.query('SELECT mw_admin_grant_role($1, $2)', [migrationRole, QBANK_CONTROL_DEFINER_ROLE]);
       for (const relation of QBANK_CONTROL_DEFINER_TABLE_MANIFEST) {
         const relationOwner = await c.query<{ owner_name: string }>(
           `SELECT role.rolname AS owner_name
@@ -321,11 +281,7 @@ export async function provisionQbankControlDefiner(pool: DbPool): Promise<void> 
         if (ownerName !== QBANK_CONTROL_DEFINER_ROLE) {
           if (ownerName !== migrationRole)
             throw new Error(`qbank_control_definer_relation_owner_invalid:${relation.name}`);
-          const statement = await c.query<{ statement: string }>(
-            "SELECT format('ALTER TABLE %s OWNER TO %I', $1::regclass, $2::text) AS statement",
-            [relation.name, QBANK_CONTROL_DEFINER_ROLE],
-          );
-          await execFormatDdl(c, statement.rows[0]?.statement);
+          await c.query('SELECT mw_admin_alter_table_owner($1, $2)', [relation.name, QBANK_CONTROL_DEFINER_ROLE]);
         }
       }
       // PostgreSQL does not recursively transfer a partition's owner when a
@@ -344,11 +300,7 @@ export async function provisionQbankControlDefiner(pool: DbPool): Promise<void> 
             throw new Error(`qbank_control_definer_partition_owner_invalid:${object.relation_name}`);
           }
           const objectType = object.relation_kind === 'index' ? 'INDEX' : 'TABLE';
-          const statement = await c.query<{ statement: string }>(
-            "SELECT format('ALTER %s %s OWNER TO %I', $1::text, $2::regclass, $3::text) AS statement",
-            [objectType, object.relation_name, QBANK_CONTROL_DEFINER_ROLE],
-          );
-          await execFormatDdl(c, statement.rows[0]?.statement);
+          await c.query('SELECT mw_admin_alter_object_owner($1, $2, $3)', [objectType, object.relation_name, QBANK_CONTROL_DEFINER_ROLE]);
         }
       }
       for (const fn of QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST) {
@@ -363,11 +315,7 @@ export async function provisionQbankControlDefiner(pool: DbPool): Promise<void> 
         if (ownerName === QBANK_CONTROL_DEFINER_ROLE) continue;
         if (ownerName !== migrationRole)
           throw new Error(`qbank_control_definer_function_owner_invalid:${fn.signature}`);
-        const statement = await c.query<{ statement: string }>(
-          "SELECT format('ALTER FUNCTION %s OWNER TO %I', $1::regprocedure, $2::text) AS statement",
-          [fn.signature, QBANK_CONTROL_DEFINER_ROLE],
-        );
-        await execFormatDdl(c, statement.rows[0]?.statement);
+        await c.query('SELECT mw_admin_alter_function_owner($1, $2)', [fn.signature, QBANK_CONTROL_DEFINER_ROLE]);
       }
       // The two SECURITY DEFINER views share the same fixed owner so the
       // candidate-view RLS predicate (which names the view owner dynamically)
@@ -398,21 +346,13 @@ export async function provisionQbankControlDefiner(pool: DbPool): Promise<void> 
         if (ownerName === QBANK_CONTROL_DEFINER_ROLE) continue;
         if (ownerName !== migrationRole)
           throw new Error(`qbank_control_definer_view_owner_invalid:${view.name}`);
-        const statement = await c.query<{ statement: string }>(
-          "SELECT format('ALTER VIEW %s OWNER TO %I', $1::regclass, $2::text) AS statement",
-          [view.name, QBANK_CONTROL_DEFINER_ROLE],
-        );
-        await execFormatDdl(c, statement.rows[0]?.statement);
+        await c.query('SELECT mw_admin_alter_view_owner($1, $2)', [view.name, QBANK_CONTROL_DEFINER_ROLE]);
       }
       // Lane (b) of qbank_visible_ref reads system-owned qbank vector_chunk
       // rows.  The definer owns the view but not vector_chunk, so it needs an
       // explicit read grant; FORCE RLS still filters through p_vchunk_read, so
       // this is a bounded read, not a raw-corpus bypass.
-      const vectorChunkGrant = await c.query<{ statement: string }>(
-        "SELECT format('GRANT SELECT ON TABLE %s TO %I', $1::regclass, $2::text) AS statement",
-        ['public.vector_chunk', QBANK_CONTROL_DEFINER_ROLE],
-      );
-      await execFormatDdl(c, vectorChunkGrant.rows[0]?.statement);
+      await c.query('SELECT mw_admin_grant_select_table_by_name($1, $2)', ['public.vector_chunk', QBANK_CONTROL_DEFINER_ROLE]);
       // Newly transferred objects now belong to the fixed role.  Enter it
       // explicitly for ACL/default-ACL normalization: temporary membership is
       // sufficient for owner transfer but is not an assumption about the
@@ -449,18 +389,8 @@ export async function provisionQbankControlDefiner(pool: DbPool): Promise<void> 
         ['TABLES', 'qbank_control_executor', 'ALL PRIVILEGES'],
       ] as const) {
         for (const schemaClause of ['', ' IN SCHEMA public']) {
-          const defaultAcl = await c.query<{ statement: string }>(
-            `SELECT format(
-                'ALTER DEFAULT PRIVILEGES FOR ROLE %I%s REVOKE %s ON %s FROM %s',
-                $1::text,
-                $2::text,
-                $3::text,
-                $4::text,
-                CASE WHEN $5::text='PUBLIC' THEN 'PUBLIC' ELSE format('%I', $5::text) END
-              ) AS statement`,
-            [QBANK_CONTROL_DEFINER_ROLE, schemaClause, privileges, objectType, grantee],
-          );
-          await execFormatDdl(c, defaultAcl.rows[0]?.statement);
+          await c.query('SELECT mw_admin_default_priv_revoke($1, $2, $3, $4, $5)',
+            [QBANK_CONTROL_DEFINER_ROLE, schemaClause, privileges, objectType, grantee]);
         }
       }
       for (const fn of QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST) {
@@ -476,35 +406,19 @@ export async function provisionQbankControlDefiner(pool: DbPool): Promise<void> 
           [fn.signature],
         );
         for (const { role_name: roleName } of executableGrantees.rows) {
-          const revoke = await c.query<{ statement: string }>(
-            `SELECT format(
-                'REVOKE ALL ON FUNCTION %s FROM %s',
-                $1::regprocedure,
-                CASE WHEN $2::text='PUBLIC' THEN 'PUBLIC' ELSE format('%I', $2::text) END
-              ) AS statement`,
-            [fn.signature, roleName],
-          );
-          await execFormatDdl(c, revoke.rows[0]?.statement);
+          await c.query('SELECT mw_admin_revoke_exec_all($1, $2)', [fn.signature, roleName]);
         }
         for (const [roleName, allowed] of [
           ['app_role', fn.allowAppRoleExecute],
           ['qbank_control_executor', fn.allowExecutorExecute],
         ] as const) {
           if (!allowed) continue;
-          const grant = await c.query<{ statement: string }>(
-            "SELECT format('GRANT EXECUTE ON FUNCTION %s TO %I', $1::regprocedure, $2::text) AS statement",
-            [fn.signature, roleName],
-          );
-          await execFormatDdl(c, grant.rows[0]?.statement);
+          await c.query('SELECT mw_admin_grant_exec_fn($1, $2)', [fn.signature, roleName]);
         }
       }
     } finally {
       await c.query('RESET ROLE');
-      const revoke = await c.query<{ statement: string }>(
-        "SELECT format('REVOKE %I FROM %I', $1::text, $2::text) AS statement",
-        [QBANK_CONTROL_DEFINER_ROLE, migrationRole],
-      );
-      await execFormatDdl(c, revoke.rows[0]?.statement);
+      await c.query('SELECT mw_admin_revoke_role_from($1, $2)', [migrationRole, QBANK_CONTROL_DEFINER_ROLE]);
     }
     await c.query('COMMIT');
   } catch (error) {
@@ -598,8 +512,7 @@ export async function provisionRagControlLogin(pool: DbPool, input: RuntimeLogin
     await c.query('SELECT mw_admin_revoke_direct_memberships($1)', [input.roleName]);
     await c.query('SELECT mw_admin_grant_role($1, $2)', [input.roleName, 'rag_control_executor']);
     for (const role of ['app_role', 'app_gateway_role', 'privacy_worker_executor', 'qbank_control_executor']) {
-      const revoke = await c.query(`SELECT format('REVOKE %s FROM %I', $1::text, $2::text) AS statement`, [role, input.roleName]);
-      await execFormatDdl(c, revoke.rows[0]?.statement);
+      await c.query('SELECT mw_admin_revoke_role_from($1, $2)', [input.roleName, role]);
     }
   } finally { c.release(); }
 }
@@ -616,25 +529,9 @@ export async function provisionPrivacyWorkerLogin(pool: DbPool, input: RuntimeLo
     throw new Error('privacy_worker_login_invalid_password');
   const c = await pool.connect();
   try {
-    const ddl = await c.query(
-      `SELECT format(
-        'CREATE ROLE %I LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD %L',
-        $1::text, $2::text
-      ) AS statement`,
-      [input.roleName, input.password],
-    );
-    const alter = await c.query(
-      `SELECT format(
-        'ALTER ROLE %I LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD %L',
-        $1::text, $2::text
-      ) AS statement`,
-      [input.roleName, input.password],
-    );
-    const exists = await c.query('SELECT 1 FROM pg_roles WHERE rolname=$1', [input.roleName]);
-    await execFormatDdl(c, (exists.rowCount ?? 0) === 0 ? ddl.rows[0]?.statement : alter.rows[0]?.statement);
-    await revokeDirectRoleMemberships(c, input.roleName);
-    const grant = await c.query("SELECT format('GRANT privacy_worker_executor TO %I', $1::text) AS statement", [input.roleName]);
-    await execFormatDdl(c, grant.rows[0]?.statement);
+    await c.query('SELECT mw_admin_create_login($1, $2)', [input.roleName, input.password]);
+    await c.query('SELECT mw_admin_revoke_direct_memberships($1)', [input.roleName]);
+    await c.query('SELECT mw_admin_grant_role($1, $2)', [input.roleName, 'privacy_worker_executor']);
   } finally { c.release(); }
 }
 
@@ -668,11 +565,8 @@ export async function provisionOnlineJudgeExecutorLogin(pool: DbPool, input: Run
   try {
     const exists = await c.query('SELECT 1 FROM pg_roles WHERE rolname=$1', [input.roleName]);
     const createOrAlter = (exists.rowCount ?? 0) === 0
-      ? await c.query("SELECT format('CREATE ROLE %I LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD %L', $1::text, $2::text) AS statement", [input.roleName, input.password])
-      : await c.query("SELECT format('ALTER ROLE %I LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD %L', $1::text, $2::text) AS statement", [input.roleName, input.password]);
-    await execFormatDdl(c, createOrAlter.rows[0]?.statement);
-    const grant = await c.query("SELECT format('GRANT online_judge_executor TO %I', $1::text) AS statement", [input.roleName]);
-    await execFormatDdl(c, grant.rows[0]?.statement);
+    await c.query('SELECT mw_admin_create_login($1, $2)', [input.roleName, input.password]);
+    await c.query('SELECT mw_admin_grant_role($1, $2)', [input.roleName, 'online_judge_executor']);
   } finally { c.release(); }
 }
 
