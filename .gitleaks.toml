@@ -28,6 +28,9 @@ paths = [
   # 零 provider 外呼·值仅满足 registry apiKey 在场断言与 g7 面 assertModelApiKeyPresent 前置·generic-api-key 启发式误读·沿 ag24/98d4bab7 形制）。
   '''(^|/)packages/ai-runtime/test/invoke-model-delta\.proof\.ts$''',
   # 归档收据内容摘要·非凭据：batch23 归档 c12-typecheck turbo dry 收据 24 处 40-hex 值均为 git blob 对象 ID
+  # 攻击向量测试载荷·非凭据：neg-input 注入族 proof 的假密码字面量（对象/超长/短密码等负例输入·
+  # 语义=攻击向量不是真实凭据·generic-api-key 启发式对 newPassword: '...' 赋值行误读·沿 test-support-fakes 形制）。
+  '''(^|/)apps/api/test/neg-input\.proof\.ts$''',
   # （SHA-1 内容摘要·cat-file/rev-list --objects/hash-object 三重复算亲证）·键名文件名词面误触关键字。
   '''(^|/)receipts/archive/2026-09-batch23/receipts/c12-typecheck/02-turbo-dry\.json$''',
   # 同内容归档前原路径（batch23 归档挪移前·feat 首亲链 7da52c5b 引入·未来 PR 窗可达）·值面逐字节恒等。
