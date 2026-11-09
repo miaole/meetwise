@@ -48,7 +48,7 @@ const runE2e = read('scripts/run-e2e.mjs');
 const runE2eUi = read('scripts/run-e2e-ui.mjs');
 const pkg = read('package.json');
 const harness = read('ai-docs/delivery/harness/uc-e2e-001-golden-path.eval.md');
-const evalDoc = read('ai-docs/delivery/eval/uc-e2e-001-golden-path.eval.md');
+const evalDoc = read('receipts/archive/2026-09-batch23/eval/uc-e2e-001-golden-path.eval.md');
 const matrix = read('ai-docs/delivery/e2e-requirement-coverage-matrix.md');
 
 const KEY_GATE_RE =

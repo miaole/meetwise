@@ -34,14 +34,15 @@ const section = (t: string) => console.log(`\n──────── ${t} ─�
 const here = dirname(fileURLToPath(import.meta.url));
 const workerRoot = join(here, '..');
 const repoRoot = join(workerRoot, '..', '..');
-const receiptDir = join(repoRoot, 'ai-docs/delivery/receipts');
+// 生成的回执/矩阵件落 .tmp（gitignore）：原写 ai-docs/delivery/receipts 旧址（PTP-archive 后已非 tracked），跑完留未跟踪件污染工作树与 PTP 计数。
+const receiptDir = join(repoRoot, '.tmp/proof-receipts');
 const receiptPath = join(
   receiptDir,
   '2026-09-23-g-r4-5-eg4-wrong-track-product-evidence.json',
 );
 const harnessPath = join(
   repoRoot,
-  'ai-docs/delivery/harness/g-r4-5-eg4-true-evidence-impl.md',
+  'receipts/archive/2026-09-batch23/harness/g-r4-5-eg4-true-evidence-impl.md',
 );
 
 function read(p: string) {

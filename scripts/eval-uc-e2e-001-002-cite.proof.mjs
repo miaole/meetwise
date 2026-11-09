@@ -15,7 +15,7 @@ const units = [
   {
     id: 'uc-e2e-001-golden-path',
     harness: 'ai-docs/delivery/harness/uc-e2e-001-golden-path.eval.md',
-    evalDoc: 'ai-docs/delivery/eval/uc-e2e-001-golden-path.eval.md',
+    evalDoc: 'receipts/archive/2026-09-batch23/eval/uc-e2e-001-golden-path.eval.md',
     rowIds: ['UC-E2E-001'],
     mustPins: [
       [/pnpm e2e:isolated/, 'lists pnpm e2e:isolated'],
@@ -39,7 +39,7 @@ const units = [
   {
     id: 'uc-e2e-002-cross-device',
     harness: 'ai-docs/delivery/harness/uc-e2e-002-cross-device.eval.md',
-    evalDoc: 'ai-docs/delivery/eval/uc-e2e-002-cross-device.eval.md',
+    evalDoc: 'receipts/archive/2026-09-batch23/eval/uc-e2e-002-cross-device.eval.md',
     rowIds: ['UC-E2E-002'],
     mustPins: [
       [/uc002:lease:prove|uc-e2e-002-cross-device-lease\.proof/i, 'cites uc002:lease:prove / db lease proof'],

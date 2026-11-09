@@ -382,6 +382,9 @@ async function main() {
       const p4 = c4.query(
         `INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at)
          VALUES ($1,'trial',1.00, now()+interval '365 days')`, [owner]);   // 裸 INSERT 败者：阻塞至胜者定局
+      // 预期的 23505 拒绝可能在下方 await p4 之前就到达：先挂一个空处理器，免 unhandledRejection 直接崩进程；
+      // 下方 try/await 仍原样取到同一拒绝做断言（断言语义不变）。
+      p4.catch(() => undefined);
       await c3.query('COMMIT');
       let loser23505 = false;
       try { await p4; } catch (e: unknown) { loser23505 = errCode(e) === '23505'; }

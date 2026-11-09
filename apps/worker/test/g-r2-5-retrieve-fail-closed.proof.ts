@@ -7,6 +7,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { degradedRetrieval } from '@meetwise/domain';
 import { decideRouteSnapshotRetrieve } from '../src/qbank-retrieve-scope.ts';
+import { domainIsolationNotClosedOrAuthorizedClose } from '../evidence/r4-superseded-pins.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {
@@ -19,10 +20,10 @@ const workerRoot = join(here, '..');
 const repoRoot = join(workerRoot, '..', '..');
 const consumerPath = join(workerRoot, 'src/interview-consumer.ts');
 const scopePath = join(workerRoot, 'src/qbank-retrieve-scope.ts');
-const r2StatusPath = join(repoRoot, 'ai-docs/delivery/harness/r2-classify-job-route-status.md');
+const r2StatusPath = join(repoRoot, 'receipts/archive/2026-09-batch23/harness/r2-classify-job-route-status.md');
 const r4StatusPath = join(repoRoot, 'ai-docs/delivery/harness/r4-domain-isolation-status.md');
-const requestRag = join(repoRoot, 'ai-docs/delivery/reviews/REQUEST-g-r2-5-retrieve-fail-closed-mw-rag-route.md');
-const requestE2e = join(repoRoot, 'ai-docs/delivery/reviews/REQUEST-g-r2-5-retrieve-fail-closed-mw-e2e-ha.md');
+const requestRag = join(repoRoot, 'receipts/archive/2026-09-batch23/reviews/REQUEST-g-r2-5-retrieve-fail-closed-mw-rag-route.md');
+const requestE2e = join(repoRoot, 'receipts/archive/2026-09-batch23/reviews/REQUEST-g-r2-5-retrieve-fail-closed-mw-e2e-ha.md');
 const read = (p: string) => existsSync(p) ? readFileSync(p, 'utf8') : '';
 
 const missing = decideRouteSnapshotRetrieve(null);
@@ -50,7 +51,8 @@ A('consumer fail-closed when decision denied; allowed path uses trackLocal or sc
   && (/retrieveViaDispatchTrackLocal/.test(consumer) || /adaptive\.localRetrieve\(owner, q, retrieveDecision\.scope\)/.test(consumer)));
 A('consumer documents retrieve-side only / P-START separate', /retrieve-side only/.test(consumer) && /P-START/.test(consumer));
 A('R2 status records G-R2-5 retrieve-side closure without closing R2', /G-R2-5/.test(read(r2StatusPath)) && /retrieve-side/.test(read(r2StatusPath)) && /R2 NOT closed/.test(read(r2StatusPath)));
-A('R4 remains NOT closed', /题域隔离 NOT closed/.test(read(r4StatusPath)) && /G-R4-1/.test(read(r4StatusPath)));
+// 2026-09-23 EG3 题域 isolation product close（f2dfa3ed7·授权+双审 nail）后 r4 status 改记 domainIsolationClosed=true——认原钉或 EG3 在案翻面。
+A('R4 remains NOT closed（题域隔离 NOT closed 或 EG3 授权关闭在案）', domainIsolationNotClosedOrAuthorizedClose(read(r4StatusPath)) && /G-R4-1/.test(read(r4StatusPath)));
 A('both REQUESTs prohibit self-approval and release claims', /REQUEST/.test(read(requestRag)) && /禁止自批/.test(read(requestRag)) && /releaseEvidence=false/.test(read(requestE2e)));
 
 console.log(failures === 0

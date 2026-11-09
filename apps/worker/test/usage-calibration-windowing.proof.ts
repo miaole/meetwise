@@ -172,9 +172,14 @@ async function main() {
   // A. 号位纪律（nail rev 勘正）：0175=AG-C 合法实落主线（并线基期后）·0176 仍零 claim——
   // 原断言固化并线基期空号位事实，AG-C 合并后 schema_migrations 含 0175 → 恒假。
   // 改为只钉 0176（qsec 号位·仍未占）+ 0177 唯一性已由上一断言钉死。
-  const q176 = await pool.query(
-    `SELECT count(*)::int n FROM schema_migrations WHERE version LIKE '0176%'`, []);
-  A('A 号位纪律：0176 零 claim（qsec 号位不占·0175 系 AG-C 合法实落不在此断言域）', q176.rows[0]?.n === 0);
+  // 批 A 再勘正：qsec 刀已以 0176_qbank_control_plane_authz_closeout 合法落位（同上 0175=AG-C 先例），
+  // 「0176 零 claim」随之恒假。本意=本刀（AG-COST2·usage_calibration）只占 0177、不占 0175/0176：
+  // 改钉两号位上若有记录只能是各自归属刀的迁移，且无本刀记录。
+  const slotRows = await pool.query(
+    `SELECT version FROM schema_migrations WHERE version LIKE '0175%' OR version LIKE '0176%'`, []);
+  const slotOwners = new Set(['0175_interview_job_next_attempt_at', '0176_qbank_control_plane_authz_closeout']);
+  A('A 号位纪律：0175/0176 号位只归各自刀（AG-C / qsec）·本刀零占（0177 唯一性见上条）',
+    slotRows.rows.every((r: { version: string }) => slotOwners.has(r.version) && !/usage_calibration|ag07/i.test(r.version)));
 
   // ==========================================================================
   // B. 件①：pre-0177 旧形态重建 → 0177 原字节重放 → 去重保留最早 + 新 PK 生效

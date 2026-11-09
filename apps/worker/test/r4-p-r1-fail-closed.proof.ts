@@ -29,8 +29,14 @@ import {
 import {
   isTechRoleFailClosedEnabled,
   LEGACY_TECH_ROLE_DEFAULT,
+  MEETWISE_TECH_ROLE_FAIL_CLOSED_ENV,
   resolveAdaptiveInterviewRole,
 } from '../src/adaptive-role-resolve.ts';
+import {
+  domainIsolationNotClosedOrAuthorizedClose,
+  envExampleFailClosedOffOrAuthorizedFlip,
+  r1DefaultFlipAuthorized,
+} from '../evidence/r4-superseded-pins.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {
@@ -43,23 +49,23 @@ const here = dirname(fileURLToPath(import.meta.url));
 const workerRoot = join(here, '..');
 const repoRoot = join(workerRoot, '..', '..');
 
-const harnessPath = join(repoRoot, 'ai-docs/delivery/harness/r4-f4-p-r1-fail-closed.md');
-const evalPath = join(repoRoot, 'ai-docs/delivery/eval/r4-f4-p-r1-fail-closed.eval.md');
-const slicePath = join(repoRoot, 'ai-docs/delivery/r4-f4-p-r1-fail-closed.slice.md');
+const harnessPath = join(repoRoot, 'receipts/archive/2026-09-batch23/harness/r4-f4-p-r1-fail-closed.md');
+const evalPath = join(repoRoot, 'receipts/archive/2026-09-batch23/eval/r4-f4-p-r1-fail-closed.eval.md');
+const slicePath = join(repoRoot, 'receipts/archive/2026-09-batch23/slices/r4-f4-p-r1-fail-closed.slice.md');
 const statusPath = join(repoRoot, 'ai-docs/delivery/harness/r4-domain-isolation-status.md');
 const inventoryPath = join(repoRoot, 'ai-docs/delivery/harness/r4-domain-isolation.md');
 const r1HarnessPath = join(repoRoot, 'ai-docs/delivery/harness/r1-tech-role-fail-closed.md');
 const m4Path = join(repoRoot, 'ai-docs/delivery/m4-rag-hard-gates.md');
-const f2HarnessPath = join(repoRoot, 'ai-docs/delivery/harness/r4-f2-p-meta-p-r1.md');
-const f3HarnessPath = join(repoRoot, 'ai-docs/delivery/harness/r4-f3-p-meta-serving.md');
+const f2HarnessPath = join(repoRoot, 'receipts/archive/2026-09-batch23/harness/r4-f2-p-meta-p-r1.md');
+const f3HarnessPath = join(repoRoot, 'receipts/archive/2026-09-batch23/harness/r4-f3-p-meta-serving.md');
 const helperPath = join(workerRoot, 'evidence/r4-p-r1-fail-closed-remaining.ts');
 const f2HelperPath = join(workerRoot, 'evidence/r4-p-meta-p-r1-remaining.ts');
 const rolePath = join(workerRoot, 'src/adaptive-role-resolve.ts');
 const consumerPath = join(workerRoot, 'src/interview-consumer.ts');
 const mainPath = join(workerRoot, 'src/main.ts');
 const workerEnvExample = join(repoRoot, 'docker/env/worker.env.example');
-const preExecE2e = join(repoRoot, 'ai-docs/delivery/reviews/2026-09-16-r4-f4-p-r1-fail-closed-mw-e2e-ha.md');
-const preExecRag = join(repoRoot, 'ai-docs/delivery/reviews/2026-09-16-r4-f4-p-r1-fail-closed-mw-rag-route.md');
+const preExecE2e = join(repoRoot, 'receipts/archive/2026-09-batch23/reviews/2026-09-16-r4-f4-p-r1-fail-closed-mw-e2e-ha.md');
+const preExecRag = join(repoRoot, 'receipts/archive/2026-09-batch23/reviews/2026-09-16-r4-f4-p-r1-fail-closed-mw-rag-route.md');
 
 function read(p: string) {
   return existsSync(p) ? readFileSync(p, 'utf8') : '';
@@ -122,12 +128,15 @@ const preRag = read(preExecRag);
 section('PR1-A legacy「技术岗」default-on (flag OFF · no flip)');
 const fc = classifyPR1FailClosedRemaining({});
 const f2 = classifyPR1Remaining({});
-A('PR1-A classify: failClosedFlagDefaultOn=false (no flip)', fc.failClosedFlagDefaultOn === false);
+// 本刀不翻 P-R1 默认；2026-09-23 G-R4-3/R1 product close（101fb51e0·授权+双审 nail）已翻为默认 ON——认原钉或该刀在案翻面。
+const r1FlipAuthorized = r1DefaultFlipAuthorized();
+A('PR1-A classify: failClosedFlagDefaultOn=false (no flip；或 G-R4-3/R1 授权翻面在案)', fc.failClosedFlagDefaultOn === false || r1FlipAuthorized);
 A('PR1-A classify: legacyDefaultLabel=技术岗', fc.legacyDefaultLabel === LEGACY_TECH_ROLE_DEFAULT);
-A('PR1-A classify: productionDependsOnLegacyDefault=true', fc.productionDependsOnLegacyDefault === true);
-A('PR1-A unit: empty env → fail-closed OFF', isTechRoleFailClosedEnabled({}) === false);
+A('PR1-A classify: productionDependsOnLegacyDefault=true（或 G-R4-3/R1 授权翻面在案）', fc.productionDependsOnLegacyDefault === true || r1FlipAuthorized);
+A('PR1-A unit: empty env → fail-closed OFF（或 G-R4-3/R1 授权翻面在案）', isTechRoleFailClosedEnabled({}) === false || r1FlipAuthorized);
+// flag-off 显式给 0：默认翻 ON 后空 env 已非 flag-off；legacy 退出路径本身仍须可达。
 A('PR1-A unit: flag-off + no route → legacy 技术岗',
-  resolveAdaptiveInterviewRole({}, {}) === LEGACY_TECH_ROLE_DEFAULT);
+  resolveAdaptiveInterviewRole({}, { [MEETWISE_TECH_ROLE_FAIL_CLOSED_ENV]: '0' }) === LEGACY_TECH_ROLE_DEFAULT);
 A('PR1-A unit: explicit 0 → fail-closed OFF',
   isTechRoleFailClosedEnabled({ MEETWISE_TECH_ROLE_FAIL_CLOSED: '0' }) === false);
 A('PR1-A main.ts does not inject role: 技术岗',
@@ -135,8 +144,8 @@ A('PR1-A main.ts does not inject role: 技术岗',
 A('PR1-A consumer has no ?? 技术岗 silent default',
   !/\?\?\s*['"]技术岗['"]/.test(consumer)
   && /resolveAdaptiveInterviewRole/.test(consumer));
-A('PR1-A worker.env.example documents MEETWISE_TECH_ROLE_FAIL_CLOSED=0 (no flip)',
-  !envExample || /MEETWISE_TECH_ROLE_FAIL_CLOSED\s*=\s*0/.test(envExample));
+A('PR1-A worker.env.example documents MEETWISE_TECH_ROLE_FAIL_CLOSED=0 (no flip；或 R1 授权翻面在案)',
+  envExampleFailClosedOffOrAuthorizedFlip(envExample));
 A('PR1-A helper Ban flipping default / Ban claiming R1 closed',
   (/No flip|Ban.*flip|does NOT flip/i.test(helper))
   && (/Ban claiming R1|does NOT close R1|≠ R1 closed/i.test(helper)));
@@ -171,8 +180,9 @@ A('PR1-B unit: flag-on + route snapshot accepted',
 A('PR1-B m4 / R1 harness pin combo-root / 组合根 evidence remaining',
   (/组合根|combo-root|combo.root/i.test(m4) || /组合根|combo-root/i.test(r1Harness))
   && (/R1|技术岗|GAP-RAG-01/.test(m4)));
-A('PR1-B role resolver documents default off + ≠ R1/R4 closed',
-  /Default \(flag off\)|默认/.test(roleSrc)
+A('PR1-B role resolver documents default off + ≠ R1/R4 closed（或注明 G-R4-3/R1 授权翻面且在案）',
+  (/Default \(flag off\)|默认/.test(roleSrc)
+    || (/Default ON after G-R4-3 \/ R1 product-close flip/.test(roleSrc) && r1FlipAuthorized))
   && /Does NOT claim R4|≠ R4|NOT closed|GAP-RAG-01/.test(roleSrc));
 
 section('PR1-C r1 contract 旁证 ≠ R1 closed');
@@ -216,8 +226,9 @@ A('PR1-D eval registers E*/PR1 honesty stubs',
 A('PR1-D slice indexes harness+eval',
   /r4-f4-p-r1-fail-closed\.md/.test(slice)
   && /r4-f4-p-r1-fail-closed\.eval\.md/.test(slice));
-A('PR1-D status pins 题域隔离 NOT closed + releaseEvidence=false + G-R4-3',
-  /题域隔离 NOT closed/.test(status)
+// 2026-09-23 EG3 题域 isolation product close（f2dfa3ed7·授权+双审 nail）后 status 改记 domainIsolationClosed=true——认原钉或 EG3 在案翻面。
+A('PR1-D status pins 题域隔离 NOT closed + releaseEvidence=false + G-R4-3（或 EG3 授权关闭在案）',
+  domainIsolationNotClosedOrAuthorizedClose(status)
   && /releaseEvidence=false/.test(status)
   && /G-R4-3/.test(status));
 A('PR1-D status F3 post_prove_dual_pass · F4 this knife · G-R4-5 STILL OPEN',

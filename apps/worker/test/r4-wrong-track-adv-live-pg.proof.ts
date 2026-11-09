@@ -58,6 +58,7 @@ import {
   type TrackLocalRetrieveDeps,
 } from '../src/qbank-track-local-retrieve.ts';
 import { decideRouteSnapshotRetrieve } from '../src/qbank-retrieve-scope.ts';
+import { domainIsolationNotClosedOrAuthorizedClose } from '../evidence/r4-superseded-pins.ts';
 
 // Isolated runner strips operator HMAC secrets; proof pins fixed test keys (≥32 chars).
 process.env.RAG_QBANK_CACHE_HASH_KEY =
@@ -80,9 +81,9 @@ const repoRoot = join(workerRoot, '..', '..');
 const helperPath = join(workerRoot, 'src', 'qbank-track-local-retrieve.ts');
 const consumerPath = join(workerRoot, 'src', 'interview-consumer.ts');
 const mainPath = join(workerRoot, 'src', 'main.ts');
-const harnessPath = join(repoRoot, 'ai-docs/delivery/harness/r4-wrong-track-adv-live-pg.md');
+const harnessPath = join(repoRoot, 'receipts/archive/2026-09-batch23/harness/r4-wrong-track-adv-live-pg.md');
 const unitAdvProof = join(here, 'r4-wrong-track-adv.proof.ts');
-const parentAdvHarness = join(repoRoot, 'ai-docs/delivery/harness/r4-wrong-track-adv.md');
+const parentAdvHarness = join(repoRoot, 'receipts/archive/2026-09-batch23/harness/r4-wrong-track-adv.md');
 const statusPath = join(repoRoot, 'ai-docs/delivery/harness/r4-domain-isolation-status.md');
 const matrixPath = join(repoRoot, 'ai-docs/delivery/non-happy-path-perf-load-case-matrix.md');
 
@@ -629,8 +630,9 @@ async function main() {
     if (/≠\s*covered|!=\s*covered|not\s+covered|partial/i.test(line)) return true;
     return !/(^|[\s|])covered([\s|]|$)/i.test(line);
   })());
-  A('L8 status/parent still 题域隔离 NOT closed + LIVE_PG_GAP honesty',
-    /题域隔离 NOT closed/.test(status)
+  // 2026-09-23 EG3 题域 isolation product close（f2dfa3ed7·授权+双审 nail）后 status 改记 domainIsolationClosed=true——认原钉或 EG3 在案翻面。
+  A('L8 status/parent still 题域隔离 NOT closed + LIVE_PG_GAP honesty（或 EG3 授权关闭在案）',
+    domainIsolationNotClosedOrAuthorizedClose(status)
     && /LIVE_PG_GAP/.test(status)
     && (/题域隔离 NOT closed|LIVE_PG_GAP/.test(parentAdv)));
   A('L8 this prove must not claim R4 closed / covered / HA',

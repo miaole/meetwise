@@ -23,6 +23,7 @@ import {
   assessDomainIsolationProductEvidence,
   hasDomainIsolationProductEvidence,
 } from './r4-eg3-domain-isolation-product-evidence.ts';
+import { harnessNailedAfterPostProveDual } from './r4-superseded-pins.ts';
 
 export const R4_EG3_DOMAIN_ISOLATION_PRODUCT_CLOSE_EVIDENCE_KIND =
   'Eg3DomainIsolationProductCloseEvidence' as const;
@@ -89,9 +90,9 @@ export function assessEg3DomainIsolationProductClose(): {
     && pathAssess.wrongTrackZeroProductProven === false;
 
   // Prior EG3 evidence: dual tip c18e28f · lifecycle nail 62c0e2f (cited in w0-w8 / this knife).
-  const priorHarness = readRepo('ai-docs/delivery/harness/g-r4-5-eg3-true-evidence-impl.md');
+  const priorHarness = readRepo('receipts/archive/2026-09-batch23/harness/g-r4-5-eg3-true-evidence-impl.md');
   const priorReceipt = readRepo(
-    'ai-docs/delivery/receipts/2026-09-23-g-r4-5-eg3-domain-isolation-product-evidence.json',
+    'receipts/archive/2026-09-batch23/receipts/2026-09-23-g-r4-5-eg3-domain-isolation-product-evidence.json',
   );
   const gap = readRepo('ai-docs/delivery/gap-bug-backlog.md');
   const m4 = readRepo('ai-docs/delivery/m4-rag-hard-gates.md');
@@ -99,7 +100,7 @@ export function assessEg3DomainIsolationProductClose(): {
   const r4Harness = readRepo('ai-docs/delivery/harness/r4-domain-isolation.md');
   const r4Status = readRepo('ai-docs/delivery/harness/r4-domain-isolation-status.md');
   const harness = readRepo(
-    'ai-docs/delivery/harness/g-r4-5-eg3-domain-isolation-product-close.md',
+    'receipts/archive/2026-09-batch23/harness/g-r4-5-eg3-domain-isolation-product-close.md',
   );
 
   const priorEg3EvidenceRetained =
@@ -118,7 +119,8 @@ export function assessEg3DomainIsolationProductClose(): {
     )
     && /domainIsolationClosed=true/.test(harness)
     && /eg3ProductClosed=true/.test(harness)
-    && /executed:awaiting_post_prove_dual/.test(harness)
+    // 本刀 post-prove 双审通过后归档 harness 已授权 nail 为 post_prove_dual_pass——认原钉（待双审）或双审后 nail 形。
+    && (/executed:awaiting_post_prove_dual/.test(harness) || harnessNailedAfterPostProveDual(harness))
     && /Ban self-nail|Ban自批|awaiting_post_prove_dual/.test(harness)
     && /gR45Closed=false/.test(harness)
     && /R4\/FUNNEL|G-R4-5 STILL OPEN|≠ R4\/FUNNEL/.test(harness)

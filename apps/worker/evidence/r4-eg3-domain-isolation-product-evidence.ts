@@ -99,7 +99,7 @@ export function assessDomainIsolationProductEvidence(): {
   const consumer = readSrc('interview-consumer.ts');
   const scope = readSrc('qbank-retrieve-scope.ts');
   const status = readRepo('ai-docs/delivery/harness/r4-domain-isolation-status.md');
-  const eg3Harness = readRepo('ai-docs/delivery/harness/g-r4-5-eg3-true-evidence-impl.md');
+  const eg3Harness = readRepo('receipts/archive/2026-09-batch23/harness/g-r4-5-eg3-true-evidence-impl.md');
 
   const trackLocalRetrieveDispatchWired =
     /dispatchTrackLocalRetrieval\s*\(/.test(trackLocal)

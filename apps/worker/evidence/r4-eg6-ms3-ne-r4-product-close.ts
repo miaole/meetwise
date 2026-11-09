@@ -79,15 +79,15 @@ export function assessEg6Ms3NeR4ProductClose(): {
   retainedFlagsHonest: boolean;
   orthogonalNotClaimedClosed: boolean;
 } {
-  const priorHarness = readRepo('ai-docs/delivery/harness/g-r4-5-eg6-true-evidence-impl.md');
+  const priorHarness = readRepo('receipts/archive/2026-09-batch23/harness/g-r4-5-eg6-true-evidence-impl.md');
   const priorReceipt = readRepo(
-    'ai-docs/delivery/receipts/2026-09-23-g-r4-5-eg6-ms3-ne-r4-evidence.json',
+    'receipts/archive/2026-09-batch23/receipts/2026-09-23-g-r4-5-eg6-ms3-ne-r4-evidence.json',
   );
   const gap = readRepo('ai-docs/delivery/gap-bug-backlog.md');
   const m4 = readRepo('ai-docs/delivery/m4-rag-hard-gates.md');
   const w0 = readRepo('ai-docs/delivery/w0-w8-workflow-status.md');
   const harness = readRepo(
-    'ai-docs/delivery/harness/g-r4-5-eg6-ms3-ne-r4-product-close.md',
+    'receipts/archive/2026-09-batch23/harness/g-r4-5-eg6-ms3-ne-r4-product-close.md',
   );
   const ssotBlob = gap + m4 + w0 + harness;
 

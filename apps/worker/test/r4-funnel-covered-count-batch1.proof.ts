@@ -27,9 +27,13 @@ import {
   isFunnel03Covered,
   isFunnel04Covered,
 } from '../evidence/r4-funnel-covered-count-batch1.ts';
+import { isFunnel02ACovered, isFunnel02BCovered } from '../evidence/r4-funnel-covered-count-batch2.ts';
+import { isFunnel05Covered, isFunnel06Covered } from '../evidence/r4-funnel-covered-count-batch3.ts';
+import { isFunnel07Covered, isFunnel08Covered } from '../evidence/r4-funnel-covered-count-batch4.ts';
 import {
   emitRagFunnel0108CoveredMatrix,
   isHonestFunnelCoveredMatrix,
+  ssotMatrixMatchesEmitted,
 } from '../evidence/r4-eg2-funnel-covered-matrix.ts';
 
 let failures = 0;
@@ -42,7 +46,8 @@ const section = (t: string) => console.log(`\n──────── ${t} ─�
 const here = dirname(fileURLToPath(import.meta.url));
 const workerRoot = join(here, '..');
 const repoRoot = join(workerRoot, '..', '..');
-const receiptDir = join(repoRoot, 'ai-docs/delivery/receipts');
+// 生成的回执/矩阵件落 .tmp（gitignore）：原写 ai-docs/delivery/receipts 旧址（PTP-archive 后已非 tracked），跑完留未跟踪件污染工作树与 PTP 计数。
+const receiptDir = join(repoRoot, '.tmp/proof-receipts');
 const receiptJson = join(
   receiptDir,
   '2026-09-23-g-r4-5-funnel-covered-count-batch1-evidence.json',
@@ -52,10 +57,12 @@ const proveMd = join(
   '2026-09-23-g-r4-5-funnel-covered-count-batch1-prove.md',
 );
 const eg2Json = join(receiptDir, '2026-09-17-g-r4-5-eg2-funnel-covered-matrix.json');
-const mdPath = join(repoRoot, 'ai-docs/delivery/rag-funnel-01-08-covered-matrix.md');
+// tracked SSOT 矩阵只比对不写（原直接整文件覆盖，跑旧批即把 SSOT 回退成旧批文案）；本 proof 生成的矩阵 md 落 .tmp。
+const ssotMatrixPath = join(repoRoot, 'ai-docs/delivery/rag-funnel-01-08-covered-matrix.md');
+const mdPath = join(receiptDir, 'rag-funnel-01-08-covered-matrix.batch1.md');
 const harnessPath = join(
   repoRoot,
-  'ai-docs/delivery/harness/g-r4-5-funnel-covered-count-batch1.md',
+  'receipts/archive/2026-09-batch23/harness/g-r4-5-funnel-covered-count-batch1.md',
 );
 
 function read(p: string) {
@@ -139,9 +146,19 @@ const matrix = emitRagFunnel0108CoveredMatrix();
 A('B4 isHonestFunnelCoveredMatrix', isHonestFunnelCoveredMatrix(matrix) === true);
 A('B4 inventCovered=false', matrix.inventCovered === false);
 A('B4 releaseEvidence=false', matrix.releaseEvidence === false);
+// Batch2–4b（2026-09-23 授权刀·双审后 nail）其后合法抬升本刀范围外各行——按各自活评估器校验（covered 当且仅当评估器肯定·Ban invent），同 Batch4 B4 口径。
+const laterCovered = new Map<string, boolean>([
+  ['RAG-FUNNEL-02A', isFunnel02ACovered()],
+  ['RAG-FUNNEL-02B', isFunnel02BCovered()],
+  ['RAG-FUNNEL-05', isFunnel05Covered()],
+  ['RAG-FUNNEL-06', isFunnel06Covered()],
+  ['RAG-FUNNEL-07', isFunnel07Covered()],
+  ['RAG-FUNNEL-08', isFunnel08Covered()],
+]);
 A(
   'B4 coveredCount matches live assessors',
-  matrix.coveredCount === (Number(covered03) + Number(covered04)),
+  matrix.coveredCount === (Number(covered03) + Number(covered04)
+    + [...laterCovered.values()].filter(Boolean).length),
 );
 const row03 = matrix.rows.find((r) => r.id === 'RAG-FUNNEL-03');
 const row04 = matrix.rows.find((r) => r.id === 'RAG-FUNNEL-04');
@@ -153,16 +170,10 @@ A(
   'B4 row04 status honest',
   covered04 ? row04?.status === 'covered' : row04?.status === 'not_covered',
 );
-for (const id of [
-  'RAG-FUNNEL-02A',
-  'RAG-FUNNEL-02B',
-  'RAG-FUNNEL-05',
-  'RAG-FUNNEL-06',
-  'RAG-FUNNEL-07',
-  'RAG-FUNNEL-08',
-]) {
+for (const [id, laterAffirmed] of laterCovered) {
   const row = matrix.rows.find((r) => r.id === id);
-  A(`B4 ${id} still not_covered`, row?.status === 'not_covered');
+  A(`B4 ${id} still not_covered（或后继 Batch 活评估器肯定）`,
+    laterAffirmed ? row?.status === 'covered' : row?.status === 'not_covered');
 }
 const row01 = matrix.rows.find((r) => r.id === 'RAG-FUNNEL-01');
 A('B4 01 ≠ invent covered', row01?.status !== 'covered');
@@ -200,6 +211,9 @@ const mdLines = [
 ];
 writeFileSync(mdPath, mdLines.join('\n'), 'utf8');
 A('B5 md matrix written', existsSync(mdPath));
+const ssotCheck = ssotMatrixMatchesEmitted(matrix, read(ssotMatrixPath));
+A('B5 SSOT matrix compare-only（表格行与 coveredCount 行同 live 矩阵·不回写）', ssotCheck.ok,
+  ssotCheck.missing.length ? `missing=${ssotCheck.missing.length}` : undefined);
 A('B5 md pins Ban invent covered', /Ban invent covered/.test(read(mdPath)));
 A(
   'B5 md coveredCount matches matrix',
@@ -242,7 +256,10 @@ A('B5 roundtrip funnelProductClosed=false', roundtrip.funnelProductClosed === fa
 A('B5 roundtrip gR45Closed=false', roundtrip.gR45Closed === false);
 A('B5 roundtrip coveredCountInvented=false', roundtrip.coveredCountInvented === false);
 A('B5 roundtrip batch1Only=true', roundtrip.batch1Only === true);
-A('B5 roundtrip coveredCount', roundtrip.coveredCount === matrix.coveredCount);
+// 后继 Batch 抬升别行后矩阵总数≠本刀计数——回读须与矩阵中本刀 03/04 已覆盖行数一致。
+A('B5 roundtrip coveredCount（= 矩阵中本刀 03/04 已覆盖行数）', roundtrip.coveredCount === matrix.rows.filter(
+  (r) => (r.id === 'RAG-FUNNEL-03' || r.id === 'RAG-FUNNEL-04') && r.status === 'covered',
+).length);
 
 section('B6 hard pins');
 A('B6 ≠ invent coveredCount · ≠ flip product flags', true);

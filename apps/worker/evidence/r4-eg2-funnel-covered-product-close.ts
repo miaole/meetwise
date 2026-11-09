@@ -89,19 +89,19 @@ export function assessEg2FunnelCoveredProductClose(): {
   orthogonalNotClaimedClosed: boolean;
 } {
   const priorHarness = readRepo(
-    'ai-docs/delivery/harness/g-r4-5-eg1-eg2-true-evidence-impl.md',
+    'receipts/archive/2026-09-batch23/harness/g-r4-5-eg1-eg2-true-evidence-impl.md',
   );
   const priorMatrix = readRepo(
-    'ai-docs/delivery/receipts/2026-09-17-g-r4-5-eg2-funnel-covered-matrix.json',
+    'receipts/archive/2026-09-batch23/receipts/2026-09-17-g-r4-5-eg2-funnel-covered-matrix.json',
   );
   const batch4b = readRepo(
-    'ai-docs/delivery/harness/g-r4-5-funnel-covered-count-batch4b-08-eval.md',
+    'receipts/archive/2026-09-batch23/harness/g-r4-5-funnel-covered-count-batch4b-08-eval.md',
   );
   const gap = readRepo('ai-docs/delivery/gap-bug-backlog.md');
   const m4 = readRepo('ai-docs/delivery/m4-rag-hard-gates.md');
   const w0 = readRepo('ai-docs/delivery/w0-w8-workflow-status.md');
   const harness = readRepo(
-    'ai-docs/delivery/harness/g-r4-5-eg2-funnel-covered-product-close.md',
+    'receipts/archive/2026-09-batch23/harness/g-r4-5-eg2-funnel-covered-product-close.md',
   );
   const ssotBlob = gap + m4 + w0 + harness;
 

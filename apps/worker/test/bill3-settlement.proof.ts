@@ -24,12 +24,13 @@
  *      abandon 全退·sweep 全退·fail 全退·新行计费列默认值·per_session 场 topic_charge 零写。
  */
 import { randomUUID } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
 import { MemorySaver } from '@langchain/langgraph';
 import {
   abandonInterviewAndRelease, answerHash, appendEvent, asPrincipal, assertIsolatedTestTarget, claimInterviewAnswer,
   closeTopic, completeInterviewAndConfirm, confirmConsumptionUnits, createPool, createResumeWithBlob,
   enqueueInterviewJob, failInterviewAndRelease, reserveEntitlement, supplyCandidateProfileRoute,
-  sweepExpiredReservations, transitionResume, completeIngestion, availableUnits,
+  sweepExpiredReservations, transitionResume, completeIngestion, availableUnits, loadMigrations,
 } from '@meetwise/db';
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
 import { ingestResume } from '@meetwise/domain';
@@ -219,8 +220,10 @@ async function main() {
             count(*) FILTER (WHERE version LIKE '0172%')::int = 1 AS v172,
             count(*) FILTER (WHERE version LIKE '0173%')::int = 1 AS v173
        FROM schema_migrations`));
-  A('隔离库真迁移链全链 applied（185 版本在账·版本键=完整文件名词干）·0172/0173 各恰一行',
-    Number(chain.rows[0]?.n) === 185 && chain.rows[0]?.v172 === true && chain.rows[0]?.v173 === true);
+  // 原钉「185 版本」写于 0185 即链尾之时，新迁移一落即恒红；本意=全链 applied：版本数改按迁移目录动态取。
+  const chainSize = loadMigrations(fileURLToPath(new URL('../../../packages/db/migrations', import.meta.url))).length;
+  A('隔离库真迁移链全链 applied（版本数=迁移目录文件数·版本键=完整文件名词干）·0172/0173 各恰一行',
+    Number(chain.rows[0]?.n) === chainSize && chain.rows[0]?.v172 === true && chain.rows[0]?.v173 === true);
   const shape = await asPrincipal(pool, OWNER, (c) => c.query<{ relforcerowsecurity: boolean; pk: string }>(
     `SELECT c.relforcerowsecurity,
             (SELECT pg_get_constraintdef(oid) FROM pg_constraint
@@ -314,12 +317,17 @@ async function main() {
     && fn.includes('topic_settled_mismatch')
     && fn.includes("FILTER (WHERE status='counted')")
     && /round\s*\(\s*requested \* LEAST\(counted, p_new\.billing_cap_units\) \/ p_new\.billing_cap_units,\s*2\)/.test(fn));
-  const grantOk = await asPrincipal(pool, OWNER, (c) => c.query<{ ok: boolean }>(
-    `SELECT count(*) FILTER (WHERE g.grantee = 0 AND g.privilege_type = 'EXECUTE') > 0 AS ok
+  // 原钉「PUBLIC 持 EXECUTE」写于 0185 链尾之时；0196（#150 触发器函数最小授权）显式 REVOKE PUBLIC→GRANT app_role，
+  // PUBLIC 项随之合法消失。本意=0173 CREATE OR REPLACE 不重置 ACL、运行时角色仍可执行：改钉「显式 EXECUTE 授权项仍在
+  // （PUBLIC=0144 :411 形或 app_role=0196 形）且 app_role 可执行」——0196 前后均成立，ACL 被重置则两条都红。
+  const grantOk = await asPrincipal(pool, OWNER, (c) => c.query<{ ok: boolean; app: boolean }>(
+    `SELECT count(*) FILTER (WHERE g.privilege_type = 'EXECUTE'
+              AND (g.grantee = 0 OR g.grantee = 'app_role'::regrole::oid)) > 0 AS ok,
+            bool_and(has_function_privilege('app_role', p.oid, 'EXECUTE')) AS app
        FROM pg_proc p, aclexplode(p.proacl) g
       WHERE p.oid = 'public.tf_interview_consumption_terminal_pair(public.interview, public.interview)'::regprocedure`));
-  A('0173 → GRANT EXECUTE TO PUBLIC 语义保留（grantee=0=PUBLIC·CREATE OR REPLACE 不动 ACL·0144 :411 亲证面）',
-    grantOk.rows[0]?.ok === true);
+  A('0173 → 显式 EXECUTE 授权保留且运行时角色可执行（PUBLIC=0144 :411 形或 app_role=0196 #150 最小授权形·CREATE OR REPLACE 不动 ACL）',
+    grantOk.rows[0]?.ok === true && grantOk.rows[0]?.app === true);
   const enforceOuter = await asPrincipal(pool, OWNER, (c) => c.query<{ n: number }>(
     "SELECT count(*)::int n FROM pg_trigger WHERE tgrelid='public.interview'::regclass AND tgname='trg_interview_consumption_terminal_pair' AND NOT tgisinternal"));
   A('外层触发器零改：trg_interview_consumption_terminal_pair 原位（0020 :62-64 BEFORE INSERT OR UPDATE OF status）',

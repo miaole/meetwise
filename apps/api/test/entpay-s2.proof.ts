@@ -2,7 +2,7 @@ import { fileURLToPath } from 'node:url';
 import { createHmac } from 'node:crypto';
 import { mkAssert } from './_neg-harness';
 import {
-  createPool, runMigrations, loadMigrations, asPrincipal,
+  createPool, runMigrations, loadMigrations, latestMigrationVersion, asPrincipal,
   createJob, classifyJobRoute, inviteCandidate,
   reserveEntitlementForApplication, completeInterviewAndConfirm,
   failInterviewAndRelease, sweepExpiredReservations, renewReservationLease,
@@ -79,9 +79,16 @@ async function main() {
   const { A, done } = mkAssert('entpay:s2:prove');
   pool = createPool({ purpose: 'entpay_s2_proof' });
   await pool.query('DROP TABLE IF EXISTS schema_migrations CASCADE');
-  const applied = await runMigrations(pool, loadMigrations(fileURLToPath(new URL('../../../packages/db/migrations', import.meta.url))));
-  A('S2-0 真迁移链全量应用 0001→0157（末位=0157 扣费路由·S2-C1 落位）',
-    applied.applied[applied.applied.length - 1] === '0157_billing_payer_route');
+  const migrationDir = fileURLToPath(new URL('../../../packages/db/migrations', import.meta.url));
+  const migrations = loadMigrations(migrationDir);
+  const applied = await runMigrations(pool, migrations);
+  // 原钉「末位=0157」写于 0157 即链尾之时，0158 一落即恒红。本意=真链全量应用到链尾且含 0157（S2-C1 落位）：
+  // 链尾改按迁移目录动态取（latestMigrationVersion 与 runner 同源），全量与含 0157 两层不减。
+  const chainTail = latestMigrationVersion(migrationDir);
+  A('S2-0 真迁移链全量应用 0001→链尾（含 0157 扣费路由·S2-C1 落位；链尾按目录动态取）',
+    applied.applied.length === migrations.length
+    && applied.applied[applied.applied.length - 1] === chainTail
+    && applied.applied.includes('0157_billing_payer_route'));
   A('S2-0b 0157 函数族在位（SECURITY DEFINER×2）',
     ((await pool.query(`SELECT count(*)::int AS n FROM pg_proc WHERE proname IN ('gateway_entpay_reserve','gateway_entpay_apply_allocation') AND prosecdef`)).rows[0]?.n ?? 0) === 2);
 

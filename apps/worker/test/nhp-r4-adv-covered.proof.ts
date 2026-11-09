@@ -19,6 +19,10 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  domainIsolationNotClosedOrAuthorizedClose,
+  harnessNailedAfterPostProveDual,
+} from '../evidence/r4-superseded-pins.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {
@@ -31,9 +35,9 @@ const here = dirname(fileURLToPath(import.meta.url));
 const workerRoot = join(here, '..');
 const repoRoot = join(workerRoot, '..', '..');
 
-const coveredHarness = join(repoRoot, 'ai-docs/delivery/harness/nhp-r4-adv-covered-path.md');
-const coveredEval = join(repoRoot, 'ai-docs/delivery/eval/nhp-r4-adv-covered-path.eval.md');
-const coveredSlice = join(repoRoot, 'ai-docs/delivery/nhp-r4-adv-covered-path.slice.md');
+const coveredHarness = join(repoRoot, 'receipts/archive/2026-09-batch23/harness/nhp-r4-adv-covered-path.md');
+const coveredEval = join(repoRoot, 'receipts/archive/2026-09-batch23/eval/nhp-r4-adv-covered-path.eval.md');
+const coveredSlice = join(repoRoot, 'receipts/archive/2026-09-batch23/slices/nhp-r4-adv-covered-path.slice.md');
 const statusPath = join(repoRoot, 'ai-docs/delivery/harness/r4-domain-isolation-status.md');
 const matrixPath = join(repoRoot, 'ai-docs/delivery/non-happy-path-perf-load-case-matrix.md');
 const unitAdvProof = join(here, 'r4-wrong-track-adv.proof.ts');
@@ -122,9 +126,12 @@ A('C4 harness pins ≠ R4 closed · releaseEvidence=false · ≠HA',
   (/≠ R4 closed|NOT closed|仍开|R4 open/.test(harness))
   && /releaseEvidence=false/.test(harness)
   && (/≠HA|Not HA|≠ HA/.test(harness)));
-A('C4 harness pins partial ≠ covered until dual+prove+post-prove dual',
-  /partial ≠ covered|partial\/honesty/.test(harness)
-  && /post-prove dual/.test(harness));
+// 本刀 post-prove 双审通过后 harness 已授权 nail（post_prove_dual_pass·NHP-R4-ADV-01 partial→covered THIS case only）——认原钉或在案 nail 形。
+A('C4 harness pins partial ≠ covered until dual+prove+post-prove dual（或双审后已 nail 为 THIS case only covered）',
+  (/partial ≠ covered|partial\/honesty/.test(harness) && /post-prove dual/.test(harness))
+  || (harnessNailedAfterPostProveDual(harness)
+    && /partial\s*→\s*covered/.test(harness)
+    && /THIS case only/.test(harness)));
 A('C4 eval registers E1–E8 / C1–C4 mapping',
   /E1/.test(evalDoc) && /E5/.test(evalDoc) && /E8/.test(evalDoc)
   && /LIVE_PG/.test(evalDoc));
@@ -139,8 +146,9 @@ A('C4 matrix NHP-R4-ADV-01 still partial / ≠ covered (elevation awaits post-pr
   // Reject bare covered status without negation.
   return !/(^|[\s*|])\*\*covered\*\*|[\s|]covered([\s|]|$)/i.test(line);
 })());
-A('C4 status §12 / covered path still pins R4 NOT closed + 题域隔离 NOT closed',
-  /题域隔离 NOT closed/.test(status)
+// 2026-09-23 EG3 题域 isolation product close（f2dfa3ed7·授权+双审 nail）后 status 改记 domainIsolationClosed=true——认原钉或 EG3 在案翻面。
+A('C4 status §12 / covered path still pins R4 NOT closed + 题域隔离 NOT closed（或 EG3 授权关闭在案）',
+  domainIsolationNotClosedOrAuthorizedClose(status)
   && /releaseEvidence=false/.test(status)
   && (/nhp-r4-adv-covered-path|§12|covered path/.test(status)));
 A('C4 helper still wired retrieveVia + ban P-FAKEPLAN + fail-closed',

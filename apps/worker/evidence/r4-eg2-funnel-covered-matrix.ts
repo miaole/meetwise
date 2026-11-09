@@ -365,3 +365,21 @@ export function isHonestFunnelCoveredMatrix(
 
 /** Marker: this module is the EG2 covered-matrix emitter (≠ 5×meta prove). */
 export const EG2_FUNNEL_COVERED_MATRIX_EMITTER_WIRED = true as const;
+
+/**
+ * 只比对不写（proof 维护批 A）：EG2 与各 Batch proof 原把整份矩阵 md 直接覆盖写回 tracked SSOT
+ * `ai-docs/delivery/rag-funnel-01-08-covered-matrix.md`（逐批文案不同，跑旧批即把 SSOT 回退成旧批版本）。
+ * 现生成件改落 .tmp，SSOT 只读比对：live 矩阵每行（md 表格形）须逐行在 SSOT 中、SSOT 表格行数相等、
+ * 且含同值 coveredCount 行——live 与 SSOT 漂移即红，SSOT 不再被 proof 改写。
+ */
+export function ssotMatrixMatchesEmitted(
+  matrix: RagFunnel0108CoveredMatrix,
+  ssotText: string,
+): { ok: boolean; missing: readonly string[] } {
+  const lines = ssotText.split('\n');
+  const rows = matrix.rows.map((r) => `| \`${r.id}\` | **${r.status}** | ${r.basis} |`);
+  const missing = rows.filter((r) => !lines.includes(r));
+  const ssotRowCount = lines.filter((l) => l.startsWith('| `RAG-FUNNEL-')).length;
+  const countLine = lines.some((l) => l.startsWith(`**coveredCount**: ${matrix.coveredCount} `));
+  return { ok: missing.length === 0 && ssotRowCount === rows.length && countLine, missing };
+}

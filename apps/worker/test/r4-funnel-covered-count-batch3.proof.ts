@@ -38,9 +38,11 @@ import {
   isFunnel03Covered,
   isFunnel04Covered,
 } from '../evidence/r4-funnel-covered-count-batch1.ts';
+import { isFunnel07Covered, isFunnel08Covered } from '../evidence/r4-funnel-covered-count-batch4.ts';
 import {
   emitRagFunnel0108CoveredMatrix,
   isHonestFunnelCoveredMatrix,
+  ssotMatrixMatchesEmitted,
 } from '../evidence/r4-eg2-funnel-covered-matrix.ts';
 
 let failures = 0;
@@ -53,7 +55,8 @@ const section = (t: string) => console.log(`\n──────── ${t} ─�
 const here = dirname(fileURLToPath(import.meta.url));
 const workerRoot = join(here, '..');
 const repoRoot = join(workerRoot, '..', '..');
-const receiptDir = join(repoRoot, 'ai-docs/delivery/receipts');
+// 生成的回执/矩阵件落 .tmp（gitignore）：原写 ai-docs/delivery/receipts 旧址（PTP-archive 后已非 tracked），跑完留未跟踪件污染工作树与 PTP 计数。
+const receiptDir = join(repoRoot, '.tmp/proof-receipts');
 const receiptJson = join(
   receiptDir,
   '2026-09-23-g-r4-5-funnel-covered-count-batch3-evidence.json',
@@ -63,10 +66,12 @@ const proveMd = join(
   '2026-09-23-g-r4-5-funnel-covered-count-batch3-prove.md',
 );
 const eg2Json = join(receiptDir, '2026-09-17-g-r4-5-eg2-funnel-covered-matrix.json');
-const mdPath = join(repoRoot, 'ai-docs/delivery/rag-funnel-01-08-covered-matrix.md');
+// tracked SSOT 矩阵只比对不写（原直接整文件覆盖，跑旧批即把 SSOT 回退成旧批文案）；本 proof 生成的矩阵 md 落 .tmp。
+const ssotMatrixPath = join(repoRoot, 'ai-docs/delivery/rag-funnel-01-08-covered-matrix.md');
+const mdPath = join(receiptDir, 'rag-funnel-01-08-covered-matrix.batch3.md');
 const harnessPath = join(
   repoRoot,
-  'ai-docs/delivery/harness/g-r4-5-funnel-covered-count-batch3.md',
+  'receipts/archive/2026-09-batch23/harness/g-r4-5-funnel-covered-count-batch3.md',
 );
 
 function read(p: string) {
@@ -176,9 +181,13 @@ const covered02B = isFunnel02BCovered();
 const covered03 = isFunnel03Covered();
 const covered04 = isFunnel04Covered();
 const matrix = emitRagFunnel0108CoveredMatrix();
+// Batch2–4b（2026-09-23 授权刀·双审后 nail）其后合法抬升本刀范围外各行——按各自活评估器校验（covered 当且仅当评估器肯定·Ban invent），同 Batch4 B4 口径。
+const covered07Later = isFunnel07Covered();
+const covered08Later = isFunnel08Covered();
 const expectedCovered =
   Number(covered02A) + Number(covered02B) + Number(covered03) + Number(covered04)
-  + Number(covered05) + Number(covered06);
+  + Number(covered05) + Number(covered06)
+  + Number(covered07Later) + Number(covered08Later);
 A('B4 isHonestFunnelCoveredMatrix', isHonestFunnelCoveredMatrix(matrix) === true);
 A('B4 inventCovered=false', matrix.inventCovered === false);
 A('B4 releaseEvidence=false', matrix.releaseEvidence === false);
@@ -199,8 +208,8 @@ A(
   'B4 row06 status honest',
   covered06 ? row06?.status === 'covered' : row06?.status === 'not_covered',
 );
-A('B4 row07 still not_covered', row07?.status === 'not_covered');
-A('B4 row08 still not_covered', row08?.status === 'not_covered');
+A('B4 row07 still not_covered（或 Batch4 活评估器肯定）', covered07Later ? row07?.status === 'covered' : row07?.status === 'not_covered');
+A('B4 row08 still not_covered（或 Batch4/4b 活评估器肯定）', covered08Later ? row08?.status === 'covered' : row08?.status === 'not_covered');
 A('B4 02A retained', covered02A === true);
 A('B4 02B retained', covered02B === true);
 A('B4 03 retained', covered03 === true);
@@ -247,6 +256,9 @@ const mdLines = [
 ];
 writeFileSync(mdPath, mdLines.join('\n'), 'utf8');
 A('B5 md matrix written', existsSync(mdPath));
+const ssotCheck = ssotMatrixMatchesEmitted(matrix, read(ssotMatrixPath));
+A('B5 SSOT matrix compare-only（表格行与 coveredCount 行同 live 矩阵·不回写）', ssotCheck.ok,
+  ssotCheck.missing.length ? `missing=${ssotCheck.missing.length}` : undefined);
 A('B5 md pins Ban invent covered', /Ban invent covered/.test(read(mdPath)));
 A(
   'B5 md coveredCount matches matrix',
@@ -266,8 +278,12 @@ A(
 );
 A('B5 md FUNNEL-02A covered retained', /RAG-FUNNEL-02A` \| \*\*covered\*\*/.test(read(mdPath)));
 A('B5 md FUNNEL-02B covered retained', /RAG-FUNNEL-02B` \| \*\*covered\*\*/.test(read(mdPath)));
-A('B5 md FUNNEL-07 not_covered', /RAG-FUNNEL-07` \| \*\*not_covered\*\*/.test(read(mdPath)));
-A('B5 md FUNNEL-08 not_covered', /RAG-FUNNEL-08` \| \*\*not_covered\*\*/.test(read(mdPath)));
+A('B5 md FUNNEL-07 not_covered（或 Batch4 活评估器肯定）', covered07Later
+  ? /RAG-FUNNEL-07` \| \*\*covered\*\*/.test(read(mdPath))
+  : /RAG-FUNNEL-07` \| \*\*not_covered\*\*/.test(read(mdPath)));
+A('B5 md FUNNEL-08 not_covered（或 Batch4/4b 活评估器肯定）', covered08Later
+  ? /RAG-FUNNEL-08` \| \*\*covered\*\*/.test(read(mdPath))
+  : /RAG-FUNNEL-08` \| \*\*not_covered\*\*/.test(read(mdPath)));
 
 const proveLines = [
   '# Prove receipt — G-R4-5 / FUNNEL coveredCount Batch3',

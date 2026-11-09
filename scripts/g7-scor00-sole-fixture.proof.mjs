@@ -24,7 +24,7 @@ import { fileURLToPath } from 'node:url';
 import net from 'node:net';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const harnessPath = join(root, 'ai-docs/delivery/harness/g7-sole-fixture-retire-scor00.md');
+const harnessPath = join(root, 'receipts/archive/2026-09-batch23/harness/g7-sole-fixture-retire-scor00.md');
 const statusPath = join(root, 'ai-docs/delivery/harness/r5-retirement-sole-stack-status.md');
 const g1Path = join(root, 'ai-docs/delivery/harness/g1-default-switch-prep.md');
 const e2ePath = join(root, 'scripts/run-e2e-isolated.mjs');
@@ -80,7 +80,8 @@ if (existsSync(harnessPath)) {
     [/T3|sole 上可证|sole-provable|sole-fixture/, 'T3 scor sole-provable', 'must pin T3'],
     [/T4|nonzero|G7/, 'T4 G7 nonzero honesty', 'must pin T4'],
     [/T5|R5 green-risk|green-risk/, 'T5 R5 green-risk', 'must pin T5'],
-    [/executed:awaiting_post_prove_dual|awaiting_post_prove/, 'status executed/awaiting post-prove', 'must pin executed:awaiting_post_prove_dual'],
+    // 本刀双审后归档 harness 已授权 nail 为 post_prove_dual_pass（post-prove dual PASS 在案）——认原钉或双审后 nail 形。
+    [/executed:awaiting_post_prove_dual|awaiting_post_prove|^(?=[\s\S]*\*\*Status\*\*: \*\*`post_prove_dual_pass`)(?=[\s\S]*post-prove dual (\*\*)?(BOTH )?PASS)/, 'status executed/awaiting post-prove（或双审后已 nail）', 'must pin executed:awaiting_post_prove_dual'],
     [/scor-00:sole-fixture:prove/, 'lists sole-fixture prove CMD', 'must list scor-00:sole-fixture:prove'],
     [/≠ R5 retired|R5 未 retired|≠R5 retired|not fully retired/i, '≠ R5 retired', 'must pin ≠ R5 retired'],
     [/R4.*open|R2\/R4 still open|R4 still open|R4 仍开/i, 'R4 still open', 'must pin R4 still open'],

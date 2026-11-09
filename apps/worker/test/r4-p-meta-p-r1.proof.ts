@@ -28,8 +28,14 @@ import {
 import {
   isTechRoleFailClosedEnabled,
   LEGACY_TECH_ROLE_DEFAULT,
+  MEETWISE_TECH_ROLE_FAIL_CLOSED_ENV,
   resolveAdaptiveInterviewRole,
 } from '../src/adaptive-role-resolve.ts';
+import {
+  domainIsolationNotClosedOrAuthorizedClose,
+  envExampleFailClosedOffOrAuthorizedFlip,
+  r1DefaultFlipAuthorized,
+} from '../evidence/r4-superseded-pins.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {
@@ -42,9 +48,9 @@ const here = dirname(fileURLToPath(import.meta.url));
 const workerRoot = join(here, '..');
 const repoRoot = join(workerRoot, '..', '..');
 
-const harnessPath = join(repoRoot, 'ai-docs/delivery/harness/r4-f2-p-meta-p-r1.md');
-const evalPath = join(repoRoot, 'ai-docs/delivery/eval/r4-f2-p-meta-p-r1.eval.md');
-const slicePath = join(repoRoot, 'ai-docs/delivery/r4-f2-p-meta-p-r1.slice.md');
+const harnessPath = join(repoRoot, 'receipts/archive/2026-09-batch23/harness/r4-f2-p-meta-p-r1.md');
+const evalPath = join(repoRoot, 'receipts/archive/2026-09-batch23/eval/r4-f2-p-meta-p-r1.eval.md');
+const slicePath = join(repoRoot, 'receipts/archive/2026-09-batch23/slices/r4-f2-p-meta-p-r1.slice.md');
 const statusPath = join(repoRoot, 'ai-docs/delivery/harness/r4-domain-isolation-status.md');
 const inventoryPath = join(repoRoot, 'ai-docs/delivery/harness/r4-domain-isolation.md');
 const r1HarnessPath = join(repoRoot, 'ai-docs/delivery/harness/r1-tech-role-fail-closed.md');
@@ -167,14 +173,17 @@ A('MR1 helper documents Ban forging MetadataReviewReceipt serving',
 
 section('PR1 P-R1 remaining (default off · contract ≠ closed)');
 const pr1 = classifyPR1Remaining({});
-A('PR1 classify: failClosedFlagDefaultOn=false (no flip)', pr1.failClosedFlagDefaultOn === false);
+// 本刀不翻 P-R1 默认；2026-09-23 G-R4-3/R1 product close（101fb51e0·授权+双审 nail）已翻为默认 ON——认原钉或该刀在案翻面。
+const r1FlipAuthorized = r1DefaultFlipAuthorized();
+A('PR1 classify: failClosedFlagDefaultOn=false (no flip；或 G-R4-3/R1 授权翻面在案)', pr1.failClosedFlagDefaultOn === false || r1FlipAuthorized);
 A('PR1 classify: legacyDefaultLabel=技术岗', pr1.legacyDefaultLabel === LEGACY_TECH_ROLE_DEFAULT);
 A('PR1 classify: contractHarnessExists=true', pr1.contractHarnessExists === true);
 A('PR1 classify: r1Closed=false', pr1.r1Closed === false);
 A('PR1 isR1Closed=false', isR1Closed(pr1) === false);
-A('PR1 unit: empty env → fail-closed OFF', isTechRoleFailClosedEnabled({}) === false);
+A('PR1 unit: empty env → fail-closed OFF（或 G-R4-3/R1 授权翻面在案）', isTechRoleFailClosedEnabled({}) === false || r1FlipAuthorized);
+// flag-off 显式给 0：默认翻 ON 后空 env 已非 flag-off；legacy 退出路径本身仍须可达。
 A('PR1 unit: flag-off + no route → legacy 技术岗',
-  resolveAdaptiveInterviewRole({}, {}) === LEGACY_TECH_ROLE_DEFAULT);
+  resolveAdaptiveInterviewRole({}, { [MEETWISE_TECH_ROLE_FAIL_CLOSED_ENV]: '0' }) === LEGACY_TECH_ROLE_DEFAULT);
 A('PR1 unit: flag-on + no route → adaptive_role_route_missing', (() => {
   try {
     resolveAdaptiveInterviewRole({}, { MEETWISE_TECH_ROLE_FAIL_CLOSED: '1' });
@@ -188,11 +197,12 @@ A('PR1 main.ts does not inject role: 技术岗',
 A('PR1 consumer has no ?? 技术岗 silent default',
   !/\?\?\s*['"]技术岗['"]/.test(consumer)
   && /resolveAdaptiveInterviewRole/.test(consumer));
-A('PR1 role resolver documents default off + ≠ R1/R4 closed',
-  /Default \(flag off\)|默认/.test(roleSrc)
+A('PR1 role resolver documents default off + ≠ R1/R4 closed（或注明 G-R4-3/R1 授权翻面且在案）',
+  (/Default \(flag off\)|默认/.test(roleSrc)
+    || (/Default ON after G-R4-3 \/ R1 product-close flip/.test(roleSrc) && r1FlipAuthorized))
   && /Does NOT claim R4|≠ R4|NOT closed|GAP-RAG-01/.test(roleSrc));
-A('PR1 worker.env.example documents MEETWISE_TECH_ROLE_FAIL_CLOSED=0 (no flip)',
-  !envExample || /MEETWISE_TECH_ROLE_FAIL_CLOSED\s*=\s*0/.test(envExample));
+A('PR1 worker.env.example documents MEETWISE_TECH_ROLE_FAIL_CLOSED=0 (no flip；或 R1 授权翻面在案)',
+  envExampleFailClosedOffOrAuthorizedFlip(envExample));
 A('PR1 R1 harness + m4 pin prove绿 ≠ R1 closed',
   (/≠ R1|pass ≠ R1|prove.*≠.*R1|本绿 ≠/.test(r1Harness))
   && (/R1|技术岗|GAP-RAG-01/.test(m4)));
@@ -224,8 +234,9 @@ A('H3 eval registers E*/MR/PR honesty stubs',
 A('H3 slice indexes harness+eval',
   /r4-f2-p-meta-p-r1\.md/.test(slice)
   && /r4-f2-p-meta-p-r1\.eval\.md/.test(slice));
-A('H3 status pins 题域隔离 NOT closed + releaseEvidence=false',
-  /题域隔离 NOT closed/.test(status) && /releaseEvidence=false/.test(status));
+// 2026-09-23 EG3 题域 isolation product close（f2dfa3ed7·授权+双审 nail）后 status 改记 domainIsolationClosed=true——认原钉或 EG3 在案翻面。
+A('H3 status pins 题域隔离 NOT closed + releaseEvidence=false（或 EG3 授权关闭在案）',
+  domainIsolationNotClosedOrAuthorizedClose(status) && /releaseEvidence=false/.test(status));
 A('H3 status F1 post_prove_dual_pass ≠ R4 closed · F2 this knife',
   (/F1.*=.*post_prove_dual_pass|F1.*`post_prove_dual_pass`/.test(status))
   && (/F2|P-META|p-meta-p-r1/.test(status)));

@@ -43,6 +43,7 @@ import {
 import {
   emitRagFunnel0108CoveredMatrix,
   isHonestFunnelCoveredMatrix,
+  ssotMatrixMatchesEmitted,
 } from '../evidence/r4-eg2-funnel-covered-matrix.ts';
 import { FREE_TEXT_ALLOWLISTED_SCOPE_FUNNEL_WIRED } from '../src/free-text-route-funnel.ts';
 
@@ -56,7 +57,8 @@ const section = (t: string) => console.log(`\n──────── ${t} ─�
 const here = dirname(fileURLToPath(import.meta.url));
 const workerRoot = join(here, '..');
 const repoRoot = join(workerRoot, '..', '..');
-const receiptDir = join(repoRoot, 'ai-docs/delivery/receipts');
+// 生成的回执/矩阵件落 .tmp（gitignore）：原写 ai-docs/delivery/receipts 旧址（PTP-archive 后已非 tracked），跑完留未跟踪件污染工作树与 PTP 计数。
+const receiptDir = join(repoRoot, '.tmp/proof-receipts');
 const receiptJson = join(
   receiptDir,
   '2026-09-23-g-r4-5-funnel-covered-count-batch4-evidence.json',
@@ -66,14 +68,16 @@ const proveMd = join(
   '2026-09-23-g-r4-5-funnel-covered-count-batch4-prove.md',
 );
 const eg2Json = join(receiptDir, '2026-09-17-g-r4-5-eg2-funnel-covered-matrix.json');
-const mdPath = join(repoRoot, 'ai-docs/delivery/rag-funnel-01-08-covered-matrix.md');
+// tracked SSOT 矩阵只比对不写（原直接整文件覆盖，跑旧批即把 SSOT 回退成旧批文案）；本 proof 生成的矩阵 md 落 .tmp。
+const ssotMatrixPath = join(repoRoot, 'ai-docs/delivery/rag-funnel-01-08-covered-matrix.md');
+const mdPath = join(receiptDir, 'rag-funnel-01-08-covered-matrix.batch4.md');
 const harnessPath = join(
   repoRoot,
-  'ai-docs/delivery/harness/g-r4-5-funnel-covered-count-batch4.md',
+  'receipts/archive/2026-09-batch23/harness/g-r4-5-funnel-covered-count-batch4.md',
 );
 const slicePath = join(
   repoRoot,
-  'ai-docs/delivery/g-r4-5-funnel-covered-count-batch4.slice.md',
+  'receipts/archive/2026-09-batch23/slices/g-r4-5-funnel-covered-count-batch4.slice.md',
 );
 
 function read(p: string) {
@@ -271,6 +275,9 @@ const mdLines = [
 ];
 writeFileSync(mdPath, mdLines.join('\n'), 'utf8');
 A('B5 matrix md written', existsSync(mdPath));
+const ssotCheck = ssotMatrixMatchesEmitted(matrix, read(ssotMatrixPath));
+A('B5 SSOT matrix compare-only（表格行与 coveredCount 行同 live 矩阵·不回写）', ssotCheck.ok,
+  ssotCheck.missing.length ? `missing=${ssotCheck.missing.length}` : undefined);
 
 const proveLines = [
   '# Prove — G-R4-5 / FUNNEL coveredCount Batch4（07+08 true-cover）',
