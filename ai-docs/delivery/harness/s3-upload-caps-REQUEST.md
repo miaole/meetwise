@@ -219,6 +219,26 @@ export function assertDocxZipWithinCaps(buffer: Buffer): void {
 - **rev r6 状态维持 · `executed:awaiting_post_prove_dual`**（2026-11-07 r5 post-prove 双席甲 PASS/乙 FAIL（P1-1 机密隔离逃逸面 containment 句容器实测证伪）→协调方裁诚实降级登记路线落卷：码注+件⑧ 如实改写+件⑧-a 已知残余威胁登记块+并线 cap union 2501·+12 承登（@`26c7c3d3b` 沿常设预授权先例形·r6 届核 main 已前进 `6c67dace2` 届扫 2500·union 届时实测取大重算·详 §9 rev r6 注记）·零代码语义改零撤授权·前值 rev r5/r4/EXEC 史录保留·修订缘由/处置详 §9 rev r6 注记·post-prove 复审待重派·状态钉=Status/本节/§9/卷尾 四处同值）。
 - **rev r4 状态维持 · `executed:awaiting_post_prove_dual`**（2026-11-06 post-prove 复验报告 FAIL→本刀 FAIL 处置修订落卷：别名读放大 P0 关闭+§3 如实改写+门矩阵全绿·前值 EXEC 史录保留·修订缘由/处置详见 §9 rev r4 注记·post-prove 复审待重派·状态钉=Status/本节/§9/卷尾 四处同值）。
 
+## §9-rev-r7（2026-11-09 · 挂账裁定落码：撤 --allow-child-process + 能力白名单）
+
+**Status 推进**：`executed:awaiting_post_prove_dual`（r6 态）→ r7 落码 → 待 post-prove 双审（本注后）。
+
+- **裁定来源**：用户 2026-11-09 口头裁定「撤宽开关换白名单」（挂账建议案 s3caps 项）。
+- **落码 r7→r8**：`packages/domain/src/resume-extract.ts` CHILD_PERM_ARGS 撤 `--allow-child-process`（r7）**继而撤 `--allow-worker`（r8·席甲 P1-1：worker 经 execArgv 可重取 child-process 权限=node permission model worker 逃逸面·两级复现）**；能力面收敛为白名单两项（`--allow-fs-read=<CHILD_APP_ROOT>/` 目录限定 + `--allow-addons`）。件⑧-a 残余威胁（child-process 逃逸读宿主 env）从根消除；dev 机 hermes shim 形态自此不兼容（本地形态面·非生产路径·如实登记）。
+- **门读数（亲跑·r8 两项白名单形）**：`prove:resume-extract` EXIT=0 **73 断言全绿**（pdf fake-worker 主线程模式无需真 worker 权限·实测验证）（docx/pdf 解析在无 child-process 授权下正常=白名单三项充分）；`prove:resume-512m-dual` 本机重跑 ✗ 宿主存活（容器未写 host-exit·复跑同形·colima 重启后环境面·非撤旗引入·该证明不进 CI·如实登记待环境恢复复验）。
+- **cap**：零新受管文件（in-place 码改+卷面注记）→ 届值不变。
+
+### §9-rev-r7 post-prove 双审双席分歧登记（2026-11-09）
+
+- **席甲（s3caps-r7-post-1.md）**：r8 复审 **PASS**——撤 --allow-child-process+--allow-worker 后 Worker 创建与直接 spawn 均 ERR_ACCESS_DENIED（node 22.23.2 生产同版两级复现关闭）；73 断言+512m 5 断言全绿。
+- **席乙（s3caps-r7-post-2.md）**：**FAIL·P1-1**——`--allow-addons` 原生代码不受 permission model 约束（addon 内 syscall 可读宿主 env）；「残余威胁从根消除」表述不成立。P2×4（73 断言不守权限集/512m 镜像早于 r8/卷注不一致/commit message 未记 r8）。
+- **处置（fail-closed·双席未 BOTH PASS 故不翻面）**：
+  1. 卷面表述如实修正：撤两旗消除 **child-process/worker 派生面**（实证关闭）；**addons 面残余威胁如实登记**——swc loader 需要 --allow-addons（撤则子进程无法加载构建器），addon 加载面收敛依赖「不落新 .node 文件」（fs 只读授权）与构建产物可信；彻底消除需独立容器/进程外解析（独立刀候选·登记）。
+  2. 本刀 Status 维持 `executed:awaiting_post_prove_dual`（不翻 post_prove_dual_pass·双席分歧在卷）。
+  3. r7/r8 代码（撤两旗）按用户裁定保留并随 PR #229 合并——代码方向双席均无异议，分歧仅在「残余威胁表述」。
+  4. P2 随附：512m-dual 本机环境红已如实登记；73 断言集不含权限集回归臂——补臂入独立刀候选清单。
+
+
 ## §9 门读数（起草席亲跑·EXIT 原值在案）
 
 | 门 | 命令 | 读数 |
