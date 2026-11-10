@@ -683,6 +683,8 @@
     "rag-control-dispatch:prove:raw": "pnpm -C packages/db prove:rag-control-dispatch",
     "migrate-cli:prove": "node scripts/run-e2e-isolated.mjs migrate-cli:prove:raw",
     "migrate-cli:prove:raw": "pnpm -C packages/db prove:migrate-cli",
+    "migrate-upgrade:prove": "node scripts/run-e2e-isolated.mjs migrate-upgrade:prove:raw",
+    "migrate-upgrade:prove:raw": "pnpm -C packages/db prove:migrate-upgrade",
     "checkpoint-schema:prove": "node scripts/run-e2e-isolated.mjs checkpoint-schema:prove:raw",
     "checkpoint-schema:prove:raw": "pnpm -C packages/db prove:checkpoint-schema-selfcheck",
     "adaptive-degrade:prove": "node scripts/run-e2e-isolated.mjs adaptive-degrade:prove:raw",
