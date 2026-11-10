@@ -19,6 +19,8 @@
     "e2e-platform:loop": "node scripts/e2e-platform/review-loop.mjs",
     "e2e-static-guards:check": "node scripts/e2e-static-guards.mjs",
     "e2e-static-guards:prove": "node scripts/e2e-static-guards.proof.mjs",
+    "conflict-markers:check": "node scripts/conflict-marker-scan.mjs",
+    "conflict-markers:prove": "node scripts/conflict-marker-scan.proof.mjs",
     "workflow-script-existence:prove": "node scripts/workflow-script-existence.proof.mjs",
     "typecheck:e2e": "tsc -p tsconfig.e2e.json",
     "typecheck": "pnpm typecheck:e2e",
