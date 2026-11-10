@@ -111,7 +111,7 @@
     "prove:checkpoint-runtime-role": "tsx test/checkpointer-runtime-role.proof.ts",
     "prove:checkpoint-privacy-erasure": "tsx test/checkpoint-privacy-erasure.proof.ts",
     "prove:privacy-erasure-pause-upgrade": "tsx test/privacy-erasure-pause-upgrade.proof.ts",
-    "prove:privacy-worker-runtime": "tsx test/privacy-worker-runtime.proof.ts",
+    "prove:privacy-worker-runtime": "tsx test/deploy-worker-env.proof.ts",
     "prove:resume-erasure-tombstone": "tsx test/resume-erasure-tombstone-foundation.proof.ts",
     "prove:resume-derivative-reference": "tsx test/resume-derivative-reference.proof.ts",
     "prove:online-judge-control": "tsx test/online-judge-control-plane.proof.ts",
