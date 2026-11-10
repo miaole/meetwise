@@ -16,7 +16,9 @@
  * 于是首跑红、单独重跑绿（时间线见 ai-docs/delivery/reviews/FIX-G3-ci-e2e-gate.md）。
  * 现改为：每条连接用独立 stream id 归因，轮询等待「每个 holder 至少完成 2 个轮询周期」
  * 这一条件，再同刻比对「counting stub 增量 = holder 轮询调用之和」，并断言被拒连接的
- * stream id 零调用。不依赖窗口长度与相位，也没有加大 sleep。
+ * stream id 零调用。频率下界：观察窗为「各 holder ≥2 周期且自 t0 起不少于约 3500ms」，
+ * 窗结束时每条 holder 轮询次数 ≤3（选次数上界，不受负载下计时拉长影响；间隔若退化为
+ * 200ms 则会超 3 次）。不依赖固定窗口相位去数 +5，也没有加大 sleep。
  */
 import 'reflect-metadata';
 import { Module } from '@nestjs/common';
@@ -206,12 +208,25 @@ async function main() {
     const pollBase = pollSum('userA');
     const holderBase = new Map(holderStreams.map((s) => [s, pollByStream.get(`userA|${s}`) ?? 0]));
     const holderCycles = (s: string) => (pollByStream.get(`userA|${s}`) ?? 0) - (holderBase.get(s) ?? 0);
-    const everyHolderPolledTwice = await waitUntil(() => holderStreams.every((s) => holderCycles(s) >= 2), 20_000);
+    // P2-1 频率下界：选「每 holder ≤3 次」（次数上界，不受机器负载下计时拉长影响）。
+    // 观察窗必须同时满足 ≥2 周期且自 t0 起不少于约 3500ms——若只等 ≥2 就返回，200ms 间隔
+    // 也会在约 400ms 时刚好各 +2，次数上界抓不到退化；3500ms 单独当退出条件又会因相位
+    // （第一条周期可能在 t0 时已到期）在约 2000ms 就凑满 2 周期而误红。两者合用。
+    const FREQ_WINDOW_MS = 3_500;
+    const MAX_CYCLES_IN_WINDOW = 3;
+    const t0 = Date.now();
+    const everyHolderPolledTwice = await waitUntil(
+      () => holderStreams.every((s) => holderCycles(s) >= 2) && Date.now() - t0 >= FREQ_WINDOW_MS,
+      20_000,
+    );
+    const elapsedMs = Date.now() - t0;
     const dbDelta = db.calls('userA') - dbBase;
     const pollDelta = pollSum('userA') - pollBase;
     const holderDelta = holderStreams.reduce((n, s) => n + holderCycles(s), 0);
-    A(`满额后 5 条 holder 各自完成 ≥2 个 poll 周期（${holderStreams.map((s) => `${s}=${holderCycles(s)}`).join(',')}）`, everyHolderPolledTwice);
+    const cycleSummary = holderStreams.map((s) => `${s}=${holderCycles(s)}`).join(',');
+    A(`满额后 5 条 holder 各自完成 ≥2 个 poll 周期（${cycleSummary}）`, everyHolderPolledTwice);
     A(`counting stub(userA) 增量 = holder 轮询之和（stub +${dbDelta}，holders +${holderDelta}，userA 全部轮询 +${pollDelta}），无未归因轮询`, dbDelta === holderDelta && pollDelta === holderDelta && holderDelta >= 10);
+    A(`每条 holder 在 ≥2 周期且 ≥${FREQ_WINDOW_MS}ms 观察窗结束时轮询 ≤${MAX_CYCLES_IN_WINDOW} 次（节律下界；间隔 200ms 会超；${cycleSummary}，elapsed=${elapsedMs}ms）`, everyHolderPolledTwice && holderStreams.every((s) => holderCycles(s) <= MAX_CYCLES_IN_WINDOW));
     A('被拒连接（iv/qz/dx-reject）零 catch-up、零轮询，不入环', rejectStreams.every((s) => streamCalls(`userA|${s}`) === 0));
 
     for (const h of userAHolds) await release(h);

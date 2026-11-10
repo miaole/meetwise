@@ -2,6 +2,8 @@
 /**
  * FIX-G3：conflict-marker-scan 行为证明（种植临时 git 仓，不碰本仓）。
  * 断言：三种标记各自命中；二进制、vendor 类目录、近似但非标记的行不命中；干净仓退出 0、有命中退出 1。
+ * setext：markup 文件里「标题行 + 7 个 =」不报；空行后/文件首/非 markup 的孤立 ======= 仍报；
+ * 同文件既有 setext 又有冲突块时冲突三行必报。
  */
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
@@ -36,12 +38,33 @@ const dirs = [];
 try {
   // 干净仓：近似但不是标记的行都不应命中
   const clean = mkRepo({
-    'README.md': ['Title', E + '=', '', `${L}<`, `x ${L} y`, `${E} trailing`, `${R}x`, ' ' + E, ''].join('\n'),
+    'README.md': ['Title', E + '=', '', 'Setext Heading', E, '', `${L}<`, `x ${L} y`, `${E} trailing`, `${R}x`, ' ' + E, ''].join('\n'),
     'src/a.ts': 'export const a = 1;\n',
   });
   dirs.push(clean);
   const c = run(clean);
-  A('干净仓（含 8 个 =、行内/缩进/后缀粘连的近似串）→ 退出 0', c.code === 0, c.out);
+  A('干净仓（含 8 个 =、setext 的 7 个 = 下划线、行内/缩进/后缀粘连的近似串）→ 退出 0', c.code === 0, c.out);
+
+  // setext 抑制的边界：孤立残留与非 markup 仍要报
+  const isoBlank = mkRepo({ 'notes.md': ['', E, ''].join('\n') });
+  dirs.push(isoBlank);
+  const ib = run(isoBlank);
+  A('markdown 空行后的孤立 ======= → 退出 1（不是 setext）', ib.code === 1 && ib.out.includes('notes.md:2'), ib.out);
+
+  const isoStart = mkRepo({ 'notes.md': [E, 'para', ''].join('\n') });
+  dirs.push(isoStart);
+  const isoStartRun = run(isoStart);
+  A('markdown 文件首行孤立 ======= → 退出 1', isoStartRun.code === 1 && isoStartRun.out.includes('notes.md:1'), isoStartRun.out);
+
+  const isoCode = mkRepo({ 'src/a.ts': ['const x = 1;', E, 'const y = 2;', ''].join('\n') });
+  dirs.push(isoCode);
+  const ic = run(isoCode);
+  A('非 markup 的 .ts 中紧跟代码的孤立 ======= → 退出 1（不走 setext 抑制）', ic.code === 1 && ic.out.includes('src/a.ts:2'), ic.out);
+
+  const mixed = mkRepo({ 'docs/x.md': ['Heading', E, '', `${L} HEAD`, 'a', E, 'b', `${R} other`, ''].join('\n') });
+  dirs.push(mixed);
+  const mx = run(mixed);
+  A('同文件既有 setext 又有冲突块 → 退出 1，冲突三行全报（fail-closed）', mx.code === 1 && ['docs/x.md:4', 'docs/x.md:6', 'docs/x.md:8'].every((s) => mx.out.includes(s)), mx.out);
 
   // 三种标记各自独立命中
   for (const [label, line] of [['ours', `${L} HEAD`], ['ours（行尾）', L], ['separator', E], ['theirs', `${R} feature/x`], ['theirs（行尾）', R]]) {
