@@ -61,9 +61,15 @@ push main → CI(ci.yml 全绿) → deploy.yml:
 数据库地址前提：`.env` 的 `RUNTIME_DATABASE_URL` / `MIGRATION_DATABASE_URL`（经 compose
 `x-cloud-runtime-env` / `x-migration-env` 注入）主机必须指向云数据库，不得为 `localhost` /
 `127.0.0.1` / `::1` / `postgres` / 链路本地地址；worker 控制面 `QBANK_CONTROL_DATABASE_URL` /
-`RAG_CONTROL_DATABASE_URL` 同规则。`NODE_ENV=production` 下违反即启动失败（有意的响亮失败，
+`RAG_CONTROL_DATABASE_URL` / `PRIVACY_WORKER_DATABASE_URL` 同规则。`NODE_ENV=production` 下违反即启动失败（有意的响亮失败，
 非静默），错误码 `database_config_invalid:production_local_database_host`；verify-full + CA
 前提 compose 两 env 块已钉，此处引用不重抄。
+
+生产默认编排还要求：migrate 段注入 `PRIVACY_WORKER_DB_USER` / `PRIVACY_WORKER_DB_PASSWORD`
+以 provision 擦除执行器登录；该登录对应的连接串只挂到 worker 的
+`PRIVACY_WORKER_DATABASE_URL`（`:?required`，绝不写入真实凭据）。生产模式下缺失该 URL
+会使 worker 启动失败，错误码 `privacy_worker_database_url_missing`（fail-closed，避免擦除循环
+静默不启动）。公开 `DELETE /privacy/interview-data/:id` 仍固定返回 503，与本变量无关。
 
 ## 运维
 

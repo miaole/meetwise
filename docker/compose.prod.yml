@@ -144,6 +144,11 @@ x-migration-env: &migration-env
   QBANK_CONTROL_DB_PASSWORD: ${QBANK_CONTROL_DB_PASSWORD:?set qbank control database login password}
   RAG_CONTROL_DB_USER: ${RAG_CONTROL_DB_USER:?set generic RAG control database login name}
   RAG_CONTROL_DB_PASSWORD: ${RAG_CONTROL_DB_PASSWORD:?set generic RAG control database login password}
+  # Provision the dedicated least-privilege privacy-erasure executor.
+  # The resulting login is consumed only as PRIVACY_WORKER_DATABASE_URL on
+  # the worker; never mount these provision credentials into API/worker.
+  PRIVACY_WORKER_DB_USER: ${PRIVACY_WORKER_DB_USER:?set privacy worker database login name}
+  PRIVACY_WORKER_DB_PASSWORD: ${PRIVACY_WORKER_DB_PASSWORD:?set privacy worker database login password}
   # Only the migration job receives this bounded online-index build budget.
   # The runner rejects values outside 30–900 seconds instead of silently
   # inheriting the regular request statement timeout.
@@ -329,6 +334,11 @@ services:
       # promote qbank generations but has no request-path app_role membership.
       QBANK_CONTROL_DATABASE_URL: ${QBANK_CONTROL_DATABASE_URL:?set dedicated qbank control database URL}
       RAG_CONTROL_DATABASE_URL: ${RAG_CONTROL_DATABASE_URL:?set dedicated generic RAG control database URL}
+      # Physical erasure uses this dedicated least-privilege login only.
+      # Never share the API/runtime pool. Injected from the secret manager;
+      # never commit the real connection string. Missing in production fails
+      # worker startup (fail-closed). Public DELETE stays 503.
+      PRIVACY_WORKER_DATABASE_URL: ${PRIVACY_WORKER_DATABASE_URL:?set dedicated privacy worker database URL}
       # Metrics 由独立的 docker/compose.monitoring.yml 抓取（单机 4G 预览不常驻
       # Prometheus）。Do not map 9091 to the host/public internet; `expose` 仅容器网络。
       WORKER_METRICS_HOST: 0.0.0.0
