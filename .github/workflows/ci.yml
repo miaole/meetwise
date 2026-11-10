@@ -21,9 +21,17 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"
         # 命中任何密钥 → 非零退出 → 阻断
+      # FIX-G3 / #178 残留：全仓合并冲突标记扫描（git 跟踪文件；排除二进制与 vendor 类目录）。
+      # 先跑种植 proof（三种标记必中、二进制/vendor/近似串不中、非 git 目录退出 2），再扫本仓；任一非零即阻断。
+      # 放在 secrets-scan（已是必过检查）里，纯新增 step，不动 verify 的既有顺序。
+      - name: 合并冲突标记全仓扫描（<<<<<<< / ======= / >>>>>>> 整行；排除二进制与 vendor）
+        run: |
+          node scripts/conflict-marker-scan.proof.mjs
+          node scripts/conflict-marker-scan.mjs
 
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
     env:
@@ -141,7 +149,8 @@ jobs:
         run: pnpm model-slot-bypass:static:prove
 
       # SSE 共享 sse:principal 槽（无库 hijack + counting asPrincipal stub）：5 条 200，第 6 条 429；
-      # holders 一个周期 stub 恰 +5，被拒连接不入 2s 环。不是隔离库 / 不是跨副本。
+      # 每个 holder ≥2 个 poll 周期且 stub 增量 = holder 轮询之和（FIX-G3 起条件驱动，不再按固定窗口数 +5），
+      # 被拒连接不入 2s 环。不是隔离库 / 不是跨副本。
       - name: SSE shared principal slot 5+1 429 (no database)
         run: pnpm sse-slot:prove
 
@@ -357,6 +366,7 @@ jobs:
       # 全栈跨进程 HTTP E2E（e2e/full.e2e.ts fetch/SSE，不是 Playwright）不在 per-push：
       # run-e2e.mjs 要求 E2E_ISOLATED=1 + MODEL_API_KEY，缺 Key 必须非零退出。
       # 禁止 skip-if-absent。nightly.yml 当前也没有跑 e2e:isolated / e2e:ui:isolated。
+      # FIX-G3 曾提案接入，用户决定 CI 太重、不配 MODEL_API_KEY，全栈 E2E 保持本地手跑 `pnpm e2e:isolated`。
       # 本地有 Key 时用 `pnpm regression --live`；浏览器层另需 web production build。
 
       # ── CI-WIRING 纪律注记（批5 第三刀）────────────────────────────────────────────
