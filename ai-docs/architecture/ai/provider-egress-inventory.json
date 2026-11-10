@@ -2130,6 +2130,11 @@
       "class": "test-fixture"
     },
     {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "scripts/ha/ha-sandbox.mjs",
+      "class": "test-fixture"
+    },
+    {
       "name": "MODEL_BACKUP_API_KEY",
       "source": "apps/worker/test/estimator-v2-cjk.proof.ts",
       "class": "test-fixture"
