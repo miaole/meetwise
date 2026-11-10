@@ -4,7 +4,8 @@
  * Does not open a real database. Public DELETE 503 is pinned by grep only
  * and is not modified by this change.
  */
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { initializePrivacyWorkerStartup } from '../src/privacy-worker-runtime.ts';
 
@@ -14,7 +15,7 @@ const check = (name: string, condition: boolean) => {
   if (!condition) failures++;
 };
 
-const repoRoot = fileURLToPath(new URL('../../..', import.meta.url));
+const repoRoot = fileURLToPath(new URL('../../..', import.meta.url)).replace(/[/\\]+$/, '');
 const compose = readFileSync(new URL('../../../docker/compose.prod.yml', import.meta.url), 'utf8');
 const workerExample = readFileSync(new URL('../../../docker/env/worker.env.example', import.meta.url), 'utf8');
 const haCompose = readFileSync(new URL('../../../docker/compose.ha.yml', import.meta.url), 'utf8');
@@ -131,7 +132,11 @@ check(
     && /interview_erasure_authorization_not_available/.test(deleteService)
     && /HttpStatus\.SERVICE_UNAVAILABLE/.test(deleteService),
 );
-check('本证明读取的仓库根路径可定位 compose 文件', repoRoot.endsWith('meetwise') || repoRoot.includes('mw-fix-g4'));
+check(
+  '本证明读取的仓库根路径可定位 compose 文件',
+  existsSync(path.join(repoRoot, 'pnpm-workspace.yaml'))
+    && existsSync(path.join(repoRoot, 'docker/compose.prod.yml')),
+);
 
 if (failures) process.exit(1);
 console.log('✓ privacy-worker production fail-closed proof 全部通过');

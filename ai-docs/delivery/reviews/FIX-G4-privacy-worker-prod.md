@@ -58,8 +58,44 @@
 ## 遗留
 
 - **未改** `scripts/deploy-check.mjs`：审查分组里该文件归 G1。契约断言改放在本 G4 单测，避免与 G1 争用。G1 若方便可补一条与 qbank 对称的 deploy-check 守卫。
-- **文档口径未全面清扫**：`ai-docs/delivery/harness/ha-6-companion-REQUEST.md` 等仍写“URL 未配即禁用”；`unstub-inventory.md` “缺即可见 fenced”只对非生产仍成立。这些不是本轮共享进度文档，未改。
 - **公开 DELETE 仍为 503**：有意保留，不在 #247 范围内。物理擦除循环接通 ≠ 重开公开删除权。
 - **未做生产实库联调 / 真登录 identity 实测**：本轮证明覆盖编排解析、启动 fail-closed 单测、既有 privacy-erasure proof。真实 `assertPrivacyWorkerExecutorIdentity` 仍依赖既有 pause-upgrade / erasure proof 与部署期 provision。
+- **`receipts/ha-6/resource-budget.json:45`**：这是 HA-6 当时的 receipt 证据文件（`lazinessNote` 含 “privacy 未配即禁用”），本轮**未改**，以免改写已落卷证据。现行码面口径见下方审查跟进。
 
 本 PR 需要 **mw-privacy-int** 独立审查通过后再合入。作者不自批、不自合并。
+
+## 审查跟进（mw-privacy-int PR #238 FAIL，2026-11-10 北京时间）
+
+### 阻塞修复
+
+`apps/worker/test/privacy-worker-runtime.proof.ts` 原先用 `fileURLToPath(new URL('../../..', import.meta.url))` 得到带尾斜杠的仓库根，再 `endsWith('meetwise') || includes('mw-fix-g4')`。标准 clone 路径如 `/path/meetwise/` 因尾斜杠而恒为 false，只有目录名碰巧含 `mw-fix-g4` 才过。已改为：去掉尾部 `/` 或 `\`，并用 `existsSync(pnpm-workspace.yaml)` + `existsSync(docker/compose.prod.yml)` 探测仓库根，不再依赖目录名。
+
+验证：在无关目录名的 detached worktree `/tmp/zz-check`（路径不含 `meetwise` 或 `mw-fix-g4`）跑 `pnpm -C apps/worker prove:privacy-worker-runtime`，**14/14 PASS，退出码 0**（北京时间约 20:32）。验证后已 `git worktree remove` 删除该临时 worktree。
+
+### 非阻塞文档
+
+已为旧表述“URL 未配即禁用”补上“仅非生产”限定：
+
+- `ai-docs/delivery/harness/ha-6-companion-REQUEST.md:45`、同文件原 `:97`（W1 修法段 “privacy 未配即禁用”）
+- `ai-docs/delivery/harness/unstub-inventory.md:149`
+
+`receipts/ha-6/resource-budget.json:45` 未改（见上，receipt 证据）。
+
+### 复跑
+
+| 命令 | 退出码 | 结果（北京时间） |
+| --- | --- | --- |
+| `/tmp/zz-check` 下 `pnpm -C apps/worker prove:privacy-worker-runtime` | **0** | 14/14 PASS（目录名无关路径） |
+| `/workspace/mw-fix-g4` 下 `pnpm -C apps/worker prove:privacy-worker-runtime` | **0** | 14/14 PASS；约 20:33 |
+| `pnpm privacy-erasure:http:prove` | **0** | isolated `pass_count=25`；临时 PG `127.0.0.1:32842`；约 20:33 |
+
+未占用或停掉常驻栈端口 `8787` / `3100` / `54392` / `63799`。
+
+### 磁盘 / inode
+
+审查方报告机器 inode 100%（No space left on device）。本机 20:30（北京时间）实测：
+
+- `df -h`：`/dev/vdb` 挂载 `/`，128G 已用 26G，剩余 102G，**21%**（空间未满）
+- `df -i`：同一挂载点 inode 已用 1,889,120 / 2,015,232，剩余 126,112，**94%**（随后观察升至约 95%）。inode 紧张的是根分区 `/`，不是 `/dev` 或 `/dev/shm`。
+
+本回合只清理了自己产生的临时物：`/tmp/zz-check` worktree（验证后已移除）、以及本席先前的 `/tmp/g4-proofs`、`/tmp/g4-compose-config.yml`、`/tmp/g4-dummy-rds-ca.pem`、`/tmp/g4-worker-lint.txt`。未删除其他席位的 worktree、`/tmp/g4-priv-review`、运行中的隔离容器或其他人的 `node_modules`。

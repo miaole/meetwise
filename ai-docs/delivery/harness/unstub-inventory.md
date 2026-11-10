@@ -146,7 +146,7 @@
 | 件 | 位置 | 状态 |
 |---|---|---|
 | 0091 授权快照签发/消费/claim/回执（JWS EC 签名·purpose 三域已含 interview/resume/account） | `packages/db/src/privacy-authorization.ts:32/66/97/124/138/162` | 建成·**未对公开 HTTP 接线** |
-| checkpoint 擦除 worker（claim/lease/purge） | `apps/worker/src/privacy-erasure-worker.ts:13-40`；接线 `apps/worker/src/main.ts:702`（需专用 `PRIVACY_WORKER_DATABASE_URL` 最小权限登录，缺即可见 fenced 而非伪完成 :481-486） | 建成·在跑（配 pool 时） |
+| checkpoint 擦除 worker（claim/lease/purge） | `apps/worker/src/privacy-erasure-worker.ts:13-40`；接线 `apps/worker/src/main.ts:702`（需专用 `PRIVACY_WORKER_DATABASE_URL` 最小权限登录；**仅非生产**缺配时循环不启动、请求可见 fenced 而非伪完成 :481-486；生产缺 URL 启动失败 fail-closed） | 建成·在跑（配 pool 时；生产必须挂载 URL） |
 | 面试投影 sweep（event/ai_graph_run/report purge+外部 retention_pending+0091 全链） | `packages/db/src/uc052-internal-erasure.ts:161`（`runAuthorizedInterviewErasure`） | 建成·**internal only 无公开 HTTP**（文件头 :4） |
 | 向量面 sweep 步（0141 feed→0125 claim→purge→0091 local_erased 回执） | `packages/db/src/vector-plane-erasure.ts:97`；worker `privacy-erasure-worker.ts:48-60`；接线 `main.ts:703` | 建成·PRIV4 nail 2026-10-07（prove 33/33 EXIT=0·本地行级证据） |
 | memory_vector_chunk sweep+十项链 fail-closed 写围栏 | `packages/db/src/memory-vector-chunk-erasure.ts:21/44/62/78`；迁移 0125 | 建成 |
