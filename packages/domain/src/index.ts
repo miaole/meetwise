@@ -205,10 +205,12 @@ export {
   QUESTION_GENERATION_ERROR_CODES, QUESTION_GENERATION_ORIGINS, QUESTION_GENERATION_REROLL_FAMILY,
   classifyQuestionGenerationError, unavailableGeneration, approvedTemplateGeneration, modelGeneration,
   normalizeQuestionGenerationResult, isQuestionGenerationFailure, resolveCitedSources,
+  QUESTION_GENERATION_COMPETENCY_SWITCH_FAMILY, QUESTION_DUPLICATE_FALLBACKS,
+  duplicateExhaustedGeneration, acceptDuplicateFallback,
 } from './question-generation.ts';
 export type {
   QuestionGenerationErrorCode, QuestionGenerationOrigin, QuestionGenerationProvenance, QuestionGenerationResult,
-  CitedSourcesResolution,
+  CitedSourcesResolution, QuestionDuplicateFallback, QuestionDuplicateFallbackCandidate,
 } from './question-generation.ts';
 // 简历多格式提取 + 清洗(PDF/Word/图片→文本)
 export { extractResumeText, cleanResumeText, detectResumeFormat, looksLikeEncryptedPdf, type ResumeFileFormat } from './resume-extract.ts';

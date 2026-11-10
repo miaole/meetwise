@@ -6,7 +6,7 @@
 import { z } from 'zod';
 import { asPrincipal, normalizeQuestion, recordUsage, SHADOW_METER_VERSION, type DbPool, type QuestionUsageLedgerEntry } from '@meetwise/db';
 import { invoke, promptedModel, getPrompt, renderSessionSummarySection, isAdmissionRefusalRetryable, recordRagRetrievalAction, type ModelClient, type GraphObserver, type ModelCostPolicy } from '@meetwise/ai-runtime';
-import { CRISIS_DISPOSITION_REASON, cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, refsGroundedInFacts, toCompetencySpecs, isNonAnswer, stripScoringManipulation, approvedTemplateGeneration, classifyQuestionGenerationError, critiqueQuestion, modelGeneration, unavailableGeneration, resolveCitedSources, QUESTION_GENERATION_REROLL_FAMILY, CANDIDATE_PROFILE_SIGNALS, type CragVerdict, type QuestionGenerationResult, type QuestionKind, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec } from '@meetwise/domain';
+import { CRISIS_DISPOSITION_REASON, cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, refsGroundedInFacts, toCompetencySpecs, isNonAnswer, stripScoringManipulation, approvedTemplateGeneration, classifyQuestionGenerationError, critiqueQuestion, modelGeneration, unavailableGeneration, resolveCitedSources, QUESTION_GENERATION_REROLL_FAMILY, CANDIDATE_PROFILE_SIGNALS, duplicateExhaustedGeneration, type QuestionDuplicateFallbackCandidate, type CragVerdict, type QuestionGenerationResult, type QuestionKind, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec } from '@meetwise/domain';
 import type { AdaptiveDeps, SessionSummary } from '@meetwise/ai-graphs';
 import { CRAG_QUERY_TARGET_ROLE_MAX_CHARS, CRAG_QUERY_TECH_STACK_MAX_CHARS } from './qbank-track-local-retrieve.ts';
 import { sessionSurvivesAskBudget } from './ask-context-budget.ts';
@@ -21,13 +21,59 @@ function nativeRetrievalFailureToken(reason: string): string | null {
   return match ? match[0] : null;
 }
 
+/**
+ * G2(FIX-G2-dup-question-fallback):判重耗尽降级候选挑选(纯函数·零 IO·零模型)。
+ * 优先级:① 本 turn 已生成、过本场 critique(含本场 asked 判重)与引文闸、只与历史场次重复的模型题
+ * (取最近一次 roll)→ `cross_session_repeat`;② 都不过 → 固定模板(与 grounded 无事实无授权版逐字同文)
+ * 过本场 critique → `approved_template`;③ 仍不过 → null(图节点 failClosed 原样)。
+ */
+export function pickDuplicateFallback(input: {
+  candidates: readonly { q: string; refs: readonly string[]; key: string }[];
+  knownRefs: readonly string[];
+  accept: (q: string) => boolean;
+  template: string;
+  provenance: { operationId: string; idempotencyKey: string; reroll: number };
+}): QuestionDuplicateFallbackCandidate | null {
+  for (let i = input.candidates.length - 1; i >= 0; i -= 1) {
+    const candidate = input.candidates[i]!;
+    if (!input.accept(candidate.q)) continue;
+    const cited = resolveCitedSources(input.knownRefs, candidate.refs);
+    if (!cited.ok) continue;
+    return {
+      question: candidate.q,
+      sources: cited.sources,
+      provenance: {
+        origin: 'model', operationId: input.provenance.operationId, idempotencyKey: candidate.key,
+        reroll: input.provenance.reroll, duplicateFallback: 'cross_session_repeat',
+      },
+    };
+  }
+  if (input.accept(input.template)) {
+    return {
+      question: input.template,
+      sources: [],
+      provenance: {
+        origin: 'approved_template', operationId: input.provenance.operationId,
+        idempotencyKey: input.provenance.idempotencyKey, reroll: input.provenance.reroll,
+        duplicateFallback: 'approved_template',
+      },
+    };
+  }
+  return null;
+}
+
+/** G2:判重降级模板——与 grounded 无事实回退的无授权版逐字同文(不声称简历事实)。 */
+export function duplicateFallbackTemplate(competency: string): string {
+  return `请结合你的实际经验，说明在「${competency}」方面你会如何做关键取舍，并如何验证结果。`;
+}
+
 const AskSchema = z.object({ q: z.string().min(1).max(2000), refs: z.array(z.string()) });   // q 封顶:模型出的题理应短;超长=异常输出,schema 闸拦下重试(也防评估侧截断吃掉答案)
 
 const QUESTION_OPERATION_ID = 'interview.question-generation.v1' as const;
 /**
  * G7FIX-4R 有界换题上限:判重命中后每 turn 最多重掷 2 次(单 turn 生成调用总数 ≤3 含初诊)。
- * per-turn 计数、跨 turn 不累计、无循环放大;耗尽仍 unavailableGeneration('duplicate_question') 原样判死,
- * fail-closed 只从「首撞即死」收窄为「撞满上限才死」,零验证放宽。
+ * per-turn 计数、跨 turn 不累计、无循环放大;耗尽仍返回 duplicate_question 失败形(形状不变),
+ * G2 起随附降级候选:图节点先换 competency,无序可换才采用(跨场重复、当场不重复/模板兜底),不整场判死。
  */
 const MAX_DUPLICATE_REROLL = 2;
 /**
@@ -757,6 +803,10 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
           operationId: QUESTION_OPERATION_ID, idempotencyKey, invokeError: 'duplicate_check_failed',
         });
       }
+      // G2(FIX-G2-dup-question-fallback):判重命中的候选题面留作降级素材(只存本闭包局部,不进图 state)。
+      // 初诊候选此处已过 seamCritique(上方族 re-roll 环出口),引文在降级挑选时再核。
+      const duplicateCandidates: { q: string; refs: string[]; key: string }[] = [];
+      if (duplicate) duplicateCandidates.push({ q: out.value.q, refs: out.value.refs, key: idempotencyKey });
       let rerolls = 0;
       while (duplicate && rerolls < MAX_DUPLICATE_REROLL) {
         rerolls += 1;
@@ -783,9 +833,24 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
           });
         }
         if (!duplicate) out = replacement;                                               // 上限内得到非重复替代题:换题成功
+        else duplicateCandidates.push({ q: replacement.value.q, refs: replacement.value.refs, key: idempotencyKey });
       }
-      if (duplicate)
-        return unavailableGeneration('duplicate_question', { operationId: QUESTION_OPERATION_ID, idempotencyKey, reroll: familyRolls + rerolls });
+      if (duplicate) {
+        // G2:失败形(error/provenance)与旧 unavailableGeneration('duplicate_question') 逐字节同形——
+        // 图节点先按此换下一 competency 重试;仅当无序可换/换序帽满时才采用随附的降级候选,
+        // 不再整场判死。降级零额外模型调用、零新幂等键(键沿用候选自己的 `:0`/`:r{k}`)。
+        const reroll = familyRolls + rerolls;
+        return duplicateExhaustedGeneration(
+          { operationId: QUESTION_OPERATION_ID, idempotencyKey, reroll },
+          pickDuplicateFallback({
+            candidates: duplicateCandidates,
+            knownRefs,
+            accept: (q) => seamCritique(q).ok,
+            template: duplicateFallbackTemplate(competency),
+            provenance: { operationId: QUESTION_OPERATION_ID, idempotencyKey, reroll },
+          }),
+        );
+      }
       const cited = resolveCitedSources(knownRefs, out.value.refs);
       if (!cited.ok) {
         return unavailableGeneration(classifyQuestionGenerationError(`business:${cited.reason}`), {
