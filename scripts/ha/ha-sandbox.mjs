@@ -151,10 +151,13 @@ function genEnvFile() {
     RDS_CA_HOST_PATH: CA_PATH,
     BACKEND_IMAGE: BACKEND_IMAGE,
     WEB_IMAGE: 'node:22-slim@sha256:d649c27dae7ba0137b3cef5dd75baa422c08dc3d9e3fc0c23dfb172dc3cc6436',
-    MODEL_NAME: 'test-model',
-    MODEL_FAST_NAME: 'test-fast-model',
-    MODEL_BACKUP_NAME: 'test-backup-model',
-    MODEL_FAST_BACKUP_NAME: 'test-fast-backup-model',
+    // 沙箱占位模型名须满足端点 profile 派发前前缀校验（model-client: dashscope-cn-beijing→qwen*·
+    // deepseek-cn-public→deepseek-*）——否则 worker 启动即 text_endpoint_profile_model_mismatch。
+    // 默认 profile=dashscope-cn-beijing → qwen 前缀占位；零真实外呼（沙箱 key=占位）。
+    MODEL_NAME: 'qwen-sandbox-placeholder',
+    MODEL_FAST_NAME: 'qwen-sandbox-fast-placeholder',
+    MODEL_BACKUP_NAME: 'qwen-sandbox-backup-placeholder',
+    MODEL_FAST_BACKUP_NAME: 'qwen-sandbox-fast-backup-placeholder',
     MODEL_API_KEY: PW.dummy,
     MODEL_BACKUP_API_KEY: PW.dummy,
     MODEL_COST_BUDGET_SCOPE: 'sandbox',
@@ -179,11 +182,17 @@ function genEnvFile() {
       else if (/_BILLING_(PROVIDER|MODEL|REGION)$/.test(name)) v = 'test';
       else if (/_MAX_(INPUT|OUTPUT)_TOKENS$|_CONTEXT_WINDOW_TOKENS$|_SAFETY_MARGIN_TOKENS$/.test(name)) v = '4000';
       else if (/^DASHSCOPE_.*_API_KEY$/.test(name)) v = PW.dummy;
-      else if (/^DASHSCOPE_.*_MODEL$/.test(name)) v = 'test-model';
+      else if (/^DASHSCOPE_.*_MODEL$/.test(name)) v = 'qwen-sandbox-placeholder';
       else v = 'ha-sandbox-dummy';
       note(`env fallback ${name}`, true, 'heuristic placeholder');
     }
     lines.push(`${name}=${v}`);
+  }
+  // 沙箱模型端点档（r10·compose 侧 "${MODEL_ENDPOINT_PROFILE:-deepseek-cn-public}" 默认 deepseek 档，
+  // 而沙箱占位模型名=qwen 前缀 → 必须在 env-file 显式指定百炼档，否则 worker 启动即
+  // text_endpoint_profile_model_mismatch 崩（profile 前缀校验 model-client:517-523）。
+  if (!lines.some((l) => l.startsWith('MODEL_ENDPOINT_PROFILE='))) {
+    lines.push('MODEL_ENDPOINT_PROFILE=dashscope-cn-beijing');
   }
   // web-b 宿主回环旋钮（compose.ha.yml 默认 3001；本机 3001 被无关进程占用→沙箱拨 13001）。
   if (!lines.some((l) => l.startsWith('MEETWISE_HA_WEB_B_HOST_PORT='))) {
@@ -385,7 +394,7 @@ if (mode === 'signup') {
   const email = 'ha-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '@ha-sandbox.local';
   const res = await fetch('http://lb:8787/auth/signup', {
     method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ email, password: PW.probe }), signal: AbortSignal.timeout(10000),
+    body: JSON.stringify({ email, password: ${JSON.stringify(PW.probe)} }), signal: AbortSignal.timeout(10000),
   });
   const body = await res.text();
   let parsed = null; try { parsed = JSON.parse(body); } catch {}
@@ -425,12 +434,19 @@ try {
     process.exit(0);
   }
   const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = '';
+  // 单笔读跨 tick 复用：每次循环新开 reader.read() 会让 tick 胜出的旧读悬挂在队列首——
+  // 新数据到来时先结算【已放弃的旧读】→ 帧被吞、events 永远空（live 事件 vs catch-up 重放
+  // 的分水岭）。挂起读 promise 持久化，tick 只放行轮询不重建读。
+  let pendingRead = null;
   for (;;) {
+    if (!pendingRead) pendingRead = reader.read().then((r) => ({ kind: 'data', ...r }));
     const step = await Promise.race([
-      reader.read().then((r) => ({ kind: 'data', ...r })),
+      pendingRead,
       new Promise((r) => setTimeout(() => r({ kind: 'tick' }), 1000)),
     ]);
-    if (step.kind === 'data' && step.value) {
+    if (step.kind === 'tick') { if (Date.now() - t0 > maxMs) break; continue; }
+    pendingRead = null;
+    if (step.value) {
       buf += dec.decode(step.value, { stream: true });
       let idx;
       while ((idx = buf.indexOf('\\n\\n')) >= 0) {
@@ -445,7 +461,7 @@ try {
         }
       }
     }
-    if (step.kind === 'data' && step.done) break;
+    if (step.done) break;
     if (Date.now() - t0 > maxMs) break;
   }
   snapshot({ closedAfterMs: Date.now() - t0 });
@@ -499,6 +515,21 @@ function readOut(name, tries = 40, gapMs = 500) {
     sleepSync(gapMs);
   }
   return null;
+}
+
+/** 谓词等待版：ssе helper 现在 attach 即落盘（sse-pump flushHeaders·头即时可见），
+ *  仅等文件出现会读到空 events 快照——按谓词轮询到目标态出现或超时（返回最后快照）。 */
+function waitOut(name, pred, tries = 40, gapMs = 250) {
+  const out = join(SANDBOX_DIR, name);
+  let last = null;
+  for (let i = 0; i < tries; i++) {
+    if (existsSync(out)) {
+      try { last = JSON.parse(readFileSync(out, 'utf8')); } catch { /* partial write — retry */ }
+      if (last && pred(last)) return last;
+    }
+    sleepSync(gapMs);
+  }
+  return last;
 }
 
 function psql(sql) {
@@ -798,14 +829,18 @@ async function cmdV5() {
 
   // ③ 事件源直插 interview_event（0143 触发器 → pg_notify 广播；legacy 2s 轮询兜底同证）。
   // 0059/0062 privacy 投影触发器要求 app.principal_user=owner（与产品路径 principal.ts:950 同形）。
+  const ev1At = Date.now();  // 插入前墙钟：零缓冲判据=「事件落库→客户端收到」的真实投递窗
   const ev1 = psqlOwner(owner, `INSERT INTO interview_event (owner_user_id, stream_key, seq, kind, payload) SELECT owner_user_id, id, 1, 'progress', '{"sandbox":"v5-first"}' FROM interview WHERE id='${interviewId}' RETURNING seq;`);
   note('event seq=1 inserted', ev1.stdout.trim() === '1', ev1.stdout.trim() || ev1.stderr.slice(0, 200));
-  const r1b = readOut(f1 || 'out-sse1-r1.json'), r2b = readOut(f2 || 'out-sse2-r1.json');
+  const r1b = waitOut(f1 || 'out-sse1-r1.json', (o) => (o.events || []).length >= 1), r2b = waitOut(f2 || 'out-sse2-r1.json', (o) => (o.events || []).length >= 1);
   if (r1b) r1 = r1b; if (r2b) r2 = r2b;
   const bothGot = Boolean(r1 && r2 && r1.events.length >= 1 && r2.events.length >= 1);
-  // firstEventMs = helper 记录的相对首事件时延（atMs 为绝对时间戳，不作时延用）。
-  const lat1 = r1 && r1.firstEventMs;
-  const lat2 = r2 && r2.firstEventMs;
+  // 投递时延 = 首事件绝对时间戳 − 插入前墙钟（helper 与 harness 同机同钟；firstEventMs 是
+  // 相对客户端 attach 起点的时延，内含 harness 刻意 settle 的 2.5s，不能作零缓冲判据）。
+  const firstAt1 = r1 && r1.events.length ? r1.events[0].atMs : null;
+  const firstAt2 = r2 && r2.events.length ? r2.events[0].atMs : null;
+  const lat1 = firstAt1 !== null ? firstAt1 - ev1At : null;
+  const lat2 = firstAt2 !== null ? firstAt2 - ev1At : null;
   const latencies = [lat1, lat2].filter((x) => x !== null && x !== undefined);
   const maxLatency = latencies.length ? Math.max(...latencies) : null;
   note('broadcast reached both replicas', bothGot, `latenciesMs=${JSON.stringify(latencies)} backends=${r1 && r1.attachedBackend}/${r2 && r2.attachedBackend}`);
@@ -831,7 +866,7 @@ async function cmdV5() {
     // 重连后补发 seq=2：经 pg_notify 广播或 seq>lastSeq 重放到达（事实源在 DB）。
     const ev2 = psqlOwner(owner, `INSERT INTO interview_event (owner_user_id, stream_key, seq, kind, payload) SELECT owner_user_id, id, 2, 'progress', '{"sandbox":"v5-resume"}' FROM interview WHERE id='${interviewId}' RETURNING seq;`);
     note('event seq=2 inserted post-kill', ev2.stdout.trim() === '2', ev2.stdout.trim() || ev2.stderr.slice(0, 150));
-    resume = readOut(or, 20, 500) || resume;
+    resume = waitOut(or, (o) => (o.events || []).some((e) => e.seq === '2'), 40, 500) || resume;
   }
 
   const seqsSeen = resume ? resume.events.map((e) => e.seq) : [];

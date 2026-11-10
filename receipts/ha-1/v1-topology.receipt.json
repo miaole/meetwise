@@ -1,7 +1,7 @@
 {
   "result": "OK",
   "v": "V1",
-  "healthySeconds": 10,
+  "healthySeconds": 6,
   "services": [
     "api-a",
     "api-b",
