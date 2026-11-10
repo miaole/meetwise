@@ -2,6 +2,7 @@
 
 > 分支 `fix/g2-dup-question-fallback`，基底 `origin/main`=`9c9809446`。
 > 需要 **mw-model-op（主审）** 和 **mw-rag-route（协审）** 分别独立审查，实现方不自批、不自合。
+> 双审 PASS 已记录于第 7 节（对照 head `7a32ed7274f55ad95bc1aff662c298ddc61d9ec8`）。PASS ≠ nail，未在 GitHub 上 approve，未合并。
 > 结论只适用于本机隔离环境：仍是 **NOT_HA**，releaseEvidence=false。
 > 本说明不改共享进度文档（execution-master-checklist / REMAINING-NORTH-STAR-QUEUE / backlog），由协调方合入后统一回填。
 > 标注规则：已核实（附 file:line，或命令+退出码）/ 推断 / 未找到。时间均为北京时间。
@@ -19,7 +20,7 @@
   3. 跨会话判重 `wasAsked` 是精确匹配：按 owner 查 episode，episode 由上一场 conclude 时 `recordAskedQuestions` 写入。同一份简历、同一组能力项的第二场，模型大概率给出同样的题面，于是撞满上限。
 - **实测佐证（已核实，e2e 诊断查 interview_question）：**
   - 修复后，第二场的「协作与沟通」题面与第一场逐字相同，正是经降级臂出面的。
-  - 「Backend Development」走的是 grounded 无事实固定模板。这条路径本来就不查跨场判重。
+  - 「Backend Development」走的是 grounded 无事实固定模板（`adaptive-interview-service.ts:566` 早退臂：无可用选定事实时的既有模板，不是本刀新增的 G2 降级模板档 `duplicateFallbackTemplate`）。这条路径本来就不查跨场判重。
 
 ## 2. 修复策略与理由
 
@@ -32,19 +33,26 @@
    - `duplicate_question` **没有**加进 re-roll 族。seam 内判重 re-roll 仍有独立上限，g7fix4 钉住的键形与调用数不变。
 2. **全部耗尽后降级（跨场可重复，当场不重复）。**
    - seam 判重耗尽时，失败形与原先逐字节同形（error、provenance 都不变），另外随附一个可选的 `duplicateFallback` 候选。由纯函数 `pickDuplicateFallback` 挑选，优先级如下：
-     1. 本 turn 已生成的模型题，取最近一次 roll。条件是通过本场 critique（含本场 asked 判重）和引文闸，只与历史场次重复。标记为 `provenance.duplicateFallback='cross_session_repeat'`，origin=model。
-     2. 上一档没有合格候选时，用固定模板。文案与既有 grounded 无事实、无授权版逐字相同，不声称任何简历事实，同样须过本场 critique。标记为 `approved_template`。
-     3. 两档都不过时返回 null，图节点照旧 failClosed，形状不变。
+     1. 本 turn 已生成的模型题，取最近一次 roll。条件是通过本场 critique（含本场 asked 判重）和引文闸，只与历史场次重复。标记为 `provenance.duplicateFallback='cross_session_repeat'`，origin=model。这是生产可达档。
+     2. **纵深防御（生产 seam 走不到）。** 上一档没有合格候选时，用固定模板。文案与既有 grounded 无事实、无授权版逐字相同，不声称任何简历事实，同样须过本场 critique。标记为 `approved_template`。此档只在 scripted deps 下可达（见 §4 的 G2-c / G2-d、g7fix4 §4.2b）。
+     3. **纵深防御（生产 seam 走不到）。** 两档都不过时返回 null，图节点照旧 failClosed，形状不变。此档只在 scripted deps 下可达（G2-c）。
+   - **生产默认行为（已核实）：** 首个候选进入判重之前已经过 `seamCritique`（`adaptive-interview-service.ts:758` / `:781`）和引文核验（`:696` / `:616`）。因此生产 worker 链上 `pickDuplicateFallback` 总会选中某个模型候选，模板档（`:51`）和 null 档（`:62`）实际走不到。合并之后，生产里的实际默认就是：换能力项也失败时，允许重复别场问过的模型题。跨场是否应硬拒，仍待用户拍板（见第 7 节）。
    - 图节点只在**无序可换或换序帽满**时采用候选，并且采用后仍要过图级本场 critique 终闸。批判门没有放宽。
    - **理由：**
      - 跨场重复对练习者是可以接受的（复练同题）。当场重复不可接受，由本场 critique 保证。
-     - 降级题面优先用模型已经产出、并且过了全部确定性闸的题。这符合「失败不发明题面」的原则。模板只是最后兜底，它是现有的 approved_template 来源，不是新造的文案。
+     - 降级题面优先用模型已经产出、并且过了全部确定性闸的题。这符合「失败不发明题面」的原则。模板档与 null 档是纵深防御，不是生产默认出题路径；模板文案来自现有的 approved_template，不是新造的文案。
      - 没有选用「题库兜底」，因为需要新的检索调用和计费面，风险更高。
 3. **额度、计费、幂等语义不变（已核实）：**
    - 降级**零额外模型调用、零新幂等键**。候选沿用自己的 `:0`/`:r{k}` 键。换序后的续掷沿用 AG-F 的统一 `:r{k}` 单调计数。
-   - g7fix4 §4.5 lifecycle 全链实测：恰好 9 笔 invocation，键为 `:0`、`:r1` … `:r8`，单调递增、不复用。interview 没有判 failed，预留保持 reserved。
+   - g7fix4 §4.5 lifecycle 全链实测：该用例走的是「全部候选都判重」路径，恰好 9 笔 invocation（3 个能力项 × 3 次生成），键为 `:0`、`:r1` … `:r8`，单调递增、不复用。interview 没有判 failed，预留保持 reserved。「9 次」不是全局硬上限，见下方费用披露。
    - 计费仍走既有 conclude 结算：成功 confirmed，失败 released。本刀没有改动结算代码。
-   - 换序最坏情况：3 个 competency × 3 次生成 = 9 次 interviewer.ask，与 AG-F 现有上界相同，没有新的放大面。
+
+### 费用披露
+
+- 「9 次」指的是全部候选都判重时的路径次数（3 个能力项 × 每档 1 次初诊 + `MAX_DUPLICATE_REROLL=2` 次重掷 = 3×3），并不是全局硬上限。g7fix4 §4.5 的 9 笔断言钉的是这条路径，代码里没有 `calls>9` 的硬闸。
+- 真正的硬上限是：`MAX_DUPLICATE_REROLL=2`（`adaptive-interview-service.ts:78`）、`MAX_ERROR_REROLL=2`（`:90`）、`MAX_COMPETENCY_EXHAUST_SWITCH=2`（`generate-question.ts:24`）。到达上限后依次走换能力项、降级、failClosed。
+- family 重试与 dup 重试可在同一 seam 叠加。叠加时最多约 15 个 `:r` / `:gr` 键，有上界，高于 9，但不是键复用。
+- 对照：本刀之前，判重路径最坏是 3 次 interviewer.ask（1 次初诊 + 2 次重掷，然后整场判死）。本刀把判重耗尽纳入换能力项后，纯判重最坏是 9 次；family 与 dup 叠加时约 15 次。降级本身不增加调用、不新建 reserve。
 
 ## 3. 改动清单
 
@@ -62,13 +70,15 @@
 
 环境：Node 22.23.3，pnpm 10.18.0，Docker 29.9.3，隔离 PG（pgvector/pgvector:pg16，随机端口）。常驻栈的 8787/3100/54392/63799 没有占用，也没有停。模型 Key 只从进程环境读取，没有打印。
 
-**单测覆盖的两条路径：**
+**单测覆盖的路径：**
 
 | 路径 | 用例 | 结果 |
 |---|---|---|
 | 判重耗尽后换能力项 | `adaptive-interview.proof.ts` 的 G2-a（带候选也优先换序）；g7fix4 §4.5（lifecycle 全链） | PASS |
-| 全部耗尽后降级 | G2-b（模型候选出面）；g7fix4 §4.2b（模板兜底、返回 null）；§4.5（lifecycle 降级出题） | PASS |
-| 保守面 | G2-c（无候选时 failClosed 原样）；G2-d（坏候选被批判门拒） | PASS |
+| 全部耗尽后降级（生产可达：模型候选） | G2-b（模型候选出面）；g7fix4 §4.5（lifecycle 降级出题） | PASS |
+| 纵深防御（仅 scripted deps 可达） | g7fix4 §4.2b（模板兜底、返回 null）；G2-c（无候选时 failClosed 原样）；G2-d（坏候选被批判门拒） | PASS |
+
+模板档与 null 档在生产 seam 里走不到：首个候选进入判重前已经过 `seamCritique` 和引文核验，生产实际上总会选中模型候选。G2-c / G2-d / §4.2b 仍然保留，作为 scripted deps 下的纵深防御覆盖，不代表生产默认会走到这两档。
 
 **命令与退出码：**
 
@@ -120,3 +130,18 @@
 4. **P1-2：** 全栈 E2E 仍不在 CI per-push 或 nightly 中，归 G3/mw-e2e-ha。
 5. **`ha6:prove` 在 main 上本来就红**（3 条 FAIL，见第 4 节），与本刀无关，需要单独跟进。
 6. **docs 回填：** 共享进度文档没有改，合入后由协调方回填 execution-master-checklist、gap-bug-backlog（P1-1）、e2e-covered-path-backlog（7a 前置、主循环模板报告缺口）。
+
+## 7. 审查记录
+
+对照 head `7a32ed7274f55ad95bc1aff662c298ddc61d9ec8`。双审均在各自独立 worktree 上复跑，实现方不自批。PASS ≠ nail，alone ≠ dual；未在 GitHub 上 approve，未合并。
+
+- **mw-model-op 主审 PASS。** 调用次数与幂等键、预算与费用 SLO、额度 reserved 与退回、批判检查均未放宽。降级不增加模型调用、不新建 reserve；(a) 复用已付费调用，既不双扣也不漏结算。
+- **mw-rag-route 协审 PASS。** 换能力项与跨场重复模型题档均可达且有测试；题库隔离没有被破坏（降级不发起新检索，引文按本 turn 已知集核）；换序后 route snapshot 一致（`route.competency` 与 `qkind` 跟着更新）。
+
+**后续跟进项（不在本 PR 做）：**
+
+1. `duplicateFallback` 标记只记在图 checkpoint 里，没有投影到 `question_ready` 事件（`adaptive-lifecycle.ts:326-334`）。§4.5 也没有断言 `provenance=cross_session_repeat`，建议另刀补上。
+2. 缺 HTTP 层「跳过当澄清」的 E2E。这是既有覆盖缺口，不是本 PR 引入的回归。
+3. isolated 的 `runFullE2E` 吞掉了 stderr，Key-block 容易被误读成 PG 静默失败。
+4. 「跨场撞题只降权、不硬拒」作为后续独立一刀，需要 PRE 双审。范围是在 `recentAskedForPrompt` 基础上对历史已问题面降权、判重改打分、当场仍硬拒，补 prove，用确定性相似度、不用 embedding。
+5. 跨场重复的默认行为待用户拍板。本 PR 合并后，生产里的实际默认就是「换能力项也失败时，允许重复别场问过的模型题」。若要求严格不重复，应另开一刀，不要靠无上限重摇。
