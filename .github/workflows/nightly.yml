@@ -64,3 +64,35 @@ jobs:
         run: |
           if [ -z "$MODEL_API_KEY" ]; then echo "::warning::未配 MODEL_API_KEY → 跳过 scoring:eval(配 secrets 后 nightly/手动才真跑)"; exit 0; fi
           pnpm scoring:eval
+
+  # FIX-G3 / #98：全栈 E2E 进 nightly（独立 job，不改 live-model 既有 step）。
+  # 与 ci.yml 的 e2e-isolated 同一命令；nightly 这份保证即使 PR 上被取消/未跑，每天也有一次完整结果。
+  # 硬门：缺 MODEL_API_KEY → ::error:: + 退出 1（全栈 E2E 禁止 skip-if-absent，与 live-model 的跳过约定不同）。
+  # G2（generation_duplicate_question）合并前本 job 会红，这是已知且预期的信号。
+  e2e-isolated:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: 全栈 E2E（pnpm e2e:isolated · 真模型 · 一次性隔离 PG · 缺 Key 即红）
+        env:
+          MODEL_API_KEY: ${{ secrets.MODEL_API_KEY }}
+          MODEL_NAME: ${{ secrets.MODEL_NAME }}
+          MODEL_FAST_NAME: ${{ secrets.MODEL_FAST_NAME }}
+          # 留空时 runner 默认 dashscope-cn-beijing（scripts/e2e-live-capability-env.mjs）
+          MODEL_ENDPOINT_PROFILE: ${{ vars.E2E_MODEL_ENDPOINT_PROFILE }}
+        run: |
+          if [ -z "$MODEL_API_KEY" ]; then
+            echo "::error::未配置 secrets.MODEL_API_KEY → 全栈 E2E 没有运行（未跑 ≠ 绿，按 #98 规则判红）"
+            exit 1
+          fi
+          [ -n "$MODEL_NAME" ] || unset MODEL_NAME
+          [ -n "$MODEL_FAST_NAME" ] || unset MODEL_FAST_NAME
+          [ -n "$MODEL_ENDPOINT_PROFILE" ] || unset MODEL_ENDPOINT_PROFILE
+          pnpm e2e:isolated

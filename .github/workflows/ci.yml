@@ -21,6 +21,13 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"
         # 命中任何密钥 → 非零退出 → 阻断
+      # FIX-G3 / #178 残留：全仓合并冲突标记扫描（git 跟踪文件；排除二进制与 vendor 类目录）。
+      # 先跑种植 proof（三种标记必中、二进制/vendor/近似串不中、非 git 目录退出 2），再扫本仓；任一非零即阻断。
+      # 放在 secrets-scan（已是必过检查）里，纯新增 step，不动 verify 的既有顺序。
+      - name: 合并冲突标记全仓扫描（<<<<<<< / ======= / >>>>>>> 整行；排除二进制与 vendor）
+        run: |
+          node scripts/conflict-marker-scan.proof.mjs
+          node scripts/conflict-marker-scan.mjs
 
   verify:
     runs-on: ubuntu-latest
@@ -141,7 +148,8 @@ jobs:
         run: pnpm model-slot-bypass:static:prove
 
       # SSE 共享 sse:principal 槽（无库 hijack + counting asPrincipal stub）：5 条 200，第 6 条 429；
-      # holders 一个周期 stub 恰 +5，被拒连接不入 2s 环。不是隔离库 / 不是跨副本。
+      # 每个 holder ≥2 个 poll 周期且 stub 增量 = holder 轮询之和（FIX-G3 起条件驱动，不再按固定窗口数 +5），
+      # 被拒连接不入 2s 环。不是隔离库 / 不是跨副本。
       - name: SSE shared principal slot 5+1 429 (no database)
         run: pnpm sse-slot:prove
 
@@ -356,7 +364,8 @@ jobs:
 
       # 全栈跨进程 HTTP E2E（e2e/full.e2e.ts fetch/SSE，不是 Playwright）不在 per-push：
       # run-e2e.mjs 要求 E2E_ISOLATED=1 + MODEL_API_KEY，缺 Key 必须非零退出。
-      # 禁止 skip-if-absent。nightly.yml 当前也没有跑 e2e:isolated / e2e:ui:isolated。
+      # 禁止 skip-if-absent。FIX-G3 起：e2e:isolated 由本文件末尾独立 job `e2e-isolated`（PR/main）
+      # 与 nightly.yml 的 `e2e-isolated` job 跑；缺 MODEL_API_KEY 即红（未跑 ≠ 绿）。e2e:ui:isolated 仍未接入。
       # 本地有 Key 时用 `pnpm regression --live`；浏览器层另需 web production build。
 
       # ── CI-WIRING 纪律注记（批5 第三刀）────────────────────────────────────────────
@@ -371,3 +380,42 @@ jobs:
       # ha6:prove 亲证基线红（50 PASS/26 FAIL）不接线·归属 line/ha6-repin 重钉后另批
       # （接线前置=届时 tip 本地 ha6:prove 绿）；UI 件（chromium+MODEL_API_KEY+生产构建三缺）
       # 与 nightly.yml/nightly-ciw2.yml 与 lint 注释面（归 ci-red-clear）本刀零触。
+
+  # FIX-G3 / #98：全栈跨进程 HTTP E2E（pnpm e2e:isolated：一次性 PG 容器 + 真 api/worker + 真模型）。
+  # 独立 job、与 verify 并行，不改 verify 任何既有 step。单次套件本地实测约 35s，加安装/拉镜像/迁移
+  # 估计 5–8 分钟，远小于 verify 的约 14 分钟，所以不拖慢 PR 墙钟；因此直接跑完整套件而不是缩成冒烟。
+  # 硬门语义：缺 MODEL_API_KEY → 显式 ::error:: 并退出 1（禁止 skip-if-absent；未跑 ≠ 绿）。
+  # 现状：仓库未配置任何 Actions secret，且 G2（generation_duplicate_question）合并前套件本身就会红。
+  # 是否加入分支保护必过检查、是否接受每个 PR 的真模型调用成本，待用户拍板；本 job 目前不是必过检查。
+  e2e-isolated:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    concurrency:
+      group: e2e-isolated-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: 全栈 E2E（pnpm e2e:isolated · 真模型 · 一次性隔离 PG · 缺 Key 即红）
+        env:
+          MODEL_API_KEY: ${{ secrets.MODEL_API_KEY }}
+          MODEL_NAME: ${{ secrets.MODEL_NAME }}
+          MODEL_FAST_NAME: ${{ secrets.MODEL_FAST_NAME }}
+          # 留空时 runner 默认 dashscope-cn-beijing（scripts/e2e-live-capability-env.mjs）
+          MODEL_ENDPOINT_PROFILE: ${{ vars.E2E_MODEL_ENDPOINT_PROFILE }}
+        run: |
+          if [ -z "$MODEL_API_KEY" ]; then
+            echo "::error::未配置 secrets.MODEL_API_KEY → 全栈 E2E 没有运行（未跑 ≠ 绿，按 #98 规则判红）"
+            exit 1
+          fi
+          [ -n "$MODEL_NAME" ] || unset MODEL_NAME
+          [ -n "$MODEL_FAST_NAME" ] || unset MODEL_FAST_NAME
+          [ -n "$MODEL_ENDPOINT_PROFILE" ] || unset MODEL_ENDPOINT_PROFILE
+          pnpm e2e:isolated
