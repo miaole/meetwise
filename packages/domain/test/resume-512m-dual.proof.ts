@@ -63,6 +63,7 @@ if (!existsSync(join(fzDir, 'alias5-9.9mb.docx'))) { console.error('✗ 样本�
 
 // ② 容器内 runner(真实宿主体量:preload AppModule;双路并发;扫子进程 oom_score_adj;写结果 JSON)
 const runner = `
+const OUT_RESULT = ['/out','result.json'].join('/');
 const { readFileSync, readdirSync, writeFileSync } = require('node:fs');
 (async () => {
   const rssPeak = () => Math.round(process.memoryUsage().rss / 1048576);
@@ -92,13 +93,13 @@ const { readFileSync, readdirSync, writeFileSync } = require('node:fs');
     catch (e) { return { ok: false, code: (e && e.code) || String(e && e.message || e).slice(0, 60), ms: Date.now() - s }; }
   }));
   clearInterval(scan); clearInterval(rssTimer);
-  writeFileSync('/out/result.json', JSON.stringify({
+  writeFileSync(OUT_RESULT, JSON.stringify({
     hostAlive: true, results, ms: Date.now() - t0, rssPeakMb,
-    childOomScoreAdj: [...childAdj].sort(), concurrency: process.env.RESUME_PARSE_CONCURRENCY ?? '(default)',
+    childOomScoreAdj: [...childAdj], concurrency: process.env.RESUME_PARSE_CONCURRENCY ?? '(default)',
   }));
   console.log('RUNNER_DONE');
   setTimeout(() => process.exit(0), 100);
-})().catch((e) => { writeFileSync('/out/result.json', JSON.stringify({ hostAlive: true, runnerError: String(e && e.message || e).slice(0, 200) })); console.log('RUNNER_ERR'); setTimeout(() => process.exit(1), 100); });
+})().catch((e) => { writeFileSync(OUT_RESULT, JSON.stringify({ hostAlive: true, runnerError: String(e && e.message || e).slice(0, 200) })); console.log('RUNNER_ERR'); setTimeout(() => process.exit(1), 100); });
 `;
 writeFileSync(join(outDir, 'runner.cjs'), runner);   // runner 落在挂载卷内(/out)——容器内以 /out/runner.cjs 读取
 
