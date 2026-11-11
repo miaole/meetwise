@@ -124,6 +124,24 @@ export async function verifyInterviewAnswerClaim(
   return r.rowCount === 1;
 }
 
+/**
+ * #18：答案是否已被 worker 消费并投影（status='answered' 且 identity 不变）。payload 明文被
+ * `stripConsumedInterviewAnswerPlaintext` 剥离后，重放只在此为真时才允许不带原文继续
+ * （只走 checkpoint 补投影，不再 Command(resume)）。
+ */
+export async function isInterviewAnswerApplied(
+  c: Client, owner: string, interviewId: string,
+  a: Pick<AcceptedInterviewAnswer, 'questionId' | 'stateVersion' | 'turn' | 'answerId' | 'answerHash'>,
+): Promise<boolean> {
+  const r = await c.query(
+    `SELECT 1 FROM interview_question
+      WHERE owner_user_id=$1 AND interview_id=$2 AND question_id=$3 AND state_version=$4 AND turn=$5
+        AND status='answered' AND answer_id=$6 AND answer_hash=$7`,
+    [owner, interviewId, a.questionId, a.stateVersion, a.turn, a.answerId, a.answerHash],
+  );
+  return r.rowCount === 1;
+}
+
 /** 评分/图 checkpoint 已完成后才标 answered；同 identity 重放返回 true，绝不覆盖别的答案。 */
 export async function markInterviewAnswerApplied(
   c: Client, owner: string, interviewId: string, a: AcceptedInterviewAnswer,
