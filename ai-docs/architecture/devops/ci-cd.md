@@ -102,7 +102,7 @@ DoD：标"已 wired"的每条都是 CI 里真实运行、真能卡住合并的 j
 
 当前计数（PR243 复审后）：**保留 47 / nightly 21 / 本地 37 = 105**（复审前 41 / 10 / 54：6 行回 PR，11 行补入 nightly）。nightly 那 21 行里，容器构建 1 行只在 nightly，其余 20 行（含隐私删除暂停 4 条命令、语音等多命令行按行计）`verify:local` 也含。
 
-**台账一致性门（PR243 小门A）**：`pnpm docs:check` 解析本节两张表，与 `ci.yml`（全部 job）、`nightly-ciw2.yml`、`package.json` 的 `verify:local`（按 `&&` 拆）双向对账——执行面里任一 `pnpm …` / `node scripts/…` / `docker build …` 命令不在表里，或表里命令没出现在「去向」声明的执行面、或出现在未声明的执行面（`pnpm install` / `pnpm db:up` 基础设施除外），即 `docs:check` EXIT 1。改 CI / nightly / verify:local 必须同步改本表。
+**台账一致性门（PR243 小门A，盲区补强）**：`pnpm docs:check` 解析本节两张表，与 `ci.yml`（全部 job）、`nightly-ciw2.yml`、`package.json` 的 `verify:local`（按 `&&` 拆）双向对账。比对**完整命令串**（含参数、行首 / step 级 `ENV=val` 前缀，以及 run 块里的 `export VAR=val` / `unset` / `>> $GITHUB_ENV`；step `env:` 与 `VAR=val pnpm …` / `env VAR=val pnpm …` 归一后必须与表中写法一致）。`run: >` 折叠标量按 YAML 语义拼成一行再比对。执行面里任一受跟踪命令（`pnpm` / `node scripts/` / `docker build` / `bash` / `sh` / `npx` / `tsx` / `npm` / `yarn` / `cd …`，以及 `env …` 包装）不在表里，或表里命令没出现在「去向」声明的执行面、或出现在未声明的执行面（`pnpm install` / `pnpm db:up` 基础设施除外），即 EXIT 1。`ci.yml` / `nightly-ciw2.yml` 中出现非 `!cancelled()` 的 `if:`，或出现 `continue-on-error` 且值不是字面 `false` / `${{ false }}`（含 `${{ true }}`、`${{ 1 }}`），亦 EXIT 1，除非本表对应行用反引号显式标记（`` `if: <expr>` `` 归一后全等比较，不得靠子串；job 级还须同时标记 `` `job: <id>` ``）。能简单检测到的弱化——run 块首行 `exit 0`、`set +e`、step / job / workflow 的 `shell:` 覆盖——同样须登记。门**不覆盖**其余 shell 语义（`trap`、heredoc、`if` / `then` / `fi` 把命令包掉、本地 / 第三方 `uses:` 内部执行面等），那些是门的边界，不能当成已看守。门内对每种已覆盖的盲区写法做反证（含去掉 env 前缀、改 step env 为 `'0'`、`export` 覆盖、`if: false`、多命令步 / job 级 `if: 0`、`continue-on-error: true` / `${{ true }}` / `${{ 1 }}`、折叠续行改参、未登记的 `env FOO=1 pnpm` / `bash` / `npx` / `cd … && pnpm`、首行 `exit 0`、`set +e`、`shell:` 覆盖），缺报或删掉反证调用即 `docs:check` 红。改 CI / nightly / verify:local 必须同步改本表。
 
 | # | 原步骤 | 命令 | 去向 |
 |---|---|---|---|
@@ -224,7 +224,7 @@ DoD：标"已 wired"的每条都是 CI 里真实运行、真能卡住合并的 j
 
 ### 8.3 nightly 只放少量关键 prove（建议与理由）
 
-只挑「坏了会丢钱、泄露、丢数据或上云即炸」且 PR 门不覆盖的无 key 隔离 prove。复审前为原 verify 的 10 行（容器构建 + 9 行 prove；那 9 行即 `verify:local` 也含的部分，「10 vs 9」是同一批口径不同，不是漏项）。PR243 复审（mw-privacy-int + mw-e2e-ha）后再补入原 verify 的 11 行 + 转写隐私 2 条，job 设 `timeout-minutes: 60`（默认 360），隐私类步骤（向量平面擦除、隐私删除暂停 4 条、转写隐私 2 条、`neg:resume`）设 `if: ${{ !cancelled() }}`，前序步骤红也照跑，只在手动取消时跳过。
+只挑「坏了会丢钱、泄露、丢数据或上云即炸」且 PR 门不覆盖的无 key 隔离 prove。复审前为原 verify 的 10 行（容器构建 + 9 行 prove；那 9 行即 `verify:local` 也含的部分，「10 vs 9」是同一批口径不同，不是漏项）。PR243 复审（mw-privacy-int + mw-e2e-ha）后再补入原 verify 的 11 行 + 转写隐私 2 条，job 设 `timeout-minutes: 60`（默认 360）。实测约 7–9 分钟（2026-11-11 run 42981810539 约 6m56s；run 42989444727 约 8m28s）。隐私类步骤（向量平面擦除、隐私删除暂停 4 条、转写隐私 2 条、`neg:resume`）以及复审后补入的 `neg:auth`、权限 / RLS 五门、迁移升级三类、`runtime:isolated:prove` 均设 `if: ${{ !cancelled() }}`，前序步骤红也照跑，只在手动取消时跳过。
 
 | prove | 理由 |
 |---|---|
