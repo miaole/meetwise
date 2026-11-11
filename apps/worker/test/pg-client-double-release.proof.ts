@@ -462,9 +462,12 @@ async function runXp2(mod: Record<string, unknown>, mutPrecedence = false): Prom
     console.log(`XP2 mismatches=${mismatches} fenced=${fenced} fenceMiss=${fenceMiss} opErrors=${opErrors} samples=${mismatchSamples.join(' | ')}`);
     const ok = mismatches === 0 && fenceMiss === 0 && fenced > 0 && opErrors === 0;
     if (ok) console.log('CHILD_OK');
-    else console.log('CHILD_FAIL XP-2');
+    else {
+      console.log('CHILD_FAIL XP-2');
+      // Do not await pool.end(): a poisoned max=1 pool can hang here.
+      process.exit(1);
+    }
     try { await bound.end(); } catch { /* ignore */ }
-    if (!ok) throw new Error('xp2_assertion_failed');
   } finally {
     await admin.query(`DROP ROLE IF EXISTS ${role}`).catch(() => undefined);
     await admin.end().catch(() => undefined);
