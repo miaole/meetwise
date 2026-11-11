@@ -21,13 +21,18 @@
  *    既有 releasePromise 只保证 runRelease 主体进一次，不能让 originalRelease 幂等，
  *    也挡不住 catch 里的第二次调用。
  *
- *  形制：父进程 fork 子进程（钉死 unhandled-rejections=throw）。子进程用假 pool 复现
- *  「cleanup 成功后 raw release 抛 already-released」以及「同 client 并发 query +
- *  双 release」；并断言 42501 checkpoint_privacy_fenced 仍从 query 路径原样上抛。
- *    AFTER（当前树）：子进程 EXIT 0。
- *    BEFORE（origin/main 版 checkpoint-principal.ts）：子进程必须非零且 stderr 含
- *      already been released。
+ *  N-1：pg-pool 复用同一 client 对象，checkout 只重置 release、不重置 query。
+ *    serializeClientQueries 若每次 checkout 再包一层会平方变慢。修法=Symbol 标记，
+ *    每 client 只装一次包装（不依赖 release 成功才拆包）。
+ *
+ *  形制：父进程 fork 子进程（钉死 unhandled-rejections=throw）。子进程用假 pool 复现。
+ *    AFTER（当前树）：子进程 EXIT 0（含叠加臂 D：同 client 2000 次 checkout，query
+ *      包装函数恒等；顺序臂 E：先 cleanup 再 raw release）。
+ *    BEFORE（固定 SHA 59baa20b231bd6d022cc6290c7803fc40b724208，合入后也不漂）：
+ *      子进程必须非零且 stderr 含 already been released。
  *    MUT-GUARD（去掉 RELEASE_ONCE_GUARD / 恢复无 .catch 的 void runRelease）：EXIT 1。
+ *    MUT-STACK（去掉 SERIALIZE_ONCE_GUARD）：叠加臂必须失败，EXIT 1。
+ *    MUT-ORDER（先 releaseOnce 再 cleanup）：顺序臂必须失败，EXIT 1。
  *  另：WORKER_ALERT 旧正则对现场崩溃日志假阴性；新正则命中，健康日志不误报。
  *  pnpm pg-client-double-release:prove */
 import { spawnSync } from 'node:child_process';
@@ -39,6 +44,9 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const srcPath = join(here, '../src/checkpoint-principal.ts');
 const DOUBLE_RELEASE = 'Release called on client which has already been released to the pool.';
+/** 本 PR 之基线 main tip（含 #247，不含本修复）。合入后 origin/main 会漂，SHA 不漂。 */
+const BEFORE_SHA = '59baa20b231bd6d022cc6290c7803fc40b724208';
+const STACK_N = 2000;
 
 /** 现场 worker 崩溃摘录（无密钥）。 */
 const CRASH_LOG = `(node:1310101) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
@@ -69,9 +77,9 @@ export const WORKER_ALERT_RE = /checkpoint_connection_lost|checkpoint_privacy_fe
 
 const ACCESS = { owner: 'owner-a', threadId: 'thread-a', fenceEpoch: 1 };
 
-type Mode = 'after' | 'before' | 'mut-guard';
+type Mode = 'after' | 'before' | 'mut-guard' | 'mut-stack' | 'mut-order';
 
-function makeFakeClient(opts: { releaseThrowsAlways?: boolean; overlap?: { current: number; max: number; hits: number } }): {
+function makeFakeClient(opts: { releaseThrowsAlways?: boolean; overlap?: { current: number; max: number; hits: number }; delayMs?: number }): {
   query: (...args: unknown[]) => Promise<{ rows: unknown[]; rowCount: number }>;
   release: (err?: unknown) => void;
   releaseCount: number;
@@ -79,6 +87,7 @@ function makeFakeClient(opts: { releaseThrowsAlways?: boolean; overlap?: { curre
   let releaseCount = 0;
   let queryInFlight = 0;
   const overlap = opts.overlap;
+  const delayMs = opts.delayMs ?? 15;
   const client = {
     releaseCount: 0,
     async query(..._args: unknown[]) {
@@ -88,7 +97,7 @@ function makeFakeClient(opts: { releaseThrowsAlways?: boolean; overlap?: { curre
         if (queryInFlight > 1) overlap.hits++;
         if (queryInFlight > overlap.max) overlap.max = queryInFlight;
       }
-      await new Promise((r) => setTimeout(r, 15));
+      if (delayMs > 0) await new Promise((r) => setTimeout(r, delayMs));
       queryInFlight--;
       return { rows: [{}], rowCount: 1 };
     },
@@ -108,6 +117,22 @@ type LoadedPrincipal = {
   query(...args: unknown[]): Promise<unknown>;
 };
 
+function poolLikePgReuse(client: { release: (err?: unknown) => void }): { connect: () => Promise<typeof client>; end: () => Promise<void> } {
+  const rawRelease = client.release.bind(client);
+  return {
+    async connect() {
+      let released = false;
+      client.release = (err?: unknown) => {
+        if (released) throw new Error(DOUBLE_RELEASE);
+        released = true;
+        rawRelease(err);
+      };
+      return client;
+    },
+    end: async () => undefined,
+  };
+}
+
 async function runScenario(mod: Record<string, unknown>): Promise<void> {
   const boundCtor = mod['PrincipalBoundCheckpointPool'] as new (pool: unknown) => LoadedPrincipal;
   const withAccess = mod['withCheckpointAccess'] as <T>(access: typeof ACCESS, fn: () => Promise<T>) => Promise<T>;
@@ -120,8 +145,7 @@ async function runScenario(mod: Record<string, unknown>): Promise<void> {
 
   // A: raw release already throws (现场 catch 二次调用形)。双 release + 短查询。
   const always = makeFakeClient({ releaseThrowsAlways: true });
-  const poolA = { connect: async () => always, end: async () => undefined };
-  const facadeA = new boundCtor(poolA);
+  const facadeA = new boundCtor({ connect: async () => always, end: async () => undefined });
   // 不装 unhandledRejection handler：有 handler 会吞掉 Node 默认 throw，修前臂就假活。
   // PostgresSaver finally 只调同步 void release()，不等 releaseAsync。修前 catch 二次
   // originalRelease 会在此变成未捕获拒绝并杀死子进程。
@@ -138,8 +162,7 @@ async function runScenario(mod: Record<string, unknown>): Promise<void> {
   // B: 同 client 并发 query 必须串行，双 release 只落地一次 raw release。
   const overlap = { current: 0, max: 0, hits: 0 };
   const serialClient = makeFakeClient({ overlap });
-  const poolB = { connect: async () => serialClient, end: async () => undefined };
-  const facadeB = new boundCtor(poolB);
+  const facadeB = new boundCtor({ connect: async () => serialClient, end: async () => undefined });
   await withAccess(ACCESS, async () => {
     const c = await facadeB.connect();
     const q1 = c.query('SELECT pg_sleep(0.05)');
@@ -175,6 +198,55 @@ async function runScenario(mod: Record<string, unknown>): Promise<void> {
   });
   A('C-1 pool.query 上的 42501 原样上抛（fail-closed，不吞）', fenceErr?.code === '42501' && fenceErr?.message === 'checkpoint_privacy_fenced', `err=${fenceErr?.message}:${fenceErr?.code}`);
   A('C-2 fenced 之后 raw release 恰好一次', releaseCountC === 1, `count=${releaseCountC}`);
+
+  // D: 同 client 反复 checkout（模拟 pg-pool 只重置 release）——包装层数必须恒定。
+  const reuse = makeFakeClient({ delayMs: 0 });
+  const rawQuery = reuse.query.bind(reuse);
+  reuse.query = rawQuery;
+  const poolD = poolLikePgReuse(reuse);
+  const facadeD = new boundCtor(poolD);
+  const querySeen: Array<(...args: unknown[]) => unknown> = [];
+  await withAccess(ACCESS, async () => {
+    for (let i = 0; i < STACK_N; i++) {
+      const c = await facadeD.connect();
+      await c.query('SELECT 1');
+      if (typeof c.releaseAsync === 'function') await c.releaseAsync();
+      else c.release();
+      querySeen.push(c.query);
+    }
+  });
+  const unique = new Set(querySeen).size;
+  A(
+    'D-1 同 client 反复 checkout 后 query 包装函数恒等（层数恒定）',
+    querySeen.length === STACK_N && unique === 1 && querySeen[0] !== rawQuery,
+    `n=${querySeen.length} unique=${unique}`,
+  );
+
+  // E: 先 await cleanup（SET ROLE NONE），再 raw releaseOnce。
+  const order: string[] = [];
+  const orderClient = {
+    async query(sql: unknown) {
+      if (typeof sql === 'string' && /SET ROLE NONE/i.test(sql)) order.push('cleanup');
+      return { rows: [{}], rowCount: 1 };
+    },
+    release() {
+      order.push('release');
+    },
+  };
+  const facadeE = new boundCtor({ connect: async () => orderClient, end: async () => undefined });
+  await withAccess(ACCESS, async () => {
+    const c = await facadeE.connect();
+    await c.query('SELECT 1');
+    if (typeof c.releaseAsync === 'function') await c.releaseAsync();
+    else c.release();
+  });
+  const iCleanup = order.indexOf('cleanup');
+  const iRelease = order.indexOf('release');
+  A(
+    'E-1 先 await cleanup，再 releaseOnce',
+    iCleanup >= 0 && iRelease >= 0 && iCleanup < iRelease,
+    `order=${order.join(',')}`,
+  );
 
   if (fail !== 0) {
     console.log(`CHILD_FAIL ${fail}`);
@@ -220,7 +292,22 @@ function stripGuards(src: string): string {
   return src.slice(0, start) + UNFIXED_INSTALL + '\n' + src.slice(end);
 }
 
-async function child(mode: Mode, moduleUrl: string): Promise<void> {
+function stripSerializeOnce(src: string): string {
+  const next = src.replace(/\n\s*if \(marked\[QUERY_SERIALIZED\]\) return; \/\/ SERIALIZE_ONCE_GUARD/g, '');
+  if (next === src) throw new Error('SERIALIZE_ONCE_GUARD not found');
+  return next;
+}
+
+function swapCleanupOrder(src: string): string {
+  const from = `        await cleanupCheckpointPrincipalSession(client); // CLEANUP_BEFORE_RELEASE
+        releaseOnce(); // CLEANUP_BEFORE_RELEASE`;
+  const to = `        releaseOnce(); // MUT_ORDER_F
+        await cleanupCheckpointPrincipalSession(client); // MUT_ORDER_F`;
+  if (!src.includes(from)) throw new Error('CLEANUP_BEFORE_RELEASE sequence not found');
+  return src.replace(from, to);
+}
+
+async function child(_mode: Mode, moduleUrl: string): Promise<void> {
   const mod = await import(moduleUrl);
   await runScenario(mod);
 }
@@ -242,7 +329,7 @@ async function parent(): Promise<void> {
   const runChild = (mode: Mode, moduleUrl: string) =>
     spawnSync(process.execPath, [...process.execArgv, self, `--child=${mode}`, `--module=${moduleUrl}`], {
       encoding: 'utf8',
-      timeout: 30_000,
+      timeout: 60_000,
       env: (() => {
         const env: NodeJS.ProcessEnv = { ...process.env };
         env.NODE_OPTIONS = `${process.env.NODE_OPTIONS ?? ''} --unhandled-rejections=throw`.trim();
@@ -255,11 +342,15 @@ async function parent(): Promise<void> {
   if (after.status !== 0) process.stderr.write((after.stderr ?? '').slice(0, 4000));
   A('AFTER 子进程 EXIT 0（修后）', after.status === 0 && /CHILD_OK/.test(after.stdout ?? ''), `status=${after.status}`);
 
-  const beforeSrc = spawnSync('git', ['show', 'origin/main:apps/worker/src/checkpoint-principal.ts'], {
+  const beforeSrc = spawnSync('git', ['show', `${BEFORE_SHA}:apps/worker/src/checkpoint-principal.ts`], {
     encoding: 'utf8',
     cwd: join(here, '../../..'),
   });
-  A('BEFORE 能读到 origin/main 源', beforeSrc.status === 0 && (beforeSrc.stdout ?? '').includes('installReleaseCleanup'), `status=${beforeSrc.status}`);
+  A(
+    `BEFORE 能读到固定 SHA ${BEFORE_SHA.slice(0, 9)} 源`,
+    beforeSrc.status === 0 && (beforeSrc.stdout ?? '').includes('installReleaseCleanup') && !(beforeSrc.stdout ?? '').includes('SERIALIZE_ONCE_GUARD'),
+    `status=${beforeSrc.status}`,
+  );
   let beforeDir = '';
   if (beforeSrc.status === 0) {
     const written = writePatchedModule(beforeSrc.stdout ?? '');
@@ -273,7 +364,8 @@ async function parent(): Promise<void> {
     );
   }
 
-  const mutSrc = stripGuards(readFileSync(srcPath, 'utf8'));
+  const src = readFileSync(srcPath, 'utf8');
+  const mutSrc = stripGuards(src);
   A('MUT-GUARD 变换真正去掉了 RELEASE_ONCE_GUARD', !mutSrc.includes('RELEASE_ONCE_GUARD') && /void runRelease\(err\);/.test(mutSrc));
   const mutWritten = writePatchedModule(mutSrc);
   const mut = runChild('mut-guard', mutWritten.url);
@@ -284,15 +376,38 @@ async function parent(): Promise<void> {
     (mut.stderr ?? '').split('\n').find((l) => /already been released|Error:/.test(l)) ?? '',
   );
 
+  const stackSrc = stripSerializeOnce(src);
+  A('MUT-STACK 变换真正去掉了 SERIALIZE_ONCE_GUARD', !stackSrc.includes('SERIALIZE_ONCE_GUARD') && stackSrc.includes('serializeClientQueries'));
+  const stackWritten = writePatchedModule(stackSrc);
+  const mutStack = runChild('mut-stack', stackWritten.url);
+  A('MUT-STACK 去掉防叠加逻辑后子进程非零退出', mutStack.status !== 0, `status=${mutStack.status} signal=${mutStack.signal}`);
+  A(
+    'MUT-STACK 失败在叠加臂 D-1',
+    /FAIL {2}D-1 /.test(mutStack.stdout ?? ''),
+    (mutStack.stdout ?? '').split('\n').find((l) => /D-1/.test(l)) ?? (mutStack.stderr ?? '').slice(0, 200),
+  );
+
+  const orderSrc = swapCleanupOrder(src);
+  A('MUT-ORDER 变换把 cleanup 放到 releaseOnce 之后', orderSrc.includes('MUT_ORDER_F') && !orderSrc.includes('CLEANUP_BEFORE_RELEASE'));
+  const orderWritten = writePatchedModule(orderSrc);
+  const mutOrder = runChild('mut-order', orderWritten.url);
+  A('MUT-ORDER 先 releaseOnce 再 cleanup 后子进程非零退出', mutOrder.status !== 0, `status=${mutOrder.status} signal=${mutOrder.signal}`);
+  A(
+    'MUT-ORDER 失败在顺序臂 E-1',
+    /FAIL {2}E-1 /.test(mutOrder.stdout ?? ''),
+    (mutOrder.stdout ?? '').split('\n').find((l) => /E-1/.test(l)) ?? (mutOrder.stderr ?? '').slice(0, 200),
+  );
+
   A('ALERT-OLD 对现场崩溃日志假阴性', !WORKER_ALERT_RE_OLD.test(CRASH_LOG));
   A('ALERT-NEW 命中 already-released 与 Node 退出横幅', WORKER_ALERT_RE.test(CRASH_LOG));
   A('ALERT-NEW 对健康 worker.log 不误报', !WORKER_ALERT_RE.test(HEALTHY_LOG));
-  const src = readFileSync(srcPath, 'utf8');
   A('S-1 源含 RELEASE_ONCE_GUARD', src.includes('RELEASE_ONCE_GUARD'));
-  A('S-2 源含 serializeClientQueries', src.includes('serializeClientQueries'));
+  A('S-2 源含 serializeClientQueries 与 SERIALIZE_ONCE_GUARD', src.includes('serializeClientQueries') && src.includes('SERIALIZE_ONCE_GUARD'));
   A('S-3 fire-and-forget release 带 .catch', /void runRelease\(err\)\.catch\(/.test(src));
+  A('S-4 源钉死先 cleanup 再 releaseOnce', src.includes('CLEANUP_BEFORE_RELEASE'));
+  A('S-5 吞错路径有 warnReleasePath（无 SQL/principal）', src.includes('warnReleasePath') && !/warnReleasePath\([^)]*principal/i.test(src));
 
-  for (const dir of [beforeDir, mutWritten.dir]) {
+  for (const dir of [beforeDir, mutWritten.dir, stackWritten.dir, orderWritten.dir]) {
     if (dir) rmSync(dir, { recursive: true, force: true });
   }
   console.log(fail === 0 ? 'PG-CLIENT-DOUBLE-RELEASE PASS' : `PG-CLIENT-DOUBLE-RELEASE FAIL (${fail})`);

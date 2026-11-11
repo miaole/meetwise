@@ -96,7 +96,16 @@ const DOUBLE_RELEASE_RE = /already been released to the pool/i;
  * path can call the raw pg-pool release twice (unhandledRejection → exit).
  */
 type ClientQueryFn = (...args: unknown[]) => unknown;
+/** pg-pool reuses the same Client object and only resets `release` on checkout.
+ *  Mark the client so query serialization is installed once; re-wrapping would
+ *  nest promise tails and grow query latency with checkout count squared. */
+const QUERY_SERIALIZED = Symbol.for('meetwise.checkpointQuerySerialized');
+type QueryMarked = { query: ClientQueryFn; [QUERY_SERIALIZED]?: true };
+
 function serializeClientQueries(client: { query: ClientQueryFn }): void {
+  const marked = client as QueryMarked;
+  if (marked[QUERY_SERIALIZED]) return; // SERIALIZE_ONCE_GUARD
+  marked[QUERY_SERIALIZED] = true;
   const originalQuery: ClientQueryFn = client.query.bind(client);
   let tail: Promise<void> = Promise.resolve();
   client.query = (...args: unknown[]) => {
@@ -104,6 +113,15 @@ function serializeClientQueries(client: { query: ClientQueryFn }): void {
     tail = started.then(() => undefined, () => undefined);
     return started;
   };
+}
+
+function warnReleasePath(event: 'checkpoint_pg_double_release_swallowed' | 'checkpoint_pg_release_unhandled', error?: unknown): void {
+  let code: string = event;
+  if (error && typeof error === 'object' && 'code' in error) {
+    const raw = (error as { code: unknown }).code;
+    if (typeof raw === 'string' && raw.length > 0 && raw.length <= 64) code = raw;
+  }
+  console.warn(JSON.stringify({ event, code }));
 }
 
 function installReleaseCleanup(client: any): { releaseAsync: () => Promise<void> } {
@@ -120,7 +138,10 @@ function installReleaseCleanup(client: any): { releaseAsync: () => Promise<void>
       originalRelease(err);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      if (DOUBLE_RELEASE_RE.test(message)) return; // RELEASE_ONCE_GUARD
+      if (DOUBLE_RELEASE_RE.test(message)) {
+        warnReleasePath('checkpoint_pg_double_release_swallowed', error);
+        return; // RELEASE_ONCE_GUARD
+      }
       throw error;
     }
   };
@@ -133,8 +154,8 @@ function installReleaseCleanup(client: any): { releaseAsync: () => Promise<void>
         return;
       }
       try {
-        await cleanupCheckpointPrincipalSession(client);
-        releaseOnce();
+        await cleanupCheckpointPrincipalSession(client); // CLEANUP_BEFORE_RELEASE
+        releaseOnce(); // CLEANUP_BEFORE_RELEASE
       } catch (resetErr) {
         // Destroy: never return a still-privileged connection to the pool.
         // releaseOnce is idempotent — a racing first release must not throw here
@@ -151,7 +172,9 @@ function installReleaseCleanup(client: any): { releaseAsync: () => Promise<void>
   client.release = (err?: ReleaseArg) => {
     // Swallow rejection: fire-and-forget must never become unhandledRejection.
     // Fence / privacy errors still propagate through query() callers.
-    void runRelease(err).catch(() => undefined);
+    void runRelease(err).catch((error) => {
+      warnReleasePath('checkpoint_pg_release_unhandled', error);
+    });
   };
 
   return { releaseAsync: () => runRelease() };
