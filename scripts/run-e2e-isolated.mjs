@@ -677,6 +677,7 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0131_job_route_classify_admission.sql',
     'packages/db/migrations/0200_ag08_admission_partition_per_endpoint_seeds.sql',
     'packages/db/migrations/0204_ai_cost_cached_input_price.sql',
+    'packages/db/migrations/0231_g5_n14_admission_breaker_peek.sql',
   ],
   'model-slot-bypass:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -1033,6 +1034,15 @@ const isolatedReceiptSources = {
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/migrations/0021_interview_question_identity.sql',
     'packages/db/migrations/0149_money_status_constraints.sql',
+  ],
+  // #18 INT-P0-RAW-QUEUE 即时剥离：消费后同事务剥 payload 明文 + 已应用重放无明文 + 终态/旧行清理（隔离 PG·est live=0）。
+  'int18:payload-strip:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/int18-payload-plaintext-strip.proof.ts', 'apps/worker/package.json',
+    'apps/worker/src/interview-consumer.ts', 'apps/worker/src/adaptive-lifecycle.ts',
+    'packages/db/src/interview/interview-jobs.ts', 'packages/db/src/interview/interview-question.ts',
+    'packages/db/src/index.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0126_interview_answer_dual_write_fence.sql',
   ],
   'uc012:nhp-adv:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -3035,6 +3045,7 @@ if (![
   'uc012:nhp-neg:prove:raw',
   'uc012:nhp-bound:prove:raw',
   'uc012:nhp-adv:prove:raw',
+  'int18:payload-strip:prove:raw',
   'uc030:nhp-fault:prove:raw',
   'uc003:nhp-adv:prove:raw',
   // UC-003 残面（NHP-003-NEG-01 · 批 A uc003:nhp-adv 同族 · 一行一 case 一收据）。
@@ -3491,6 +3502,8 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:uc012-nhp-bound']]
   : target === 'uc012:nhp-adv:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:uc012-nhp-adv']]
+  : target === 'int18:payload-strip:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:int18-payload-strip']]
   // RCLOAD RC-01（REQUEST 件② 触点③·worker 侧同构 uc012 形）。
   : target === 'rcload:route-classify:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:rcload-route-classify']]
@@ -4469,7 +4482,7 @@ async function main() {
   'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:external-sink-async-purge:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw', 'int-transcript-preview-submit:http:prove:raw', 'int-transcript-answer-fact-root:prove:raw', 'int-transcript-remaining-sinks:prove:raw', 'api-harden:prove', 'scor-01:prove:raw', 'scor-02:prove:raw', 'scor03-evidence-conflict:prove:raw', 'scor-parity:prove:raw', 'growth:prove:raw', 'rag03-route:prove:raw', 'rag04-track-local:prove:raw', 'rag03-filter-locus:prove:raw', 'rag03-hnsw-completeness:prove:raw', 'rag03c-exactk-observe:prove:raw', 'r4-wrong-track-adv-live-pg:prove:raw', 'nhp-r4-adv-covered:prove:raw', 'r4-wrong-track-prod-surface:prove:raw', 'rag05-qbank-miss:prove:raw', 'rag06-route-scope-cache:prove:raw', 'rag07-free-text-route:prove:raw', 'memory-governance:prove:raw', 'db-id-v7:prove:raw', 'db-intfk:prove:raw', 'db-money3:prove:raw', 'memory-admission:prove:raw', 'memory-fact-adjudication:prove:raw', 'memory-index-generation:prove:raw', 'memory-two-stage-recall:prove:raw', 'memory-control-surface:prove:raw', 'ctx03-event-source:prove:raw', 'mem02-summary:prove:raw', 'mem03-summary-tree:prove:raw', 'ctx04-compression-snapshot:prove:raw', 'ctx05-concurrency-recovery:prove:raw', 'ctx06-deletion-closure:prove:raw', 'int-answer-dual-write-fence:prove:raw', 'memory-vector-chunk-erasure:prove:raw', 'vector-plane-erasure:prove:raw', 'uc004:career-path-fault:prove:raw', 'uc004:career-path:http:prove:raw', 'uc001:nhp-neg:prove:raw', 'uc001:nhp-bound:prove:raw', 'uc001:nhp-adv:prove:raw', 'uc001:nhp-fault:prove:raw', 'uc016:nhp-fault:prove:raw',
   // DBHY-1: sql/ 兼容镜像退役(案A 机械迁面)——这些目标改为预迁移(migrations 单真相),proof 内 sql/ 重放已剥。
   // (vectorstore:prove:raw 不入此名单:marked-red legacy fixture 自证只装 legacy 向量面,归 B' 残面=sql/ 夹具保留至 legacy 退役刀。)
-  'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'estimate-threading-invoke:prove:raw', 'failover-price-policy:prove:raw', 'model-op00-usage-reconciler:prove:raw', 'ucal-windowing:prove:raw', 'adaptive-latency:prove', 'uc028:nhp-fault:prove:raw', 'uc028:recon-truth-inject:prove:raw', 'uc012:nhp-fault:prove:raw', 'uc012:nhp-neg:prove:raw', 'uc012:nhp-bound:prove:raw', 'uc012:nhp-adv:prove:raw', 'uc030:nhp-fault:prove:raw',
+  'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'estimate-threading-invoke:prove:raw', 'failover-price-policy:prove:raw', 'model-op00-usage-reconciler:prove:raw', 'ucal-windowing:prove:raw', 'adaptive-latency:prove', 'uc028:nhp-fault:prove:raw', 'uc028:recon-truth-inject:prove:raw', 'uc012:nhp-fault:prove:raw', 'uc012:nhp-neg:prove:raw', 'uc012:nhp-bound:prove:raw', 'uc012:nhp-adv:prove:raw', 'int18:payload-strip:prove:raw', 'uc030:nhp-fault:prove:raw',
   // NHP 批 C 三行（UC-016/029 NEG · UC-015 ADV · UC-001 PERF_api · pre-migrate 名单第四注册位全登记——批 A §9-EXEC 第四位教训承登）。
   'uc016:nhp-neg:prove:raw', 'uc015:nhp-adv:prove:raw', 'uc001:nhp-perf-api:prove:raw',
   // UC-015 FAULT 一行（NHP-015-FAULT-01 · pre-migrate 名单第四注册位·**承重披露（r1 修订⑤·非程序性）**：

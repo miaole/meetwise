@@ -18,7 +18,7 @@
  */
 import { randomUUID } from 'node:crypto';
 import {
-  acquireModelAdmission, recordModelAdmission,
+  acquireModelAdmission, recordModelAdmission, peekModelAdmissionBreaker,
   type ModelAdmissionPartition, type ModelAdmissionDecision, type ModelBreakerOutcome,
   type ModelFeeStatus, type Client, type DbPool,
 } from '@meetwise/db';
@@ -142,6 +142,18 @@ export async function admitSharedModelOperation(
     };
   }
   return { ok: false, error: ADMISSION_ERROR_CODES[result.decision] ?? 'model_admission_failed' };
+}
+
+/**
+ * G5 N-14：claim 之前的只读断路器探查（迁移 0231 · 不占槽/探针、不改相位）。
+ * true = 该分区当前会被 acquire 以 breaker_open / breaker_half_open_busy 拒绝。
+ * 只用于“主端点挡路时改选预绑定备端点”的纯路由选择；拒绝语义仍归 acquire。
+ */
+export async function isSharedModelBreakerBlocking(
+  pool: DbPool, owner: string, partition: ModelAdmissionPartition,
+): Promise<boolean> {
+  const state = await asPrincipal(pool, owner, (c) => peekModelAdmissionBreaker(c, owner, partition));
+  return state !== 'available';
 }
 
 export interface SharedModelFeeRecord {
