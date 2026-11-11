@@ -14,10 +14,16 @@
  * + worker 块自身）的键集合，然后：① 断言备份计费字段必须在 worker 块/锚里声明；② 用
  * 这些键构造字面量 env 复现修复前的启动抛错；③ 用修复后的完整字面量证明不再抛、且
  * 两个备份费用策略都被加载。无网络、无 DB、无真实凭据。
+ *
+ * G4 / #247（PR #238）隐私擦除 worker 启动与编排契约也并入本文件，避免再新增受管
+ * `.ts` 触顶 public-text-policy `MAX_FILES=2530`（PTP_FILE_LIMIT）。原独立
+ * `privacy-worker-runtime.proof.ts` 已删除；`prove:privacy-worker-runtime` 指向本文件。
  */
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolveModelCostGovernance } from '../src/model-cost-governance.ts';
+import { initializePrivacyWorkerStartup } from '../src/privacy-worker-runtime.ts';
 const MEETWISE_TEST_FIXTURE_MODEL_BACKUP_API_KEY_DWE = 'backup-key-proof-only';
 
 
@@ -94,7 +100,95 @@ const literal: NodeJS.ProcessEnv = {
   ...endpointValues('MODEL_FAST_BACKUP', 'qwen-turbo-backup'),
 };
 
-function main() {
+async function assertPrivacyWorkerG4(): Promise<void> {
+  /* eslint-disable @typescript-eslint/naming-convention -- env keys are documented names */
+  const repoRoot = fileURLToPath(new URL('../../..', import.meta.url)).replace(/[/\\]+$/, '');
+  const composeText = readFileSync(new URL('../../../docker/compose.prod.yml', import.meta.url), 'utf8');
+  const workerExample = readFileSync(new URL('../../../docker/env/worker.env.example', import.meta.url), 'utf8');
+  const haCompose = readFileSync(new URL('../../../docker/compose.ha.yml', import.meta.url), 'utf8');
+  const migrateExample = readFileSync(new URL('../../../docker/env/migrate.env.example', import.meta.url), 'utf8');
+  const deleteController = readFileSync(new URL('../../api/src/modules/privacy/privacy.controller.ts', import.meta.url), 'utf8');
+  const deleteService = readFileSync(new URL('../../api/src/modules/privacy/privacy.service.ts', import.meta.url), 'utf8');
+  const workerSection = composeText.match(/^  worker:\n([\s\S]*?)(?=^  web:)/m)?.[1] ?? '';
+  const apiSection = composeText.match(/^  api:\n([\s\S]*?)(?=^  worker:)/m)?.[1] ?? '';
+  const migrationEnvBlock = composeText.match(/^x-migration-env: &migration-env\n([\s\S]*?)(?=^services:)/m)?.[1] ?? '';
+
+  type FakePool = { end: () => Promise<void>; id: string };
+  const unusedDeps = {
+    createPool: () => { throw new Error('createPool_should_not_run'); },
+    assertIdentity: async () => { throw new Error('assertIdentity_should_not_run'); },
+  };
+
+  A('G4 非生产且未配置 URL 时返回 undefined，不建池', await initializePrivacyWorkerStartup({}, unusedDeps) === undefined);
+  A('G4 development 缺 URL 仍返回 undefined（本地可无专用登录启动）',
+    await initializePrivacyWorkerStartup({ NODE_ENV: 'development' }, unusedDeps) === undefined);
+
+  let productionError: unknown;
+  try { await initializePrivacyWorkerStartup({ NODE_ENV: 'production' }, unusedDeps); } catch (error) { productionError = error; }
+  A('G4 production 缺 URL 以 privacy_worker_database_url_missing 失败关闭',
+    productionError instanceof Error && productionError.message === 'privacy_worker_database_url_missing');
+
+  let mixedCaseError: unknown;
+  try { await initializePrivacyWorkerStartup({ NODE_ENV: 'Production' }, unusedDeps); } catch (error) { mixedCaseError = error; }
+  A('G4 NODE_ENV=Production（大小写混合）缺 URL 同样失败关闭',
+    mixedCaseError instanceof Error && mixedCaseError.message === 'privacy_worker_database_url_missing');
+
+  let blankError: unknown;
+  try {
+    await initializePrivacyWorkerStartup({ NODE_ENV: 'production', PRIVACY_WORKER_DATABASE_URL: '   ' }, unusedDeps);
+  } catch (error) { blankError = error; }
+  A('G4 production 下仅空白 URL 视为缺失并失败关闭',
+    blankError instanceof Error && blankError.message === 'privacy_worker_database_url_missing');
+
+  const pool: FakePool = { id: 'privacy-pool', end: async () => undefined };
+  let createPoolCalls = 0;
+  let assertCalls = 0;
+  const started = await initializePrivacyWorkerStartup(
+    { NODE_ENV: 'production', PRIVACY_WORKER_DATABASE_URL: 'postgresql://privacy-worker.test/meetwise' },
+    {
+      createPool: (options) => {
+        createPoolCalls += 1;
+        if (options.purpose !== 'privacy-worker') throw new Error('unexpected_purpose');
+        if (options.connectionString !== 'postgresql://privacy-worker.test/meetwise') {
+          throw new Error('unexpected_connection_string');
+        }
+        return pool as never;
+      },
+      assertIdentity: async (received) => {
+        assertCalls += 1;
+        if ((received as unknown) !== pool) throw new Error('unexpected_pool');
+      },
+    },
+  );
+  A('G4 production 配置了 URL 后会建池并校验身份', (started as unknown) === pool && createPoolCalls === 1 && assertCalls === 1);
+  A('G4 compose.prod.yml worker 段以 :?required 挂载 PRIVACY_WORKER_DATABASE_URL',
+    /PRIVACY_WORKER_DATABASE_URL:\s*\$\{PRIVACY_WORKER_DATABASE_URL:\?/.test(workerSection));
+  A('G4 compose.prod.yml 迁移环境以 :?required 注入 PRIVACY_WORKER_DB_USER/PASSWORD',
+    /PRIVACY_WORKER_DB_USER:\s*\$\{PRIVACY_WORKER_DB_USER:\?/.test(migrationEnvBlock)
+      && /PRIVACY_WORKER_DB_PASSWORD:\s*\$\{PRIVACY_WORKER_DB_PASSWORD:\?/.test(migrationEnvBlock));
+  A('G4 API 段不得挂载 PRIVACY_WORKER_DATABASE_URL 或 provision 口令',
+    !/PRIVACY_WORKER_DATABASE_URL\s*:/.test(apiSection)
+      && !/PRIVACY_WORKER_DB_(?:USER|PASSWORD)\s*:/.test(apiSection));
+  A('G4 worker.env.example 记录 PRIVACY_WORKER_DATABASE_URL 占位（无真实凭据）',
+    /^PRIVACY_WORKER_DATABASE_URL=$/m.test(workerExample)
+      && !/postgresql:\/\/\S+:\S+@/.test(workerExample.split('PRIVACY_WORKER_DATABASE_URL=')[1]?.split('\n')[0] ?? 'x'));
+  A('G4 migrate.env.example 仍保留 PRIVACY_WORKER_DB_USER/PASSWORD 空占位',
+    /^PRIVACY_WORKER_DB_USER=$/m.test(migrateExample)
+      && /^PRIVACY_WORKER_DB_PASSWORD=$/m.test(migrateExample));
+  A('G4 compose.ha.yml worker-a/worker-b 同步挂载 PRIVACY_WORKER_DATABASE_URL（锚不跨文件）',
+    (haCompose.match(/PRIVACY_WORKER_DATABASE_URL:\s*\$\{PRIVACY_WORKER_DATABASE_URL:\?/g) ?? []).length >= 2);
+  A('G4 公开 DELETE 面试数据接口仍固定 503（本修复不得改此语义）',
+    /@Delete\('interview-data\/:id'\)/.test(deleteController)
+      && /@HttpCode\(HttpStatus\.SERVICE_UNAVAILABLE\)/.test(deleteController)
+      && /interview_erasure_authorization_not_available/.test(deleteService)
+      && /HttpStatus\.SERVICE_UNAVAILABLE/.test(deleteService));
+  A('G4 本证明读取的仓库根路径可定位 compose 文件',
+    existsSync(path.join(repoRoot, 'pnpm-workspace.yaml'))
+      && existsSync(path.join(repoRoot, 'docker/compose.prod.yml')));
+  /* eslint-enable @typescript-eslint/naming-convention */
+}
+
+async function main() {
   // ① worker 合并环境必须声明 resolveModelCostGovernance 所需的每一个键。
   //   这是 F2 的块级断言在证明层的等价物：任何键缺失都会在这里 FAIL，而非等启动才炸。
   const missing = Object.keys(literal).filter((key) => !declared.has(key));
@@ -125,8 +219,10 @@ function main() {
     && after.policies.backup?.model === 'qwen-plus-backup'
     && after.policies.fastBackup?.model === 'qwen-turbo-backup');
 
-  console.log(`\n${failures === 0 ? '✓ 部署 worker 环境费用治理回归证明全部通过' : `✗ ${failures} 项失败`}`);
+  await assertPrivacyWorkerG4();
+
+  console.log(`\n${failures === 0 ? '✓ 部署 worker 环境费用治理与 G4 隐私 worker 契约证明全部通过' : `✗ ${failures} 项失败`}`);
   process.exit(failures === 0 ? 0 : 1);
 }
 
-main();
+void main();

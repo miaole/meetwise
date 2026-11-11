@@ -247,6 +247,9 @@ services:
       WORKER_JOB_RECONCILE_INTERVAL_MS: ${WORKER_JOB_RECONCILE_INTERVAL_MS:-5000}
       QBANK_CONTROL_DATABASE_URL: ${QBANK_CONTROL_DATABASE_URL:?set dedicated qbank control database URL}
       RAG_CONTROL_DATABASE_URL: ${RAG_CONTROL_DATABASE_URL:?set dedicated generic RAG control database URL}
+      # Mirror compose.prod.yml worker (anchors do not cross files). Missing
+      # this URL fails production worker startup (fail-closed).
+      PRIVACY_WORKER_DATABASE_URL: ${PRIVACY_WORKER_DATABASE_URL:?set dedicated privacy worker database URL}
       WORKER_METRICS_HOST: 0.0.0.0
       INSTANCE_ID: worker-a
     secrets: [rds_ca]
@@ -311,6 +314,9 @@ services:
       WORKER_JOB_RECONCILE_INTERVAL_MS: ${WORKER_JOB_RECONCILE_INTERVAL_MS:-5000}
       QBANK_CONTROL_DATABASE_URL: ${QBANK_CONTROL_DATABASE_URL:?set dedicated qbank control database URL}
       RAG_CONTROL_DATABASE_URL: ${RAG_CONTROL_DATABASE_URL:?set dedicated generic RAG control database URL}
+      # Mirror compose.prod.yml worker (anchors do not cross files). Missing
+      # this URL fails production worker startup (fail-closed).
+      PRIVACY_WORKER_DATABASE_URL: ${PRIVACY_WORKER_DATABASE_URL:?set dedicated privacy worker database URL}
       WORKER_METRICS_HOST: 0.0.0.0
       INSTANCE_ID: worker-b
     secrets: [rds_ca]

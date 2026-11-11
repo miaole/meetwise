@@ -146,7 +146,7 @@ node scripts/alerts/check-alerts.mjs --report        # 评估降级输出·恒 E
 
 - **matcher**：JSON `{"event":"readyz_privacy_degraded"}`（发射点 `docker/compose.prod.yml` privacy-watchdog 探针·每 30s 一拍只读 `GET /readyz/privacy`；`error:"unreachable"` 表 worker 不可达，同事件同处置。HA 拓扑发射点=`compose.ha.yml` privacy-watchdog 覆写，探 worker-a/worker-b 两副本）。
 - **含义**：privacy 分域后台 sweep（checkpoint/vector-plane 擦除 loop）连续 3 拍失败翻红（`drain-loop.ts` cf≥3），或分域端点不可达。WSS 分域 ready 后该域已**不拉 worker 流量闸**（fail-open 沿 rag 形制），域红只经本事件观测收口——擦除滞后=隐私数据留存超授权窗，合规面工单。
-- **响应（Ticket·工作时间）**：查 privacy 专用池连通（`PRIVACY_WORKER_DATABASE_URL` 装配缺失时 loop 不起=端点恒绿·本事件不触）；单发=网络抖动；持续红=擦除 loop 卡死，按 `checkpoint privacy erasure target failed` / `drain tick error` 日志行下钻两 loop；worker 不可达先核 `up{job="meetwise-worker"}` 面（§2 指标面盲区注记）。
+- **响应（Ticket·工作时间）**：查 privacy 专用池连通。生产（`NODE_ENV=production` 或默认 `compose.prod.yml`）下 `PRIVACY_WORKER_DATABASE_URL` 缺失会使 worker **启动失败**（`privacy_worker_database_url_missing`，fail-closed）——此时本事件以 `error:"unreachable"` 出现，应先核 worker 是否起来、`.env` 是否注入该 URL 以及 migrate 是否已 provision `PRIVACY_WORKER_DB_*`。非生产缺失则 loop 不起、`/readyz/privacy` 端点恒绿、本事件不触。单发=网络抖动；持续红=擦除 loop 卡死，按 `checkpoint privacy erasure target failed` / `drain tick error` 日志行下钻两 loop；worker 不可达先核 `up{job="meetwise-worker"}` 面（§2 指标面盲区注记）。
 - **告警不拉闸**：探针零触 worker healthcheck（`compose.prod.yml` worker 块 `/readyz/worker` fail-closed 原样）——privacy 域红≠杀容器≠退流量；本探针自身挂死由其 healthcheck（心跳文件 120s 窗）在 `compose ps` 面暴露，restart 兜底。
 - **白名单注记**：部署窗/重启窗探针红行系瞬时（90s 起步静默窗已滤起步期；worker 宕>90s 的持续红属真信号），按 `scripts/alerts/alert-whitelist.json` 到期形登记，不改码面。
 
