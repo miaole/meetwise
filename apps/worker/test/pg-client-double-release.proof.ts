@@ -25,7 +25,7 @@
  *    serializeClientQueries 若每次 checkout 再包一层会平方变慢。修法=Symbol 标记，
  *    每 client 只装一次包装（不依赖 release 成功才拆包）。
  *
- *  形制：父进程 fork 子进程（钉死 unhandled-rejections=throw）。子进程用假 pool 复现。
+ *  形制：父进程 fork 子进程（钉死 unhandled-rejections=throw）。假 pool 臂不变。
  *    AFTER（当前树）：子进程 EXIT 0（含叠加臂 D：同 client 2000 次 checkout，query
  *      包装函数恒等；顺序臂 E：先 cleanup 再 raw release）。
  *    BEFORE（固定 SHA 59baa20b231bd6d022cc6290c7803fc40b724208，合入后也不漂）：
@@ -33,6 +33,10 @@
  *    MUT-GUARD（去掉 RELEASE_ONCE_GUARD / 恢复无 .catch 的 void runRelease）：EXIT 1。
  *    MUT-STACK（去掉 SERIALIZE_ONCE_GUARD）：叠加臂必须失败，EXIT 1。
  *    MUT-ORDER（先 releaseOnce 再 cleanup）：顺序臂必须失败，EXIT 1。
+ *    XP-2（真实 PG，官方 isolated runner，PGPOOL_MAX=1）：60 轮 × 3 并发，A/B 交替，
+ *      混合 facade.query / connect 读 / 42501 写，connect 路径 release 不 await。
+ *      每次读到的 principal/thread 必须属于本租户，mismatches=0。
+ *    MUT-PRECEDENCE（恢复无括号 await releaseAsync?.() ?? client.release()）：XP-2 必须 EXIT 1。
  *  另：WORKER_ALERT 旧正则对现场崩溃日志假阴性；新正则命中，健康日志不误报。
  *  pnpm pg-client-double-release:prove */
 import { spawnSync } from 'node:child_process';
@@ -77,7 +81,7 @@ export const WORKER_ALERT_RE = /checkpoint_connection_lost|checkpoint_privacy_fe
 
 const ACCESS = { owner: 'owner-a', threadId: 'thread-a', fenceEpoch: 1 };
 
-type Mode = 'after' | 'before' | 'mut-guard' | 'mut-stack' | 'mut-order';
+type Mode = 'after' | 'before' | 'mut-guard' | 'mut-stack' | 'mut-order' | 'xp-after' | 'xp-mut-precedence';
 
 function makeFakeClient(opts: { releaseThrowsAlways?: boolean; overlap?: { current: number; max: number; hits: number }; delayMs?: number }): {
   query: (...args: unknown[]) => Promise<{ rows: unknown[]; rowCount: number }>;
@@ -298,6 +302,145 @@ function stripSerializeOnce(src: string): string {
   return next;
 }
 
+
+function restoreAwaitPrecedence(src: string): string {
+  const from = `      const releasable = client as { releaseAsync?: () => Promise<void>; release: (err?: ReleaseArg) => void };
+      if (releasable.releaseAsync) {
+        await releasable.releaseAsync(); // RELEASE_ASYNC_ONLY
+      } else {
+        releasable.release();
+      }`;
+  const to = `      await (client as { releaseAsync?: () => Promise<void> }).releaseAsync?.()
+        ?? Promise.resolve(client.release()); // MUT_PRECEDENCE`;
+  if (!src.includes(from)) throw new Error('RELEASE_ASYNC_ONLY branch not found');
+  return src.replace(from, to);
+}
+
+const XP_ROUNDS = 60;
+const XP_CONCURRENCY = 3;
+const SESSION_SQL = `SELECT pg_backend_pid()::int AS pid,
+           current_user::text AS current_user,
+           session_user::text AS session_user,
+           nullif(current_setting('app.principal_user', true), '') AS principal,
+           nullif(current_setting('app.checkpoint_thread_id', true), '') AS thread_id,
+           nullif(current_setting('app.checkpoint_epoch', true), '') AS epoch`;
+
+type XpAccess = { owner: string; threadId: string; fenceEpoch: number };
+type XpSnap = { principal: string | null; threadId: string | null };
+
+function xpSnapOf(row: { principal?: unknown; thread_id?: unknown }): XpSnap {
+  return {
+    principal: row.principal == null || row.principal === '' ? null : String(row.principal),
+    threadId: row.thread_id == null || row.thread_id === '' ? null : String(row.thread_id),
+  };
+}
+
+async function runXp2(mod: Record<string, unknown>): Promise<void> {
+  if (process.env.E2E_ISOLATED !== '1') {
+    console.log('XP-2 require E2E_ISOLATED=1 (official isolated runner)');
+    process.exit(1);
+  }
+  const boundCtor = mod['PrincipalBoundCheckpointPool'] as new (pool: unknown) => {
+    connect(): Promise<{ query: (...args: unknown[]) => unknown; release: (err?: unknown) => void; releaseAsync?: () => Promise<void> }>;
+    query(...args: unknown[]): Promise<{ rows: Array<Record<string, unknown>> }>;
+    end(): Promise<void>;
+    readonly underlyingPool?: { end?: () => Promise<void> };
+  };
+  const withAccess = mod['withCheckpointAccess'] as <T>(access: XpAccess, fn: () => Promise<T>) => Promise<T>;
+  const db = await import('@meetwise/db');
+  const admin = db.createPool();
+  const role = `xp2_rt_${process.pid}`;
+  const password = 'xp2-pool-precedence-2026';
+  let mismatches = 0;
+  let fenced = 0;
+  let fenceMiss = 0;
+  const mismatchSamples: string[] = [];
+  try {
+    await db.assertIsolatedTestTarget(admin);
+    await db.provisionRuntimeLogin(admin, { roleName: role, password });
+    const port = process.env.PGPORT ?? '54329';
+    const connection = `postgresql://${encodeURIComponent(role)}:${encodeURIComponent(password)}@${process.env.PGHOST ?? '127.0.0.1'}:${port}/${encodeURIComponent(process.env.PGDATABASE ?? 'meetwise')}`;
+    process.env.PGPOOL_MAX = '1';
+    const url = new URL(connection);
+    const options = url.searchParams.get('options') ?? '';
+    if (!/(?:^|\s)-c\s+role=app_role(?:\s|$)/.test(options)) {
+      url.searchParams.set('options', `${options} -c role=app_role`.trim());
+    }
+    const pool = db.createPool({ connectionString: url.toString(), purpose: 'checkpoint' });
+    const bound = new boundCtor(pool);
+    const ownerA = `xp2-a-${process.pid}`;
+    const ownerB = `xp2-b-${process.pid}`;
+    const threadA = `xp2-thread-a-${process.pid}`;
+    const threadB = `xp2-thread-b-${process.pid}`;
+    await admin.query(
+      "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created'),($3,$4,'created')",
+      [threadA, ownerA, threadB, ownerB],
+    );
+    const runtime = db.createPool({ user: role, password, max: 1 });
+    let accessA: XpAccess;
+    let accessB: XpAccess;
+    try {
+      const enA = await db.asPrincipal(runtime, ownerA, (c) => db.enrollCheckpointThread(c, ownerA, threadA));
+      const enB = await db.asPrincipal(runtime, ownerB, (c) => db.enrollCheckpointThread(c, ownerB, threadB));
+      accessA = { owner: ownerA, threadId: enA.threadId, fenceEpoch: enA.fenceEpoch };
+      accessB = { owner: ownerB, threadId: enB.threadId, fenceEpoch: enB.fenceEpoch };
+    } finally {
+      await runtime.end();
+    }
+
+    const checkSnap = (tag: string, snap: XpSnap, access: XpAccess): void => {
+      if (snap.principal !== access.owner || snap.threadId !== access.threadId) {
+        mismatches += 1;
+        if (mismatchSamples.length < 6) mismatchSamples.push(`${tag} ${JSON.stringify(snap)} expected=${access.owner}/${access.threadId}`);
+      }
+    };
+
+    const oneOp = async (round: number, slot: number): Promise<void> => {
+      const access = (round + slot) % 2 === 0 ? accessA : accessB;
+      const other = access === accessA ? accessB : accessA;
+      const mode = slot % 3;
+      await withAccess(access, async () => {
+        if (mode === 0) {
+          const result = await bound.query(SESSION_SQL);
+          checkSnap(`q:r${round}s${slot}`, xpSnapOf(result.rows[0] ?? {}), access);
+          return;
+        }
+        const client = await bound.connect();
+        try {
+          const raw = await client.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
+          checkSnap(`c:r${round}s${slot}`, xpSnapOf(raw.rows[0] ?? {}), access);
+          if (mode === 2) {
+            try {
+              await client.query('SELECT revoke_checkpoint_thread($1)', [other.threadId]);
+              fenceMiss += 1;
+            } catch (error) {
+              const err = error as { code?: unknown; message?: unknown };
+              if (err.code === '42501' && String(err.message ?? '').includes('checkpoint_privacy_fenced')) fenced += 1;
+              else throw error;
+            }
+          }
+        } finally {
+          client.release();
+        }
+      });
+    };
+
+    for (let round = 0; round < XP_ROUNDS; round++) {
+      await Promise.all(Array.from({ length: XP_CONCURRENCY }, (_, slot) => oneOp(round, slot)));
+    }
+
+    console.log(`XP2 mismatches=${mismatches} fenced=${fenced} fenceMiss=${fenceMiss} samples=${mismatchSamples.join(' | ')}`);
+    const ok = mismatches === 0 && fenceMiss === 0 && fenced > 0;
+    if (ok) console.log('CHILD_OK');
+    else console.log('CHILD_FAIL XP-2');
+    try { await bound.end(); } catch { /* ignore */ }
+    if (!ok) throw new Error('xp2_assertion_failed');
+  } finally {
+    await admin.query(`DROP ROLE IF EXISTS ${role}`).catch(() => undefined);
+    await admin.end().catch(() => undefined);
+  }
+}
+
 function swapCleanupOrder(src: string): string {
   const from = `        await cleanupCheckpointPrincipalSession(client); // CLEANUP_BEFORE_RELEASE
         releaseOnce(); // CLEANUP_BEFORE_RELEASE`;
@@ -307,9 +450,10 @@ function swapCleanupOrder(src: string): string {
   return src.replace(from, to);
 }
 
-async function child(_mode: Mode, moduleUrl: string): Promise<void> {
+async function child(mode: Mode, moduleUrl: string): Promise<void> {
   const mod = await import(moduleUrl);
-  await runScenario(mod);
+  if (mode === 'xp-after' || mode === 'xp-mut-precedence') await runXp2(mod);
+  else await runScenario(mod);
 }
 
 function writePatchedModule(src: string): { dir: string; url: string } {
@@ -326,10 +470,10 @@ async function parent(): Promise<void> {
     if (!c) fail++;
   };
   const self = fileURLToPath(import.meta.url);
-  const runChild = (mode: Mode, moduleUrl: string) =>
+  const runChild = (mode: Mode, moduleUrl: string, timeoutMs = 60_000) =>
     spawnSync(process.execPath, [...process.execArgv, self, `--child=${mode}`, `--module=${moduleUrl}`], {
       encoding: 'utf8',
-      timeout: 60_000,
+      timeout: timeoutMs,
       env: (() => {
         const env: NodeJS.ProcessEnv = { ...process.env };
         env.NODE_OPTIONS = `${process.env.NODE_OPTIONS ?? ''} --unhandled-rejections=throw`.trim();
@@ -406,6 +550,30 @@ async function parent(): Promise<void> {
   A('S-3 fire-and-forget release 带 .catch', /void runRelease\(err\)\.catch\(/.test(src));
   A('S-4 源钉死先 cleanup 再 releaseOnce', src.includes('CLEANUP_BEFORE_RELEASE'));
   A('S-5 吞错路径有 warnReleasePath（无 SQL/principal）', src.includes('warnReleasePath') && !/warnReleasePath\([^)]*principal/i.test(src));
+  A('S-6 façade.query finally 显式分支（无 await/?? 优先级陷阱）', src.includes('RELEASE_ASYNC_ONLY') && !/await \(client as \{ releaseAsync\?:/.test(src));
+
+  if (process.env.E2E_ISOLATED !== '1') {
+    A('XP-2 须由官方 isolated runner 提供真实 PG（E2E_ISOLATED=1）', false, `E2E_ISOLATED=${process.env.E2E_ISOLATED ?? ''}`);
+  } else {
+    const xp = runChild('xp-after', `file://${srcPath}`, 180_000);
+    process.stdout.write(xp.stdout ?? '');
+    if (xp.status !== 0) process.stderr.write((xp.stderr ?? '').slice(0, 4000));
+    A('XP-2 真实 PG 并发 mismatches=0', xp.status === 0 && /CHILD_OK/.test(xp.stdout ?? '') && /XP2 mismatches=0 /.test(xp.stdout ?? ''), `status=${xp.status}`);
+
+    const precSrc = restoreAwaitPrecedence(src);
+    A('MUT-PRECEDENCE 变换恢复了无括号 await/??', precSrc.includes('MUT_PRECEDENCE') && !precSrc.includes('RELEASE_ASYNC_ONLY'));
+    const precWritten = writePatchedModule(precSrc);
+    const mutPrec = runChild('xp-mut-precedence', precWritten.url, 180_000);
+    process.stdout.write(mutPrec.stdout ?? '');
+    if (mutPrec.status !== 0) process.stderr.write((mutPrec.stderr ?? '').slice(0, 4000));
+    A('MUT-PRECEDENCE 恢复无括号写法后子进程非零退出', mutPrec.status !== 0, `status=${mutPrec.status} signal=${mutPrec.signal}`);
+    A(
+      'MUT-PRECEDENCE 失败在 XP-2 mismatches>0',
+      /XP2 mismatches=([1-9]\d*) /.test(mutPrec.stdout ?? ''),
+      (mutPrec.stdout ?? '').split('\n').find((l) => /XP2 mismatches=/.test(l)) ?? (mutPrec.stderr ?? '').slice(0, 200),
+    );
+    rmSync(precWritten.dir, { recursive: true, force: true });
+  }
 
   for (const dir of [beforeDir, mutWritten.dir, stackWritten.dir, orderWritten.dir]) {
     if (dir) rmSync(dir, { recursive: true, force: true });

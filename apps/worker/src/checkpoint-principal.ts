@@ -115,16 +115,32 @@ function serializeClientQueries(client: { query: ClientQueryFn }): void {
   };
 }
 
-function warnReleasePath(event: 'checkpoint_pg_double_release_swallowed' | 'checkpoint_pg_release_unhandled', error?: unknown): void {
+const SQLSTATE_RE = /^[0-9A-Z]{5}$/;
+type ReleaseWarnEvent =
+  | 'checkpoint_pg_double_release'
+  | 'checkpoint_pg_release_unhandled'
+  | 'checkpoint_pg_release_holder_mismatch';
+
+function warnReleasePath(event: ReleaseWarnEvent, error?: unknown): void {
   let code: string = event;
   if (error && typeof error === 'object' && 'code' in error) {
     const raw = (error as { code: unknown }).code;
-    if (typeof raw === 'string' && raw.length > 0 && raw.length <= 64) code = raw;
+    if (typeof raw === 'string' && SQLSTATE_RE.test(raw)) code = raw;
   }
   console.warn(JSON.stringify({ event, code }));
 }
 
+function isDoubleRelease(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return DOUBLE_RELEASE_RE.test(message);
+}
+
+const CHECKOUT_HOLDER = Symbol.for('meetwise.checkpointCheckoutHolder');
+type HolderMarked = { [CHECKOUT_HOLDER]?: object };
+
 function installReleaseCleanup(client: any): { releaseAsync: () => Promise<void> } {
+  const holder = {};
+  (client as HolderMarked)[CHECKOUT_HOLDER] = holder;
   const originalRelease = client.release.bind(client) as (err?: ReleaseArg) => void;
   let releasePromise: Promise<void> | null = null;
   let originalReleased = false; // RELEASE_ONCE_GUARD
@@ -132,15 +148,21 @@ function installReleaseCleanup(client: any): { releaseAsync: () => Promise<void>
   serializeClientQueries(client);
 
   const releaseOnce = (err?: ReleaseArg): void => {
+    if ((client as HolderMarked)[CHECKOUT_HOLDER] !== holder) {
+      warnReleasePath('checkpoint_pg_release_holder_mismatch');
+      return;
+    }
     if (originalReleased) return; // RELEASE_ONCE_GUARD
     originalReleased = true;
     try {
       originalRelease(err);
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      if (DOUBLE_RELEASE_RE.test(message)) {
-        warnReleasePath('checkpoint_pg_double_release_swallowed', error);
-        return; // RELEASE_ONCE_GUARD
+      if (isDoubleRelease(error)) {
+        // Fail-closed: this checkout's once-fn was already consumed (often a
+        // cross-holder leftover release). Do not pretend the client is ours to
+        // hand on, and do not swallow into a successful runRelease.
+        warnReleasePath('checkpoint_pg_double_release', error);
+        throw error;
       }
       throw error;
     }
@@ -157,6 +179,7 @@ function installReleaseCleanup(client: any): { releaseAsync: () => Promise<void>
         await cleanupCheckpointPrincipalSession(client); // CLEANUP_BEFORE_RELEASE
         releaseOnce(); // CLEANUP_BEFORE_RELEASE
       } catch (resetErr) {
+        if (isDoubleRelease(resetErr)) throw resetErr;
         // Destroy: never return a still-privileged connection to the pool.
         // releaseOnce is idempotent — a racing first release must not throw here
         // (the uncaught throw at this line was the inflight=16 worker crash).
@@ -199,6 +222,10 @@ export class PrincipalBoundCheckpointPool {
 
   async connect(): Promise<any> {
     const client = await this.pool.connect();
+    // Wrap release synchronously after acquire and before any await, so a
+    // leftover client.release() cannot hit pg-pool's raw once-fn for the next holder.
+    const { releaseAsync } = installReleaseCleanup(client);
+    (client as { releaseAsync?: () => Promise<void> }).releaseAsync = releaseAsync;
     try {
       const access = requireAccess();
       // Session-scoped (not LOCAL): required for PostgresSaver autocommit reads.
@@ -209,11 +236,9 @@ export class PrincipalBoundCheckpointPool {
                 set_config('app.checkpoint_epoch', $3, false)`,
         [access.owner, access.threadId, String(access.fenceEpoch)],
       );
-      const { releaseAsync } = installReleaseCleanup(client);
-      (client as { releaseAsync?: () => Promise<void> }).releaseAsync = releaseAsync;
       return client;
     } catch (error) {
-      // connect() failed before wrap — destroy rather than return a half-bound client.
+      // connect() failed after wrap — destroy rather than return a half-bound client.
       client.release(true);
       throw error;
     }
@@ -224,8 +249,16 @@ export class PrincipalBoundCheckpointPool {
     try {
       return await client.query(...args);
     } finally {
-      await (client as { releaseAsync?: () => Promise<void> }).releaseAsync?.()
-        ?? Promise.resolve(client.release());
+      // RELEASE_ASYNC_ONLY: await binds tighter than ??, so
+      // `await releaseAsync?.() ?? Promise.resolve(client.release())` would
+      // call client.release() again after a successful cleanup+return, handing
+      // the next holder's checkout back to the pool (cross-tenant share).
+      const releasable = client as { releaseAsync?: () => Promise<void>; release: (err?: ReleaseArg) => void };
+      if (releasable.releaseAsync) {
+        await releasable.releaseAsync(); // RELEASE_ASYNC_ONLY
+      } else {
+        releasable.release();
+      }
     }
   }
 
