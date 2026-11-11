@@ -36,7 +36,7 @@ related:
 >
 > 本文不授权云端写入、购买、密钥创建、生产开关变更或删除 Docker。任何此类动作仍需在对应工作包的规格、演练与人工确认完成后单独执行。
 
-## 2026-11-11 第二批修复合入（统一授权：对口审查 PASS + CI 绿，按顺序合；2026-11-11 16:15–19:00 Asia/Shanghai）
+## 2026-11-11 第二批修复合入（统一授权：对口审查 PASS + CI 绿，按顺序合；2026-11-11 16:15–19:13 Asia/Shanghai）
 
 **合入 main（merge commit；每个 PR 只在自己已审 head 上并入当时 main，只改 PTP cap / lint 帽 / 冲突）**
 
@@ -68,6 +68,7 @@ related:
 | #254 | test(e2e): HTTP 层跳过当澄清 prove（含非 happy-path） | `fbf0afb4e` | 2544 |
 | #262 | fix(token-stream): G5 N-13 业务拒绝发撤回帧（预览开关缺省关） | `f8b8fa092` | 2544 |
 | #267 | chore(lint): 清 worker 机械警告并把帽收回实测值（合并树实测重算：root 5431→5378、worker 1007→956） | `d70b75587` | 2544 |
+| #266 | fix(test): 收窄 qbank-corpus-gates 的 seam 钉与 markers 扫描范围（已审 head `0ec17e42b` 只并入 main，diff 与已审补丁逐字一致） | `3d508f72b` | 2544 |
 
 **#18 只算部分修复**：任务记录写成 done/failed 时明文立即剥离，但排队等处理期间明文仍在库里，`INT-P0-RAW-QUEUE` 仍 **open**，要等 INT-TRANSCRIPT-01。已擦除面试的 `interview_job` 明文由 #257 补上（见跟进第 8 条）。
 
@@ -108,7 +109,7 @@ related:
 21. #253 P2-R1；#259 P2-b。
 22. #264 方案文档 N-A..N-D、L182/L209 措辞；方案**待用户拍板**，未实现。
 23. #265 P2：README / CLAUDE 仍写 zod-openapi；已否决方案回归门有绕过口。
-24. #266（qbank 门作用域）：已双审 PASS @`0ec17e42b`，base 已改 main，但 head 落后 main，CI parity 报 `baseline_identity_dropped`（bounded-command.proof.mjs，来自 #250 新基线）；要过 CI 必须并 main 改 head，**未合，待用户决定**。其跟进：旧 `git()` 吞错、文件不存在时断言空转、门未进 CI（先问用户）。
+24. #266（qbank 门作用域）：双审 PASS @`0ec17e42b`；原 head 落后 main 致 CI parity 红，已只并入 main（diff 与已审补丁逐字一致、无 cap 变动），CI 绿后合入 `3d508f72b`。其跟进：旧 `git()` 吞错、文件不存在时断言空转、门未进 CI（先问用户）。
 25. #267 P3：`ci.yml:121` 注释里的旧帽数字过时。
 26. ha2-drain 清单与 interview-event-retention 不一致——**#270 已对齐**（worker ha2-drain 61/0）。#270 审查 P2：清单只查「必须出现」，不是闭集；应加源码检查，`main.ts` 每个启动的 loop/listener 都要出现在 `drainStops` 或在 `shutdownWorker` 显式停止（`jobWakeupListener` / `jobWakeupRedisListener` 现状在 `drainStops` 外，必须允许），反之亦然。回执见 `reviews/REVIEW-PR270-ha2drain-mw-model-op.md`。
 27. #261 P2/P3：Server Action 仍 1MB；`contentBase64` too_big 不是 413；nginx 15m 与应用上限相等无余量；`sourceDigests` 只有静态门。
