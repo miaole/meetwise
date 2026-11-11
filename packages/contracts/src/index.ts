@@ -124,10 +124,11 @@ export const VOICE_CAPTURE_POLICY_VERSION = 'voice_ephemeral_v1' as const;
 /** 语音作答语义上限**单源**（#70 三值矛盾归一·5E 裁决项②=10MB）。
  *  此前三处各写：契约 base64≤13.5M 字符、api 全局 bodyLimit 12MiB、服务内 MAX_AUDIO_BYTES 10MB（互矛盾且
  *  服务检查被前两层遮蔽=不可达）。归一口径：10MB=单题语音语义上限（唯一真源）；契约 base64 字符上限由本值
- *  派生为精确膨胀（4*ceil(n/3)=13,981,016）再加 32KiB 余量，使解码后 >10MB 的请求能穿过 zod，落到服务内
+ *  派生为精确膨胀（4*ceil(n/3)=13,981,016）再加 32KiB 余量，使刚过 10MB 的请求能穿过 zod，落到服务内
  *  413 `{error:audio_too_large}`（与简历 `contentBase64` 11.2MB 略高于 8MB 原文、好让 413 `file_too_large`
- *  可达同形）。上传路由传输信封是 `UPLOAD_BODY_LIMIT_BYTES`（15MiB），必须大于本字符上限+JSON 外壳，
- *  否则 Fastify 会在服务检查前用非业务信封 413，10MB 语义上限再次不可达。非上传路由另见
+ *  可达同形）。若 base64 字符数越过本上限但仍小于上传信封，ZodValidationPipe 把 `too_big` 映射为同一
+ *  413 `{error:audio_too_large}`，不再返回 400。上传路由传输信封是 `UPLOAD_BODY_LIMIT_BYTES`（15MiB），
+ *  必须大于本字符上限+JSON 外壳，否则 Fastify 会在服务检查前 413，10MB 语义上限再次不可达。非上传路由另见
  *  `SMALL_BODY_LIMIT_BYTES`（1MiB → 413 `payload_too_large`）。 */
 export const VOICE_MAX_AUDIO_BYTES = 10 * 1024 * 1024;
 export const VOICE_MAX_AUDIO_BASE64_CHARS = 4 * Math.ceil(VOICE_MAX_AUDIO_BYTES / 3) + 32_768;
