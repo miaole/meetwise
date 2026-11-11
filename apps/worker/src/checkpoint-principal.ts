@@ -223,7 +223,7 @@ export class PrincipalBoundCheckpointPool {
   async connect(): Promise<any> {
     const client = await this.pool.connect();
     // Wrap release synchronously after acquire and before any await, so a
-    // leftover client.release() cannot hit pg-pool's raw once-fn for the next holder.
+    // leftover client.release() cannot hit the raw pg-pool once-fn for the next holder.
     const { releaseAsync } = installReleaseCleanup(client);
     (client as { releaseAsync?: () => Promise<void> }).releaseAsync = releaseAsync;
     try {
@@ -249,10 +249,10 @@ export class PrincipalBoundCheckpointPool {
     try {
       return await client.query(...args);
     } finally {
-      // RELEASE_ASYNC_ONLY: await binds tighter than ??, so
-      // `await releaseAsync?.() ?? Promise.resolve(client.release())` would
+      // RELEASE_ASYNC_ONLY: await binds tighter than ??, so an unparenthesized
+      // await releaseAsync?.() ?? Promise.resolve(client.release()) would
       // call client.release() again after a successful cleanup+return, handing
-      // the next holder's checkout back to the pool (cross-tenant share).
+      // the next holder checkout back to the pool (cross-tenant share).
       const releasable = client as { releaseAsync?: () => Promise<void>; release: (err?: ReleaseArg) => void };
       if (releasable.releaseAsync) {
         await releasable.releaseAsync(); // RELEASE_ASYNC_ONLY

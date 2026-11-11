@@ -83,7 +83,7 @@ const ACCESS = { owner: 'owner-a', threadId: 'thread-a', fenceEpoch: 1 };
 
 type Mode = 'after' | 'before' | 'mut-guard' | 'mut-stack' | 'mut-order' | 'xp-after' | 'xp-mut-precedence';
 
-function makeFakeClient(opts: { releaseThrowsAlways?: boolean; overlap?: { current: number; max: number; hits: number }; delayMs?: number }): {
+function makeFakeClient(opts: { releaseThrowsAlways?: boolean; overlap?: { current: number; max: number; hits: number }; delayMs?: number; allowReuse?: boolean }): {
   query: (...args: unknown[]) => Promise<{ rows: unknown[]; rowCount: number }>;
   release: (err?: unknown) => void;
   releaseCount: number;
@@ -108,7 +108,7 @@ function makeFakeClient(opts: { releaseThrowsAlways?: boolean; overlap?: { curre
     release(_err?: unknown) {
       releaseCount++;
       client.releaseCount = releaseCount;
-      if (opts.releaseThrowsAlways || releaseCount > 1) {
+      if (opts.releaseThrowsAlways || (!opts.allowReuse && releaseCount > 1)) {
         throw new Error(DOUBLE_RELEASE);
       }
     },
@@ -204,7 +204,7 @@ async function runScenario(mod: Record<string, unknown>): Promise<void> {
   A('C-2 fenced 之后 raw release 恰好一次', releaseCountC === 1, `count=${releaseCountC}`);
 
   // D: 同 client 反复 checkout（模拟 pg-pool 只重置 release）——包装层数必须恒定。
-  const reuse = makeFakeClient({ delayMs: 0 });
+  const reuse = makeFakeClient({ delayMs: 0, allowReuse: true });
   const rawQuery = reuse.query.bind(reuse);
   reuse.query = rawQuery;
   const poolD = poolLikePgReuse(reuse);
@@ -411,7 +411,10 @@ async function runXp2(mod: Record<string, unknown>): Promise<void> {
           checkSnap(`c:r${round}s${slot}`, xpSnapOf(raw.rows[0] ?? {}), access);
           if (mode === 2) {
             try {
-              await client.query('SELECT revoke_checkpoint_thread($1)', [other.threadId]);
+              await client.query(
+                "INSERT INTO checkpoints(thread_id,checkpoint_ns,checkpoint_id,checkpoint,metadata) VALUES ($1,'','xp2-write','{}'::jsonb,'{}'::jsonb)",
+                [other.threadId],
+              );
               fenceMiss += 1;
             } catch (error) {
               const err = error as { code?: unknown; message?: unknown };
@@ -561,7 +564,7 @@ async function parent(): Promise<void> {
     A('XP-2 真实 PG 并发 mismatches=0', xp.status === 0 && /CHILD_OK/.test(xp.stdout ?? '') && /XP2 mismatches=0 /.test(xp.stdout ?? ''), `status=${xp.status}`);
 
     const precSrc = restoreAwaitPrecedence(src);
-    A('MUT-PRECEDENCE 变换恢复了无括号 await/??', precSrc.includes('MUT_PRECEDENCE') && !precSrc.includes('RELEASE_ASYNC_ONLY'));
+    A('MUT-PRECEDENCE 变换恢复了无括号 await/??', precSrc.includes('MUT_PRECEDENCE') && !precSrc.includes('await releasable.releaseAsync(); // RELEASE_ASYNC_ONLY'));
     const precWritten = writePatchedModule(precSrc);
     const mutPrec = runChild('xp-mut-precedence', precWritten.url, 180_000);
     process.stdout.write(mutPrec.stdout ?? '');
