@@ -8,8 +8,8 @@ import { QuestionDuplicateFallback, SessionConcludedPayload } from '@meetwise/co
 /**
  * 题型来自 `packages/domain/src/adaptive-interview.ts`。保留旧值是为了让
  * 已经落库、仍会被重放的历史事件可读；新图产生 grounded/fundamental/
- * scenario/behavioral。这里若收窄会使完整的 question_ready 帧被丢弃，UI
- * 便会永久停在 connecting。
+ * scenario/behavioral。未知/未来新值经 `.optional().catch(undefined)` 只丢
+ * 该字段、保留整帧，避免 UI 永久停在 connecting。
  */
 export const QuestionKind = z.enum([
   'grounded', 'fundamental', 'scenario', 'behavioral',
@@ -27,10 +27,11 @@ export const BusinessEvent = z.discriminatedUnion('event', [
     questionId: z.string().regex(/^q-v\d+-t\d+-c\d+$/).optional(),
     stateVersion: z.number().int().nonnegative().optional(),
     turn: z.number().int().nonnegative().optional(),
-    qkind: QuestionKind.optional(),
+    qkind: QuestionKind.optional().catch(undefined),
     plannedTurns: z.number().int().nonnegative().optional(),
     // G2：判重降级标记（additive 可选；旧流缺字段零破坏。不进提交令牌）。
-    duplicateFallback: QuestionDuplicateFallback.optional(),
+    // 未知/未来枚举值只丢该字段、不丢整帧（滚动发布前向兼容；#245 审查 P2）。
+    duplicateFallback: QuestionDuplicateFallback.optional().catch(undefined),
   }) }),
   z.object({ event: z.literal('waiting_user'), id: z.number().int(), data: z.record(z.string(), z.unknown()) }),
   // outcome 区分 answered / unresolved(跳过/探尽未决):unresolved 不是"得0分",前端标 skipped、不展示惩罚分;报告侧亦剔除。
