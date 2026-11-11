@@ -32,6 +32,27 @@ export const QUESTION_GENERATION_REROLL_FAMILY: readonly QuestionGenerationError
   'external_outcome_unknown',
 ];
 
+/**
+ * G2(FIX-G2-dup-question-fallback):换 competency 臂的族边界=re-roll 族 + duplicate_question。
+ * duplicate_question 仍**不进** re-roll 族(seam 内判重 re-roll 有独立上限 MAX_DUPLICATE_REROLL,
+ * g7fix4 钉死),但 seam 判重耗尽后交图节点换下一 competency 重试(帽 MAX_COMPETENCY_EXHAUST_SWITCH
+ * 与 AG-F 共用),而不是首个能力项耗尽即整场 failClosed。
+ */
+export const QUESTION_GENERATION_COMPETENCY_SWITCH_FAMILY: readonly QuestionGenerationErrorCode[] = [
+  ...QUESTION_GENERATION_REROLL_FAMILY,
+  'duplicate_question',
+];
+
+/**
+ * G2:判重耗尽后的降级候选来源(审计元数据)。
+ * - `cross_session_repeat`:seam 本 turn 已生成且过全部确定性闸(schema/verbatim/引文/critique 含
+ *   **本场** asked 判重)、仅与**历史场次**题面重复的模型题——允许跨场重复、当场不重复。
+ * - `approved_template`:所有模型候选都没过本场闸时,用既有 grounded 无事实固定模板文案兜底
+ *   (同样须过本场 critique)。零额外模型调用、零新幂等键。
+ */
+export const QUESTION_DUPLICATE_FALLBACKS = ['cross_session_repeat', 'approved_template'] as const;
+export type QuestionDuplicateFallback = (typeof QUESTION_DUPLICATE_FALLBACKS)[number];
+
 export const QUESTION_GENERATION_ORIGINS = ['model', 'approved_template', 'unavailable'] as const;
 export type QuestionGenerationOrigin = (typeof QUESTION_GENERATION_ORIGINS)[number];
 
@@ -47,6 +68,15 @@ export interface QuestionGenerationProvenance {
    *  this turn consumed before the recorded outcome. Absent when the turn never
    *  re-rolled. Audit metadata only — never secrets or user content. */
   readonly reroll?: number;
+  /** G2:本题经判重耗尽降级臂出面时的降级来源;正常出题缺席。仅审计元数据。 */
+  readonly duplicateFallback?: QuestionDuplicateFallback;
+}
+
+/** G2:判重耗尽失败形携带的降级候选(只在 seam 内产生;图节点仅在无 competency 可换时采用)。 */
+export interface QuestionDuplicateFallbackCandidate {
+  readonly question: string;
+  readonly sources: string[];
+  readonly provenance: QuestionGenerationProvenance;
 }
 
 export type QuestionGenerationResult =
@@ -61,7 +91,11 @@ export type QuestionGenerationResult =
        */
       weightedDeficit?: number[] | null;
     }
-  | { ok: false; error: QuestionGenerationErrorCode; provenance: QuestionGenerationProvenance };
+  | {
+      ok: false; error: QuestionGenerationErrorCode; provenance: QuestionGenerationProvenance;
+      /** G2:仅 error='duplicate_question' 时可能携带;缺席=无可用降级候选(既有 failClosed 原样)。 */
+      duplicateFallback?: QuestionDuplicateFallbackCandidate;
+    };
 
 const NOT_CONFIGURED = /not_configured|policy_required|known_not_executed|provider_rejected|deterministic_refusal|admission|project_missing|project_disabled|operation_unknown|operation_blocked|prepare_failed|operation_policy/;
 const TIMEOUT = /timeout|timed_out|deadline_exceeded/;
@@ -93,6 +127,20 @@ export function unavailableGeneration(
     error,
     provenance: { origin: 'unavailable', errorCode: error, ...extra },
   };
+}
+
+/** G2:判重耗尽失败形 + 可选降级候选。失败语义(error/provenance)与 unavailableGeneration 逐字节同形。 */
+export function duplicateExhaustedGeneration(
+  extra: Omit<QuestionGenerationProvenance, 'origin' | 'errorCode'>,
+  fallback: QuestionDuplicateFallbackCandidate | null,
+): QuestionGenerationResult {
+  const base = unavailableGeneration('duplicate_question', extra);
+  return fallback && !base.ok ? { ...base, duplicateFallback: fallback } : base;
+}
+
+/** G2:把判重降级候选还原为 success 形(图节点无序可换时采用;本场 critique 仍由节点再过一次)。 */
+export function acceptDuplicateFallback(candidate: QuestionDuplicateFallbackCandidate): Extract<QuestionGenerationResult, { ok: true }> {
+  return { ok: true, question: candidate.question, sources: [...candidate.sources], provenance: candidate.provenance };
 }
 
 export function approvedTemplateGeneration(

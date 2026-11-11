@@ -1,8 +1,9 @@
 import {
+  acceptDuplicateFallback,
   critiqueQuestion,
   isQuestionGenerationFailure,
   normalizeQuestionGenerationResult,
-  QUESTION_GENERATION_REROLL_FAMILY,
+  QUESTION_GENERATION_COMPETENCY_SWITCH_FAMILY,
   type CompetencySpec,
   type QuestionGenerationProvenance,
   type QuestionGenerationResult,
@@ -138,8 +139,12 @@ export function createGenerateQuestionNode(deps: AdaptiveDeps) {
         // 才换序;帽满/族外失败（timeout/not_configured/duplicate_question/attempt_replay 等）/无序
         // 可换 → 既有 failClosed 原样（全序耗尽才真终场,assessment_unavailable 形状字节不变）。
         // QGEN-CRITIQUE-RESILIENCE(件①)后:模板旁路拒绝=零 roll 新到达径（失败形于 worker seam :452-458 roll 计数块之前返回·零 `:r{k}` 消费·经本族臂换序后以新 competency 新到达本臂）。
+        // G2(FIX-G2-dup-question-fallback):duplicate_question(seam 判重 re-roll 耗尽)同样先换序
+        // (QUESTION_GENERATION_COMPETENCY_SWITCH_FAMILY=re-roll 族+duplicate_question,帽同上);
+        // 帽满/无序可换时,若 seam 随附降级候选(跨场重复但当场不重复的模型题,或固定模板)→ 采用并继续
+        // 走下方本场 critique 终闸,不整场判死;无候选 → 既有 failClosed 原样。
         const exhaustedBefore = state.competencyExhaustions ?? 0;
-        if (QUESTION_GENERATION_REROLL_FAMILY.includes(generated.error) && exhaustedBefore < MAX_COMPETENCY_EXHAUST_SWITCH) {
+        if (QUESTION_GENERATION_COMPETENCY_SWITCH_FAMILY.includes(generated.error) && exhaustedBefore < MAX_COMPETENCY_EXHAUST_SWITCH) {
           const nextCompetency = nextCompetencyAfter(deps.competencies, route.competency);
           if (nextCompetency) {
             return {
@@ -152,7 +157,11 @@ export function createGenerateQuestionNode(deps: AdaptiveDeps) {
             };
           }
         }
-        return failClosed(state, generated.provenance, `generation_${generated.error}`);
+        if (generated.error === 'duplicate_question' && generated.duplicateFallback) {
+          generated = acceptDuplicateFallback(generated.duplicateFallback);
+        } else {
+          return failClosed(state, generated.provenance, `generation_${generated.error}`);
+        }
       }
       const critique = critiqueQuestion(generated.question, route.competency, asked, deps.competencyKeywords ?? {});
       // A critique miss used to invent a same-competency shell and emit it as

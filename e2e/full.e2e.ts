@@ -230,6 +230,9 @@ async function main() {
 
   // 7a. 报告失败隔离: isolated worker 在第二份报告注入故障后必须落到 report_unavailable。
   {
+    const G7A_SUBSTANTIVE_ANSWER = '我在订单服务重构里负责后端开发：用 Redis 令牌桶做接口限流，用 SETNX 加随机值和 Lua 脚本原子释放分布式锁，'
+      + '压测把下单接口 P99 从 800ms 降到 120ms，并灰度发布验证。期间产品经理对限流阈值的理解和我不一致，'
+      + '我先约会对齐指标口径，用压测数据和灰度方案说明取舍，会后书面确认需求，每周同步进展，最终按期上线。';
     reviews.record({ class: 'worker', code: 'seg3_7a_enter' }); // G7W 案A seg3 R3: 7a 段进
     const cr = await readJson(await fetch(e2eUrl(`/interview`), { method: 'POST', headers: H, body: '{}' }));
     const failIv = cr.interviewId ?? cr.id ?? cr.resultId;
@@ -241,7 +244,12 @@ async function main() {
       token,
       headers: H,
       assert: A,
-      questionAnswer: '我用 Redis 令牌桶限流，Lua 原子释放锁。',
+      // FIX-G2:报告舱壁要真走模型(故障注入在 provider 响应之后),本场须至少一题得分进 eligible——
+      // 全部 unresolved(旧固定短答 + 澄清「跳过」)时 AG-10 直写「证据不足」模板报告、零模型调用,
+      // 故障注入永不触发(终态 report_ready)。G2 修好第二场判重后此前置才暴露。答案覆盖后端与协作两面,
+      // 澄清时给同一份实质作答(不再「跳过」),零产品码改动。
+      questionAnswer: G7A_SUBSTANTIVE_ANSWER,
+      clarificationAnswer: G7A_SUBSTANTIVE_ANSWER,
       questionAcceptedLabel: () => '[兜底] canonical /turn → 202',
       clarificationAcceptedLabel: '[兜底] 澄清 canonical /turn → 202',
     });

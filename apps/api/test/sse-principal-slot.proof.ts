@@ -8,6 +8,17 @@
  * privacy / ownership / RLS SQL is short-circuited. This is not isolated
  * Postgres `DbService.asPrincipal`, not `api:validate`, not a cluster slot.
  * `pnpm sse-slot:prove`
+ *
+ * FIX-G3（P2-1 flaky 根因，已用时间线核实）：SSE 响应头要等泵第一次写（第一个 2s 周期后的
+ * ping）才发出，所以 openSse 大约 2s 才 resolve。旧断言的窗口起点 = userB 那条连接打开之后
+ * ≈ 4030ms，而 5 条 holder 的第 2 次轮询恰好落在 ≈ 4015–4020ms，只比窗口起点早 10–20ms。
+ * 负载下这个先后一旦翻转，第 2、3 次轮询都落进 sleep(2100) 窗口，计数就变成 +6..+10，
+ * 于是首跑红、单独重跑绿（时间线见 ai-docs/delivery/reviews/FIX-G3-ci-e2e-gate.md）。
+ * 现改为：每条连接用独立 stream id 归因，轮询等待「每个 holder 至少完成 2 个轮询周期」
+ * 这一条件，再同刻比对「counting stub 增量 = holder 轮询调用之和」，并断言被拒连接的
+ * stream id 零调用。频率下界：观察窗为「各 holder ≥2 周期且自 t0 起不少于约 3500ms」，
+ * 窗结束时每条 holder 轮询次数 ≤3（选次数上界，不受负载下计时拉长影响；间隔若退化为
+ * 200ms 则会超 3 次）。不依赖固定窗口相位去数 +5，也没有加大 sleep。
  */
 import 'reflect-metadata';
 import { Module } from '@nestjs/common';
@@ -34,6 +45,16 @@ const A = (name: string, ok: boolean) => {
 };
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** 条件轮询（25ms 步长，超时返回最终判定）：替代「固定 sleep 后断言」的时序赌注。 */
+async function waitUntil(cond: () => boolean, timeoutMs: number, stepMs = 25): Promise<boolean> {
+  const end = Date.now() + timeoutMs;
+  while (Date.now() < end) {
+    if (cond()) return true;
+    await sleep(stepMs);
+  }
+  return cond();
+}
 
 function createCountingDb() {
   const byPrincipal = new Map<string, number>();
@@ -97,14 +118,23 @@ async function main() {
   // Holders polling must not increment catchUp; UC184: rejected connections pay zero catch-up (拒连已零付), so the count is not racy.
   const catchUp = new Map<string, number>();
   const pollCalls = new Map<string, number>();
+  // FIX-G3：按 `${principal}|${streamId}` 归因（每条连接独立 stream id），可逐连接判定谁在轮询。
+  const catchUpByStream = new Map<string, number>();
+  const pollByStream = new Map<string, number>();
+  const bump = (m: Map<string, number>, k: string) => m.set(k, (m.get(k) ?? 0) + 1);
   const wrapEvents = (svc: { events: (principal: string, id: string, lastEventId?: string) => unknown }) => {
     const orig = svc.events.bind(svc);
     svc.events = (principal: string, id: string, lastEventId?: string) => {
-      const bucket = lastEventId === undefined ? catchUp : pollCalls;
-      bucket.set(principal, (bucket.get(principal) ?? 0) + 1);
+      const isCatchUp = lastEventId === undefined;
+      bump(isCatchUp ? catchUp : pollCalls, principal);
+      bump(isCatchUp ? catchUpByStream : pollByStream, `${principal}|${id}`);
       return orig(principal, id, lastEventId);
     };
   };
+  const streamCalls = (k: string) => (catchUpByStream.get(k) ?? 0) + (pollByStream.get(k) ?? 0);
+  const pollSum = (principal: string) => [...pollByStream.entries()]
+    .filter(([k]) => k.startsWith(`${principal}|`))
+    .reduce((n, [, v]) => n + v, 0);
   wrapEvents(interviews);
   wrapEvents(quizzes);
   wrapEvents(diagnoses);
@@ -134,12 +164,15 @@ async function main() {
 
   try {
     const userAHolds: HeldStream[] = [];
+    // 每条连接独立 stream id（stub 对任意 id 都返回 rowCount=1，不改被测语义），便于逐连接归因。
+    const holderStreams = ['iv-slot-1', 'iv-slot-2', 'iv-slot-3', 'qz-slot-1', 'qz-slot-2'];
+    const rejectStreams = ['iv-reject', 'qz-reject', 'dx-reject'];
     const firstFive = await Promise.all([
-      openSse(base, '/interview/iv-slot/events', 'userA'),
-      openSse(base, '/interview/iv-slot/events', 'userA'),
-      openSse(base, '/interview/iv-slot/events', 'userA'),
-      openSse(base, '/quiz/qz-slot/events', 'userA'),
-      openSse(base, '/quiz/qz-slot/events', 'userA'),
+      openSse(base, '/interview/iv-slot-1/events', 'userA'),
+      openSse(base, '/interview/iv-slot-2/events', 'userA'),
+      openSse(base, '/interview/iv-slot-3/events', 'userA'),
+      openSse(base, '/quiz/qz-slot-1/events', 'userA'),
+      openSse(base, '/quiz/qz-slot-2/events', 'userA'),
     ]);
     firstFive.forEach((r, i) => {
       const kind = i < 3 ? '面试' : '押题';
@@ -148,9 +181,9 @@ async function main() {
     });
     A('打满 5 条后进程内槽计数 = 5', slotCount(rl, 'sse:userA') === 5);
     const [sixthIv, sixthQz, sixthDx] = await Promise.all([
-      openSse(base, '/interview/iv-slot/events', 'userA'),
-      openSse(base, '/quiz/qz-slot/events', 'userA'),
-      openSse(base, '/diagnosis/dx-slot/events', 'userA'),
+      openSse(base, '/interview/iv-reject/events', 'userA'),
+      openSse(base, '/quiz/qz-reject/events', 'userA'),
+      openSse(base, '/diagnosis/dx-reject/events', 'userA'),
     ]);
     const sixthIvError = (sixthIv.body as { error?: string }).error;
     const sixthQzError = (sixthQz.body as { error?: string }).error;
@@ -169,14 +202,38 @@ async function main() {
     A('userB 自有槽 = 1', slotCount(rl, 'sse:userB') === 1);
 
     // Slot is acquired BEFORE the first events() (UC184): rejected requests pay zero catch-up then 429; they must not start a 2s loop.
-    const afterReject = db.calls('userA');
-    await sleep(2100);
-    const polled = db.calls('userA') - afterReject;
-    A('满额后一个 poll 周期 counting stub(userA) 只 +5（holders），被拒连接不入环', polled === 5);
+    // FIX-G3：条件驱动替代「sleep(2100) 后恰 +5」。基线与终点都在同一同步段内取样
+    // （events 包装器计数与 asPrincipal 计数在同一调用栈内递增），所以两者可精确对拍。
+    const dbBase = db.calls('userA');
+    const pollBase = pollSum('userA');
+    const holderBase = new Map(holderStreams.map((s) => [s, pollByStream.get(`userA|${s}`) ?? 0]));
+    const holderCycles = (s: string) => (pollByStream.get(`userA|${s}`) ?? 0) - (holderBase.get(s) ?? 0);
+    // P2-1 频率下界：选「每 holder ≤3 次」（次数上界，不受机器负载下计时拉长影响）。
+    // 观察窗必须同时满足 ≥2 周期且自 t0 起不少于约 3500ms——若只等 ≥2 就返回，200ms 间隔
+    // 也会在约 400ms 时刚好各 +2，次数上界抓不到退化；3500ms 单独当退出条件又会因相位
+    // （第一条周期可能在 t0 时已到期）在约 2000ms 就凑满 2 周期而误红。两者合用。
+    const FREQ_WINDOW_MS = 3_500;
+    const MAX_CYCLES_IN_WINDOW = 3;
+    const t0 = Date.now();
+    const everyHolderPolledTwice = await waitUntil(
+      () => holderStreams.every((s) => holderCycles(s) >= 2) && Date.now() - t0 >= FREQ_WINDOW_MS,
+      20_000,
+    );
+    const elapsedMs = Date.now() - t0;
+    const dbDelta = db.calls('userA') - dbBase;
+    const pollDelta = pollSum('userA') - pollBase;
+    const holderDelta = holderStreams.reduce((n, s) => n + holderCycles(s), 0);
+    const cycleSummary = holderStreams.map((s) => `${s}=${holderCycles(s)}`).join(',');
+    A(`满额后 5 条 holder 各自完成 ≥2 个 poll 周期（${cycleSummary}）`, everyHolderPolledTwice);
+    A(`counting stub(userA) 增量 = holder 轮询之和（stub +${dbDelta}，holders +${holderDelta}，userA 全部轮询 +${pollDelta}），无未归因轮询`, dbDelta === holderDelta && pollDelta === holderDelta && holderDelta >= 10);
+    A(`每条 holder 在 ≥2 周期且 ≥${FREQ_WINDOW_MS}ms 观察窗结束时轮询 ≤${MAX_CYCLES_IN_WINDOW} 次（节律下界；间隔 200ms 会超；${cycleSummary}，elapsed=${elapsedMs}ms）`, everyHolderPolledTwice && holderStreams.every((s) => holderCycles(s) <= MAX_CYCLES_IN_WINDOW));
+    A('被拒连接（iv/qz/dx-reject）零 catch-up、零轮询，不入环', rejectStreams.every((s) => streamCalls(`userA|${s}`) === 0));
 
     for (const h of userAHolds) await release(h);
-    await sleep(2500);
-    A('userA holders 断开后槽释放为 0', slotCount(rl, 'sse:userA') === 0);
+    // FIX-G3：断开后等待条件（槽归零）而不是固定 sleep(2500)；槽在 pump 返回后的 finally 才释放，
+    // 所以槽 = 0 即表示 userA 的全部轮询循环都已退出。
+    const releasedToZero = await waitUntil(() => slotCount(rl, 'sse:userA') === 0, 10_000);
+    A('userA holders 断开后槽释放为 0', releasedToZero && slotCount(rl, 'sse:userA') === 0);
 
     const afterRelease = db.calls('userA');
     await sleep(2100);

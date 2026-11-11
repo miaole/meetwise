@@ -1705,6 +1705,11 @@ const isolatedReceiptSources = {
       'packages/db/migrations/0080_rag_control_executor_membership_allowlist.sql',
       'packages/db/migrations/0081_rag_control_dispatch_concurrent_replay.sql',
   ],
+  // G1（P0-1）上一版库升级到当前清单：#234 / main@9c9809446 / git 上一版 main 三臂（隔离 PG·各臂独立库）。
+  'migrate-upgrade:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'packages/db/test/migrate-upgrade-previous.proof.ts', 'packages/db/src/migrate.ts',
+    'packages/db/migrations/0230_admin_provision_primitives.sql',
+  ],
   'migrate-cli:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/migrate-cli.proof.ts', 'packages/db/src/migrate-cli.ts', 'packages/db/src/principal.ts',
@@ -2925,6 +2930,8 @@ if (![
   'scor-00:http:prove:raw',
   'online-judge-control:prove:raw', 'qbank-control-role:prove:raw', 'qbank-handoff-closure:prove:raw', 'embed-cache:prove:raw', 'qbank-integrity-upgrade:prove:raw', 'qbank-retrieval-eval:prove:raw',
   'rag-control-role:prove:raw', 'rag-control-upgrade:prove:raw', 'rag-control-dispatch:prove:raw', 'migrate-cli:prove:raw',
+  // G1（P0-1）旧账本 → 当前清单升级证明（空库起·不入 pre-migrate 名单）。
+  'migrate-upgrade:prove:raw',
   // AG-36: checkpoint 基座版本自检 prove 接隔离 PG runner(装库形=proof 内 loadMigrations+runMigrations 全量真实迁移集·非预迁移名单)。
   'checkpoint-schema:prove:raw',
   'recruiter:prove:raw',
@@ -3721,6 +3728,8 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'packages/db', 'prove:rag-control-role']]
   : target === 'rag-control-upgrade:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:rag-control-upgrade']]
+  : target === 'migrate-upgrade:prove:raw'
+    ? ['pnpm', ['-C', 'packages/db', 'prove:migrate-upgrade']]
   : target === 'migrate-cli:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:migrate-cli']]
   : target === 'checkpoint-schema:prove:raw'

@@ -45,7 +45,7 @@ type GateView = Partial<GateInterrupt> & {
   concluded?: boolean;
   pending?: unknown;
   degraded?: { reason?: string } | null;
-  generationProvenance?: { origin?: string; errorCode?: string; invokeError?: string } | null;
+  generationProvenance?: { origin?: string; errorCode?: string; invokeError?: string; duplicateFallback?: string } | null;
   competencyExhaustions?: number;
 };
 const view = (v: unknown): GateView => v as GateView;
@@ -454,6 +454,101 @@ async function main() {
       && out.degraded?.turn === mind.turn
       && out.degraded.reason === 'answer_artifact_unavailable'
       && assessCalls === 0);
+  }
+
+  /* ───── G2(FIX-G2-dup-question-fallback):判重耗尽 → 先换 competency;全部耗尽 → 降级候选,不整场判死 ───── */
+  const dupFailure = (competency: string, withFallback: boolean) => ({
+    ok: false as const,
+    error: 'duplicate_question' as const,
+    provenance: { origin: 'unavailable' as const, errorCode: 'duplicate_question' as const, operationId: 'interview.question-generation.v1', idempotencyKey: `k:${competency}:r2`, reroll: 2 },
+    ...(withFallback ? {
+      duplicateFallback: {
+        question: `请讲讲你在${competency}方面做过的一次关键设计取舍`,
+        sources: [],
+        provenance: { origin: 'model' as const, operationId: 'interview.question-generation.v1', idempotencyKey: `k:${competency}:r2`, reroll: 2, duplicateFallback: 'cross_session_repeat' as const },
+      },
+    } : {}),
+  });
+  // G2-a 判重耗尽后换能力项:首个 competency 判重耗尽(即使带降级候选)→ 优先换下一 competency 真出新题,不采用降级。
+  {
+    const seen: string[] = [];
+    const g2aSaver = new MemorySaver();
+    const g2a = buildAdaptiveInterviewGraph(g2aSaver, {
+      competencies: ['并发', '缓存'], maxTurns: 3,
+      retrieveAndGenerate: async (competency: string) => {
+        seen.push(competency);
+        return competency === '并发'
+          ? dupFailure('并发', true)
+          : { question: '请说明一次缓存雪崩场景下你的布防取舍与验证结果', sources: [] };
+      },
+      assess: async () => ({ score: 88, evidence: ['ok'], relevant: true }),
+      loadAnswer: createEphemeralAnswerVault().loadAnswer,
+    });
+    const g2aCfg = proofCfg('g2-dup-switch');
+    const r = view(await g2a.invoke({}, g2aCfg));
+    A('G2-a 判重耗尽 → 换下一 competency 出新题(interrupt 在场·concluded 未置·题属缓存)',
+      !!r.__interrupt__ && r.concluded !== true
+      && r.__interrupt__[0].value.competency === '缓存'
+      && r.__interrupt__[0].value.question.includes('缓存雪崩'));
+    A('G2-a 降级候选未被采用(换序优先):seam 依序调用 并发→缓存·provenance 无 duplicateFallback',
+      JSON.stringify(seen) === JSON.stringify(['并发', '缓存'])
+      && r.generationProvenance?.duplicateFallback === undefined);
+    A('G2-a 换序轨迹落 checkpoint:question_competency_exhausted + duplicate_question 收据',
+      await checkpointContains(g2aSaver, g2aCfg, 'question_competency_exhausted')
+      && await checkpointContains(g2aSaver, g2aCfg, 'duplicate_question'));
+  }
+  // G2-b 全部耗尽后降级:三 competency 连续判重耗尽(换序帽 2 满)→ 采用末位 seam 随附的降级候选出面,不判死。
+  {
+    let calls = 0;
+    const g2b = buildAdaptiveInterviewGraph(new MemorySaver(), {
+      competencies: ['并发', '缓存', '网络'], maxTurns: 3,
+      retrieveAndGenerate: async (competency: string) => { calls += 1; return dupFailure(competency, true); },
+      assess: async () => ({ score: 88, evidence: ['ok'], relevant: true }),
+      loadAnswer: createEphemeralAnswerVault().loadAnswer,
+    });
+    const r = view(await g2b.invoke({}, proofCfg('g2-dup-degrade')));
+    A('G2-b 全耗尽 → 降级出题:interrupt 在场·concluded 未置·题=末位候选(网络)·恰 3 次 seam 调用',
+      !!r.__interrupt__ && r.concluded !== true && calls === 3
+      && r.__interrupt__[0].value.competency === '网络'
+      && r.__interrupt__[0].value.question === '请讲讲你在网络方面做过的一次关键设计取舍');
+    A('G2-b 降级可审计:provenance origin=model·duplicateFallback=cross_session_repeat·exhaustions 归零',
+      r.generationProvenance?.origin === 'model'
+      && r.generationProvenance?.duplicateFallback === 'cross_session_repeat'
+      && r.competencyExhaustions === 0 && r.degraded === null);
+  }
+  // G2-c 无降级候选(seam 连模板都过不了本场闸)→ 既有 failClosed 原样(reason/provenance 字节不变)。
+  {
+    const g2c = buildAdaptiveInterviewGraph(new MemorySaver(), {
+      competencies: ['并发'], maxTurns: 3,
+      retrieveAndGenerate: async () => dupFailure('并发', false),
+      assess: async () => ({ score: 88, evidence: ['ok'], relevant: true }),
+      loadAnswer: createEphemeralAnswerVault().loadAnswer,
+    });
+    const r = view(await g2c.invoke({}, proofCfg('g2-dup-no-fallback')));
+    A('G2-c 无候选 → failClosed 原样:concluded·degraded=generation_duplicate_question·provenance unavailable',
+      !r.__interrupt__ && r.concluded === true && r.pending == null
+      && r.degraded?.reason === 'generation_duplicate_question'
+      && r.generationProvenance?.origin === 'unavailable'
+      && r.generationProvenance?.errorCode === 'duplicate_question');
+  }
+  // G2-d 降级候选仍过图级本场 critique 终闸:候选与本场已问重复/诱导 → 不采用,帽满 failClosed(批判门零弱化)。
+  {
+    const g2d = buildAdaptiveInterviewGraph(new MemorySaver(), {
+      competencies: ['并发'], maxTurns: 3,
+      retrieveAndGenerate: async () => ({
+        ...dupFailure('并发', false),
+        duplicateFallback: {
+          question: '并发不就是显然就是加锁', sources: [],
+          provenance: { origin: 'model' as const, duplicateFallback: 'cross_session_repeat' as const },
+        },
+      }),
+      assess: async () => ({ score: 88, evidence: ['ok'], relevant: true }),
+      loadAnswer: createEphemeralAnswerVault().loadAnswer,
+    });
+    const r = view(await g2d.invoke({}, proofCfg('g2-dup-fallback-critique')));
+    A('G2-d 坏降级候选被图级批判门拒 → failClosed(generation_business_invalid)·不出面',
+      !r.__interrupt__ && r.concluded === true && r.pending == null
+      && r.degraded?.reason === 'generation_business_invalid');
   }
 
   console.log(`\n${fail === 0 ? '✓ 自适应 agent 图(脑子接身体:动态决策驱动一场真面试)全部通过' : '✗ ' + fail + ' 失败'}`);
