@@ -265,7 +265,13 @@ function installReleaseCleanup(client: RawPoolClient): CheckpointClientHandle {
     if (!handleOpen) throw staleHandleError();
   };
 
+  // An async function that returns the handle will look up .then to see if the
+  // value is thenable. That lookup must not throw and must not be thenable.
+  const isThenableProbe = (prop: string | symbol): boolean =>
+    prop === 'then' || prop === 'catch' || prop === 'finally';
+
   const guardedGet = (prop: string | symbol): unknown => {
+    if (isThenableProbe(prop)) return undefined;
     assertOpen();
     if (isHandleKey(prop)) return methods[prop];
     throw staleHandleError();
@@ -276,6 +282,7 @@ function installReleaseCleanup(client: RawPoolClient): CheckpointClientHandle {
       return guardedGet(prop);
     },
     getOwnPropertyDescriptor(_target, prop) {
+      if (isThenableProbe(prop)) return undefined;
       assertOpen();
       if (!isHandleKey(prop)) return undefined;
       return { value: methods[prop], writable: false, enumerable: true, configurable: false };
@@ -285,6 +292,7 @@ function installReleaseCleanup(client: RawPoolClient): CheckpointClientHandle {
       return [...HANDLE_KEYS];
     },
     has(_target, prop) {
+      if (isThenableProbe(prop)) return false;
       assertOpen();
       return isHandleKey(prop);
     },
