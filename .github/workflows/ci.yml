@@ -56,7 +56,7 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # 文档门禁：必需文件 + 关键术语 + ci-cd.md §8.2 步骤台账一致性门（ci.yml / nightly-ciw2 / verify:local 三处双向对账）
+      # 文档门禁：必需文件 + 关键术语 + ci-cd.md §8.2 步骤台账一致性门（含 env / if / continue-on-error / 非 pnpm 命令，ci.yml / nightly-ciw2 / verify:local 三处双向对账）
       - run: pnpm docs:check
 
       # PR243 复审补回（2026-11-11 用户拍板「PR 上加约 8 秒静态检查」）：E2E 静态守卫 12 条 + 隐私删除预览 503 无库 pin 2 条。

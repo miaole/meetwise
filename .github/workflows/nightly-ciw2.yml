@@ -14,7 +14,7 @@ permissions:
 jobs:
   prove-placement:
     runs-on: ubuntu-latest
-    # PR243 复审：显式上限（默认 360 分钟）。原 13 步 + 复审补入 13 条隔离 prove，预计 25–35 分钟，留余量。
+    # PR243 复审：显式上限（默认 360 分钟）。原 13 步 + 复审补入 13 条隔离 prove，实测约 7 分钟（2026-11-11 run 42981810539，约 6m56s），timeout 60 留余量。
     timeout-minutes: 60
     env:
       DATABASE_URL: postgresql://meetwise:meetwise_dev_password@localhost:54329/meetwise
@@ -99,8 +99,12 @@ jobs:
         if: ${{ !cancelled() }}
         run: pnpm neg:resume
       - name: 负路径·认证/会话域（停用后令牌即时失效 / 再登录拒 / 防枚举）
+        # 前序步骤红也照跑（只在手动取消时跳过），避免容器构建等抖动把本门当晚跳过。
+        if: ${{ !cancelled() }}
         run: pnpm neg:auth
       - name: 权限 / RLS 低权账号门（DB ACL · checkpoint · 题库控制面 · RAG 控制面 · 迁移 CLI post-flight）
+        # 前序步骤红也照跑（只在手动取消时跳过），避免容器构建等抖动把本门当晚跳过。
+        if: ${{ !cancelled() }}
         run: |
           pnpm db-acl2:prove
           pnpm checkpoint-role:prove
@@ -108,9 +112,13 @@ jobs:
           pnpm rag-control-role:prove
           pnpm migrate-cli:prove
       - name: 迁移升级类（题库完整性升级 · RAG 0032 前缀升级 · DBHY-1 卫生刀）
+        # 前序步骤红也照跑（只在手动取消时跳过），避免容器构建等抖动把本门当晚跳过。
+        if: ${{ !cancelled() }}
         run: |
           pnpm dbhy1:prove
           pnpm qbank-integrity-upgrade:prove
           pnpm rag-control-upgrade:prove
       - name: 运行内核（CAS / 租约 / 幂等 / 可恢复 / 迟到成功）
+        # 前序步骤红也照跑（只在手动取消时跳过），避免容器构建等抖动把本门当晚跳过。
+        if: ${{ !cancelled() }}
         run: pnpm runtime:isolated:prove
