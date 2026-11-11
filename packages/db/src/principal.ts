@@ -70,6 +70,17 @@ function joinMwAdminTablePrivileges(privileges: readonly string[]): string {
   return privileges.join(', ');
 }
 
+/**
+ * 0229 `mw_admin_revoke_exec_all` 的 grantee 走未加引号的 format `%s`（已应用迁移
+ * 字节绝不能改）。调用方必须先拦：只放行 `PUBLIC` 或 `RUNTIME_ROLE_NAME`（小写标识符），
+ * 否则 fail-closed。含大写的合法 PG 角色名（如 `AppRole`）同样被拒——`RUNTIME_ROLE_NAME`
+ * 只允许小写，且 0229 未引号也无法安全传入；若将来要支持，必须另开迁移把该 `%s` 改成 `%I`。
+ */
+export function assertMwAdminRevokeExecAllGrantee(roleName: string): string {
+  if (roleName === 'PUBLIC' || RUNTIME_ROLE_NAME.test(roleName)) return roleName;
+  throw new Error(`mw_admin_revoke_exec_all_grantee_not_allowlisted:${roleName}`);
+}
+
 export const QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST = [
   // Generation/artifact/taxonomy guards (0086/0087/0089 sealed anchors).  All
   // SECURITY DEFINER writers pin `public, pg_temp`; the pure invoker helpers pin
@@ -432,7 +443,7 @@ export async function provisionQbankControlDefiner(pool: DbPool): Promise<void> 
           [fn.signature],
         );
         for (const { role_name: roleName } of executableGrantees.rows) {
-          await c.query('SELECT mw_admin_revoke_exec_all($1, $2)', [fn.signature, roleName]);
+          await c.query('SELECT mw_admin_revoke_exec_all($1, $2)', [fn.signature, assertMwAdminRevokeExecAllGrantee(roleName)]);
         }
         for (const [roleName, allowed] of [
           ['app_role', fn.allowAppRoleExecute],
