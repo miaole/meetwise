@@ -9,8 +9,8 @@ import { VOICE_EGRESS_DISABLED_ID, type Asr, type StreamingTts, type Tts } from 
 import { asErr, rememberIssuedQuestionTranscript } from '@meetwise/db';
 import { VOICE_MAX_AUDIO_BYTES, type TranscribeDto } from '@meetwise/contracts';
 
-// #70 单源化（5E 2026-10-12）：上限值改引 contracts VOICE_MAX_AUDIO_BYTES（10MB 语义单源·契约 base64
-// 上限由同源派生；全局 bodyLimit=共享传输信封非语音上限，见 contracts 单源头注与 apps/api/src/main.ts）。
+// #70 单源化：上限值改引 contracts VOICE_MAX_AUDIO_BYTES（10MB 语义单源·契约 base64 上限由同源派生并留余量，
+// 使本检查可达；上传路由传输信封=UPLOAD_BODY_LIMIT_BYTES，见 contracts 与 apps/api/src/main.ts）。
 const MAX_AUDIO_BYTES = VOICE_MAX_AUDIO_BYTES;
 
 /** MIME → DashScope 可识别的 format 字符串(MediaRecorder 常出 audio/webm;codecs=opus / audio/mp4)。 */
