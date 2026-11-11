@@ -97,7 +97,7 @@ SLO 围绕**目标校准的三件事**设,不是堆"99.9% uptime"。
 | **模型确定性拒绝/越界** | router 便宜模型前置拦 → 直接拒,**不重试**(重试确定性错误是浪费且危险) | 无需恢复;事件记 `route_decided=reject` | reject 率、安全 golden 命中 |
 | **模型产出幻觉简历事实** | 业务校验(factuality 歪曲门)拦截 → 要求重生成或降级,**不入库** | 重生成;`ai_invocation_trace` 留证 | 业务校验失败率 |
 | **DB 不可用** | 请求 fail-closed 报错,**绝不旁路写**(无 RLS 即拒,见原语①) | DB 恢复后:无脏写可清;事件账本完好 | DB 探针、错误率 |
-| **Redis 不可用**（限流/AI 前闸/锁） | AI 前闸 **fail-closed**(宁可拒新调用也不放过量打爆模型/超预算) | Redis 恢复即自愈;无业务状态在 Redis | Redis 探针、前闸拒绝率 |
+| **Redis 不可用**（RAG 热缓存 / 嵌入缓存 / 单飞锁；不含限流或模型准入） | 热缓存缺失时按 RAG 局部降级（不得把结果改缓存到 PostgreSQL）。限流走 `RateLimitService` / PG 共享桶表，模型并发与熔断准入走迁移 `0120` 共享权威，**都不依赖 Redis**。Redis 限流未接线。 | Redis 恢复后缓存与锁自愈；无扣费 / 授权 / 队列真相在 Redis | Redis 探针、RAG 缓存未命中 / 降级率 |
 | **checkpoint 续跑失败/损坏** | 显式报错 + 停在持久 `waiting_user`,**不伪造进度** | 从 `interview_event` 账本重放重建运行态(账本是真相) | §3 checkpoint SLO 告警 |
 | **worker 崩溃/裂脑** | lease 持有者崩溃 → 租约**到期可被另一 worker 抢占**;CAS 保证只有一个推进 | 自动:lease 过期 + `threadId` 恢复 | lease 抢占率、stuck 运行 |
 | **结算回调丢失/乱序** | outbox + `settlement_proposed` 事件,落账走对账 sweeper 兜底 | sweeper 周期补偿;坏账走 refund-uncollectible | §3 结算滞留 SLO |

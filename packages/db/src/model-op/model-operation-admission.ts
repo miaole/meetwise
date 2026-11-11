@@ -106,3 +106,22 @@ export async function recordModelAdmission(c: Client, input: ModelAdmissionRecor
     ],
   );
 }
+
+/**
+ * G5 N-14：只读断路器探查（迁移 0231）。供 invoke 在 durable claim 之前做纯路由选择
+ * （主端点熔断时改选预绑定备端点）。不占槽、不拿探针、不改相位；判定口径与 0120 acquire
+ * 的断路器入场一致。准入拒绝仍由 acquire 给出原错误码。
+ */
+export type ModelAdmissionBreakerPeek = 'available' | 'breaker_open' | 'breaker_half_open_busy';
+
+export async function peekModelAdmissionBreaker(
+  c: Client, owner: string, partition: ModelAdmissionPartition,
+): Promise<ModelAdmissionBreakerPeek> {
+  const r = await c.query(
+    `SELECT ai_model_admission_breaker_peek_scoped($1,$2,$3,$4,$5) AS state`,
+    [owner, partition.providerAccount, partition.region, partition.modelOrRecipe, partition.operationId],
+  );
+  const state = String(r.rows[0]?.state ?? '');
+  if (state === 'breaker_open' || state === 'breaker_half_open_busy' || state === 'available') return state;
+  throw new Error('ai_model_admission_peek_no_decision');
+}
