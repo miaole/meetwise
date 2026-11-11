@@ -1,13 +1,19 @@
 /**
  * Bounded local child-process execution for the isolation runner.
  *
- * This module deliberately returns only a small stdout buffer.  Callers must
+ * This module returns only a small stdout buffer on success. Callers must
  * not put captured stderr/stdout in receipts or thrown errors: a failed test
- * may have printed a fixture, endpoint, token or user content.
+ * may have printed a fixture, endpoint, token or user content. On failure the
+ * helper prints a bounded stderr tail to the operator sink so the exit is
+ * diagnosable; the Error itself stays a fixed code.
  */
 import { spawn } from 'node:child_process';
 
 const DEFAULT_MAX_OUTPUT_BYTES = 128 * 1024;
+const DEFAULT_STDERR_TAIL_BYTES = 8 * 1024;
+
+/** Shared compose files whose named data volumes the isolated runner must never `down -v`. */
+export const PROTECTED_NAMED_VOLUME_COMPOSE = Object.freeze(['docker/compose.mysql-local.yml']);
 
 export class BoundedCommandError extends Error {
   constructor(code) {
@@ -15,6 +21,46 @@ export class BoundedCommandError extends Error {
     this.name = 'BoundedCommandError';
     this.code = code;
   }
+}
+
+/**
+ * Keep only the trailing bytes of untrusted child stderr for a failure tail.
+ */
+export function appendStderrTail(current, chunk, maxBytes = DEFAULT_STDERR_TAIL_BYTES) {
+  if (!Number.isInteger(maxBytes) || maxBytes <= 0) throw new BoundedCommandError('bounded_command_stderr_tail_limit_invalid');
+  const next = `${current ?? ''}${chunk == null ? '' : chunk.toString('utf8')}`;
+  return next.length <= maxBytes ? next : next.slice(next.length - maxBytes);
+}
+
+/**
+ * Print a bounded stderr tail on failure. Never attach the tail to thrown errors
+ * or receipts. `sink` is injectable so proves can capture the text.
+ */
+export function writeFailureStderrTail(tail, { exitCode, command } = {}, sink = process.stderr) {
+  const text = String(tail ?? '');
+  if (!text) return;
+  const bytes = Buffer.byteLength(text);
+  const write = typeof sink?.write === 'function' ? (chunk) => sink.write(chunk) : (chunk) => process.stderr.write(chunk);
+  write(`ISOLATED_CHILD_STDERR_TAIL exit=${exitCode ?? 'unknown'} command=${command ?? 'child'} bytes=${bytes}\n`);
+  write(text);
+  if (!text.endsWith('\n')) write('\n');
+  write('ISOLATED_CHILD_STDERR_TAIL_END\n');
+}
+
+/**
+ * `docker rm` args for disposable isolated-runner containers.
+ * `-v` removes anonymous volumes attached to those containers only.
+ * Named volumes (including compose.mysql-local data volumes) are not deleted.
+ */
+export function disposableDockerRmArgs(names) {
+  const list = Array.isArray(names) ? names : [names];
+  if (list.length === 0) throw new BoundedCommandError('disposable_docker_rm_names_missing');
+  for (const name of list) {
+    if (typeof name !== 'string' || !name.trim() || name.startsWith('-') || /\s/.test(name)) {
+      throw new BoundedCommandError('disposable_docker_rm_name_invalid');
+    }
+  }
+  return ['rm', '-f', '-v', ...list];
 }
 
 function terminateProcessGroup(child, signal) {
@@ -39,6 +85,7 @@ export function captureBounded(command, args, {
   env,
   timeoutMs,
   maxOutputBytes = DEFAULT_MAX_OUTPUT_BYTES,
+  stderrSink = process.stderr,
 } = {}) {
   if (!Number.isInteger(timeoutMs) || timeoutMs <= 0) throw new BoundedCommandError('bounded_command_timeout_invalid');
   if (!Number.isInteger(maxOutputBytes) || maxOutputBytes <= 0) throw new BoundedCommandError('bounded_command_output_limit_invalid');
@@ -60,8 +107,13 @@ export function captureBounded(command, args, {
 
     let stdout = '';
     let stdoutBytes = 0;
+    let stderrTail = '';
     let settled = false;
     let timedOut = false;
+    const argvLabel = [command, ...(Array.isArray(args) ? args : [])].join(' ');
+    const emitFailureTail = (exitCode) => {
+      writeFailureStderrTail(stderrTail, { exitCode, command: argvLabel }, stderrSink);
+    };
     const settle = (outcome) => {
       if (settled) return;
       settled = true;
@@ -83,14 +135,23 @@ export function captureBounded(command, args, {
       stdoutBytes += chunk.length;
       if (stdoutBytes <= maxOutputBytes) stdout += chunk.toString('utf8');
     });
-    // Drain stderr so a noisy child cannot block. It is intentionally never
-    // retained, printed or returned by this low-level helper.
-    child.stderr.on('data', () => {});
+    // Drain stderr so a noisy child cannot block. Keep only a bounded tail
+    // and print it on failure; never return it from this helper or attach it
+    // to BoundedCommandError (receipts stay free of raw child output).
+    child.stderr.on('data', (chunk) => {
+      stderrTail = appendStderrTail(stderrTail, chunk);
+    });
     child.once('error', () => settle(new BoundedCommandError('bounded_command_spawn_failed')));
     child.once('close', (code) => {
-      if (timedOut) return settle(new BoundedCommandError('bounded_command_timeout'));
+      if (timedOut) {
+        emitFailureTail('bounded_command_timeout');
+        return settle(new BoundedCommandError('bounded_command_timeout'));
+      }
       if (stdoutBytes > maxOutputBytes) return settle(new BoundedCommandError('bounded_command_output_exceeded'));
-      if (code !== 0) return settle(new BoundedCommandError('bounded_command_exit_nonzero'));
+      if (code !== 0) {
+        emitFailureTail(code);
+        return settle(new BoundedCommandError('bounded_command_exit_nonzero'));
+      }
       settle(stdout.trim());
     });
   });

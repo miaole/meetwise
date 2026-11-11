@@ -338,6 +338,32 @@ const checks = {
       rmSync(fixture, { recursive: true, force: true });
     }
   },
+  'TC-TEST-GUARD-020-bounded-stderr-contract': () => {
+    const sources = currentSources();
+    sources['scripts/bounded-command.mjs'] = sources['scripts/bounded-command.mjs']
+      .replace('export function writeFailureStderrTail', 'function writeFailureStderrTailHidden');
+    expectError(evaluateE2eStaticGuards({ sources }), 'bounded_command_stderr_contract_missing:scripts/bounded-command.mjs');
+  },
+  'TC-TEST-GUARD-021-isolated-stderr-swallowed': () => {
+    const sources = currentSources();
+    sources['scripts/run-e2e-isolated.mjs'] = sources['scripts/run-e2e-isolated.mjs']
+      .replace(
+        "child.stderr.on('data', (chunk) => { stderrTail = appendStderrTail(stderrTail, chunk); });",
+        "child.stderr.on('data', () => {});",
+      );
+    expectError(evaluateE2eStaticGuards({ sources }), 'isolated_runner_stderr_swallowed:scripts/run-e2e-isolated.mjs');
+  },
+  'TC-TEST-GUARD-022-isolated-docker-rm-missing-v': () => {
+    const sources = currentSources();
+    sources['scripts/run-e2e-isolated.mjs'] = sources['scripts/run-e2e-isolated.mjs']
+      .replace("['rm', '-f', '-v',", "['rm', '-f',");
+    expectError(evaluateE2eStaticGuards({ sources }), 'isolated_runner_docker_rm_missing_v:scripts/run-e2e-isolated.mjs');
+  },
+  'TC-TEST-GUARD-023-isolated-named-volume-compose-down': () => {
+    const sources = currentSources();
+    sources['scripts/run-e2e-isolated.mjs'] += "\n// planted: docker compose -f docker/compose.mysql-local.yml down -v\n";
+    expectError(evaluateE2eStaticGuards({ sources }), 'isolated_runner_named_volume_compose_down:scripts/run-e2e-isolated.mjs');
+  },
 };
 
 for (const [id, check] of Object.entries(checks)) {

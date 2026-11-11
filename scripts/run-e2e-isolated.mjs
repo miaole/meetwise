@@ -48,7 +48,7 @@ import {
   parseE2EFailureLine,
   tagE2EFailure,
 } from '../e2e/helpers/failure-class.mjs';
-import { captureBounded } from './bounded-command.mjs';
+import { captureBounded, appendStderrTail, disposableDockerRmArgs, writeFailureStderrTail } from './bounded-command.mjs';
 import { assertNoFakeServiceFlags } from './e2e-fake-service-flags.mjs';
 import { writeLocalE2EReceipt, writeLocalIsolatedReceipt } from './local-e2e-receipt.mjs';
 import { withheldOutputSummary } from './withheld-output.mjs';
@@ -3185,7 +3185,7 @@ writeFileSync(CAPS_PATH, JSON.stringify({
 }, null, 2) + '\\n');
 console.log('UC001_CAPS written enforced=' + enforced + ' api NanoCpus=' + apiHost.NanoCpus + ' Memory=' + apiHost.Memory);
 const start = spawnSync('docker', ['start', '-a', API_NAME], { cwd: ROOT, stdio: 'inherit' });
-spawnSync('docker', ['rm', '-f', API_NAME], { stdio: 'ignore' });
+spawnSync('docker', ['rm', '-f', '-v', API_NAME], { stdio: 'ignore' });
 process.exit(start.status ?? 1);
 `;
 
@@ -3235,7 +3235,7 @@ function containerLogs(name) {
 function fail(blocker, extra) {
   writeFileSync(CAPS_PATH, JSON.stringify({ enforced: false, blocker, ...(extra ?? {}) }, null, 2) + '\\n');
   console.error('UC001WEB_CAPS fail blocker=' + blocker);
-  spawnSync('docker', ['rm', '-f', API_NAME, WEB_NAME], { stdio: 'ignore' });
+  spawnSync('docker', ['rm', '-f', '-v', API_NAME, WEB_NAME], { stdio: 'ignore' });
   process.exit(1);
 }
 const pgContainer = process.env.E2E_TEST_CONTAINER;
@@ -3345,7 +3345,7 @@ const proof = spawnSync('pnpm', ['-C', 'apps/web', 'prove:nhp-perf-web'], {
   env: { ...process.env, PERF_WEB_WEB_BASE: 'http://127.0.0.1:' + webPub, PERF_WEB_API_BASE: 'http://127.0.0.1:' + apiPub },
   stdio: 'inherit',
 });
-spawnSync('docker', ['rm', '-f', API_NAME, WEB_NAME], { stdio: 'ignore' });
+spawnSync('docker', ['rm', '-f', '-v', API_NAME, WEB_NAME], { stdio: 'ignore' });
 process.exit(proof.status ?? 1);
 `;
 
@@ -3428,7 +3428,7 @@ writeFileSync(CAPS_PATH, JSON.stringify({
 }, null, 2) + '\\n');
 console.log('${ucId.toUpperCase()}_CAPS written enforced=' + enforced + ' api NanoCpus=' + apiHost.NanoCpus + ' Memory=' + apiHost.Memory);
 const start = spawnSync('docker', ['start', '-a', API_NAME], { cwd: ROOT, stdio: 'inherit' });
-spawnSync('docker', ['rm', '-f', API_NAME], { stdio: 'ignore' });
+spawnSync('docker', ['rm', '-f', '-v', API_NAME], { stdio: 'ignore' });
 process.exit(start.status ?? 1);
 `;
 const UC011_PERF_API_CAPS_CHILD = PERF_API_CAPS_CHILD_SRC('uc011', 'test/uc-e2e-011-nhp-perf-api.proof.ts');
@@ -4207,13 +4207,17 @@ function runQbankRetrievalEvalProof(command, args, env = baseEnv) {
 function runFullE2E(command, args, env = baseEnv) {
   return new Promise((resolve, reject) => {
     let stdout = '';
+    let stderrTail = '';
     const child = spawn(command, args, { cwd: ROOT, env, stdio: ['ignore', 'pipe', 'pipe'] });
     child.stdout.on('data', (chunk) => { stdout += chunk; });
-    // stderr（标准错误）永不转存或回显；错误结果只由退出码和安全回执表达。
-    child.stderr.on('data', () => {});
+    // Keep a bounded stderr tail in memory only. On failure print it so the
+    // operator can see why the child died; never persist the tail in receipts.
+    child.stderr.on('data', (chunk) => { stderrTail = appendStderrTail(stderrTail, chunk); });
     child.on('error', reject);
     child.on('exit', (code) => {
-      const judged = evaluateIsolatedHttpE2E({ exitCode: code ?? 1, stdout });
+      const exitCode = code ?? 1;
+      if (exitCode !== 0) writeFailureStderrTail(stderrTail, { exitCode, command: [command, ...args].join(' ') });
+      const judged = evaluateIsolatedHttpE2E({ exitCode, stdout });
       if (judged.reject) return reject(tagE2EFailure(judged.reject.class, judged.reject.code));
       if (judged.accept) {
         console.log(`E2E_FINAL_SUMMARY assertions=${judged.assertionCount}`);
@@ -4550,7 +4554,7 @@ async function main() {
     throw error;
   } finally {
     if (created && failed) await emitFailureDiagnostic();
-    if (created) await capture('docker', ['rm', '-f', container]).catch(() => {});
+    if (created) await capture('docker', disposableDockerRmArgs([container])).catch(() => {});
     if (target === 'e2e:prove') {
       try {
         const g7Base = loadG7ReceiptFromLedger(process.env);

@@ -310,8 +310,18 @@ function scanSecretRedaction({ readSource, helperPaths }, errors) {
       && (file.source.split(RECEIPT_DATA_HANDLING).length - 1) < 2) {
       addError(errors, 'receipt_data_handling_missing', helperPath);
     }
-    if (helperPath === 'scripts/bounded-command.mjs' && !/stderr\.on\('data',\s*\(\)\s*=>\s*\{\}\)/.test(file.source)) {
-      addError(errors, 'bounded_command_stderr_retained', helperPath);
+    if (helperPath === 'scripts/bounded-command.mjs') {
+      const src = file.source;
+      const hasTailHelpers = /export function appendStderrTail\s*\(/.test(src)
+        && /export function writeFailureStderrTail\s*\(/.test(src)
+        && /constructor\s*\(\s*code\s*\)/.test(src)
+        && /writeFailureStderrTail\(stderrTail/.test(src)
+        && /export function disposableDockerRmArgs\s*\(/.test(src)
+        && /\['rm',\s*'-f',\s*'-v'/.test(src);
+      const errorCarriesStderr = /super\([^)]*stderr|this\.message\s*=[\s\S]{0,80}stderr/.test(src);
+      if (!hasTailHelpers || errorCarriesStderr) {
+        addError(errors, 'bounded_command_stderr_contract_missing', helperPath);
+      }
     }
     for (const { rule, pattern } of CREDENTIAL_RULES) {
       const global = new RegExp(pattern.source, pattern.flags.includes('g') ? pattern.flags : `${pattern.flags}g`);
@@ -434,6 +444,26 @@ function parseImportSpecifiers(block) {
     .filter((name) => /^[A-Za-z_$][\w$]*$/.test(name));
 }
 
+
+function scanIsolatedRunnerHygiene({ readSource }, errors) {
+  const file = readSource('scripts/run-e2e-isolated.mjs');
+  if (!file) return;
+  const src = file.source;
+  if (/child\.stderr\.on\('data',\s*\(\)\s*=>\s*\{\}\)/.test(src)) {
+    addError(errors, 'isolated_runner_stderr_swallowed', 'scripts/run-e2e-isolated.mjs');
+  }
+  if (!/writeFailureStderrTail\(/.test(src) || !/appendStderrTail\(/.test(src)) {
+    addError(errors, 'isolated_runner_stderr_tail_missing', 'scripts/run-e2e-isolated.mjs');
+  }
+  if (/\[\s*'rm'\s*,\s*'-f'\s*,(?!\s*'-v')/.test(src) || !/disposableDockerRmArgs\(/.test(src)) {
+    addError(errors, 'isolated_runner_docker_rm_missing_v', 'scripts/run-e2e-isolated.mjs');
+  }
+  // Shared mysql-local named data volumes must not be destroyed by this runner.
+  if (/compose(?:\.mysql-local)?[\s\S]{0,240}down[^\n]{0,80}-v|down\s+-v[\s\S]{0,240}mysql-local/.test(src)) {
+    addError(errors, 'isolated_runner_named_volume_compose_down', 'scripts/run-e2e-isolated.mjs');
+  }
+}
+
 export function evaluateE2eStaticGuards({ sources } = {}) {
   const errors = [];
   if (!isObject(sources)) {
@@ -464,6 +494,7 @@ export function evaluateE2eStaticGuards({ sources } = {}) {
   }, errors);
   scanUnverifiedAiPathGuards({ readSource }, errors);
   scanFailureHelperImports({ readSource }, errors);
+  scanIsolatedRunnerHygiene({ readSource }, errors);
   return { valid: errors.length === 0, errors: [...errors].sort(), releaseEvidence: false };
 }
 
@@ -486,6 +517,7 @@ export function scanE2eStaticGuards({ repoRoot } = {}) {
   scanSecretRedaction({ readSource, helperPaths }, errors);
   scanUnverifiedAiPathGuards({ readSource }, errors);
   scanFailureHelperImports({ readSource }, errors);
+  scanIsolatedRunnerHygiene({ readSource }, errors);
   return {
     valid: errors.length === 0,
     errors: [...errors].sort(),

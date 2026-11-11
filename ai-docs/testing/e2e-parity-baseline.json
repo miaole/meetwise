@@ -4,7 +4,7 @@
   "scope": "e2e/ test+assertion parity plus agreed critical prove scripts",
   "floors": {
     "testCount": 53,
-    "assertionCount": 472
+    "assertionCount": 497
   },
   "files": {
     "e2e/full.e2e.ts": {
@@ -2338,7 +2338,7 @@
     },
     "scripts/bounded-command.proof.mjs": {
       "testCount": 1,
-      "assertionCount": 8,
+      "assertionCount": 33,
       "tests": [
         {
           "kind": "implicit-suite",
@@ -2386,6 +2386,131 @@
           "kind": "expectCode",
           "label": "bounded_command_timeout",
           "conditionDigest": "sha256:8e8e54d44c8833253700e77c30ad7194d969bd074ec5b06eb5e5b38eccede82f"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "docker rm -fv must leave no new anonymous volume",
+          "conditionDigest": "sha256:72e3c320b0949a2e610dc8c67d7bff9dfddb06fdba0b2bf03320b74ea0ae950d"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "rm args are docker rm -f -v plus container names",
+          "conditionDigest": "sha256:450884f02b4d7cda3f2591e11361bd99bdcabcb628bf34cf79a17ec3ab5f5340"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:4838ca8baf0d5a5fc94d23f49e319a50866db62bfb817b147e4a12b7349ecc85"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "container with anonymous volume must start",
+          "conditionDigest": "sha256:58aa7fc68126e4ce9e3369a87781e503d1df947ae5617f21f53fecefc216a150"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "docker rm -fv must succeed",
+          "conditionDigest": "sha256:24becad554f5f6cc280a115f029c355dcc7f7dd459e9965015eb4c4c4ec304e9"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "docker volume ls must succeed",
+          "conditionDigest": "sha256:19fb95b27676d598550aa15c94c4452e3571ab38914f497b27392c2967277f39"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "error must not carry child stderr",
+          "conditionDigest": "sha256:ad932cb73e3831354c6072a32b91f1adeedb4e01a2731e76f9550c24757484d3"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "error text must omit stderr tail",
+          "conditionDigest": "sha256:88d46699f7f6021fdcbbf9009d9c885afb08e3cd2ab742b7851aefa979e88a4f"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "failing child must reject",
+          "conditionDigest": "sha256:0bc8e309c59a88e40b1d5cb249a45cdfc4c58eeb49073be452a2e142c8c173a9"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "failure error code stays fixed",
+          "conditionDigest": "sha256:0f24c1a5408d987d550ead5a9c441bab0eae0a9deb9875d2d6896e348e58240b"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "failure stays BoundedCommandError",
+          "conditionDigest": "sha256:60e6ff92cf328b146faadbd7ba181e7fb1a0e0a102ac3e57b97035b08ad8e629"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "mysql-local named volumes stay protected",
+          "conditionDigest": "sha256:5d8342d53be4b34218a1a48cf178a6916e594fd61cc0336acdf2fd0069be4a7b"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "named data volume must survive docker rm -fv",
+          "conditionDigest": "sha256:0272fa90be7758d764a6fe14a80dc0bd016a8d53e4aac8f6828ae0cd0ab1ee5d"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "named volume create must succeed",
+          "conditionDigest": "sha256:408a474c6f4f6b47ff47a9ec66a7bf7a73e3c190c7398427c4accd5b5e3c67c2"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "ready-quiet",
+          "conditionDigest": "sha256:008f0747f4e27c8462baa991a538025bcc2dd143e78422f1afbdfcd9e757a20f"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "run-e2e-isolated must not swallow stderr",
+          "conditionDigest": "sha256:65adb89afaa2f380bfbec8a0393af95c10e5c3d96f0cf6078aa1eefeaeea38ad"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "runner must not compose down -v mysql-local named volumes",
+          "conditionDigest": "sha256:21d4f4e9664425741ab1c15d48fc751e19c88552517362f88458d5bfd09dd5f4"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "stderr tail keeps only the trailing bytes",
+          "conditionDigest": "sha256:4f5d4768af354ee1c17da9c6087cf21e4e34d2d7ab3ed94f7286a38a21e47226"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "success must not print stderr tail",
+          "conditionDigest": "sha256:cfd986143643fb23499d9d3a4de68819dcc670d516bd93e407fd086f7d4d4e84"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "volume prove requires docker",
+          "conditionDigest": "sha256:777088bcdd31cf5255170ae3b62c1dd945c423174482f6e9d8145f9eedec783e"
+        },
+        {
+          "kind": "assert.match",
+          "label": "failure must print child stderr tail",
+          "conditionDigest": "sha256:cdbddc8ac3604ecd12f2aa49d78bd9411454c7b8cc172f47abb5d66da94afe4b"
+        },
+        {
+          "kind": "assert.match",
+          "label": "failure tail uses the isolated marker",
+          "conditionDigest": "sha256:97562083ca1da942828cd357fca771970db4f3b9ee494fed0befb16bc9c8be36"
+        },
+        {
+          "kind": "assert.match",
+          "label": "writeFailureStderrTail prints the provided tail",
+          "conditionDigest": "sha256:e7b1253967ee39b1a43adbb5bfb29c68222c3a943dd28b4959b7f6e8fa9e9323"
+        },
+        {
+          "kind": "assert.ok",
+          "label": "fixture must create a new anonymous volume",
+          "conditionDigest": "sha256:add5d82057f42fece49a29897e40ed45d34e8565a44b09fe648438c2be657ce2"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "flag-like names are rejected",
+          "conditionDigest": "sha256:ec3b226a3925133da610aaa8ebc92a004960a17c762bd2db4e592bc29e16f39b"
         }
       ]
     },
