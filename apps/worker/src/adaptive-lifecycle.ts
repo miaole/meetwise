@@ -5,7 +5,8 @@
 import {
   asPrincipal, appendEvent, closeTopic, completeInterviewAndConfirm, failInterviewAndRelease, enqueueReport, markApplicationAssessmentUnavailable, markApplicationNoEligibleScore,
   writeNoEvidenceReadyReport, NO_EVIDENCE_REPORT_CONTENT,
-  persistInterviewQuestion, verifyInterviewAnswerClaim, markInterviewAnswerApplied, enrollCheckpointThread,
+  persistInterviewQuestion, verifyInterviewAnswerClaim, markInterviewAnswerApplied, isInterviewAnswerApplied, enrollCheckpointThread,
+  stripConsumedInterviewAnswerPlaintext,
   assertInterviewGraphFence, publishRubricAndIssueContract,
   writeTopicShadowMeter,
   readGraphRunObservation, recordGraphRunObservation, graphRunPositionIsStuck,
@@ -206,7 +207,7 @@ function makeDeps(
     trackLocalDeficitRef: d.trackLocalDeficitRef,
     askCostPolicy: d.askCostPolicy,
     loadAnswer: async (reference) => {
-      if (!answer || reference.answerId !== answer.answerId)
+      if (!answer || reference.answerId !== answer.answerId || typeof answer.answer !== 'string')
         throw Object.assign(new Error('answer_artifact_unavailable'), { code: 'answer_artifact_unavailable' });
       return answer.answer;
     },
@@ -436,7 +437,12 @@ async function submitAdaptiveAnswerImpl(
   // ledger/事件/计费零副作用，题目状态不变可重答。文本路径合法流量在 API 层已过同判定（此处为
   // 缝内等价闸=纵深兜底，非 HTTP-only 校验的缺口）；语音路径由 submitVoiceTranscriptAnswer 在
   // claim 之前过同一判定（claim 吃题不可发生在拒收轮次）。
-  assertInterviewAnswerContentAcceptable(input.answer);
+  // #18：明文已在“答案已应用”的同一投影事务里剥离 → 重放（崩溃/瞬时错误 requeue）不再带原文。
+  // 仅当 DB 证明该 identity 已 answered 时放行（只做 checkpoint 补投影，不再 Command(resume)）；
+  // 否则（未消费却缺原文，如 TTL 清理后被领）走原有内容闸，失败关闭语义零变。
+  const plaintextConsumed = typeof input.answer !== 'string'
+    && await asPrincipal(d.pool, d.owner, (c) => isInterviewAnswerApplied(c, d.owner, d.interviewId, input));
+  if (!plaintextConsumed) assertInterviewAnswerContentAcceptable(input.answer);
   await asPrincipal(d.pool, d.owner, (c) => enrollCheckpointThread(c, d.owner, d.interviewId));
   // C2/G2(RESUME-GROUNDING):answer 链进入点同源注入——一次 RLS 读出授权位+consent 门控 facts 池
   // (S2 grounded 真出题与 S3 追问上下文共用的弹药面;撤回后新一轮面试 buildData 零 digest/facts,G4)。
@@ -473,6 +479,8 @@ async function submitAdaptiveAnswerImpl(
   // alreadyApplied 且 next 空/已有 interrupt 的既有纯重放路径（proof 等价重放臂）逐字节保留。
   let snap = before;
   if (!alreadyApplied) {
+    // 原文已消费却 checkpoint 未前进（例如终态后 checkpoint 已删）：绝不拿空原文 resume。
+    if (plaintextConsumed) throw Object.assign(new Error('stale_question'), { code: 'stale_question' });
     const pending = pendingQuestion(before);
     if (!pending || pending.questionId !== input.questionId || pending.stateVersion !== input.stateVersion || pending.turn !== input.turn)
       throw Object.assign(new Error('stale_question'), { code: 'stale_question' });
@@ -504,6 +512,9 @@ async function submitAdaptiveAnswerImpl(
     if (!claimed) throw Object.assign(new Error('answer_identity_lost'), { code: 'answer_identity_lost' });
     if (!await markInterviewAnswerApplied(c, d.owner, d.interviewId, input))
       throw Object.assign(new Error('answer_apply_fence_lost'), { code: 'answer_apply_fence_lost' });
+    // #18 即时剥离：与“答案已应用”同事务提交（回滚则明文仍在、可重放）。之后的结算/写卡/
+    // markJobDone 均不再需要 legacy payload 原文（明文 /turn 家族结构性无 score_request）。
+    await stripConsumedInterviewAnswerPlaintext(c, d.owner, d.interviewId, input);
     if (next) {
       await persistInterviewQuestion(c, d.owner, d.interviewId, {
         questionId: next.questionId, stateVersion: next.stateVersion, turn: next.turn,
