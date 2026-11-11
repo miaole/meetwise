@@ -8,8 +8,8 @@ import { QuestionDuplicateFallback, SessionConcludedPayload } from '@meetwise/co
 /**
  * 题型来自 `packages/domain/src/adaptive-interview.ts`。保留旧值是为了让
  * 已经落库、仍会被重放的历史事件可读；新图产生 grounded/fundamental/
- * scenario/behavioral。这里若收窄会使完整的 question_ready 帧被丢弃，UI
- * 便会永久停在 connecting。
+ * scenario/behavioral。未知/未来新值经 `.optional().catch(undefined)` 只丢
+ * 该字段、保留整帧，避免 UI 永久停在 connecting。
  */
 export const QuestionKind = z.enum([
   'grounded', 'fundamental', 'scenario', 'behavioral',
@@ -27,10 +27,11 @@ export const BusinessEvent = z.discriminatedUnion('event', [
     questionId: z.string().regex(/^q-v\d+-t\d+-c\d+$/).optional(),
     stateVersion: z.number().int().nonnegative().optional(),
     turn: z.number().int().nonnegative().optional(),
-    qkind: QuestionKind.optional(),
+    qkind: QuestionKind.optional().catch(undefined),
     plannedTurns: z.number().int().nonnegative().optional(),
     // G2：判重降级标记（additive 可选；旧流缺字段零破坏。不进提交令牌）。
-    duplicateFallback: QuestionDuplicateFallback.optional(),
+    // 未知/未来枚举值只丢该字段、不丢整帧（滚动发布前向兼容；#245 审查 P2）。
+    duplicateFallback: QuestionDuplicateFallback.optional().catch(undefined),
   }) }),
   z.object({ event: z.literal('waiting_user'), id: z.number().int(), data: z.record(z.string(), z.unknown()) }),
   // outcome 区分 answered / unresolved(跳过/探尽未决):unresolved 不是"得0分",前端标 skipped、不展示惩罚分;报告侧亦剔除。
@@ -89,6 +90,17 @@ export const BusinessEvent = z.discriminatedUnion('event', [
       coalesced: z.boolean().optional(),      // L1 合帧标记(帧≠供应商 chunk 边界)
     }).loose(),                               // .loose() 容演进字段(沿 generation_* 成员惯例)
   }),
+  // N-13：token_withdraw=传输态作废帧（非持久 kind·无 interview_event 行·一律不带 id，光标防毒同 token_delta）。
+  // 旧前端 unknown kind → null 丢弃，缓冲等到权威终态覆盖=向后兼容。decodeSSE/toBusinessEvent 零改。
+  z.object({
+    event: z.literal('token_withdraw'),
+    id: z.number().int().optional(),
+    data: z.object({
+      attemptKey: z.string(),
+      seq: z.number().int().positive(),
+      reason: z.string().optional(),
+    }).loose(),
+  }),
   z.object({ event: z.literal('error'), id: z.number().int(), data: z.record(z.string(), z.unknown()) }),
 ]);
 export type BusinessEvent = z.infer<typeof BusinessEvent>;
@@ -110,7 +122,14 @@ export function decodeSSE(buffer: string): { frames: SSEFrame[]; rest: string; s
     const f: SSEFrame = { data: '' };
     for (const line of block.split(/\r\n|\r|\n/)) {
       if (line.startsWith(':')) continue;               // 注释/心跳行,spec 要求忽略
-      if (line.startsWith('id:')) f.id = Number(line.slice(3).trim());
+      // 空 id: 不得写成 0（Number('')===0）：否则 token_withdraw 会被驱动水位滤网（ev.id<=highestId）丢掉（P3-b）。
+      if (line.startsWith('id:')) {
+        const rawId = line.slice(3).trim();
+        if (rawId !== '') {
+          const parsedId = Number(rawId);
+          if (Number.isFinite(parsedId)) f.id = parsedId;
+        }
+      }
       else if (line.startsWith('event:')) f.event = line.slice(6).trim();
       else if (line.startsWith('data:')) dataLines.push(line.slice(5).replace(/^ /, '')); // spec:只去一个前导空格
     }

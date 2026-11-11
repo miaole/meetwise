@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "lint": "eslint . --max-warnings 1005",
+    "lint": "eslint . --max-warnings 956",
     "start": "node --import @swc-node/register/esm-register src/main.ts",
     "cost:configure": "node --import @swc-node/register/esm-register src/cost-configure.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -112,6 +112,7 @@
     "prove:uc052-pool-role-leak": "tsx test/uc052-pool-role-leak.proof.ts",
     "prove:checkpoint-runtime-role": "tsx test/checkpointer-runtime-role.proof.ts",
     "prove:checkpoint-privacy-erasure": "tsx test/checkpoint-privacy-erasure.proof.ts",
+    "prove:erasure-job-projection": "tsx test/erasure-job-projection-purge.proof.ts",
     "prove:privacy-erasure-pause-upgrade": "tsx test/privacy-erasure-pause-upgrade.proof.ts",
     "prove:privacy-worker-runtime": "tsx test/deploy-worker-env.proof.ts",
     "prove:resume-erasure-tombstone": "tsx test/resume-erasure-tombstone-foundation.proof.ts",

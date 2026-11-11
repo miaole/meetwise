@@ -19,13 +19,13 @@ import { fileURLToPath } from 'node:url';
 import {
   assertIsolatedTestTarget, asPrincipal, createPool, loadMigrations, runMigrations,
 } from '@meetwise/db';
-import { degradedRetrieval, normalizeQuestionGenerationResult, type ScoredRef } from '@meetwise/domain';
+import { normalizeQuestionGenerationResult, type ScoredRef } from '@meetwise/domain';
+import type { ModelClient } from '@meetwise/ai-runtime';
 import { buildAdaptiveDeps, buildCragPlannerQuery } from '../src/adaptive-interview-service.ts';
 import {
   parseCragPlannerQuery, cragRetrievalText, scoredRefsFromDispatch, retrieveViaDispatchTrackLocal,
   CRAG_QUERY_TARGET_ROLE_MAX_CHARS, CRAG_QUERY_TECH_STACK_MAX_CHARS,
 } from '../src/qbank-track-local-retrieve.ts';
-import type { ModelClient } from '@meetwise/ai-runtime';
 
 const pool = createPool();
 let fail = 0;

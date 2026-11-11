@@ -157,8 +157,13 @@ export async function createApp(): Promise<NestFastifyApplication> {  // 审计 
       // base64（≈13.98MB+余量）+JSON 外壳，才能让服务内 413 audio_too_large / file_too_large 可达。
       // 非上传路由另由下方 onRequest/preParsing 封到 SMALL_BODY_LIMIT_BYTES（1MiB）。
       bodyLimit: UPLOAD_BODY_LIMIT_BYTES,
-      // 下面会包装 Fastify 默认 errorHandler，把原生 bodyLimit 413 映射成业务信封。
-      allowErrorHandlerOverride: true,
+      // Fastify onBadUrl 默认直接 writeHead 原生信封（含 FST_ERR_BAD_URL 内部码），不走 setErrorHandler
+      // 也不走 Nest 过滤器。必须在构造期挂 frameworkErrors，才能换成统一业务信封。
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Fastify frameworkErrors 与 Reply.code 泛型在此过窄，any 与本文件钩子同形
+      frameworkErrors: (err: any, _req: any, reply: any) => {
+        const status = Number(err?.statusCode);
+        if (!reply.sent) reply.code(status >= 400 && status < 600 ? status : 400).send({ error: 'invalid_request' });
+      },
       logger: {
         level: 'info',
         redact: { paths: ['req.headers.authorization', 'req.headers.cookie'], censor: '[REDACTED]' },
@@ -218,19 +223,22 @@ export async function createApp(): Promise<NestFastifyApplication> {  // 审计 
   // 下钩 len=0 恒放行。补下方 preParsing 流计数闸:无 content-length 的请求按路由封同一政策
   // (非上传 1MiB / 上传 UPLOAD_BODY_LIMIT_BYTES),超限信封按路由区分
   // (payload_too_large / file_too_large / audio_too_large)。
-  const UPLOAD_ROUTES = [/\/resume\/file$/, /\/interview\/[^/]+\/transcribe$/];
-  const bodyLimitError = (url: string): 'file_too_large' | 'audio_too_large' | 'payload_too_large' => {
-    if (/\/resume\/file$/.test(url)) return 'file_too_large';
-    if (/\/interview\/[^/]+\/transcribe$/.test(url)) return 'audio_too_large';
+  // 只用已解析的路由模板判定上传面，不用请求行原始 URL：`/auth/login#/resume/file` 这类后缀
+  // 会落到 login，却被 /resume/file$ 误判成上传路由，从而按 15MiB 收体。
+  const UPLOAD_ROUTE_TEMPLATES: ReadonlySet<string> = new Set(['/resume/file', '/interview/:id/transcribe']);
+  const routeTemplate = (req: { routeOptions?: { url?: string } }): string => String(req.routeOptions?.url ?? '');
+  const isUploadRoute = (req: { routeOptions?: { url?: string } }): boolean => UPLOAD_ROUTE_TEMPLATES.has(routeTemplate(req));
+  const bodyLimitError = (req: { routeOptions?: { url?: string } }): 'file_too_large' | 'audio_too_large' | 'payload_too_large' => {
+    const url = routeTemplate(req);
+    if (url === '/resume/file') return 'file_too_large';
+    if (url === '/interview/:id/transcribe') return 'audio_too_large';
     return 'payload_too_large';
   };
-  const isUploadUrl = (url: string) => UPLOAD_ROUTES.some((re) => re.test(url));
   fastify.addHook('onRequest', (req: any, reply: any, done: any) => {
     const len = Number(req.headers['content-length'] ?? 0);
-    const url = String(req.url ?? '').split('?')[0] ?? '';
-    const isUpload = isUploadUrl(url);
+    const isUpload = isUploadRoute(req);
     const limit = isUpload ? UPLOAD_BODY_LIMIT_BYTES : SMALL_BODY_LIMIT_BYTES;
-    if (len > limit) { reply.code(413).send({ error: bodyLimitError(url) }); return; }
+    if (len > limit) { reply.code(413).send({ error: bodyLimitError(req) }); return; }
     done();
   });
   // #34 残半 chunked 封顶(preParsing 流计数):onRequest 生命周期拿不到 body 流,preParsing 才收到——
@@ -243,9 +251,8 @@ export async function createApp(): Promise<NestFastifyApplication> {  // 审计 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- fastify 实例上确为 any(见 getInstance() as any),钩子签名沿本文件既有 onRequest/onResponse 钩子同形,改真类型需动实例转换面,非本行内最小形
   fastify.addHook('preParsing', (req: any, reply: any, body: any, done: any) => {
     const method = String(req.method ?? '').toUpperCase();
-    const url = String(req.url ?? '').split('?')[0] ?? '';
     if (method === 'GET' || method === 'HEAD' || req.headers['content-length'] !== undefined) { done(null, body); return; }
-    const isUpload = isUploadUrl(url);
+    const isUpload = isUploadRoute(req);
     const limit = isUpload ? UPLOAD_BODY_LIMIT_BYTES : SMALL_BODY_LIMIT_BYTES;
     const capped = new PassThrough();
     let received = 0;
@@ -255,7 +262,7 @@ export async function createApp(): Promise<NestFastifyApplication> {  // 审计 
       received += typeof chunk === 'string' ? Buffer.byteLength(chunk) : chunk.length;
       if (received > limit) {
         settled = true;
-        reply.code(413).send({ error: bodyLimitError(url) });
+        reply.code(413).send({ error: bodyLimitError(req) });
         capped.destroy();   // 停转发:下游不再缓冲;请求体未消费,响应后由 Node 关闭连接
         return;
       }
@@ -265,16 +272,9 @@ export async function createApp(): Promise<NestFastifyApplication> {  // 审计 
     body.once('error', (err: Error) => { if (!settled) capped.destroy(err); });
     done(null, capped);
   });
-  // Fastify 原生 bodyLimit 413（FST_ERR_CTP_BODY_TOO_LARGE）默认信封不是业务契约。映射到按路由区分的 413。
-  const defaultErrorHandler = fastify.errorHandler.bind(fastify);
-  fastify.setErrorHandler((err: { code?: string; statusCode?: number }, req: any, reply: any) => {
-    if (err?.code === 'FST_ERR_CTP_BODY_TOO_LARGE') {
-      const url = String(req.url ?? '').split('?')[0] ?? '';
-      if (!reply.sent) reply.code(413).send({ error: bodyLimitError(url) });
-      return;
-    }
-    return defaultErrorHandler(err, req, reply);
-  });
+  // 不再挂 setErrorHandler 映射 FST_ERR_CTP_BODY_TOO_LARGE：onRequest/preParsing 已在同一阈值先拦，
+  // 该路径实测到不了；再 setErrorHandler 还会覆盖 Nest 过滤器并触发 FSTWRN004。
+  // 非法 URL（FST_ERR_BAD_URL）走构造期 frameworkErrors，不走本处。
   fastify.addHook('onResponse', (req: any, reply: any, done: any) => {
     const route = req.routeOptions?.url ?? req.routerPath ?? 'unknown';   // /interview/:id 模板,非具体 id
     const labels = { method: req.method, route };

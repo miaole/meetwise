@@ -3,8 +3,8 @@
  * 模型客户端由**配置注入**(生产默认 openAICompatibleClient 真模型;测试注入 scriptedModelClient;未配置则降级)。
  * 模型输出 schema 是契约,业务校验是第二道闸——双校验、幂等 trace、旁路不可绕,全在 invoke 里。
  */
-import { z } from 'zod';
 import { createHash } from 'node:crypto';
+import { z } from 'zod';
 import { asErr, SCORING_SEED_CRITERION_ID, type DbPool } from '@meetwise/db';
 import { invoke, getPrompt, promptedModel, openAICompatibleClient, failoverModel, isTextBackupEnabled, type ModelClient, type ModelCostPolicy } from '@meetwise/ai-runtime';
 import { aggregateScores, CRISIS_DISPOSITION_REASON, computeDeterministicTotal, scoreDispositionFromCodeUnitSpan, groundedByFacts, matchesCrisisTrigger, type ScoredCriterionDisposition } from '@meetwise/domain';
@@ -222,7 +222,10 @@ function endpoint(cfg: { baseUrl?: string; apiKey?: string; model?: string; cost
  *  MODEL-OP-02 边界（诚实声明）：端点级「熔断打开 → 切 backup」的降级信号已随 per-adapter circuitBreaker
  *  移除——共享断路器现在住在 invoke() 的操作级（decision 非 admitted 直接返回 model_circuit_open /
  *  model_circuit_half_open / model_concurrency_exhausted 等确定性拒绝，不再触发本链 prepare 的降级）。
- *  端点级（per-provider）failover 与「单一网关统一路由」一并延后到 MODEL-OP-04。 */
+ *  端点级（per-provider）failover 与「单一网关统一路由」一并延后到 MODEL-OP-04。
+ *  G5 N-14 更新：七个 text op（预绑定对表 preboundCostFailoverProfiles）已由 invoke() 在 durable claim
+ *  之前接线——主端点分区断路器挡路（0231 只读探查）即经本链 prepare 的 route 提示改选备端点；
+ *  同键已有行按其端点粘住。claim 之后换端点仍是 model_failover_cost_policy_mismatch（零改）。 */
 function withFailover(model?: string, costs: { primary?: ModelCostPolicy; backup?: ModelCostPolicy } = {}, backupModel?: string): ModelClient {
   const primary = endpoint(model ? { model, costPolicy: costs.primary } : { costPolicy: costs.primary });
   // L3 fix: 这里过去直接读 process.env.MODEL_BACKUP_API_KEY 而不 trim，而 isTextBackupEnabled（同仓库
@@ -259,7 +262,11 @@ export function quizGenerator(pool: DbPool, owner: string, resumeFacts: string[]
         ...(tokenSink ? { onModelDelta: (d: { text: string }) => tokenSink.pushDelta(d.text) } : {}),
       }, pool, owner);
       tokenSink?.endUsage(undefined);   // ⑦对账遥测（InvokeOutcome 零 usage 出参=只记 Σdelta 半·关口零改不扩出参）
-      if ('error' in out) throw new Error('quiz:' + out.error);
+      if ('error' in out) {
+        // N-13：业务闸拒绝已外发的 quiz 预览；flag 关时 withdrawRejected 为零操作。
+        tokenSink?.withdrawRejected(out.error);
+        throw new Error('quiz:' + out.error);
+      }
       return out.value.items;
     };
     if (!progressStream) return call();
@@ -365,7 +372,11 @@ export function reportGenerator(pool: DbPool, owner: string, idempotencyKey: str
         ...(tokenSink ? { onModelDelta: (d: { text: string }) => tokenSink.pushDelta(d.text) } : {}),
       }, pool, owner);
       tokenSink?.endUsage(undefined);   // ⑦对账遥测（InvokeOutcome 零 usage 出参=只记 Σdelta 半·关口零改不扩出参）
-      if ('error' in out) throw new Error('report:' + out.error);
+      if ('error' in out) {
+        // N-13：业务闸拒绝已外发的 report 预览；flag 关时 withdrawRejected 为零操作。
+        tokenSink?.withdrawRejected(out.error);
+        throw new Error('report:' + out.error);
+      }
       return { overall, sections: out.value.sections };
     };
     if (!progressStream) return call();

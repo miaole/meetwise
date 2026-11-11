@@ -5,8 +5,8 @@ process.env.RESUME_HASH_SECRET = 'test-resume-hash-secret';
 // 测试专用 job-route 输入 HMAC key(同 adaptive-lifecycle.proof 先例;runner 隔离面按设计剥除生产 key,
 // createJob→createJobSemanticRevision 的生产链在夹具内需要同形 key 才能落 0104 语义修订行)。
 process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'adaptive-consumer-job-route-input-hmac-proof-key-not-production-01';
-import { MemorySaver } from '@langchain/langgraph';
 import { randomUUID } from 'node:crypto';
+import { MemorySaver } from '@langchain/langgraph';
 import { createPool, asPrincipal, provisionRuntimeLogin, reserveEntitlement, createResumeWithBlob, completeIngestion, transitionResume, enqueueInterviewJob, availableUnits, getReport, answerHash, claimInterviewAnswer, claimNextInterviewJob, requeueInterviewJob, decryptActiveResumeBlob, withInterviewGraphFence, supplyCandidateProfileRoute, createJob, classifyJobRoute, bindApplicationRoute, snapshotInterviewRoute } from '@meetwise/db';
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
 import { ingestResume } from '@meetwise/domain';

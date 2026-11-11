@@ -30,7 +30,6 @@ import {
   writeTopicShadowMeter, SHADOW_METER_VERSION, SHADOW_METER_CAP,
 } from '@meetwise/db';
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
-import { createHash } from 'node:crypto';
 import { ingestResume } from '@meetwise/domain';
 import { interviewDispatchTick, type ConsumerDeps } from '../src/interview-consumer.ts';
 import { PLANNER_DEFAULT_COMPETENCIES } from '../src/adaptive-interview-service.ts';
@@ -56,7 +55,6 @@ const GOOD_ANSWER = (n: number) => `第 ${n} 轮：我会用 Redis 计数器加�
 const NON_ANSWER = '不知道';
 /** 跳过语义作答（B 端 lifecycle 全 skip 场同形·unresolved 轨迹零 clarify）。 */
 const SKIP_ANSWER = '跳过';
-const digest = (s: string) => createHash('sha256').update(s, 'utf8').digest('hex');
 
 let askSeq = 0;
 let evalSeq = 0;

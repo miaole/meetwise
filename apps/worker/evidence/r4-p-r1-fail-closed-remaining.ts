@@ -22,14 +22,14 @@
  *   - No invent MODEL_API_KEY · releaseEvidence=false · ≠HA · sole 恰 5.
  */
 import {
+  isTechRoleFailClosedEnabled,
+  LEGACY_TECH_ROLE_DEFAULT,
+} from '../src/adaptive-role-resolve.ts';
+import {
   classifyPR1Remaining,
   isR1Closed,
   type PR1RemainingStatus,
 } from './r4-p-meta-p-r1-remaining.ts';
-import {
-  isTechRoleFailClosedEnabled,
-  LEGACY_TECH_ROLE_DEFAULT,
-} from '../src/adaptive-role-resolve.ts';
 import { hasComboRootFlagOnProductionEvidence } from './r4-pr1b-combo-root-flag-on-evidence.ts';
 import { hasDefaultOnNoLegacyPathEvidence } from './r4-pr1c-default-on-no-legacy-evidence.ts';
 

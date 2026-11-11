@@ -608,11 +608,14 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
           pushDelta(_text: string) {},
           endUsage(_usage) {},
           abortReason(_reason: string) {},
+          withdrawRejected(_reason: string) {},
         };
         const progress: GenerationProgressRun = { stage(_name: string) {} };
         return body(sink, progress);
       };
       return withDeficitOut(await runWithoutProgress(async (tokenSink, run) => {
+      // N-13：业务闸/判重/批判拒绝本 attempt 预览题面时申报撤回。flag 关时该方法为零操作。
+      const rejectPreview = (reason: string): void => { tokenSink.withdrawRejected(reason); };
       // 题型决定接地(H2 #79 扩面):fundamental/scenario 用 CRAG 检索真题素材;grounded 走简历选定
       // 事实(上方早退),behavioral 考行为面经、与技术题库语料错配——检索白名单 EXEC 裁决=fundamental
       // +scenario,behavioral 纳入与否留后刀如实登记(非「漏接」)。
@@ -730,6 +733,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       if ('error' in out && kind === 'grounded' && out.error === GROUNDED_REFS_GATE_ERROR) {
         let exhausted = true;
         for (let refsRetry = 1; refsRetry <= MAX_GROUNDED_REFS_RETRY; refsRetry += 1) {
+          rejectPreview(GROUNDED_REFS_GATE_ERROR);
           const retryKey = `${d.threadId}:ask:t${turn}:gr${refsRetry}`;
           idempotencyKey = retryKey;
           const retry = await generate(retryKey, retryKey);
@@ -737,6 +741,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
           if (!('error' in retry) || retry.error !== GROUNDED_REFS_GATE_ERROR) { exhausted = false; break; }
         }
         if (exhausted) {
+          rejectPreview(GROUNDED_REFS_GATE_ERROR);
           return approvedTemplateGeneration(
             `请结合你简历中一段与「${competency}」相关的真实经历，说明你的做法、关键取舍和验证结果。`,
             // S2-B3:回退轨迹可审计——provenance 携带耗尽时所在的最后一个独立重试键(:gr{k})。
@@ -762,6 +767,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
             && QUESTION_GENERATION_REROLL_FAMILY.includes(classifyQuestionGenerationError(out.error))
           : !seamCritique(out.value.q).ok;
         if (!rerollable || familyRolls >= MAX_ERROR_REROLL) break;
+        rejectPreview('error' in out ? out.error : 'question_critique_failed');
         familyRolls += 1;
         rollSeq += 1;
         const rollKey = `${d.threadId}:ask:t${turn}:r${rollSeq}`;
@@ -771,6 +777,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       if ('error' in out) {
         // Missing keys, timeouts and malformed/schema failures must not become
         // a canned interview stem.  Structured error + provenance only.
+        rejectPreview(out.error);
         return unavailableGeneration(classifyQuestionGenerationError(out.error), {
           operationId: QUESTION_OPERATION_ID,
           idempotencyKey,
@@ -782,6 +789,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
         // AG-F(刀F)裁决⑤a:critique 复检族预算耗尽仍拒 → business_invalid 判死形——与图节点既有
         // critique 拒绝 provenance 同形(origin/errorCode/invokeError),generationFailureOf reason
         // 映射不变;图节点 critique 终闸保留零触(直接 deps 注入面/纵深防御)。
+        rejectPreview('question_critique_failed');
         return unavailableGeneration('business_invalid', {
           operationId: QUESTION_OPERATION_ID,
           idempotencyKey,
@@ -799,6 +807,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       try {
         duplicate = await wasAsked(d.pool, d.owner, out.value.q);
       } catch {
+        rejectPreview('duplicate_check_failed');
         return unavailableGeneration('generation_unavailable', {
           operationId: QUESTION_OPERATION_ID, idempotencyKey, invokeError: 'duplicate_check_failed',
         });
@@ -809,18 +818,21 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       if (duplicate) duplicateCandidates.push({ q: out.value.q, refs: out.value.refs, key: idempotencyKey });
       let rerolls = 0;
       while (duplicate && rerolls < MAX_DUPLICATE_REROLL) {
+        rejectPreview('duplicate_question');
         rerolls += 1;
         rollSeq += 1;                                                                      // AG-F:统一 `:r{k}` 计数(四类族/判重共键空间·fresh-turn 纯判重路径键形零变)
         idempotencyKey = `${d.threadId}:ask:t${turn}:r${rollSeq}`;
         const replacement = await generate(idempotencyKey, idempotencyKey);
         if ('error' in replacement) {
           // re-roll 途中 provider/schema/business 失败 → 既有分类判死原样,不借 re-roll 放宽。
+          rejectPreview(replacement.error);
           return unavailableGeneration(classifyQuestionGenerationError(replacement.error), {
             operationId: QUESTION_OPERATION_ID, idempotencyKey, invokeError: replacement.error, reroll: rerolls,
           });
         }
         const replacementCited = resolveCitedSources(knownRefs, replacement.value.refs);
         if (!replacementCited.ok) {
+          rejectPreview(`business:${replacementCited.reason}`);
           return unavailableGeneration(classifyQuestionGenerationError(`business:${replacementCited.reason}`), {
             operationId: QUESTION_OPERATION_ID, idempotencyKey, invokeError: `business:${replacementCited.reason}`, reroll: rerolls,
           });
@@ -828,6 +840,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
         try {
           duplicate = await wasAsked(d.pool, d.owner, replacement.value.q);
         } catch {
+          rejectPreview('duplicate_check_failed');
           return unavailableGeneration('generation_unavailable', {
             operationId: QUESTION_OPERATION_ID, idempotencyKey, invokeError: 'duplicate_check_failed', reroll: rerolls,
           });
@@ -839,6 +852,8 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
         // G2:失败形(error/provenance)与旧 unavailableGeneration('duplicate_question') 逐字节同形——
         // 图节点先按此换下一 competency 重试;仅当无序可换/换序帽满时才采用随附的降级候选,
         // 不再整场判死。降级零额外模型调用、零新幂等键(键沿用候选自己的 `:0`/`:r{k}`)。
+        // N-13：最后一帧是被判重的预览题面；降级候选/模板将由权威 question_ready 覆盖，先撤回预览。
+        rejectPreview('duplicate_question');
         const reroll = familyRolls + rerolls;
         return duplicateExhaustedGeneration(
           { operationId: QUESTION_OPERATION_ID, idempotencyKey, reroll },
@@ -853,6 +868,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       }
       const cited = resolveCitedSources(knownRefs, out.value.refs);
       if (!cited.ok) {
+        rejectPreview(`business:${cited.reason}`);
         return unavailableGeneration(classifyQuestionGenerationError(`business:${cited.reason}`), {
           operationId: QUESTION_OPERATION_ID, idempotencyKey, invokeError: `business:${cited.reason}`,
         });

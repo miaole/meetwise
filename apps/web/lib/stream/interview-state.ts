@@ -72,6 +72,11 @@ export interface InterviewView {
   /** TOKSTREAM S4b：token_delta 传输态缓冲（attemptKey 键控·仅内存·非权威非终态）。maxSeq=已并入最大
    *  序号（(attemptKey,seq) max-seq 幂等去重）；终态/权威业务事件到达=stitch 对照+清缓冲+权威覆盖。 */
   tokenBuffer?: { attemptKey: string; text: string; maxSeq: number };
+  /**
+   * N-13：已撤回的 attemptKey → 撤回帧 seq。同键且 seq≤水位的迟到 token_delta 丢弃；
+   * 同键且 seq>水位的后续 delta（同包装 re-roll）开新缓冲。只活在传输态，不进提交令牌。
+   */
+  tokenWithdrawnByKey?: Readonly<Record<string, number>>;
   /** TOKSTREAM S4b/R6：终态到达时 Σdelta 缓冲 vs 终态全文 T0 对照遥测（不阻断·仍用终态权威；失配≠错误——
    *  json_object 卷缓冲=JSON 源文、权威=解析字段，失配为已知形态如实遥测）。 */
   tokenStitch?: { attemptKey: string; pass: boolean; lengthRatio: number };
@@ -112,14 +117,15 @@ export function applyEvents(v: InterviewView, events: readonly BusinessEvent[]):
     // TOKSTREAM S4b 光标守卫（F2·P1）：token_delta 全表唯一 id optional 成员——undefined 帧跳过游标
     // 推进（EXEC 定谳=id===undefined 跳过，窄于 Number.isFinite 守卫），禁 NaN 毒化 lastEventId
     // （重连 lastEventIdHeaderValue 的 Number.isSafeInteger 抛 InvalidLastEventIdError→重连永久 degraded）。
-    if (e.event === 'token_delta') {
+    if (e.event === 'token_delta' || e.event === 'token_withdraw') {
       if (e.id !== undefined) next.lastEventId = Math.max(next.lastEventId, e.id);
     } else {
       next.lastEventId = Math.max(next.lastEventId, e.id);
     }
     // TOKSTREAM:业务事件(非进度家族)到达即清进度态——权威事件推进了流程,重放的旧进度不得把已完成段重新显示"生成中"。
     // S4b：token_delta 与进度家族同待遇（非权威·不触发清除），否则逐 token 帧会反复清掉"AI 生成中"进度行。
-    if (e.event !== 'generation_started' && e.event !== 'model_first_token' && e.event !== 'generation_progress' && e.event !== 'token_delta') {
+    // N-13：token_withdraw 同属传输态，不走权威清缓冲/清进度；撤回只在下方 case 里清对应 attemptKey。
+    if (e.event !== 'generation_started' && e.event !== 'model_first_token' && e.event !== 'generation_progress' && e.event !== 'token_delta' && e.event !== 'token_withdraw') {
       next.generationProgress = undefined;
       // S4b/R6：权威业务事件到达=stitch 对照（telemetry·不阻断）+清缓冲——终态权威覆盖（§E-⑦ 原文）。
       if (next.tokenBuffer) {
@@ -206,6 +212,8 @@ export function applyEvents(v: InterviewView, events: readonly BusinessEvent[]):
     // attemptKey 重执行登记）；attemptKey 换代=缓冲换代不互毒（F6）；seq gap=丢帧标记照常并入
     // （不死等·§C-5 缺帧不 degraded），唯一恢复路径=终态权威覆盖。
     case 'token_delta': {
+      const withdrawnSeq = next.tokenWithdrawnByKey?.[e.data.attemptKey];
+      if (withdrawnSeq !== undefined && e.data.seq <= withdrawnSeq) break;   // 撤回后迟到的旧 delta 丢弃
       const cur = next.tokenBuffer;
       if (cur && cur.attemptKey === e.data.attemptKey) {
         if (e.data.seq <= cur.maxSeq) break;   // 同 (attemptKey,seq) 重复/旧帧丢弃（幂等覆盖·不回退）
@@ -213,6 +221,15 @@ export function applyEvents(v: InterviewView, events: readonly BusinessEvent[]):
       } else {
         next.tokenBuffer = { attemptKey: e.data.attemptKey, text: e.data.text, maxSeq: e.data.seq };
       }
+      break;
+    }
+    // N-13：撤回对应 attemptKey 的预览缓冲；记录水位，同键 re-roll 的更高 seq 可开新缓冲。
+    // 不改 phase/lastScore/report，不触发 degraded，不推进 lastEventId（无 id）。
+    case 'token_withdraw': {
+      if (next.tokenBuffer && next.tokenBuffer.attemptKey === e.data.attemptKey) {
+        next.tokenBuffer = undefined;
+      }
+      next.tokenWithdrawnByKey = { ...next.tokenWithdrawnByKey, [e.data.attemptKey]: e.data.seq };
       break;
     }
     case 'session_concluded': {
@@ -236,9 +253,12 @@ export function reduceInterview(events: BusinessEvent[], init: InterviewView = i
 
 /** 流关闭：非终态 → reconnecting(组件据此用同一 resultId+Last-Event-ID 自动重连,显示"重连中");终态 → closed(正常)。
  *  SSE-RESILIENCE(C5)：flags.stopReason 按打开状态码承载原因；flags.cleanEnd 标记"无错干净 end"轮换闪回（注记C 软措辞臂）；
- *  两旗缺省时**清除**陈旧旗（普通断线不得残留上一场连接的原因）。 */
+ *  两旗缺省时**清除**陈旧旗（普通断线不得残留上一场连接的原因）。
+ *  N-13 P1：token_delta / token_withdraw 不落 interview_event，重连 catch-up 与 per-connection deltaRing
+ *  都不含上一连接的撤回帧。未权威化的 tokenBuffer 在断流时丢弃，避免丢失的撤回让拒稿残留，
+ *  同键更高 seq 的 re-roll 再拼到拒稿上。tokenWithdrawnByKey（已达水位）跨连接保留。 */
 export function onStreamClosed(v: InterviewView, flags?: { stopReason?: StreamStopReason; cleanEnd?: boolean }): InterviewView {
-  const base = { ...v, connection: isTerminal(v.phase) ? 'closed' as const : 'reconnecting' as const };
+  const base = { ...v, connection: isTerminal(v.phase) ? 'closed' as const : 'reconnecting' as const, tokenBuffer: undefined };
   if (flags?.stopReason) return { ...base, streamStopReason: flags.stopReason, cleanEndReconnect: undefined };
   if (flags?.cleanEnd) return { ...base, cleanEndReconnect: true, streamStopReason: undefined };
   return { ...base, streamStopReason: undefined, cleanEndReconnect: undefined };

@@ -18,6 +18,7 @@ import {
   qbankEvidenceForRefs, qbankQuestionResultsForHits, listScorableScoreCards, renderPoolErrorsTotalLines, type GatewayCostBudgetSnapshot, type QbankServingScopeInput,
 } from '@meetwise/db';
 import { configureG7RuntimeInjection, createLangfuseV5Runtime, isG7FreetierReproveEnabled, resolveLangfuseConnection, resolveModelDeadlineConfig, resolveDashscopeNativeConfig, setTracer, dashscopeEmbedder, cachingEmbedder, inMemoryEmbeddingStore, getMetrics, registerBaselineMetrics, METRIC, type Embedder, type ModelClient } from '@meetwise/ai-runtime';
+import { ingestQbank, ingestQuestionBankArtifacts } from '@meetwise/db';
 import { assertLegacyInterviewGraphDisabled } from './production-config.ts';
 import { runDrainLoop, drainWithDeadline, wireSignalShutdown, type NamedStop } from './drain-loop.ts';
 import { startWorkerJobWakeupListener } from './job-wakeup-listener.ts';
@@ -46,7 +47,6 @@ import {
   FREE_TEXT_ALLOWLISTED_SCOPE_FUNNEL_WIRED,
   runFreeTextAllowlistedScopeFunnel,
 } from './free-text-route-funnel.ts';
-import { ingestQbank, ingestQuestionBankArtifacts } from '@meetwise/db';
 import { QBANK_ARTIFACTS, QBANK_SEED } from './qbank-seed.ts';
 import { ensureActiveQbankGeneration, qbankEmbeddingRecipe } from './qbank-generation.ts';
 import { resolveQbankEmbeddingComputeSeams } from './qbank-embedding-compute-seams.ts';
@@ -765,6 +765,8 @@ async function bootstrap() {
   const qbankReleaseSweepLoop = qbankControlPool && qbankReleaseSweepControl.enabled
     ? runQbankReleaseSweep(qbankControlPool, qbankReleaseSweepControl.intervalMs)
     : undefined;
+  // 0232：同一 privacy 循环每拍依次跑 checkpoint 擦除 → 0096 投影物理 purge（event/ai_graph_run/
+  // report；无已消费 0091 授权即跳过，无授权不删）→ 已围栏面试 interview_job 残留明文删除。
   const privacyErasureLoop = privacyPool ? runCheckpointPrivacyEraser(privacyPool, `${leaseOwner}:privacy`) : undefined;
   // GAP-PRIV-04：向量面 sweep 步（0141 · 0125 memory_vector_chunk 同形收尾）。仅
   // sink='memory_vector_chunk'；INT sink='vector' 诚实 no-target；qbank 永不删；

@@ -48,11 +48,38 @@ const RUNTIME_ROLE_NAME = /^[a-z][a-z0-9_]{0,62}$/;
 export const QBANK_CONTROL_DEFINER_ROLE = 'qbank_control_definer';
 
 /**
- * 服务端 format() 生成 DDL 后的形状护栏：只放行白名单动词开头的单条语句（多语句、注释、
- * 未知动词一律 fail-closed）。标识符无法参数化（REVOKE/GRANT 语法限制），此护栏在执行前
- * 把可执行面收窄到「单动词管理语句」，即使结果行被篡改也无法携带任意 SQL。
+ * 0229 mw_admin_* 仍是 INVOKER，部分 format() 用 %s 拼接 text 参数（审查 P3-1）。
+ * 已应用迁移不能改字节（checksum 会计入注释和函数体），所以在调用方把这些 text
+ * 实参加白名单：未知动词、对象类型、schema 子句或关系名一律 fail-closed。
  */
+const MW_ADMIN_TABLE_PRIVILEGE = new Set(['SELECT', 'INSERT', 'UPDATE', 'DELETE']);
+const MW_ADMIN_OBJECT_KIND = new Set(['TABLE', 'INDEX']);
+const MW_ADMIN_NAMED_RELATION = new Set(['public.vector_chunk']);
+const MW_ADMIN_DEFAULT_SCHEMA_CLAUSE = new Set(['', ' IN SCHEMA public']);
+const MW_ADMIN_DEFAULT_PRIVILEGE = new Set(['EXECUTE', 'ALL PRIVILEGES']);
+const MW_ADMIN_DEFAULT_OBJECT_TYPE = new Set(['FUNCTIONS', 'TABLES']);
+const MW_ADMIN_DEFAULT_GRANTEE = new Set(['PUBLIC', 'app_role', 'qbank_control_executor']);
 
+function assertMwAdminAllowlisted(kind: string, value: string, allowed: ReadonlySet<string>): string {
+  if (!allowed.has(value)) throw new Error(`mw_admin_arg_not_allowlisted:${kind}:${value}`);
+  return value;
+}
+
+function joinMwAdminTablePrivileges(privileges: readonly string[]): string {
+  for (const privilege of privileges) assertMwAdminAllowlisted('table_privilege', privilege, MW_ADMIN_TABLE_PRIVILEGE);
+  return privileges.join(', ');
+}
+
+/**
+ * 0229 `mw_admin_revoke_exec_all` 的 grantee 走未加引号的 format `%s`（已应用迁移
+ * 字节绝不能改）。调用方必须先拦：只放行 `PUBLIC` 或 `RUNTIME_ROLE_NAME`（小写标识符），
+ * 否则 fail-closed。含大写的合法 PG 角色名（如 `AppRole`）同样被拒——`RUNTIME_ROLE_NAME`
+ * 只允许小写，且 0229 未引号也无法安全传入；若将来要支持，必须另开迁移把该 `%s` 改成 `%I`。
+ */
+export function assertMwAdminRevokeExecAllGrantee(roleName: string): string {
+  if (roleName === 'PUBLIC' || RUNTIME_ROLE_NAME.test(roleName)) return roleName;
+  throw new Error(`mw_admin_revoke_exec_all_grantee_not_allowlisted:${roleName}`);
+}
 
 export const QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST = [
   // Generation/artifact/taxonomy guards (0086/0087/0089 sealed anchors).  All
@@ -232,7 +259,7 @@ async function normalizeQbankRelationAcl(
     ['qbank_control_executor', executorPrivileges],
   ] as const) {
     if (privileges.length === 0) continue;
-    await c.query('SELECT mw_admin_grant_table_privs($1, $2, $3)', [relation, privileges.join(', '), roleName]);
+    await c.query('SELECT mw_admin_grant_table_privs($1, $2, $3)', [relation, joinMwAdminTablePrivileges(privileges), roleName]);
   }
 }
 
@@ -299,7 +326,11 @@ export async function provisionQbankControlDefiner(pool: DbPool): Promise<void> 
           if (object.owner_name !== migrationRole) {
             throw new Error(`qbank_control_definer_partition_owner_invalid:${object.relation_name}`);
           }
-          const objectType = object.relation_kind === 'index' ? 'INDEX' : 'TABLE';
+          const objectType = assertMwAdminAllowlisted(
+            'object_kind',
+            object.relation_kind === 'index' ? 'INDEX' : 'TABLE',
+            MW_ADMIN_OBJECT_KIND,
+          );
           await c.query('SELECT mw_admin_alter_object_owner($1, $2, $3)', [objectType, object.relation_name, QBANK_CONTROL_DEFINER_ROLE]);
         }
       }
@@ -352,7 +383,7 @@ export async function provisionQbankControlDefiner(pool: DbPool): Promise<void> 
       // rows.  The definer owns the view but not vector_chunk, so it needs an
       // explicit read grant; FORCE RLS still filters through p_vchunk_read, so
       // this is a bounded read, not a raw-corpus bypass.
-      await c.query('SELECT mw_admin_grant_select_table_by_name($1, $2)', ['public.vector_chunk', QBANK_CONTROL_DEFINER_ROLE]);
+      await c.query('SELECT mw_admin_grant_select_table_by_name($1, $2)', [assertMwAdminAllowlisted('named_relation', 'public.vector_chunk', MW_ADMIN_NAMED_RELATION), QBANK_CONTROL_DEFINER_ROLE]);
       // Newly transferred objects now belong to the fixed role.  Enter it
       // explicitly for ACL/default-ACL normalization: temporary membership is
       // sufficient for owner transfer but is not an assumption about the
@@ -388,9 +419,15 @@ export async function provisionQbankControlDefiner(pool: DbPool): Promise<void> 
         ['TABLES', 'app_role', 'ALL PRIVILEGES'],
         ['TABLES', 'qbank_control_executor', 'ALL PRIVILEGES'],
       ] as const) {
-        for (const schemaClause of ['', ' IN SCHEMA public']) {
+        for (const schemaClause of ['', ' IN SCHEMA public'] as const) {
           await c.query('SELECT mw_admin_default_priv_revoke($1, $2, $3, $4, $5)',
-            [QBANK_CONTROL_DEFINER_ROLE, schemaClause, privileges, objectType, grantee]);
+            [
+              QBANK_CONTROL_DEFINER_ROLE,
+              assertMwAdminAllowlisted('default_schema_clause', schemaClause, MW_ADMIN_DEFAULT_SCHEMA_CLAUSE),
+              assertMwAdminAllowlisted('default_privilege', privileges, MW_ADMIN_DEFAULT_PRIVILEGE),
+              assertMwAdminAllowlisted('default_object_type', objectType, MW_ADMIN_DEFAULT_OBJECT_TYPE),
+              assertMwAdminAllowlisted('default_grantee', grantee, MW_ADMIN_DEFAULT_GRANTEE),
+            ]);
         }
       }
       for (const fn of QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST) {
@@ -406,7 +443,7 @@ export async function provisionQbankControlDefiner(pool: DbPool): Promise<void> 
           [fn.signature],
         );
         for (const { role_name: roleName } of executableGrantees.rows) {
-          await c.query('SELECT mw_admin_revoke_exec_all($1, $2)', [fn.signature, roleName]);
+          await c.query('SELECT mw_admin_revoke_exec_all($1, $2)', [fn.signature, assertMwAdminRevokeExecAllGrantee(roleName)]);
         }
         for (const [roleName, allowed] of [
           ['app_role', fn.allowAppRoleExecute],

@@ -12,6 +12,12 @@
  *     思考原文维持 R-B 缺省不传输不落盘；
  *  ④ **明令禁止为补 delta 重跑模型调用**（双跑双扣·§E 计费纪律）——本面纯观察，绝不改写业务返回/抛错语义；
  *  ⑤ 结束面 telemetry：usage.completion_tokens vs Σdelta 字符数对账（仅日志·非门·跨语言 tokens≠字符可比）。
+ *  ⑥ N-13 撤回帧（additive）：业务闸拒绝已外发的 token_delta 时，经 TokenSink.withdrawRejected
+ *     发 `{v:1, streamKey, attemptKey, seq, withdrawn:true, reason?}`（无 text·同通道 best-effort·
+ *     不落 interview_event）。门控=TOKEN_STREAM_WITHDRAW_PREVIEW=1（缺省关；关时 withdrawRejected
+ *     为零操作，abortReason/冲帧/seq 与本刀前逐字节一致）。开时丢弃未冲出的 pending（不再把拒稿
+ *     冲给前端），seq 继续单调，sink 不停收——同包装内 re-roll 可继续 pushDelta。上线是否打开
+ *     该 flag 属用户拍板，本刀不改缺省、不改 MODEL_TEXT_STREAM 双 preview flag。
  *
  * 单写者前提（EXEC 立项声明·二择一行使=前者「配置上界声明」）：本面前提成立条件=
  * MODEL_EXECUTION_TIMEOUT_MS（invoke.ts 缺省 35_000·上限 120_000）≤ claim lease 60s
@@ -41,6 +47,24 @@ export const TOKEN_STREAM_NOTIFY_CHANNEL = 'interview_token_ch';
  * 可破 envelope——超限时按码点安全切分降档出多帧（seq 连续递增），绝不静默截断内容。
  */
 export const TOKEN_NOTIFY_MAX_PAYLOAD_BYTES = 7500;
+
+/** N-13 撤回帧预览开关环境变量名（值须为精确 '1' 才开；缺省关）。 */
+export const TOKEN_STREAM_WITHDRAW_PREVIEW_ENV = 'TOKEN_STREAM_WITHDRAW_PREVIEW';
+
+/**
+ * N-13 撤回帧预览门：仅当 TOKEN_STREAM_WITHDRAW_PREVIEW=1 时启用。缺省关。
+ * 独立于 MODEL_TEXT_STREAM 双 flag（那对 flag 已经门控是否外发 token_delta）；本门不套
+ * production lock，以便用户拍板「上线是否打开」时只改这一项。本函数不得在模块加载时调用
+ * 一次后缓存——proof 会在同一进程里切换环境变量。
+ */
+export function isTokenStreamWithdrawPreviewEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
+  return env[TOKEN_STREAM_WITHDRAW_PREVIEW_ENV] === '1';
+}
+
+/** 撤回原因只作机读码（Ban 把题面/简历原文塞进帧）；长度封顶，控制符剥离。 */
+export function sanitizeTokenWithdrawReason(reason: string): string {
+  return reason.replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, 120);
+}
 
 /**
  * 单写者前提启动期哨兵（文件头「配置上界声明」配套）：部署若配 MODEL_EXECUTION_TIMEOUT_MS
@@ -80,6 +104,13 @@ export interface TokenSink {
   endUsage(u: TokenUsageReport | undefined): void;
   /** 调用方中止申报（流中失败/上游截断）：停收后续 delta+冲帧（best-effort）+结构化日志。 */
   abortReason(r: string): void;
+  /**
+   * N-13：本 attempt 已外发（或在途）的预览题面被业务闸拒绝。
+   * flag 关=零操作（不打日志不发帧，与本刀前逐字节一致）。
+   * flag 开=丢 pending、发 withdrawn 帧、sink 保持可收（同包装 re-roll 继续 pushDelta）。
+   * 与 abortReason 正交：abort 仍是终态停收。
+   */
+  withdrawRejected(reason: string): void;
 }
 
 /** 写失败结构化日志（纪律沿 generation-progress logProgressWriteFailure：稳定标量、无 PII/原文/堆栈）。 */
@@ -206,6 +237,33 @@ export async function withTokenStream<T>(
       }));
       flush();                                     // 已合帧内容 best-effort 冲出（非权威·§C-3 不补发）
       ended = true;
+    },
+    withdrawRejected(reason) {
+      // flag 关：零操作（不打日志、不改 pending/timer/seq、不发帧）。
+      if (ended || !isTokenStreamWithdrawPreviewEnabled()) return;
+      if (flushTimer !== undefined) { clearTimeout(flushTimer); flushTimer = undefined; }
+      pending = [];
+      pendingBytes = 0;
+      const safeReason = sanitizeTokenWithdrawReason(reason);
+      console.warn(JSON.stringify({
+        event: 'token_stream_withdrawn',
+        streamKey,
+        attemptKey: meta.attemptKey,
+        jobKind: meta.jobKind,
+        reason: safeReason,
+      }));
+      seq += 1;
+      const payload = JSON.stringify({
+        v: 1,
+        streamKey,
+        attemptKey: meta.attemptKey,
+        seq,
+        withdrawn: true as const,
+        ...(safeReason ? { reason: safeReason } : {}),
+      });
+      framesEmitted += 1;
+      void pool.query('SELECT pg_notify($1::text, $2::text)', [TOKEN_STREAM_NOTIFY_CHANNEL, payload])
+        .catch((error: unknown) => logWriteFailure(streamKey, meta.attemptKey, error));
     },
   };
 

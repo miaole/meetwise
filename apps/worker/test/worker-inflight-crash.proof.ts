@@ -21,6 +21,9 @@
  *      unhandledRejection；重试臂：新 FenceCheckpointSaver（=requeue 后新 claim·新连接）从最后
  *      checkpoint 续跑到终点。
  *  静态锚：adaptive-lifecycle.ts 零裸 `await g.invoke(`、4 处 invokeWithCheckpointContainment。
+ *  锁存优先级臂（#247 N-1）：先并发打入可重试（Connection terminated → checkpoint_connection_lost），
+ *  再打入 42501，最终必须判不可重试；其他不可重试码同理覆盖；同级仍首个获胜；L-sync 与
+ *  isTransientInterviewJobError 对拍。修前 `??=` 形本臂 EXIT 1，修后 EXIT 0。
  *  pnpm worker-inflight-crash:prove */
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -39,6 +42,20 @@ function makeFenced(): Error {
 function makeTerminated(): Error {
   // pg@8.22 client.js:199 `_ending` 臂：无 code。
   return new Error('Connection terminated');
+}
+
+function latchErrCode(e: unknown): string | undefined {
+  if (!e || typeof e !== 'object' || !('code' in e)) return undefined;
+  const c = (e as { code: unknown }).code;
+  return typeof c === 'string' ? c : undefined;
+}
+function latchErrMessage(e: unknown): string | undefined {
+  return e instanceof Error ? e.message : undefined;
+}
+function latchErrCauseMessage(e: unknown): string | undefined {
+  if (!e || typeof e !== 'object' || !('cause' in e)) return undefined;
+  const cause = (e as { cause: unknown }).cause;
+  return cause instanceof Error ? cause.message : undefined;
 }
 
 /** 第 failAt 次写（put/putWrites 合计）注入故障；armed=false 时为健康 saver（重试臂=重连后）。 */
@@ -161,6 +178,105 @@ async function child(mode: 'raw' | 'main'): Promise<void> {
   process.exit(fail === 0 ? 0 : 1);
 }
 
+
+/** 两条写缝都已进入 guardedWrite 后，按握手先抛 first、待其锁存再抛 second，返回最终锁存错。 */
+async function latchConcurrent(first: unknown, second: unknown): Promise<{ ok: boolean; error: unknown }> {
+  const fenceMod: typeof import('../src/checkpoint-fence.ts') = await import('../src/checkpoint-fence.ts');
+  const fenceSaverCtor = fenceMod.FenceCheckpointSaver;
+  let resolveSecondEntered!: () => void;
+  const secondEntered = new Promise<void>((r) => { resolveSecondEntered = r; });
+  class HandshakeSaver extends MemorySaver {
+    override async put(..._args: Parameters<MemorySaver['put']>): ReturnType<MemorySaver['put']> {
+      await secondEntered;
+      throw first;
+    }
+    override async putWrites(..._args: Parameters<MemorySaver['putWrites']>): ReturnType<MemorySaver['putWrites']> {
+      resolveSecondEntered();
+      const start = Date.now();
+      // 等 first 已被锁存（不能在 latch 前进第二刀，否则测不到「覆盖」路径）。
+      while (cp.writeFailure === undefined) {
+        if (Date.now() - start > 2000) throw new Error('latchConcurrent timeout waiting for first latch');
+        await new Promise((r) => setTimeout(r, 1));
+      }
+      throw second;
+    }
+  }
+  const fence = { owner: 'u-latch', interviewId: 'i-latch', leaseOwner: 'w-latch', version: 1 };
+  const inner = new HandshakeSaver();
+  const cp = new fenceSaverCtor(inner, fakePool, fence);
+  const cfg = { configurable: { ['thread_id']: 't-latch' } };
+  const ck = Object.fromEntries([['v', 4], ['id', '00000000-0000-4000-8000-000000000002'], ['ts', new Date().toISOString()], ['channel_values', {}], ['channel_versions', {}], ['versions_seen', {}]]) as unknown as Checkpoint;
+  const meta = { source: 'loop', step: 1, parents: {} } as unknown as CheckpointMetadata;
+  try {
+    await fenceMod.invokeWithCheckpointContainment(cp, async (): Promise<void> => {
+      await Promise.all([
+        cp.put(cfg, ck, meta, {}),
+        cp.putWrites(cfg, [], 'task-latch'),
+      ]);
+    });
+    return { ok: true, error: cp.writeFailure };
+  } catch (e) {
+    return { ok: false, error: e };
+  }
+}
+
+function assignCode(message: string, code: string): Error {
+  return Object.assign(new Error(message), { code });
+}
+
+async function latchPriorityArm(A: (n: string, c: boolean, extra?: string) => void): Promise<void> {
+  const fenceMod: typeof import('../src/checkpoint-fence.ts') = await import('../src/checkpoint-fence.ts');
+  const consumer = await import('../src/interview-consumer.ts');
+  const isLatchRetryable = fenceMod.isRetryableCheckpointLatchError;
+  A('L-sync isRetryableCheckpointLatchError 已导出', typeof isLatchRetryable === 'function');
+  if (typeof isLatchRetryable === 'function') {
+    let syncOk = true;
+    const codes = [
+      ...consumer.TRANSIENT_INTERVIEW_JOB_ERROR_CODES,
+      '42501', 'checkpoint_privacy_fenced', '23514', '08006', '08001', 'some_terminal_code',
+    ];
+    for (const code of codes) {
+      const a = isLatchRetryable({ code });
+      const b = consumer.isTransientInterviewJobError(code);
+      if (a !== b) { syncOk = false; A(`L-sync 码 ${code} 锁存口径≠consumer`, false, `latch=${a} consumer=${b}`); }
+    }
+    const noCode = isLatchRetryable(new Error('Connection terminated')) === false
+      && consumer.isTransientInterviewJobError(undefined) === false;
+    A('L-sync 瞬时白名单 ∪ 08* ∪ 42501 等与 isTransientInterviewJobError 对拍', syncOk && noCode);
+  }
+
+  const r1 = await latchConcurrent(makeTerminated(), makeFenced());
+  const c1 = latchErrCode(r1.error);
+  A('L-1 先可重试（Connection terminated）后 42501 → 最终 42501',
+    !r1.ok && c1 === '42501' && latchErrMessage(r1.error) === 'checkpoint_privacy_fenced', `ok=${r1.ok} code=${c1}`);
+  A('L-1c 最终分类=不可重试（确定性终态，非 transient）',
+    !r1.ok && c1 === '42501' && !consumer.isTransientInterviewJobError(c1));
+
+  const r2 = await latchConcurrent(makeFenced(), makeTerminated());
+  const c2 = latchErrCode(r2.error);
+  A('L-2 先 42501 后可重试 → 保持 42501（不可降级）', !r2.ok && c2 === '42501', `code=${c2}`);
+
+  const r3 = await latchConcurrent(makeTerminated(), assignCode('graph_fence_lost', 'graph_fence_lost'));
+  const c3 = latchErrCode(r3.error);
+  A('L-3 先 connection_lost 后 graph_fence_lost（同级可重试）→ 仍首个 checkpoint_connection_lost',
+    !r3.ok && c3 === 'checkpoint_connection_lost' && latchErrCauseMessage(r3.error) === 'Connection terminated', `code=${c3}`);
+
+  const r4 = await latchConcurrent(makeTerminated(), assignCode('checkpoint_privacy_fenced', 'checkpoint_privacy_fenced'));
+  const c4 = latchErrCode(r4.error);
+  A('L-4 先可重试后 checkpoint_privacy_fenced（其他不可重试码）→ 覆盖为该码',
+    !r4.ok && c4 === 'checkpoint_privacy_fenced' && !consumer.isTransientInterviewJobError(c4), `code=${c4}`);
+
+  const r5 = await latchConcurrent(makeTerminated(), assignCode('check_violation', '23514'));
+  const c5 = latchErrCode(r5.error);
+  A('L-5 先可重试后 23514（其他不可重试码）→ 覆盖为 23514',
+    !r5.ok && c5 === '23514' && !consumer.isTransientInterviewJobError(c5), `code=${c5}`);
+
+  const r6 = await latchConcurrent(assignCode('connection_failure', '08006'), makeFenced());
+  const c6 = latchErrCode(r6.error);
+  A('L-6 先 08006（08 族可重试）后 42501 → 覆盖为 42501',
+    !r6.ok && c6 === '42501' && !consumer.isTransientInterviewJobError(c6), `code=${c6}`);
+}
+
 async function parent(): Promise<void> {
   let fail = 0;
   const A = (n: string, c: boolean, extra = '') => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}${extra ? `  [${extra}]` : ''}`); if (!c) fail++; };
@@ -179,6 +295,8 @@ async function parent(): Promise<void> {
   process.stdout.write(main.stdout ?? '');
   if (main.status !== 0) process.stderr.write((main.stderr ?? '').slice(0, 4000));
   A('M-0 主路径（invokeWithCheckpointContainment）子进程 EXIT 0', main.status === 0 && /CHILD_MAIN_OK/.test(main.stdout ?? ''), `status=${main.status}`);
+  // 锁存优先级（#247 N-1）：父进程即可，不依赖 unhandledRejection。
+  await latchPriorityArm(A);
   // 静态接线锚：生产四个 invoke 缝都走收容函数。
   const life = readFileSync(fileURLToPath(new URL('../src/adaptive-lifecycle.ts', import.meta.url)), 'utf8');
   const bare = (life.match(/await g\.invoke\(/g) ?? []).length;

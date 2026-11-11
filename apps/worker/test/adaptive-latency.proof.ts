@@ -3,8 +3,6 @@
  * 用打标 + 人为时延的 scripted client 跑真 deps 工厂(经 invoke 关口),断言路由正确 + 报告每轮延迟前后对比。
  * pnpm adaptive-latency:prove (需 db:up)
  */
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import { createPool } from '@meetwise/db';
 import type { ModelClient, ModelResult } from '@meetwise/ai-runtime';
 import { buildAdaptiveDeps, planCompetencies } from '../src/adaptive-interview-service.ts';

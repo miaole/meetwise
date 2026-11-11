@@ -18,7 +18,7 @@
 import {
   KNOWN_ESTIMATOR_VERSIONS, cjkWeightedEstimate, estimateContextTokens, planContextBudget,
   refineEstimate, isKnownEstimatorVersion,
-  type CalibratedFactor, type CompletionRequest, type ModelCostPolicy,
+  type CalibratedFactor, type CompletionRequest,
 } from '@meetwise/ai-runtime';
 import { resolveModelCostGovernance } from '../src/model-cost-governance.ts';
 const MEETWISE_TEST_FIXTURE_MODEL_BACKUP_API_KEY_EST = 'backup-test-only';

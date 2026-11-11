@@ -31,8 +31,6 @@ const read = (rel: string) => {
   if (!existsSync(p)) throw new Error(`missing file: ${rel}`);
   return readFileSync(p, 'utf8');
 };
-/** 行号定位（沿 web-logic.proof lineOf 先例·漂移表用）。 */
-const lineOf = (src: string, re: RegExp): number => src.split('\n').findIndex((l) => re.test(l)) + 1;
 
 let failures = 0;
 const A = (name: string, condition: boolean, detail = '') => {
