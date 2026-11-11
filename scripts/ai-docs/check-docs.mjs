@@ -305,7 +305,7 @@ const runtimeTruthAssertions = [
     truthTerm: "interview-dispatch:gate:prove",
   },
   {
-    source: ".github/workflows/ci.yml",
+    source: "package.json",
     sourceTerm: "pnpm quiz:prove",
     truthTerm: "33867570523",
   },
