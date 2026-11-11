@@ -23,11 +23,11 @@ import { getPrompt } from './prompts.ts';
 import { getTracer, type ModelCallOutcome } from './trace.ts';
 import { getMetrics, METRIC } from './metrics.ts';
 import { withAbortTimeout } from './timeout.ts';
-import { resolveModelOperation } from './model-operation-registry.ts';
+import { preboundCostFailoverProfiles, resolveModelOperation } from './model-operation-registry.ts';
 import type { CalibratedFactor, EstimatorVersion } from './usage-reconciliation.ts';
 import {
   admitSharedModelOperation, recordSharedModelOperation, resolveModelAdmissionPartition, isAdmissionRefusalRetryable,
-  withAdmissionEndpointPartition,
+  withAdmissionEndpointPartition, isSharedModelBreakerBlocking,
   type SharedModelAdmissionLease, type SharedModelFeeRecord, type ModelEndpointAdmissionIdentity,
 } from './model-admission.ts';
 import { resolveLatestCalibratedFactor } from './usage-calibration-reconciler.ts';
@@ -201,14 +201,24 @@ export type ModelCallPlan =
   | { ready: false; error: string };
 type ReadyModelCallPlan = Extract<ModelCallPlan, { ready: true }>;
 
+/** G5 N-14：claim 前纯路由提示（只含要避开的端点身份；绝不来自 InvokeSpec/调用方）。 */
+export interface ModelPrepareRoute {
+  readonly avoidAdmissionEndpoints?: readonly string[];
+}
+
 export interface Model {
   /**
    * TOKSTREAM S4b（additive 第 3 参）：可选 delta 观察位（与 ModelCallPlan.execute 第 2 参同源
    * 透传；直调面与生产面同刀——modelFor call 臂 flag-aware 路由接 completeStream）。
    */
   call(attempt: number, signal?: AbortSignal, onDelta?: OnModelDelta): Promise<ModelResult>;
-  /** Optional pre-dispatch routing seam. `prepare` must not make a network request. */
-  prepare?(attempt: number, signal?: AbortSignal): Promise<ModelCallPlan> | ModelCallPlan;
+  /**
+   * Optional pre-dispatch routing seam. `prepare` must not make a network request.
+   * G5 N-14（additive 第 3 参）：`route.avoidAdmissionEndpoints` 让 failover 链跳过指定端点
+   * （providerAccount=冻结 profile id）。只由 invoke 在 claim 前按预绑定对表 + 断路器只读探查给出；
+   * 不认识该参的实现忽略即可（语义=原选择）。
+   */
+  prepare?(attempt: number, signal?: AbortSignal, route?: ModelPrepareRoute): Promise<ModelCallPlan> | ModelCallPlan;
   /** SHA-256 of the immutable prompt/model/input snapshot; normal production models provide it. */
   requestDigest?: string;
 }
@@ -599,11 +609,13 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
     span: prepared.span,
     plan: prepared.plan,
     promptVersion: prepared.promptVersion,
+    alternate: prepared.alternate,
+    setSpanCostModel: prepared.setSpanCostModel,
   });
   if (claimed.terminal) return claimed.outcome;
   const admitted = await invokeAdmitPhase({
     spec, pool, owner,
-    plan: prepared.plan,
+    plan: claimed.plan,
     leaseToken: claimed.leaseToken,
     admissionPartition: prepared.admissionPartition,
     executionTimeoutMs: prepared.executionTimeoutMs,
@@ -663,10 +675,13 @@ interface InvokePrepared {
   digest: string;
   /** AG-19：解析后的 prompt 版本观测标签（spec 显式值优先·缺省经注册表单源派生·registry 外=undefined）。 */
   promptVersion: string | undefined;
+  /** G5 N-14：预绑定对另一侧端点（仅 failover 链可给出时存在），供 claim 相位按既有行粘住端点。 */
+  alternate?: PreboundFailoverAlternate;
+  setSpanCostModel: (model: string | undefined) => void;
 }
 
-/** claim 相位产出（原 :463-482 · durable lease token）。 */
-interface InvokeClaimed { leaseToken: string }
+/** claim 相位产出（原 :463-482 · durable lease token + 实际 claim 所绑 plan）。 */
+interface InvokeClaimed { leaseToken: string; plan: ReadyModelCallPlan }
 
 /** admit 相位产出（原 :487-570 · 可能被半开 route-retry 替换的 plan + 双层 admission）。 */
 interface InvokeAdmitted {
@@ -687,6 +702,8 @@ interface InvokeClaimArgs<T> {
   plan: ReadyModelCallPlan;
   /** AG-19：随 claim 冻结落 ai_model_invocation.prompt_version（全 outcome·identity-immutable）。 */
   promptVersion: string | undefined;
+  alternate?: PreboundFailoverAlternate;
+  setSpanCostModel?: (model: string | undefined) => void;
 }
 
 interface InvokeAdmitArgs<T> {
@@ -726,19 +743,60 @@ interface InvokeExecuteArgs<T> {
 
 /** 原 invoke 内 `preparePlan` 闭包（:429-441）的模块级外提：纯 pre-dispatch 路由选择，不发请求。 */
 async function prepareModelPlan<T>(
-  spec: InvokeSpec<T>, executionTimeoutMs: number,
+  spec: InvokeSpec<T>, executionTimeoutMs: number, route?: ModelPrepareRoute,
 ): Promise<{ plan?: ModelCallPlan; timedOut: boolean }> {
   let timedOut = false;
   try {
     const plan = await withAbortTimeout(
       (signal) => spec.model.prepare
-        ? Promise.resolve(spec.model.prepare(1, signal))
+        ? Promise.resolve(route ? spec.model.prepare(1, signal, route) : spec.model.prepare(1, signal))
         : Promise.resolve({ ready: true as const, execute: (executeSignal?: AbortSignal, onDelta?: OnModelDelta) => spec.model.call(1, executeSignal, onDelta), cost: undefined }),
       executionTimeoutMs,
       () => { timedOut = true; },
     );
     return { plan, timedOut };
   } catch { return { timedOut }; }
+}
+
+/** G5 N-14：同一预绑定对另一侧端点的候选 plan（digest 已按其 cost 身份算好）。 */
+interface PreboundFailoverAlternate {
+  plan: ReadyModelCallPlan;
+  digest: string;
+}
+
+/**
+ * G5 N-14 备用端点接线（预绑定对表 `preboundCostFailoverProfiles` 的生产消费方）。
+ *
+ * 纯 pre-claim 路由：仅当 ① operation 在预绑定对表内（七 text op）② plan 携带端点身份且属该对
+ * ③ 模型链能为“另一侧”给出 ready plan（即备用 Key 已挂载的 failover 链）④ 两侧 cost scope 相同
+ * 且另一侧 cost policy 合法——才产出 alternate。随后用只读探查（0231）看当前所选端点的断路器：
+ * 挡路（open 未冷却 / half_open 探针被占）则改选另一侧，原 plan 退为 alternate。
+ *
+ * 不变量：换轨只发生在 durable claim 之前，claim 冻结的 cost 身份/digest 即实际所选端点，
+ * claim 之后的 `model_failover_cost_policy_mismatch` 墙零改；无对表/无身份/无备用 → 原 plan 原值。
+ * 探查失败按“不挡路”处理（不放大故障：准入拒绝仍由 acquire 给出原错误码）。
+ */
+async function selectPreboundFailoverRoute<T>(
+  spec: InvokeSpec<T>, pool: DbPool, owner: string,
+  admissionPartition: ReturnType<typeof resolveModelAdmissionPartition>,
+  plan: ReadyModelCallPlan, executionTimeoutMs: number,
+): Promise<{ plan: ReadyModelCallPlan; alternate?: PreboundFailoverAlternate }> {
+  if (!spec.operation || !admissionPartition || !spec.model.prepare || !plan.admissionEndpoint || !plan.cost) return { plan };
+  const pair = preboundCostFailoverProfiles(spec.operation.id);
+  if (!pair) return { plan };
+  const current = plan.admissionEndpoint.providerAccount;
+  if (current !== pair.primary && current !== pair.backup) return { plan };
+  const other = current === pair.primary ? pair.backup : pair.primary;
+  const prepared = await prepareModelPlan(spec, executionTimeoutMs, { avoidAdmissionEndpoints: [current] });
+  const candidate = prepared.plan;
+  if (!candidate || candidate.ready !== true || candidate.admissionEndpoint?.providerAccount !== other
+    || !candidate.cost || candidate.cost.scopeId !== plan.cost.scopeId || costPolicyError(candidate.cost)) return { plan };
+  let blocking = false;
+  try {
+    blocking = await isSharedModelBreakerBlocking(pool, owner, withAdmissionEndpointPartition(admissionPartition, plan.admissionEndpoint));
+  } catch { blocking = false; }
+  if (!blocking) return { plan, alternate: { plan: candidate, digest: invocationDigest(spec, candidate.cost) } };
+  return { plan: candidate, alternate: { plan, digest: invocationDigest(spec, plan.cost) } };
 }
 
 /** GODFN-1a 相位 1/5 · resolve+prepare（原 :404-461 逐字搬移）。 */
@@ -789,16 +847,20 @@ async function invokeResolveAndPreparePhase<T>(
     return { terminal: true, outcome: { error: initial.timedOut ? 'model_prepare_timeout' : 'model_prepare_failed' } };
   }
   if (initial.plan.ready === false) { span(0, 'deterministic_refusal', 0); return { terminal: true, outcome: { error: initial.plan.error } }; }
-  const plan: ReadyModelCallPlan = initial.plan;
-  spanCostModel = plan.cost?.model;
+  spanCostModel = initial.plan.cost?.model;
   // The scope becomes part of the durable claim before any local admission
   // lease is taken.  Reject malformed trusted configuration here so a database
   // encoding/constraint error cannot escape the claim loop or strand a caller.
-  const initialCostPolicyError = costPolicyError(plan.cost);
+  const initialCostPolicyError = costPolicyError(initial.plan.cost);
   if (initialCostPolicyError) {
     span(0, 'deterministic_refusal', 0);
     return { terminal: true, outcome: { error: initialCostPolicyError } };
   }
+  // G5 N-14：claim 之前按预绑定对表 + 断路器只读探查选端点（主挡路→备），另一侧留作 alternate。
+  const routed = await selectPreboundFailoverRoute(spec, pool, owner, admissionPartition, initial.plan, executionTimeoutMs);
+  const plan: ReadyModelCallPlan = routed.plan;
+  spanCostModel = plan.cost?.model;
+  const setSpanCostModel = (model: string | undefined) => { spanCostModel = model; };
   // MODEL-OP-00 P3：因子回派发预算门。缺因子 fail-closed 未精化；有因子且精化击穿 maxInput → 拒派发。claim estimate 保持未精化。
   const calibratedBudget = await enforceCalibratedDispatchBudget(pool, owner, spec.service, plan);
   if (!calibratedBudget.ok) {
@@ -808,12 +870,14 @@ async function invokeResolveAndPreparePhase<T>(
   // Route selection is pure. Bind the actually selected endpoint policy only
   // after it is known, but still before the durable claim is created.
   const digest = invocationDigest(spec, plan.cost);
-  return { terminal: false, logicalNodeKey, admissionPartition, requestId, executionTimeoutMs, deadline, span, plan, digest, promptVersion };
+  return { terminal: false, logicalNodeKey, admissionPartition, requestId, executionTimeoutMs, deadline, span, plan, digest, promptVersion, alternate: routed.alternate, setSpanCostModel };
 }
 
 /** GODFN-1a 相位 2/5 · claim（原 :463-482 逐字搬移 · durable claim 轮询 + follower 指数退避真轮询（20ms×2 封顶 1000ms · #173））。 */
 async function invokeClaimPhase<T>(args: InvokeClaimArgs<T>): Promise<InvokePhaseStep<T, InvokeClaimed>> {
-  const { spec, pool, owner, logicalNodeKey, digest, requestId, deadline, span, plan, promptVersion } = args;
+  const { spec, pool, owner, logicalNodeKey, requestId, deadline, span, promptVersion } = args;
+  let { digest, plan } = args;
+  let alternate = args.alternate;
   let leaseToken: string | undefined;
   let pollWaitMs = CLAIM_POLL_BACKOFF_INITIAL_MS;
   for (;;) {
@@ -833,6 +897,20 @@ async function invokeClaimPhase<T>(args: InvokeClaimArgs<T>): Promise<InvokePhas
     }));
     if (claim.action === 'execute') { leaseToken = claim.leaseToken; break; }
     if (claim.action === 'cached') { span(0, 'cached', 0); return { terminal: true, outcome: { value: claim.output as T } }; }
+    // G5 N-14 端点粘性：同键已有行按预绑定对另一侧端点的 cost 身份落过 claim（如上次主挡路已切备，
+    // 或备挡路后主恢复），digest 墙只因端点不同而拒。改用另一侧 plan 重试 claim 恰一次——只在
+    // 预绑定对内、同 cost scope；内容真变时另一侧 digest 同样不等，墙一原值返回。
+    if (claim.action === 'failed' && claim.error === 'idempotency_key_payload_mismatch' && alternate) {
+      const next = alternate;
+      alternate = undefined;
+      const budget = await enforceCalibratedDispatchBudget(pool, owner, spec.service, next.plan);
+      if (budget.ok) {
+        plan = next.plan;
+        digest = next.digest;
+        args.setSpanCostModel?.(plan.cost?.model);
+        continue;
+      }
+    }
     if (claim.action === 'failed' || claim.action === 'unknown') { span(0, 'deterministic_refusal', 0); return { terminal: true, outcome: { error: claim.error } }; }
     if (Date.now() >= deadline) { span(0, 'exhausted', 0); return { terminal: true, outcome: { error: 'model_invocation_wait_timeout' } }; }
     // Followers must join, never execute.  Exponential backoff (#173: 20ms ×2 capped at 1000ms)
@@ -842,7 +920,7 @@ async function invokeClaimPhase<T>(args: InvokeClaimArgs<T>): Promise<InvokePhas
     await sleep(pollWaitMs);
     pollWaitMs = Math.min(pollWaitMs * CLAIM_POLL_BACKOFF_FACTOR, CLAIM_POLL_BACKOFF_CAP_MS);
   }
-  return { terminal: false, leaseToken: leaseToken! };
+  return { terminal: false, leaseToken: leaseToken!, plan };
 }
 
 /** GODFN-1a 相位 3/5 · admit（原 :487-570 逐字搬移 · 共享准入 + 本地 admission + 半开 follower 路由重试）。 */
