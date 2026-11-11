@@ -221,6 +221,12 @@ DoD：标"已 wired"的每条都是 CI 里真实运行、真能卡住合并的 j
 | S3 | #155 点名件：SSE push notify | `pnpm sse-push:notify:prove` | 仅 nightly（原有） |
 | S4 | #155 点名件：向量平面擦除（隐私步骤，`if: !cancelled()`） | `pnpm vector-plane-erasure:prove` | 仅 nightly（原有） |
 | S5 | 转写隐私·答案事实根 + 其余 sink（隐私步骤，`if: !cancelled()`；PR243 复审补入） | `pnpm int-transcript-answer-fact-root:prove` ; `pnpm int-transcript-remaining-sinks:prove` | 仅 nightly（PR243 复审补入） |
+| S6 | #247 高 inflight 下 checkpoint 写失败不拖垮 worker（WORKER-INFLIGHT-CRASH-01，含 #260 锁存优先级） | `pnpm worker-inflight-crash:prove` | 未入 CI，本地手跑（第二批合入后补挂） |
+| S7 | #249 #18 payload 明文 answer 消费即剥离（隔离 PG） | `pnpm int18:payload-strip:prove` | 未入 CI，本地手跑（第二批合入后补挂） |
+| S8 | #248/#261 按路由的请求体上限与 413 契约（`body-limit:prove` 与 `authz34:chunked-cap:prove` 是同一条命令：`node scripts/run-e2e-isolated.mjs authz34:chunked-cap:prove`） | `pnpm body-limit:prove` | 未入 CI，本地手跑（第二批合入后补挂） |
+| S9 | #254 HTTP 层跳过当澄清（隔离 PG + 脚本模型） | `pnpm skip-as-clarify:http:prove` | 未入 CI，本地手跑（第二批合入后补挂） |
+| S10 | #263 0143 SSE NOTIFY trigger 缺失或禁用时 readiness fail-closed（隔离 PG） | `pnpm sse-notify-trigger-health:prove` | 未入 CI，本地手跑（第二批合入后补挂） |
+| S11 | #257 擦除流覆盖 interview_job 明文 + 投影物理 purge（0232，隔离 PG） | `pnpm erasure-job-projection:prove` | 未入 CI，本地手跑（第二批合入后补挂） |
 
 ### 8.3 nightly 只放少量关键 prove（建议与理由）
 
