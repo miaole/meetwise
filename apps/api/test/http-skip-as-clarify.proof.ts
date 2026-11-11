@@ -34,7 +34,8 @@ import {
 import { ingestResume } from '@meetwise/domain';
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
 import { drainInterviewJobOnce, type ConsumerDeps } from '../../worker/src/interview-consumer.ts';
-const { MemorySaver } = createRequire(new URL('../../worker/package.json', import.meta.url))('@langchain/langgraph') as { MemorySaver: new () => unknown };
+const langgraphMod = createRequire(new URL('../../worker/package.json', import.meta.url))('@langchain/langgraph') as Record<string, new () => object>;
+const graphCheckpointer = langgraphMod['MemorySaver'];
 
 const CMD = 'pnpm skip-as-clarify:http:prove';
 const RESUME_TEXT = '工作经历\n后端工程师\n负责订单系统限流改造，使用 Redis 计数器和滑动窗口保护下游。\n技能\nRedis、限流、分布式锁';
@@ -48,12 +49,10 @@ delete process.env.MODEL_API_KEY;
 delete process.env.MODEL_BASE_URL;
 delete process.env.MEETWISE_PUBLIC_PREVIEW;
 
-let failures = 0;
 const results: Array<{ name: string; ok: boolean }> = [];
 const A = (name: string, ok: boolean, detail?: unknown): boolean => {
   results.push({ name, ok });
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail !== undefined && !ok ? `  detail=${JSON.stringify(detail)}` : ''}`);
-  if (!ok) failures += 1;
   return ok;
 };
 
@@ -61,9 +60,17 @@ console.log('HTTP skip-as-clarify prove · releaseEvidence=false · NOT_HA');
 console.log('NOTE: 本绿≠UC covered；≠全栈 e2e:isolated；HTTP mouth + 真 consumer + 脚本模型；Ban live');
 console.log(`CMD=${CMD}`);
 
-type Res = { status: number; body: any };
+type Res = { status: number; body: Record<string, unknown> };
 type Qid = { questionId: string; stateVersion: number; turn: number };
-type Ev = { kind: string; payload: any; seq: number };
+type Ev = { kind: string; payload: Record<string, unknown>; seq: number };
+type IssuedRow = {
+  questionId: string;
+  stateVersion: number;
+  turn: number;
+  question: string;
+  competency: string;
+  status: string;
+};
 
 const sha256 = (s: string) => createHash('sha256').update(s, 'utf8').digest('hex');
 const turnBody = (id: Qid, answer: string) => ({
@@ -80,18 +87,18 @@ let modelCalls = { ask: 0, evaluate: 0, planner: 0 };
 let askSeq = 0;
 
 const scripted = scriptedModelClient({
-  'planner.competencies': () => {
+  ['planner.competencies']: () => {
     modelCalls.planner += 1;
     return { ok: true, raw: { competencies: ['并发', '缓存', '消息队列'] } };
   },
-  'interviewer.ask': () => {
+  ['interviewer.ask']: () => {
     modelCalls.ask += 1;
     return {
       ok: true,
       raw: { q: `结合你的限流经历谈谈高并发下如何兼顾吞吐与一致性，并说明第 ${++askSeq} 轮验证方法`, refs: [] },
     };
   },
-  'mock-interview.evaluate': () => {
+  ['mock-interview.evaluate']: () => {
     modelCalls.evaluate += 1;
     return {
       ok: true,
@@ -104,7 +111,7 @@ const model: ModelClient = { complete: (r, a) => scripted.complete(r, a) };
 function consumerDeps(pool: DbPool): ConsumerDeps {
   return {
     pool,
-    cp: new MemorySaver() as any,
+    cp: new graphCheckpointer() as ConsumerDeps['cp'],
     model,
     leaseOwner: `skip-clarify-w-${process.pid}`,
     adaptive: {
@@ -124,21 +131,21 @@ async function main(): Promise<void> {
     host: process.env.PGHOST, port: Number(process.env.PGPORT), database: process.env.PGDATABASE,
     user: role, password: RUNTIME_PASSWORD, sslMode: 'disable',
   });
-  A('runtime login current_user',
-    (await runtime.query<{ current_user: string }>('SELECT current_user')).rows[0]?.current_user === role);
+  const loginRow = (await runtime.query('SELECT current_user')).rows[0] as Record<string, unknown> | undefined;
+  A('runtime login current_user', loginRow?.['current_user'] === role);
 
-  Object.assign(process.env, {
-    NODE_ENV: 'test',
-    AUTH_DEV_HEADER: '1',
-    AUTH_SECRET,
-    RESUME_ENC_KEY: 'test-resume-enc-key',
-    RESUME_HASH_SECRET: 'test-resume-hash-secret',
-    PAY_PROVIDER_SECRET: 'test-pay-secret',
-    OCR_ENABLED: '0',
-    WEB_ORIGIN: 'https://web.example.test',
-    PGUSER: role,
-    PGPASSWORD: RUNTIME_PASSWORD,
-  });
+  const envWire: Record<string, string> = {};
+  envWire['NODE_ENV'] = 'test';
+  envWire['AUTH_DEV_HEADER'] = '1';
+  envWire['AUTH_SECRET'] = AUTH_SECRET;
+  envWire['RESUME_ENC_KEY'] = 'test-resume-enc-key';
+  envWire['RESUME_HASH_SECRET'] = 'test-resume-hash-secret';
+  envWire['PAY_PROVIDER_SECRET'] = 'test-pay-secret';
+  envWire['OCR_ENABLED'] = '0';
+  envWire['WEB_ORIGIN'] = 'https://web.example.test';
+  envWire['PGUSER'] = role;
+  envWire['PGPASSWORD'] = RUNTIME_PASSWORD;
+  Object.assign(process.env, envWire);
 
   const { createApp } = await import('../src/main.ts');
   const app = await createApp();
@@ -149,12 +156,12 @@ async function main(): Promise<void> {
   const call = async (method: string, path: string, headers: Record<string, string> = {}, body?: unknown): Promise<Res> => {
     const res = await fetch(base + path, {
       method,
-      headers: body === undefined ? headers : { ...headers, 'content-type': 'application/json' },
+      headers: body === undefined ? headers : { ...headers, ['content-type']: 'application/json' },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
     return { status: res.status, body: await res.json().catch(() => ({})) };
   };
-  const hdr = (owner: string): Record<string, string> => ({ 'x-user-id': owner });
+  const hdr = (owner: string): Record<string, string> => ({ ['x-user-id']: owner });
 
   const events = async (owner: string, interviewId: string): Promise<Ev[]> =>
     asPrincipal(runtime, owner, (c) => c.query(
@@ -175,9 +182,19 @@ async function main(): Promise<void> {
         WHERE interview_id=$1 AND status='issued'
         ORDER BY state_version DESC LIMIT 1`,
       [interviewId],
-    )).then((r) => r.rows[0] as
-      | { question_id: string; state_version: number; turn: number; question: string; competency: string; status: string }
-      | undefined);
+    )).then((r) => {
+      const row = r.rows[0] as Record<string, unknown> | undefined;
+      if (!row) return undefined;
+      const mapped: IssuedRow = {
+        questionId: String(row['question_id']),
+        stateVersion: Number(row['state_version']),
+        turn: Number(row['turn']),
+        question: String(row['question'] ?? ''),
+        competency: String(row['competency'] ?? ''),
+        status: String(row['status'] ?? ''),
+      };
+      return mapped;
+    });
 
   const scoreCards = async (owner: string, interviewId: string) =>
     asPrincipal(runtime, owner, (c) => c.query(
@@ -221,7 +238,7 @@ async function main(): Promise<void> {
       throw new Error(`create_failed:${created.status}:${JSON.stringify(created.body)}`);
     }
     const id = createdId;
-    const began = await call('POST', `/interview/${id}/begin`, { ...hdr(owner), 'resume-id': resumeId });
+    const began = await call('POST', `/interview/${id}/begin`, { ...hdr(owner), ['resume-id']: resumeId });
     if (began.status !== 202) {
       throw new Error(`begin_failed:${began.status}:${JSON.stringify(began.body)}`);
     }
@@ -236,7 +253,7 @@ async function main(): Promise<void> {
     const q0: Qid | undefined = qr
       ? { questionId: String(qr.payload.questionId), stateVersion: Number(qr.payload.stateVersion), turn: Number(qr.payload.turn) }
       : qrow
-        ? { questionId: qrow.question_id, stateVersion: Number(qrow.state_version), turn: Number(qrow.turn) }
+        ? { questionId: qrow.questionId, stateVersion: qrow.stateVersion, turn: qrow.turn }
         : undefined;
     if (!q0 || !qrow) {
       throw new Error(`no_first_question:${owner}:${id}:events=${ev.map((e) => e.kind).join(',')}`);
@@ -305,8 +322,8 @@ async function main(): Promise<void> {
     const next = await issued(owner, sess.id);
     A('H1 跳过后发出下一题 question_ready', !!qr2 && evKinds(ev2, 'question_ready').length >= 2);
     A('H1 下一题换能力（pivot，不死缠原题）',
-      !!next && next.competency !== sess.q0comp && next.question_id !== sess.q0.questionId
-      && next.question_id === qr2?.payload?.questionId, { next, prev: sess.q0comp });
+      !!next && next.competency !== sess.q0comp && next.questionId !== sess.q0.questionId
+      && next.questionId === qr2?.payload?.questionId, { next, prev: sess.q0comp });
     // interview.status 在 begin 后仍为 created（与 uc-e2e-002 B6「begin 后仍 created·Ban 状态推进依赖」同口径）。
     // 本臂只断言跳过当澄清不会把会话收成终态，也不二次扣额。
     const st = await ivStatus(owner, sess.id);
