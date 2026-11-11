@@ -515,6 +515,8 @@ async function main() {
       r.generationProvenance?.origin === 'model'
       && r.generationProvenance?.duplicateFallback === 'cross_session_repeat'
       && r.competencyExhaustions === 0 && r.degraded === null);
+    A('G2-b pending 读模型携带 duplicateFallback=cross_session_repeat（供 question_ready 投影；interrupt 载荷仍是身份窄集）',
+      r.pending?.duplicateFallback === 'cross_session_repeat');
   }
   // G2-c 无降级候选(seam 连模板都过不了本场闸)→ 既有 failClosed 原样(reason/provenance 字节不变)。
   {
