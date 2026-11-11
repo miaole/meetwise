@@ -10,7 +10,9 @@
  *
  * 产品契约（packages/domain classifyTurn / isSkip，MAX_CLARIFY=1）：
  *   - 短非作答（如「不知道」）→ 至多 1 次澄清（clarification_needed，同题 + 引导语提示可回「跳过」）。
- *   - 澄清后再显式「跳过」→ unresolved + 换题（不评分、不写 score_card、不调用评估模型）。
+ *   - 澄清后再显式「跳过」→ unresolved + 换题（不评分、不调用评估模型）。
+ *     score_card=0 是前提条件：明文 /turn 路径不产 score_request（0126 双写围栏，
+ *     score-writer 在 no_request 处跳过），不是已证的「跳过不供卡」属性。
  *   - 首轮显式跳过 → 直接 unresolved 换题（不先澄清）。对照面，不是本缺口本身。
  *
  * 不改 adaptive-lifecycle.ts。NO MODEL_API_KEY。releaseEvidence=false · NOT_HA。
@@ -221,6 +223,12 @@ async function main(): Promise<void> {
       [interviewId, kind],
     )).then((r) => r.rows);
 
+  const jobCount = async (owner: string, interviewId: string) =>
+    asPrincipal(runtime, owner, (c) => c.query(
+      'SELECT count(*)::int AS n FROM interview_job WHERE interview_id=$1',
+      [interviewId],
+    )).then((r) => Number(r.rows[0]?.n ?? 0));
+
   async function seedResumeAndBucket(owner: string): Promise<string> {
     await admin.query(
       `INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at)
@@ -300,7 +308,7 @@ async function main(): Promise<void> {
     const clar = lastEv(ev1, 'clarification_needed');
     A('H1 非作答 → clarification_needed（不先换题）', !!clar, ev1.map((e) => e.kind));
     A('H1 引导语提示可回「跳过」', typeof clar?.payload?.hint === 'string' && String(clar.payload.hint).includes('跳过'), clar?.payload?.hint);
-    A('H1 澄清后无 answer_evaluated、无 score_card、评估模型仍 0 次',
+    A('H1 澄清后无 answer_evaluated、评估模型仍 0 次；score_card=0 为 /turn 不产 score_request 的前提条件（非已证跳过不供卡）',
       evKinds(ev1, 'answer_evaluated').length === 0
       && (await scoreCards(owner, sess.id)) === 0
       && modelCalls.evaluate === evalBeforeH1);
@@ -323,8 +331,8 @@ async function main(): Promise<void> {
     const unresolved = evaluated.filter((e) => e.payload?.outcome === 'unresolved');
     A('H1 跳过当澄清 → answer_evaluated.outcome=unresolved（恰 1）',
       unresolved.length === 1 && Number(unresolved[0]!.payload?.score) === 0, evaluated.map((e) => e.payload));
-    A('H1 跳过当澄清不写 score_card（hint 0 分≠供卡）', (await scoreCards(owner, sess.id)) === 0);
-    A('H1 跳过当澄清不调用评估模型（确定性 isSkip）', modelCalls.evaluate === evalBeforeH1);
+    A('H1 前提条件：/turn 路径不产 score_request，故跳过后 score_card=0（非已证「跳过不供卡」属性）', (await scoreCards(owner, sess.id)) === 0);
+    A('H1 跳过当澄清不调用评估模型（H1 单独证不了 isSkip 分流；isSkip 判别力在 H2）', modelCalls.evaluate === evalBeforeH1);
     const qr2 = lastEv(ev2, 'question_ready');
     const next = await issued(owner, sess.id);
     A('H1 跳过后发出下一题 question_ready', !!qr2 && evKinds(ev2, 'question_ready').length >= 2);
@@ -342,10 +350,11 @@ async function main(): Promise<void> {
 
     // N2 挂在同一场：旧题再答 → stale
     console.log('\n──────── N2 · 跳过当澄清后旧 questionId 再答 → 409 stale_question ────────');
+    const jobsBeforeN2 = await jobCount(owner, sess.id);
     const stale = await postTurn(owner, sess.id, turnBody(clarId, '跳过'));
     A('N2 旧澄清题再 skip → 409 stale_question', stale.status === 409 && stale.body?.error === 'stale_question', stale);
-    const evN2 = await events(owner, sess.id);
-    A('N2 409 后 answer_evaluated 条数不增', evKinds(evN2, 'answer_evaluated').length === evaluated.length);
+    const jobsAfterN2 = await jobCount(owner, sess.id);
+    A('N2 409 后 interview_job 行数不增', jobsAfterN2 === jobsBeforeN2, { jobsBeforeN2, jobsAfterN2 });
   }
 
   // ── H2 · 对照：首轮显式跳过不先澄清 ────────────────────────────────
@@ -363,7 +372,7 @@ async function main(): Promise<void> {
       evKinds(ev, 'answer_evaluated').some((e) => e.payload?.outcome === 'unresolved' && e.payload?.questionId === sess.q0.questionId));
     const next = await issued(owner, sess.id);
     A('H2 直接换能力出下一题', !!next && next.competency !== sess.q0comp);
-    A('H2 首轮跳过不调用评估模型、不写 score_card',
+    A('H2 首轮跳过不调用评估模型；score_card=0 为 /turn 不产 score_request 的前提条件（非已证「跳过不供卡」属性）',
       modelCalls.evaluate === evalBefore && (await scoreCards(owner, sess.id)) === 0);
   }
 
@@ -449,15 +458,14 @@ async function main(): Promise<void> {
     const owner = `sca-n4-${process.pid}`;
     const other = `sca-n4b-${process.pid}`;
     const sess = await openStarted(owner);
+    const jobsBeforeN4 = await jobCount(owner, sess.id);
     const cross = await call('POST', `/interview/${sess.id}/turn`, hdr(other), turnBody(sess.q0, '跳过'));
     A('N4 他主 skip → 404 not_found_or_forbidden',
       cross.status === 404 && cross.body?.error === 'not_found_or_forbidden', cross);
     const unauth = await call('POST', `/interview/${sess.id}/turn`, {}, turnBody(sess.q0, '跳过'));
     A('N4 未鉴权 skip → 401', unauth.status === 401, unauth);
-    const evBefore = await events(owner, sess.id);
-    A('N4 越权/未鉴权不落 clarification / evaluated',
-      evKinds(evBefore, 'clarification_needed').length === 0
-      && evKinds(evBefore, 'answer_evaluated').length === 0);
+    const jobsAfterN4 = await jobCount(owner, sess.id);
+    A('N4 越权/未鉴权不新增 interview_job', jobsAfterN4 === jobsBeforeN4, { jobsBeforeN4, jobsAfterN4 });
 
     const ab = await call('POST', `/interview/${sess.id}/abandon`, hdr(owner), {});
     A('N4 abandon → 200', ab.status === 200 && ab.body?.abandoned === true, ab);
