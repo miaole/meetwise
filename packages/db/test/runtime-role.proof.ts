@@ -174,7 +174,7 @@ async function main() {
       try {
         if (typeof revokeGrantee !== 'function') throw new Error('guard_missing');
         const safe = revokeGrantee(injectionRole);
-        await admin.query('SELECT mw_admin_revoke_exec_all($1::regprocedure, $2)', [revokeFn, safe]);
+        await admin.query('SELECT mw_admin_revoke_exec_all($1::regprocedure, $2)', [probeFn, safe]);
       } catch (error) {
         productionShapedThrew = String((error as Error).message).startsWith('mw_admin_revoke_exec_all_grantee_not_allowlisted:');
       }
