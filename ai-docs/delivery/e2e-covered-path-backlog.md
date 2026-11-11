@@ -5,6 +5,47 @@
 **releaseEvidence=false** 直至多实例 + 故障注入 prove EXIT + CI 收据。  
 **sole-stack** MySQL+Qdrant+Redis 未迁完 → **禁止宣称 HA**。R5/pgvector → **green-risk** 必标。
 
+## 2026-11-11 G1–G4 修复合入与用户决定（协调方同步）
+
+**合入 main（merge commit，均经独立领域审查 PASS + PR CI 全绿）**
+
+| 组 | PR | 内容 | merge sha | 合入后 PTP cap |
+|----|----|------|-----------|----------------|
+| G3 | [#240](https://github.com/miaole/meetwise/pull/240) | SSE 槽 proof 按连接计数 + 轮询下界 + 全仓冲突标记扫描（secrets-scan 内）+ verify `timeout-minutes: 30` | `67a4daeed771785523a1caf869702ec411daae3c` | 2533 |
+| G1 | [#239](https://github.com/miaole/meetwise/pull/239) | 迁移账本链首前缀修复（0000→0230 改号）+ 旧库升级 proof | `6212ab8572f4e468ee669aee49d0e6d05c1f9d0e` | 2535 |
+| G2 | [#241](https://github.com/miaole/meetwise/pull/241) | 判重出题降级（本场不重复 → 换能力项 → 跨场重复兜底） | `9bc700764482a50c0fdadcaca8e27c9891d24cb4` | 2536 |
+| G4 | [#238](https://github.com/miaole/meetwise/pull/238) | 隐私 worker 生产编排与 env 校验 | `2be4e4f29acb9f61594dbd1298a572dc298877e4` | 2536（不增受管件） |
+
+main 上 `ci` 工作流对上述合入提交均 success。`deploy` 工作流报红属**预期内**：云服务器尚未购买，目标 ECS 不存在。`deploy.yml` 保持原样，不改、不禁用。
+
+**用户决定（2026-11-10/11）**
+
+- 跨场重复默认值：本场不重复；本场可换的能力项都换完后，才允许使用别场问过的题（不多调模型、不多扣额度）。如将来要求严格不跨场重复，另开一刀做历史题降权，不靠无上限重摇。
+- 全栈 E2E 不进 CI，不配 `MODEL_API_KEY`；在本地手跑 `pnpm e2e:isolated`。
+- CI 改为轻量，只保留核心校验（瘦身另走 PR，经 mw-e2e-ha 独立审查后再合）。
+- 隐私 worker 的生产密钥（`PRIVACY_WORKER_DATABASE_URL` / `PRIVACY_WORKER_DB_USER` / `PRIVACY_WORKER_DB_PASSWORD`）用户确认已配好。
+- 上云口径：除「买云 + 部署」这一项以外，上云前的所有工作都要做完。#238 隐私 worker 实际上线排在「买云 + 部署」这一项里，当前**未上线**。
+
+**后续队列（未关）**
+
+1. #18 `interview_job.payload` 明文 answer 需即时剥离。
+2. #106 deps-audit 只阻断 critical，现存 18 个 high。
+3. N-11 口径冲突待深审。
+4. #28 ADR 仍写 BullMQ/Redis，需与 PG-retained 对齐。
+5. #70 bodyLimit 12MiB 低于 base64 上限，413 不可达。
+6. #234 use-cases 索引未更新。
+7. `ha6:prove` 在 main 上原本即红（3 条），单独跟进。
+8. G5（N-13/N-14）、G6（N-17）后置。
+9. G2 `duplicateFallback` 标记未投影到 `question_ready` 事件，运营不可见；§4.5 缺 `provenance=cross_session_repeat` 断言。
+10. 缺 HTTP 层「跳过当澄清」的 E2E。
+11. isolated 场景 `runFullE2E` 吞掉 stderr，Key-block 易被误读为 PG 静默失败。
+12. 跨场撞题降权（确定性相似度、当场仍硬拒）另开一刀，需 PRE 双审。
+13. `sse-slot:prove` 轮询下界只能稳定抓到约 <875ms 的回归（1000ms 的 2 倍退化抓不到）。
+14. 0000 ledger 老库需要手动 DELETE 孤儿行；是否自动化由用户决定。
+15. 0230 迁移头注释误写为 DEFINER，需要勘误。
+
+Pins 不变：NOT_HA · releaseEvidence=false。
+
 ## 矩阵计数（扫表快照）
 | 桶 | 约数 | 说明 |
 |----|------|------|
