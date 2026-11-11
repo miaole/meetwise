@@ -50,6 +50,90 @@
 
 ---
 
+## 2026-11-11 第二批修复合入（统一授权：对口审查 PASS + CI 绿，按顺序合；2026-11-11 16:15–19:00 Asia/Shanghai）
+
+**合入 main（merge commit；每个 PR 只在自己已审 head 上并入当时 main，只改 PTP cap / lint 帽 / 冲突）**
+
+| PR | 内容 | merge sha | 合入后 PTP cap |
+|----|------|-----------|----------------|
+| #244 | fix(ha6): 修复 main 上 ha6:prove 存量三红 | `f805933bd` | 2536 |
+| #248 | fix(api): #70 按路由区分请求体上限并给出明确 413 契约 | `c4b66e355` | 2536 |
+| #249 | fix(interview): #18 payload 明文 answer 消费即剥离 | `b8321fa88` | 2537 |
+| #247 | fix(worker): 高 inflight 下 checkpoint 写失败不再拖垮 worker 进程（WORKER-INFLIGHT-CRASH-01） | `607f709a0` | 2538 |
+| #245 | fix(interview): 将 G2 duplicateFallback 投影到 question_ready 读模型 | `65fdfe463` | 2538 |
+| #252 | fix(G6 N-17): targetRole 参与候选人路由裁决 | `60ab09311` | 2538 |
+| #255 | fix(model-op): G5 N-14 备用端点接线（claim 前按预绑定对改选备端点） | `80f2c758e` | 2539 |
+| #243 | ci: 轻量 verify（核心校验够用） | `87873f50c` | 2539 |
+| #258 | ci: 台账门补盲区（env / if / continue-on-error / 非 pnpm 命令）+ nightly !cancelled() | `54716e352` | 2539 |
+| #246 | fix(deps): 清 deps-audit 18 个 high，并将门禁升至 high | `91a114f29` | 2539 |
+| #261 | fix(api): #248 后续：上传路由按模板判定、音频超限统一 413、FST 信封与 nginx 上限 | `618490e13` | 2539 |
+| #251 | docs: #28 ADR 改为 PG-retained 队列；#234 补全 use-cases 索引 | `c9e374944` | 2539 |
+| #270 | fix(test): 对齐 ha2-drain 清单与 interview-event-retention | `59baa20b2` | 2539 |
+| #265 | docs(deps): 全量对账 footprint 与中间件声明，并加已否决方案回归门 | `343d1503a` | 2539 |
+| #269 | fix(model-op): 粘性重试对侧校准预算失败时回传预算错误而非 payload_mismatch | `13e117fd7` | 2539 |
+| #250 | fix(e2e): isolated runner 失败 stderr 可见，清理带 -v 防匿名卷泄漏 | `a8f3ba4f9` | 2539 |
+| #259 | fix(test): 修复 main 上存量红 prove | `8ad194ae9` | 2539 |
+| #257 | fix(privacy): 擦除流覆盖 interview_job 明文 + 投影物理 purge 接入生产 privacy worker（0232） | `3a1d1e931` | 2541 |
+| #260 | fix(worker): 锁存不可重试错覆盖更早的可重试错（#247 N-1） | `5f8b3b0e3` | 2541 |
+| #256 | fix(web): question_ready 未知 enum 只丢字段不丢整帧 | `a2355638e` | 2541 |
+| #253 | fix(db): 0229/0230 DEFINER 头注释勘误钉死 + format %s 白名单 | `b49646860` | 2541 |
+| #263 | fix(api): 0143 SSE NOTIFY trigger 缺失或禁用时 readiness fail-closed | `b4de00205` | 2542 |
+| #264 | docs(privacy): 0091 授权快照谁来签发（方案，不写实现） | `660671c4f` | 2543 |
+| #254 | test(e2e): HTTP 层跳过当澄清 prove（含非 happy-path） | `fbf0afb4e` | 2544 |
+| #262 | fix(token-stream): G5 N-13 业务拒绝发撤回帧（预览开关缺省关） | `f8b8fa092` | 2544 |
+| #267 | chore(lint): 清 worker 机械警告并把帽收回实测值（合并树实测重算：root 5431→5378、worker 1007→956） | `d70b75587` | 2544 |
+
+**#18 只算部分修复**：任务记录写成 done/failed 时明文立即剥离，但排队等处理期间明文仍在库里，`INT-P0-RAW-QUEUE` 仍 **open**，要等 INT-TRANSCRIPT-01。已擦除面试的 `interview_job` 明文由 #257 补上（见跟进第 8 条）。
+
+**lint 警告帽这批被抬高（后续要降回去）**：各 PR 单独都在帽内，合并树叠加后超帽，按合并树实测值恰等改帽，零规则放宽。
+
+| PR | root 帽 | apps/worker 帽 | 说明 |
+|----|---------|----------------|------|
+| #247 | 5425→5427 | 999→1003 | 与 #249 并线后合并树实测 |
+| #245 | 5427→5430 | 1003→1005 | 并线后合并树实测 |
+| #252 | 5430→5431 | 1005→1006 | 并线后合并树实测 |
+| #262 | 5431（不变） | 1006→1007 | 并线后合并树实测 |
+| #267 | 5431→**5378** | 1007→**956** | 清机械警告后按合并树实测收回，零余量 |
+
+根目录和 apps/worker 的 lint 警告数这批被抬高，后续要降回去：#267 已把两处收回到合并时的实测值（root 5378、worker 956），比本批开始前的 5425 / 999 都低；之后新 PR 不应再往上抬。apps/api 帽 1555 本批未动（#254 合并树实测 1545）。
+
+**新增跟进（未关项未标「已修复」的都仍 open）**
+
+1. 上传路由按原始 URL 判定（`main.ts` onRequest），构造路径可让服务先缓冲 15MiB 再拒（#248 审查 P1）。#261 已改为按路由模板判定，待复核后关项。
+2. 公网 nginx 未设 `client_max_body_size`（默认 1m），Next serverActions bodySizeLimit 也是默认；**买云前改**（#248 P2-2）。#261 已把 nginx 设为 15m，但与应用上限相等、Server Action 仍是 1MB（见第 27 条）。
+3. 音频超限返回码不单调：约 10.02–11.25MiB 返回 400 zod too_big，只有 10MiB 以上约 24KiB 窗口是 413（#248 P2-1）；#261 已统一 413，`contentBase64` too_big 仍不是 413（见第 27 条）。
+4. `FST_ERR_CTP_BODY_TOO_LARGE` 映射原是死代码、启动有 FSTWRN004（#248 P2-3）；#261 已补 FST 信封，待复核。
+5. 前端 `duplicateFallback` 严格枚举会丢整帧（#245 审查 P2-a）——**已由 #256 修复**（未知 enum 只丢字段）。
+6. `int-answer-dual-write-fence:prove` 夹具存量红（`interview_queue_saturated`），需单独修（#249 审查）。
+7. `ha6:prove` A1 正则未锚行首（#244 审查）——**已由 #259 修复**；`ha6:prove` 仍未接进 CI，scripts digest 每次改根 scripts 都会漂（本 PR 已重注册到 `d70b75587`）。
+8. 已擦除面试的 `interview_job` 明文与投影物理 purge——**已由 #257 修复**（0232）；生产路径仍无人签发 0091 快照，投影行只会计 `skippedUnauthorized`，签发方案见 #264 文档，**待用户拍板**。
+9. N-11 深审结论：原缺陷早已修好，「口径冲突」是过时待办，应改为「已修」，**待用户确认关项**。
+10. G6-N17 targetRole（#252）P2：①简历歧义时 targetRole 可选简历未命中的叶；②短 targetRole 单叶分支绕过 v4 强证据闸，"rag"→ai_ml、"自动化测试"→qa；③简历只命中 general 时 targetRole 不生效。P3：大小写 digest 不同、`resumeDegradedFrom` 未落库、「targetRole 原文不落库」注释说过头。
+11. `tenant-rls-isolation:prove` 在 main 上 EXIT 1：仍引用 `0225_auth_user_session_owner_rls.sql`，已改名 0227（ENOENT）。
+12. #246 审查 P2：postcss override 8.4.31→8.5.32 未做 CSS/UI 回归（box 无 Playwright 浏览器）。
+13. G5-N14 粘住重试预算失败时报 mismatch 提示不准（#255）——**已由 #269 修复**。
+14. #269 跟进：`usageCauseForInvokeError` 用 `startsWith('budget')`，漏掉 `model_context_budget_exceeded`（`apps/worker/src/adaptive-interview-service.ts:242`）。
+15. #243 非阻塞：台账门盲区、nightly 4 步缺 `!cancelled()`——**#258 已补**；上云待办只留 `ci-cd.md:249` 一处。
+16. #258 P2-a..d、P3-a：删掉 `runCiStepLedgerGate()` 调用后 docs:check 仍 EXIT 0（门本身无自检臂）。
+17. #247 非阻塞：无码 PG 断连报文白名单很窄（未知报文直接终态）；新 proof 用假连接池，未接进 CI。42501 晚到不能覆盖已锁存可重试错——**已由 #260 修复**。
+18. #260 非阻塞：未知错误会覆盖 connection_lost 窗口；L-sync 只单向。
+19. #262（G5 N-13 撤回帧）：`TOKEN_STREAM_WITHDRAW_PREVIEW` 保持 **OFF**（缺省关，只认 `=== '1'`，部署配置未设）。P2 漏 critique 面；P3-c、P3-d；MUT-B 变异臂未补；report / adaptive 两面只有静态断言。
+20. #263（0143 SSE trigger readiness）：P1 catch→unknown 无日志/指标；`withShortTimeout` 与 `statement_timeout` 未对齐；M5 health fail-open；P3-b/c/d。
+21. #253 P2-R1；#259 P2-b。
+22. #264 方案文档 N-A..N-D、L182/L209 措辞；方案**待用户拍板**，未实现。
+23. #265 P2：README / CLAUDE 仍写 zod-openapi；已否决方案回归门有绕过口。
+24. #266（qbank 门作用域）：已双审 PASS @`0ec17e42b`，base 已改 main，但 head 落后 main，CI parity 报 `baseline_identity_dropped`（bounded-command.proof.mjs，来自 #250 新基线）；要过 CI 必须并 main 改 head，**未合，待用户决定**。其跟进：旧 `git()` 吞错、文件不存在时断言空转、门未进 CI（先问用户）。
+25. #267 P3：`ci.yml:121` 注释里的旧帽数字过时。
+26. ha2-drain 清单与 interview-event-retention 不一致——**#270 已对齐**（worker ha2-drain 61/0）。#270 审查 P2：清单只查「必须出现」，不是闭集；应加源码检查，`main.ts` 每个启动的 loop/listener 都要出现在 `drainStops` 或在 `shutdownWorker` 显式停止（`jobWakeupListener` / `jobWakeupRedisListener` 现状在 `drainStops` 外，必须允许），反之亦然。回执见 `reviews/REVIEW-PR270-ha2drain-mw-model-op.md`。
+27. #261 P2/P3：Server Action 仍 1MB；`contentBase64` too_big 不是 413；nginx 15m 与应用上限相等无余量；`sourceDigests` 只有静态门。
+28. db-trigfam P1：SD 计数钉值需修订。
+29. #250 残留：P1 脱敏缺口仍有；P2 脱敏耗时随长度平方增长（128KiB 约 10s）。
+30. 3 个匿名卷 `97faea65` / `575ef41e76` / `56fcfe95` 来源不明，只登记、不删。
+31. 新增 prove 挂 `verify:local` / `ci-cd.md` §8.2.1：`worker-inflight-crash:prove`、`int18:payload-strip:prove`、`body-limit:prove`、`skip-as-clarify:http:prove`、`sse-notify-trigger-health:prove`、`erasure-job-projection:prove`——另开小 PR 送审。
+32. 合并过程记录：冻结期间 role-input:prove 起过一次隔离容器；#252/#255 本地检查曾用错依赖（node_modules 是 #246 的），已按锁文件离线重装后复跑。
+
+Pins 不变：NOT_HA · releaseEvidence=false · claimProductionHA=false · DELETE=503。
+
 ## 2026-11-11 G1–G4 修复合入与用户决定（协调方同步）
 
 **合入 main（merge commit，均经独立领域审查 PASS + PR CI 全绿）**
