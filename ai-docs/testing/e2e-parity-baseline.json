@@ -4,7 +4,7 @@
   "scope": "e2e/ test+assertion parity plus agreed critical prove scripts",
   "floors": {
     "testCount": 53,
-    "assertionCount": 497
+    "assertionCount": 528
   },
   "files": {
     "e2e/full.e2e.ts": {
@@ -2338,7 +2338,7 @@
     },
     "scripts/bounded-command.proof.mjs": {
       "testCount": 1,
-      "assertionCount": 33,
+      "assertionCount": 64,
       "tests": [
         {
           "kind": "implicit-suite",
@@ -2511,6 +2511,161 @@
           "kind": "assert.throws",
           "label": "flag-like names are rejected",
           "conditionDigest": "sha256:ec3b226a3925133da610aaa8ebc92a004960a17c762bd2db4e592bc29e16f39b"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "anonymous volume mounted on this run must be removed: ${name}",
+          "conditionDigest": "sha256:07bb95d854a8315ef0486a59f4ecff06e4e8d4ad984155303cc03686d5c08cb0"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "Bearer token must be redacted",
+          "conditionDigest": "sha256:79a4f774969c395d74a26d9ecb26c05b6b37d993fade9728ea278b5a08cbef21"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "Bearer value must not appear",
+          "conditionDigest": "sha256:1dc9bbcccd022fa3812ed68a09879c00847f2568d34cc458f6da641149df00d1"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "docker label is basename plus run, not -e values",
+          "conditionDigest": "sha256:ec0c335da0bfa20b1cee5e44271ff9946ae8097213f2a0d204080378cbe15729"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "e2e_run_token must be redacted",
+          "conditionDigest": "sha256:112c4e43c40e9e1a2fd498038d8aa624b794637a22def42179b89b1c19923be5"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "error must omit connection password",
+          "conditionDigest": "sha256:45b5f3d88344107b69d2d12a0fad17c839715a318884e3d4d3e8c67fea341568"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "helper redacts URL passwords to asterisks",
+          "conditionDigest": "sha256:6a3926a11139c0b73525c733805c3b05f27d1012e732ab5001db854737db9aa0"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "inspect ${containerName} must succeed",
+          "conditionDigest": "sha256:96bf42caddf2355460f8693ea62124215d3cbdf4d9bf096f492ec153c4fe9a45"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "isolated runner finally and signal handlers share cleanupOwnIsolatedContainer",
+          "conditionDigest": "sha256:f6ec85b3d6e5990c28802e04a7a498f1dfd24415e42856a641654ee025aadcb5"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "isolated runner SIGTERM must exit 143",
+          "conditionDigest": "sha256:ebc6e36d3571cd22f0d6eab8fecf60d286f541e71fe679e9735859f447dee9ce"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "isolated runner SIGTERM must remove this run container",
+          "conditionDigest": "sha256:b0f3b63cb8aa0cedcf993c3899135c74b7efd4affe791b73c85abdf7773cc3b8"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "isolated runner SIGTERM must remove this run volume: ${name}",
+          "conditionDigest": "sha256:07bb95d854a8315ef0486a59f4ecff06e4e8d4ad984155303cc03686d5c08cb0"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "label must not echo --eval source",
+          "conditionDigest": "sha256:9c5e678b6a0d8410c92df3b25462b6fd58551fc3c88d07d7e70ed49536085fb0"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "named data volume must survive docker rm -fv",
+          "conditionDigest": "sha256:1b2ba1ff1205b0d1056431e833adfb3646c56e95e79f7cce73d9c31097b6520a"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "node --eval label omits eval source",
+          "conditionDigest": "sha256:ccc0bf22b0f07f09d1b8622aaa19f20b2c95ad5ec872063403603e9333215823"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "secret-bearing child must reject",
+          "conditionDigest": "sha256:0bc8e309c59a88e40b1d5cb249a45cdfc4c58eeb49073be452a2e142c8c173a9"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "secret-bearing error must not carry child stderr",
+          "conditionDigest": "sha256:ad932cb73e3831354c6072a32b91f1adeedb4e01a2731e76f9550c24757484d3"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "secret-bearing failure code stays fixed",
+          "conditionDigest": "sha256:0f24c1a5408d987d550ead5a9c441bab0eae0a9deb9875d2d6896e348e58240b"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "secret-bearing failure stays BoundedCommandError",
+          "conditionDigest": "sha256:60e6ff92cf328b146faadbd7ba181e7fb1a0e0a102ac3e57b97035b08ad8e629"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "signal fixture container must be running before SIGTERM",
+          "conditionDigest": "sha256:eb02d16b9aaf7ee255a8713049f1db6f53508e6f6d5bdd6b0ae23743de1a8f84"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "SIGTERM cleanup must remove this run container",
+          "conditionDigest": "sha256:610298dc4bb0462a0685e81c7671ce6e17dc4dba88321fdfb7c66fc0a084d6b6"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "SIGTERM cleanup must remove this run volume: ${name}",
+          "conditionDigest": "sha256:07bb95d854a8315ef0486a59f4ecff06e4e8d4ad984155303cc03686d5c08cb0"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "SIGTERM must exit 143",
+          "conditionDigest": "sha256:38edbd381f9ec01a22dfe17e33e54f0634c46ea97a5f0f5855ff29ff04546530"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "sk- key must be redacted",
+          "conditionDigest": "sha256:0e6b48d95ea3396e825d992fd6edfae280e65a7045cfba5729e67f51914b60b4"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "URL password must be redacted",
+          "conditionDigest": "sha256:3590e23f54a0c40dde86e69f9b36c153bc557a35b3ccc8d06f7d4a2de2052ee7"
+        },
+        {
+          "kind": "assert.match",
+          "label": "Bearer/Authorization material is replaced",
+          "conditionDigest": "sha256:364df7deac6c6d39fbe9f7f8816241e58473e45bfdb886c4da9ec56b6764dd11"
+        },
+        {
+          "kind": "assert.match",
+          "label": "failure still prints a stderr tail",
+          "conditionDigest": "sha256:be8d8875ae1d694c24515ab12dcb1a3b7e7b559fcf66e2fc2c0a1cd896adb010"
+        },
+        {
+          "kind": "assert.match",
+          "label": "label is basename plus first subcommand only",
+          "conditionDigest": "sha256:fa3c0b6fe43277082c5b1e9ae46d3e18e9cd4d5b04523572dc3faf59226e20c9"
+        },
+        {
+          "kind": "assert.match",
+          "label": "URL userinfo keeps the user and redacts the password",
+          "conditionDigest": "sha256:220d521b2a2f1d3785d60db2b9d3e0816349cac5574b2ab5d041bcad5126777c"
+        },
+        {
+          "kind": "assert.ok",
+          "label": "fixture must attach an anonymous volume to this container",
+          "conditionDigest": "sha256:3b94ffaf51745c9470492f3abc64ba79863b2f5a574666e6b00b012c739bf57b"
+        },
+        {
+          "kind": "assert.ok",
+          "label": "signal fixture must mount a volume",
+          "conditionDigest": "sha256:b6c13e023892fa44f2d92112373f58f508c24146847d43d3dda9653d9d97f305"
         }
       ]
     },

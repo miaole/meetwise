@@ -395,6 +395,37 @@
       "removedFile": false,
       "testCountDelta": -3,
       "assertionCountDelta": -10
+    },
+    {
+      "id": "E2E-PARITY-20261111-isorunner-stderr-redact-volumes",
+      "path": "scripts/bounded-command.proof.mjs",
+      "reason": "Isolated runner failure tails now redact credentials and attribute leftover volumes by this run’s mounted names; the previous global volume-diff assertions were replaced rather than dropped from the floor.",
+      "removedTests": [],
+      "removedAssertions": [
+        {
+          "kind": "assert.deepEqual",
+          "label": "docker rm -fv must leave no new anonymous volume",
+          "conditionDigest": "sha256:72e3c320b0949a2e610dc8c67d7bff9dfddb06fdba0b2bf03320b74ea0ae950d"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "docker volume ls must succeed",
+          "conditionDigest": "sha256:19fb95b27676d598550aa15c94c4452e3571ab38914f497b27392c2967277f39"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "named data volume must survive docker rm -fv",
+          "conditionDigest": "sha256:0272fa90be7758d764a6fe14a80dc0bd016a8d53e4aac8f6828ae0cd0ab1ee5d"
+        },
+        {
+          "kind": "assert.ok",
+          "label": "fixture must create a new anonymous volume",
+          "conditionDigest": "sha256:add5d82057f42fece49a29897e40ed45d34e8565a44b09fe648438c2be657ce2"
+        }
+      ],
+      "removedFile": false,
+      "testCountDelta": 0,
+      "assertionCountDelta": -4
     }
   ]
 }

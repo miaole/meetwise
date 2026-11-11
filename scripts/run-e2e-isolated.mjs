@@ -37,7 +37,7 @@
  *   pnpm scoring-integrity:prove # 评分/报告完整性 proof（绝不触碰开发库）
  *   pnpm runtime-role:prove      # 应用登录最小权限/RLS proof（绝不触碰开发库）
  */
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { randomUUID, createHash } from 'node:crypto';
 import { mkdirSync, writeFileSync, renameSync, readFileSync, existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -48,7 +48,7 @@ import {
   parseE2EFailureLine,
   tagE2EFailure,
 } from '../e2e/helpers/failure-class.mjs';
-import { captureBounded, appendStderrTail, disposableDockerRmArgs, writeFailureStderrTail } from './bounded-command.mjs';
+import { captureBounded, appendStderrTail, commandLabel, disposableDockerRmArgs, writeFailureStderrTail, installDisposableContainerSignalCleanup } from './bounded-command.mjs';
 import { assertNoFakeServiceFlags } from './e2e-fake-service-flags.mjs';
 import { writeLocalE2EReceipt, writeLocalIsolatedReceipt } from './local-e2e-receipt.mjs';
 import { withheldOutputSummary } from './withheld-output.mjs';
@@ -3963,6 +3963,16 @@ const isolatedCommand = target === 'api-harden:prove'
   : undefined;
 
 const container = `meetwise-e2e-${process.pid}-${Date.now()}`;
+let isolatedContainerCreated = false;
+function cleanupOwnIsolatedContainer() {
+  if (!isolatedContainerCreated) return;
+  isolatedContainerCreated = false;
+  spawnSync('docker', disposableDockerRmArgs([container]), { stdio: 'ignore', timeout: 20_000 });
+}
+installDisposableContainerSignalCleanup({
+  getContainerNames: () => (isolatedContainerCreated ? [container] : []),
+  cleanup: cleanupOwnIsolatedContainer,
+});
 // G3: legacy-track default image UNCHANGED (≠ flip / ≠ retire default value this slice).
 const LEGACY_PG_IMAGE_DEFAULT = 'pgvector/pgvector:pg16';
 const image = process.env.E2E_PG_IMAGE ?? LEGACY_PG_IMAGE_DEFAULT;
@@ -4125,8 +4135,8 @@ if (baseEnv.G7_RUN_COST_LEDGER_PATH) process.env.G7_RUN_COST_LEDGER_PATH = baseE
 if (baseEnv.G7_FREETIER_REPROVE) process.env.G7_FREETIER_REPROVE = baseEnv.G7_FREETIER_REPROVE;
 
 
-function capture(command, args, env = baseEnv, cwd = ROOT, timeoutMs = 15_000) {
-  return captureBounded(command, args, { cwd, env, timeoutMs });
+function capture(command, args, env = baseEnv, cwd = ROOT, timeoutMs = 15_000, options = {}) {
+  return captureBounded(command, args, { cwd, env, timeoutMs, ...options });
 }
 
 function run(command, args, env = baseEnv) {
@@ -4216,7 +4226,7 @@ function runFullE2E(command, args, env = baseEnv) {
     child.on('error', reject);
     child.on('exit', (code) => {
       const exitCode = code ?? 1;
-      if (exitCode !== 0) writeFailureStderrTail(stderrTail, { exitCode, command: [command, ...args].join(' ') });
+      if (exitCode !== 0) writeFailureStderrTail(stderrTail, { exitCode, command: commandLabel(command, args) });
       const judged = evaluateIsolatedHttpE2E({ exitCode, stdout });
       if (judged.reject) return reject(tagE2EFailure(judged.reject.class, judged.reject.code));
       if (judged.accept) {
@@ -4249,10 +4259,10 @@ const HOST_SQL_PROBE = [
   "try { await client.connect(); await client.query('SELECT 1'); } finally { await client.end().catch(() => undefined); }",
 ].join(' ');
 
-async function probeHostSql(env) {
+async function probeHostSql(env, options = {}) {
   // `pg` 是 db workspace 的直接依赖，而不是仓库根依赖。以该 workspace 作为
   // 模块解析起点，避免为了测试探针把数据库驱动错误提升为根生产依赖。
-  await capture('node', ['--input-type=module', '--eval', HOST_SQL_PROBE], env, `${ROOT}packages/db`, 5_000);
+  await capture('node', ['--input-type=module', '--eval', HOST_SQL_PROBE], env, `${ROOT}packages/db`, 5_000, options);
 }
 
 /**
@@ -4284,10 +4294,14 @@ async function waitForPostgres(env, { consecutive = 3, label = 'boot' } = {}) {
   // SELECT 1 successes and re-probe after migrate (see call sites) so a brief
   // postmaster bounce cannot pass a single probe then refuse the prove.
   let streak = 0;
+  let lastFailureTail = '';
+  const pollSink = { write(chunk) { lastFailureTail += String(chunk); return true; } };
+  const pollOpts = { stderrSink: pollSink };
   for (let attempt = 0; attempt < 90; attempt++) {
+    lastFailureTail = '';
     try {
-      await capture('docker', ['exec', container, 'psql', '-v', 'ON_ERROR_STOP=1', '-U', 'meetwise', '-d', 'meetwise', '-Atqc', 'SELECT 1'], baseEnv, ROOT, 5_000);
-      if (env) await probeHostSql(env);
+      await capture('docker', ['exec', container, 'psql', '-v', 'ON_ERROR_STOP=1', '-U', 'meetwise', '-d', 'meetwise', '-Atqc', 'SELECT 1'], baseEnv, ROOT, 5_000, pollOpts);
+      if (env) await probeHostSql(env, pollOpts);
       streak += 1;
       if (streak >= consecutive) {
         console.log(`E2E_POSTGRES_READY label=${label} consecutive=${streak} attempt=${attempt + 1}`);
@@ -4298,6 +4312,9 @@ async function waitForPostgres(env, { consecutive = 3, label = 'boot' } = {}) {
       await sleep(1_000);
     }
   }
+  // Expected probe failures stay quiet during the retry loop; print only the
+  // last tail once the poll has been exhausted.
+  if (lastFailureTail) process.stderr.write(lastFailureTail);
   throw new Error(`isolated_postgres_database_not_ready:${label}`);
 }
 
@@ -4317,7 +4334,7 @@ async function migrateWithRecovery(env) {
 }
 
 async function main() {
-  let created = false;
+  isolatedContainerCreated = false;
   let failed = false;
   const startedAt = new Date();
   let targetExitCode = 1;
@@ -4434,7 +4451,7 @@ async function main() {
       '-p', '127.0.0.1::5432', image,
       'postgres', '-c', `meetwise.e2e_run_token=${targetToken}`,
     ], baseEnv, ROOT, 120_000);
-    created = true;
+    isolatedContainerCreated = true;
     const portOutput = await capture('docker', ['port', container, '5432/tcp'], baseEnv, ROOT, 10_000);
     const match = portOutput.match(/127\.0\.0\.1:(\d+)/);
     if (!match) throw new Error(`isolated_postgres_port_unparseable:${portOutput}`);
@@ -4553,8 +4570,8 @@ async function main() {
     }
     throw error;
   } finally {
-    if (created && failed) await emitFailureDiagnostic();
-    if (created) await capture('docker', disposableDockerRmArgs([container])).catch(() => {});
+    if (isolatedContainerCreated && failed) await emitFailureDiagnostic();
+    cleanupOwnIsolatedContainer();
     if (target === 'e2e:prove') {
       try {
         const g7Base = loadG7ReceiptFromLedger(process.env);

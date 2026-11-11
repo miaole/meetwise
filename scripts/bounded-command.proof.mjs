@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { spawnSync } from 'node:child_process';
-import { captureBounded, BoundedCommandError, appendStderrTail, writeFailureStderrTail, disposableDockerRmArgs, PROTECTED_NAMED_VOLUME_COMPOSE } from './bounded-command.mjs';
+import { spawn, spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { captureBounded, BoundedCommandError, appendStderrTail, writeFailureStderrTail, disposableDockerRmArgs, PROTECTED_NAMED_VOLUME_COMPOSE, commandLabel, redactFailureText } from './bounded-command.mjs';
 
 const minimalEnv = { PATH: process.env.PATH ?? '', LANG: 'C', LC_ALL: 'C', TZ: 'UTC' };
 
@@ -113,10 +114,57 @@ assert.equal(/disposableDockerRmArgs\(/.test(isolatedSource), true, 'disposable 
 assert.equal(/down\s+-v[\s\S]{0,240}mysql-local|compose\.mysql-local[\s\S]{0,240}down[^\n]{0,80}-v/.test(isolatedSource), false, 'runner must not compose down -v mysql-local named volumes');
 console.log('PASS  isolated runner 源码钉住失败 stderr 可见且 docker rm -v');
 
-function listAnonymousVolumes() {
-  const listed = spawnSync('docker', ['volume', 'ls', '-q'], { encoding: 'utf8' });
-  assert.equal(listed.status, 0, 'docker volume ls must succeed');
-  return new Set((listed.stdout || '').trim().split('\n').filter((name) => /^[a-f0-9]{64}$/.test(name)));
+
+assert.equal(commandLabel('/usr/bin/docker', ['run', '--rm', '-e', 'POSTGRES_PASSWORD=meetwise_dev_password']), 'docker run', 'docker label is basename plus run, not -e values');
+assert.equal(commandLabel(process.execPath, ['--eval', 'process.exit(1)']), 'node', 'node --eval label omits eval source');
+assert.equal(redactFailureText('postgres://u:SEKRET@h/db'), 'postgres://u:***@h/db', 'helper redacts URL passwords to asterisks');
+console.log('PASS  commandLabel 只保留命令名和首个子命令，不含参数或 -e K=V');
+
+const secretSinkChunks = [];
+const secretSink = { write(chunk) { secretSinkChunks.push(String(chunk)); return true; } };
+const fakeSk = ['sk-', 'FAKEabcdef1234567890'].join('');
+const secretPayload = `postgres://u:SEKRET@h/db MODEL_API_KEY=${fakeSk} Authorization: Bearer eyJFAKE.tok meetwise.e2e_run_token=11111111-2222-4333-8444-555555555555`;
+const secretEval = `process.stderr.write(${JSON.stringify(`${secretPayload}\n`)}); process.exit(2)`;
+try {
+  await captureBounded(process.execPath, ['--eval', secretEval], {
+    cwd: process.cwd(), env: minimalEnv, timeoutMs: 2_000, stderrSink: secretSink,
+  });
+  assert.equal('reached', 'rejected', 'secret-bearing child must reject');
+} catch (error) {
+  assert.equal(error instanceof BoundedCommandError, true, 'secret-bearing failure stays BoundedCommandError');
+  assert.equal(error.code, 'bounded_command_exit_nonzero', 'secret-bearing failure code stays fixed');
+  assert.equal(error.message, 'bounded_command_exit_nonzero', 'secret-bearing error must not carry child stderr');
+  assert.equal(String(error).includes('SEKRET'), false, 'error must omit connection password');
+}
+const secretPrinted = secretSinkChunks.join('');
+assert.match(secretPrinted, /ISOLATED_CHILD_STDERR_TAIL/, 'failure still prints a stderr tail');
+assert.match(secretPrinted, /command=node\b/, 'label is basename plus first subcommand only');
+assert.equal(secretPrinted.includes(secretEval), false, 'label must not echo --eval source');
+assert.equal(secretPrinted.includes('SEKRET'), false, 'URL password must be redacted');
+assert.equal(secretPrinted.includes('sk-FAKE'), false, 'sk- key must be redacted');
+assert.equal(secretPrinted.includes('eyJFAKE.tok'), false, 'Bearer token must be redacted');
+assert.equal(secretPrinted.includes('11111111-2222-4333-8444-555555555555'), false, 'e2e_run_token must be redacted');
+assert.match(secretPrinted, /postgres:\/\/u:\*\*\*@h\/db/, 'URL userinfo keeps the user and redacts the password');
+assert.equal(/Bearer\s+eyJ/i.test(secretPrinted), false, 'Bearer value must not appear');
+assert.match(secretPrinted, /\[REDACTED\]/, 'Bearer/Authorization material is replaced');
+console.log('PASS  失败 stderr 尾部脱敏：连接串、sk- 密钥、Bearer、e2e_run_token 均不出现，标签不含 argv');
+
+function volumeNamesMountedOn(containerName) {
+  const inspected = spawnSync('docker', [
+    'inspect',
+    '--format', '{{range .Mounts}}{{if eq .Type "volume"}}{{.Name}}\n{{end}}{{end}}',
+    containerName,
+  ], { encoding: 'utf8' });
+  assert.equal(inspected.status, 0, `inspect ${containerName} must succeed`);
+  return (inspected.stdout || '').split('\n').map((name) => name.trim()).filter(Boolean);
+}
+
+function volumeExists(name) {
+  return spawnSync('docker', ['volume', 'inspect', name], { stdio: 'ignore' }).status === 0;
+}
+
+function containerExists(name) {
+  return spawnSync('docker', ['inspect', name], { stdio: 'ignore' }).status === 0;
 }
 
 const dockerInfo = spawnSync('docker', ['info'], { stdio: 'ignore' });
@@ -124,7 +172,7 @@ assert.equal(dockerInfo.status, 0, 'volume prove requires docker');
 const stamp = `${process.pid}-${Date.now()}`;
 const namedVolume = `meetwise-isorunner-prove-keep-${stamp}`;
 const disposable = `meetwise-isorunner-prove-ctr-${stamp}`;
-const beforeAnonymous = listAnonymousVolumes();
+let mountedVolumeNames = [];
 try {
   const createdVol = spawnSync('docker', ['volume', 'create', namedVolume], { encoding: 'utf8' });
   assert.equal(createdVol.status, 0, 'named volume create must succeed');
@@ -135,16 +183,149 @@ try {
     'redis:7-alpine', 'sleep', '30',
   ], { encoding: 'utf8' });
   assert.equal(started.status, 0, 'container with anonymous volume must start');
-  const midAnonymous = listAnonymousVolumes();
-  assert.ok([...midAnonymous].some((name) => !beforeAnonymous.has(name)), 'fixture must create a new anonymous volume');
+  mountedVolumeNames = volumeNamesMountedOn(disposable);
+  const anonymousMounted = mountedVolumeNames.filter((name) => name !== namedVolume);
+  assert.ok(anonymousMounted.length >= 1, 'fixture must attach an anonymous volume to this container');
   const removed = spawnSync('docker', disposableDockerRmArgs([disposable]), { encoding: 'utf8' });
   assert.equal(removed.status, 0, 'docker rm -fv must succeed');
-  const afterAnonymous = listAnonymousVolumes();
-  assert.deepEqual([...afterAnonymous].filter((name) => !beforeAnonymous.has(name)), [], 'docker rm -fv must leave no new anonymous volume');
-  const namedStill = spawnSync('docker', ['volume', 'inspect', namedVolume], { stdio: 'ignore' });
-  assert.equal(namedStill.status, 0, 'named data volume must survive docker rm -fv');
-  console.log(`PASS  清理后匿名卷无新增（前=${beforeAnonymous.size} 后=${afterAnonymous.size}），命名卷保留`);
+  for (const name of anonymousMounted) {
+    assert.equal(volumeExists(name), false, `anonymous volume mounted on this run must be removed: ${name}`);
+  }
+  assert.equal(volumeExists(namedVolume), true, 'named data volume must survive docker rm -fv');
+  console.log(`PASS  按本次容器挂载卷名归因：匿名卷已删（${anonymousMounted.length}），命名卷保留`);
 } finally {
   spawnSync('docker', ['rm', '-f', '-v', disposable], { stdio: 'ignore' });
   spawnSync('docker', ['volume', 'rm', '-f', namedVolume], { stdio: 'ignore' });
+}
+
+const helperScriptRoot = await mkdtemp(join(tmpdir(), 'meetwise-bounded-sig-'));
+const helperHolder = `meetwise-isorunner-prove-sig-${stamp}`;
+const helperScript = join(helperScriptRoot, 'hold.mjs');
+try {
+  const helperModule = new URL('./bounded-command.mjs', import.meta.url).href;
+  await writeFile(helperScript, `${[
+    "import { spawnSync } from 'node:child_process';",
+    `import { installDisposableContainerSignalCleanup, disposableDockerRmArgs } from ${JSON.stringify(helperModule)};`,
+    `const name = ${JSON.stringify(helperHolder)};`,
+    'let created = false;',
+    'function cleanup() {',
+    '  if (!created) return;',
+    '  created = false;',
+    "  spawnSync('docker', disposableDockerRmArgs([name]), { stdio: 'ignore', timeout: 20_000 });",
+    '}',
+    'installDisposableContainerSignalCleanup({ getContainerNames: () => (created ? [name] : []), cleanup });',
+    "const started = spawnSync('docker', ['run', '-d', '--name', name, '--mount', 'type=volume,target=/anon', 'redis:7-alpine', 'sleep', '60'], { encoding: 'utf8' });",
+    'if (started.status !== 0) { process.stderr.write(started.stderr || started.stdout || "start failed"); process.exit(2); }',
+    'created = true;',
+    "process.stdout.write('READY\\n');",
+    'setInterval(() => {}, 1000);',
+  ].join('\n')}\n`);
+  const helper = spawn(process.execPath, [helperScript], { cwd: process.cwd(), stdio: ['ignore', 'pipe', 'pipe'] });
+  helper.stderr.resume();
+  await new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('signal helper did not become ready')), 30_000);
+    let out = '';
+    helper.stdout.on('data', (chunk) => {
+      out += chunk.toString('utf8');
+      if (out.includes('READY')) {
+        clearTimeout(timer);
+        resolve();
+      }
+    });
+    helper.once('exit', (code) => {
+      clearTimeout(timer);
+      reject(new Error(`signal helper exited early: ${code}`));
+    });
+  });
+  assert.equal(containerExists(helperHolder), true, 'signal fixture container must be running before SIGTERM');
+  const helperVolumes = volumeNamesMountedOn(helperHolder);
+  assert.ok(helperVolumes.length >= 1, 'signal fixture must mount a volume');
+  helper.kill('SIGTERM');
+  const helperCode = await new Promise((resolve) => {
+    const timer = setTimeout(() => resolve('timeout'), 20_000);
+    helper.once('exit', (code, signal) => {
+      clearTimeout(timer);
+      resolve(signal ? 128 + ({ SIGTERM: 15, SIGINT: 2 }[signal] ?? 0) : (code ?? 1));
+    });
+  });
+  assert.equal(helperCode, 143, 'SIGTERM must exit 143');
+  assert.equal(containerExists(helperHolder), false, 'SIGTERM cleanup must remove this run container');
+  for (const name of helperVolumes) {
+    assert.equal(volumeExists(name), false, `SIGTERM cleanup must remove this run volume: ${name}`);
+  }
+  console.log('PASS  SIGTERM 后按本次挂载卷名归因：容器与卷均不残留（helper）');
+} finally {
+  spawnSync('docker', ['rm', '-f', '-v', helperHolder], { stdio: 'ignore' });
+  await rm(helperScriptRoot, { recursive: true, force: true });
+}
+
+assert.equal(/installDisposableContainerSignalCleanup\s*\(/.test(isolatedSource), true, 'isolated runner must install SIGINT/SIGTERM cleanup');
+assert.equal(/cleanupOwnIsolatedContainer/.test(isolatedSource), true, 'isolated runner finally and signal handlers share cleanupOwnIsolatedContainer');
+
+const runnerHolderPrefix = `meetwise-e2e-`;
+const runnerEnv = {
+  PATH: process.env.PATH ?? '',
+  LANG: 'C',
+  LC_ALL: 'C',
+  TZ: 'UTC',
+  E2E_PG_IMAGE: 'pgvector/pgvector:pg16',
+};
+const repoRoot = fileURLToPath(new URL('..', import.meta.url));
+const runner = spawn(process.execPath, [fileURLToPath(new URL('./run-e2e-isolated.mjs', import.meta.url)), 'isolated-env:prove'], {
+  cwd: repoRoot,
+  env: runnerEnv,
+  stdio: ['ignore', 'pipe', 'pipe'],
+});
+runner.stdout.resume();
+runner.stderr.resume();
+let runnerContainer = '';
+let runnerVolumes = [];
+try {
+  await new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('isolated runner container did not appear')), 45_000);
+    const poll = setInterval(() => {
+      if (!runner.pid) return;
+      const listed = spawnSync('docker', ['ps', '-a', '--filter', `name=${runnerHolderPrefix}${runner.pid}-`, '--format', '{{.Names}}'], { encoding: 'utf8' });
+      const names = (listed.stdout || '').trim().split('\n').filter(Boolean);
+      if (names.length === 1) {
+        runnerContainer = names[0];
+        if (containerExists(runnerContainer)) {
+          try {
+            runnerVolumes = volumeNamesMountedOn(runnerContainer);
+          } catch {
+            return;
+          }
+          if (runnerVolumes.length >= 1) {
+            clearTimeout(timer);
+            clearInterval(poll);
+            resolve();
+          }
+        }
+      }
+    }, 250);
+    runner.once('exit', (code) => {
+      clearTimeout(timer);
+      clearInterval(poll);
+      reject(new Error(`isolated runner exited early: ${code}`));
+    });
+  });
+  runner.kill('SIGTERM');
+  const runnerCode = await new Promise((resolve) => {
+    const timer = setTimeout(() => resolve('timeout'), 20_000);
+    runner.once('exit', (code, signal) => {
+      clearTimeout(timer);
+      resolve(signal ? 128 + ({ SIGTERM: 15, SIGINT: 2 }[signal] ?? 0) : (code ?? 1));
+    });
+  });
+  assert.equal(runnerCode, 143, 'isolated runner SIGTERM must exit 143');
+  assert.equal(containerExists(runnerContainer), false, 'isolated runner SIGTERM must remove this run container');
+  for (const name of runnerVolumes) {
+    assert.equal(volumeExists(name), false, `isolated runner SIGTERM must remove this run volume: ${name}`);
+  }
+  console.log('PASS  isolated runner 收到 SIGTERM 后本次容器与挂载卷均不残留');
+} finally {
+  if (runner.pid) {
+    try { process.kill(runner.pid, 'SIGKILL'); } catch { /* already exited */ }
+  }
+  if (runnerContainer) spawnSync('docker', ['rm', '-f', '-v', runnerContainer], { stdio: 'ignore' });
 }

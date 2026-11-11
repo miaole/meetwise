@@ -151,7 +151,7 @@ const FAILURE_HELPER_CONSUMERS = Object.freeze(['e2e/full.e2e.ts']);
 const FAILURE_HELPER_REEXPORT_PATTERN = /export\s*\{([^}]*)\}\s*from\s*['"]\.\/failure-class\.mjs['"]/;
 const FAILURE_HELPER_IMPORT_PATTERN = /import\s*\{([^}]*)\}\s*from\s*['"]\.\/helpers\/failure\.ts['"]/;
 
-const CREDENTIAL_RULES = Object.freeze([
+export const CREDENTIAL_RULES = Object.freeze([
   { rule: 'alibaba_access_key_id', pattern: /\bLTAI[A-Za-z0-9]{12,}\b/ },
   { rule: 'aws_access_key_id', pattern: /\b(?:AKIA|ASIA)[0-9A-Z]{16}\b/ },
   { rule: 'github_token', pattern: /\b(?:ghp|gho|ghu|ghs|github_pat)_[A-Za-z0-9_]{20,}\b/ },
@@ -449,18 +449,29 @@ function scanIsolatedRunnerHygiene({ readSource }, errors) {
   const file = readSource('scripts/run-e2e-isolated.mjs');
   if (!file) return;
   const src = file.source;
+  const executable = stripJsComments(src);
   if (/child\.stderr\.on\('data',\s*\(\)\s*=>\s*\{\}\)/.test(src)) {
     addError(errors, 'isolated_runner_stderr_swallowed', 'scripts/run-e2e-isolated.mjs');
   }
   if (!/writeFailureStderrTail\(/.test(src) || !/appendStderrTail\(/.test(src)) {
     addError(errors, 'isolated_runner_stderr_tail_missing', 'scripts/run-e2e-isolated.mjs');
   }
-  if (/\[\s*'rm'\s*,\s*'-f'\s*,(?!\s*'-v')/.test(src) || !/disposableDockerRmArgs\(/.test(src)) {
+  // Comments cannot satisfy the helper-call requirement, and cannot hide a
+  // `docker rm` array that omits `-v` (including reordered `['rm', name, '-f']`).
+  if (!/\bdisposableDockerRmArgs\s*\(/.test(executable)) {
+    addError(errors, 'isolated_runner_docker_rm_missing_v', 'scripts/run-e2e-isolated.mjs');
+  }
+  const rmArrays = executable.match(/\[\s*['"]rm['"][\s\S]*?\]/g) ?? [];
+  if (rmArrays.some((literal) => !/['"]-v['"]/.test(literal))) {
     addError(errors, 'isolated_runner_docker_rm_missing_v', 'scripts/run-e2e-isolated.mjs');
   }
   // Shared mysql-local named data volumes must not be destroyed by this runner.
-  if (/compose(?:\.mysql-local)?[\s\S]{0,240}down[^\n]{0,80}-v|down\s+-v[\s\S]{0,240}mysql-local/.test(src)) {
+  if (/compose(?:\.mysql-local)?[\s\S]{0,240}down[^\n]{0,80}-v|down\s+-v[\s\S]{0,240}mysql-local/.test(executable)) {
     addError(errors, 'isolated_runner_named_volume_compose_down', 'scripts/run-e2e-isolated.mjs');
+  }
+  // Shared-host volume/system prune would delete volumes this runner does not own.
+  if (/\bvolume\s+prune\b|\bsystem\s+prune\b|\bvolume['"]\s*,\s*['"]prune['"]|\bsystem['"]\s*,\s*['"]prune['"]/.test(executable)) {
+    addError(errors, 'isolated_runner_volume_prune', 'scripts/run-e2e-isolated.mjs');
   }
 }
 

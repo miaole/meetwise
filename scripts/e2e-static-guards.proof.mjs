@@ -356,13 +356,25 @@ const checks = {
   'TC-TEST-GUARD-022-isolated-docker-rm-missing-v': () => {
     const sources = currentSources();
     sources['scripts/run-e2e-isolated.mjs'] = sources['scripts/run-e2e-isolated.mjs']
-      .replace("['rm', '-f', '-v',", "['rm', '-f',");
+      .replace(/disposableDockerRmArgs\s*\(\s*\[container\]\s*\)/, "['rm', '-f', container]");
     expectError(evaluateE2eStaticGuards({ sources }), 'isolated_runner_docker_rm_missing_v:scripts/run-e2e-isolated.mjs');
   },
   'TC-TEST-GUARD-023-isolated-named-volume-compose-down': () => {
     const sources = currentSources();
-    sources['scripts/run-e2e-isolated.mjs'] += "\n// planted: docker compose -f docker/compose.mysql-local.yml down -v\n";
+    sources['scripts/run-e2e-isolated.mjs'] += "\nawait capture('docker', ['compose', '-f', 'docker/compose.mysql-local.yml', 'down', '-v']);\n";
     expectError(evaluateE2eStaticGuards({ sources }), 'isolated_runner_named_volume_compose_down:scripts/run-e2e-isolated.mjs');
+  },
+  'TC-TEST-GUARD-024-isolated-docker-rm-reordered-args': () => {
+    const sources = currentSources();
+    sources['scripts/run-e2e-isolated.mjs'] = sources['scripts/run-e2e-isolated.mjs']
+      .replace(/disposableDockerRmArgs\s*\(\s*\[container\]\s*\)/, "['rm', container, '-f']")
+      + "\n// disposableDockerRmArgs(\n";
+    expectError(evaluateE2eStaticGuards({ sources }), 'isolated_runner_docker_rm_missing_v:scripts/run-e2e-isolated.mjs');
+  },
+  'TC-TEST-GUARD-025-isolated-volume-prune-forbidden': () => {
+    const sources = currentSources();
+    sources['scripts/run-e2e-isolated.mjs'] += "\nawait capture('docker', ['volume', 'prune', '-f']);\n";
+    expectError(evaluateE2eStaticGuards({ sources }), 'isolated_runner_volume_prune:scripts/run-e2e-isolated.mjs');
   },
 };
 
