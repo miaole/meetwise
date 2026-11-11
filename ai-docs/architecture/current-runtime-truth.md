@@ -97,10 +97,10 @@ related:
 flowchart LR
   U["C 端候选人 / B 端招聘方"] --> W["Next.js Web\n页面、Server Action、SSE 代理、语音 UI"]
   W --> A["NestJS API\n认证、Zod 契约、RLS 事务、幂等键"]
-  A --> P[("PostgreSQL + pgvector\n业务真相、账本、队列、向量、checkpoint")]
-  A --> R[("Redis/Tair\nRAG 热缓存与并发锁")]
+  A --> P[("PostgreSQL + pgvector 扩展\n业务真相、账本、队列、向量、checkpoint")]
   A --> Q["durable interview / report / quiz jobs"]
   Q --> K["Worker\n租约、栅栏、重试、对账"]
+  K --> R[("Redis/Tair\nRAG 热缓存与并发锁")]
   K --> G["LangGraph 自适应面试图\nplan → decide → genQuestion → interrupt → evalAnswer → conclude"]
   G --> M["阿里云百炼模型适配器\nLLM、Embedding、ASR、TTS；视觉 OCR 预览双旗可 invoke / 生产 disabled"]
   G --> S["受限研究 skills\nrag.retrieve / web.explore / deep.research"]
@@ -108,7 +108,7 @@ flowchart LR
   P --> O
 ```
 
-PostgreSQL（关系型数据库）承载业务真相，Redis/Tair（内存键值服务）不承载扣费、授权、版本指针或最终业务状态。对象存储、云 PostgreSQL、云 Redis 的生产连接尚没有完成真实 E2E（端到端）验证，不能根据图示把它们视为已发布服务。
+PostgreSQL（关系型数据库）承载业务真相，Redis/Tair（内存键值服务）不承载扣费、授权、版本指针或最终业务状态。api 无 Redis 客户端；Redis 只在 worker 声明并用于 RAG 热缓存、嵌入计算缓存与单飞锁（及默认关闭的 Streams 唤醒原型），不是任务队列，限流当前落 PG 共享桶表。对象存储 SDK 未安装，简历原文在 PostgreSQL `resume_blob`。云 PostgreSQL、云 Redis / 对象存储的生产连接尚没有完成真实 E2E（端到端）验证，不能根据图示把它们视为已发布服务。
 
 ## 3. C 端与 B 端的实际职责边界
 
