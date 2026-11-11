@@ -4,10 +4,14 @@
  * 覆盖:
  *  - §5.1 全锚逐条复现(行号集合与卷一致;draft 系 docs-only,代码锚在 20186718 基线行号上成立)。
  *  - §5.6 静态断言:crag.ts 对基线零 diff(deny_external/gradeRetrieval 决策面零变)·G-R2-5 门语义
- *    字面在位(缺行/缺叶同拒·永不 unscoped)·#40 合同面/LEVEL-SCHEME 落卷面/embedding compute seam
- *    对基线零 diff(Ban 邻面零触)。
- *  - §5.8 markers=0:改动集(对基线的全部变更文件)五类标记词零命中——词面在运行时组装,不落入本
- *    改动集,消除门自指(「词不复抄」纪律的机检化)。
+ *    字面在位(缺行/缺叶同拒·永不 unscoped)·#40 合同面/LEVEL-SCHEME 落卷面零触;
+ *    embedding compute seam 对 HARDEN-R1 钉(f40577fde,已合入 main 的安全硬化)零触——
+ *    相对 20186718 仅允许该已审查改动(Redis eval → sendCommand(['EVAL', …]))，不回滚硬化,
+ *    其后对 seam 的真实改动仍必须红。
+ *  - §5.8 markers=0:只扫产品源码改动集的新增行(及未跟踪产品源码全文)五类标记词零命中。
+ *    范围见下方 SECTION 注释:排除 ai-docs/、receipts/、扫描器自身与锁文件;
+ *    不把 20186718 以来整仓 ~4865 文件当改动集,也不去删历史文档里的词。
+ *    词面在运行时组装,消除门自指(「词不复抄」纪律的机检化)。
  *  - 迁移编号裁决登记:本刀迁移 = 0162/0163(0161 已被主线 G5 占用,沿撞号治理后到者重编号)。
  *
  * pnpm qbank-corpus-gates:prove · EXIT 0=全绿
@@ -24,7 +28,18 @@ const A = (name, ok, detail = '') => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${n
 const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');
 const linesOf = (rel) => read(rel).split('\n');
 const lineIs = (rel, n, needle) => String(linesOf(rel)[n - 1] ?? '').includes(needle);
-const git = (args) => { try { return execFileSync('git', args, { cwd: ROOT, encoding: 'utf8' }); } catch { return ''; } };
+const GIT_OPTS = { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 };
+const git = (args) => { try { return execFileSync('git', args, GIT_OPTS); } catch { return ''; } };
+/** fail-closed: 失败时 ok=false,不得把空输出当成零 diff。maxBuffer 放大以容纳对 20186718 的产品源码统一 diff。 */
+const gitRun = (args) => {
+  try {
+    return { ok: true, out: execFileSync('git', args, GIT_OPTS) };
+  } catch (err) {
+    const stderr = err && typeof err === 'object' && 'stderr' in err ? String(err.stderr ?? '') : '';
+    const msg = err instanceof Error ? err.message : String(err);
+    return { ok: false, out: stderr || msg };
+  }
+};
 
 /** 扫 TypeScript 非注释残码（行注释/块注释剔除；模板字符串与引号内的内容视为代码）。 */
 function tsLineResiduals(src) {
@@ -144,7 +159,18 @@ A('#40 族合同面零触(interview.service/controller)', ['apps/api/src/intervi
   .every((f) => git(['diff', '20186718', '--', f]) === ''));
 A('LEVEL-SCHEME 落卷面零触(0160 两迁移+career.ts)', ['packages/db/migrations/0160_level_policy_version.sql', 'packages/db/migrations/0160_b_qualitative_projection.sql', 'apps/api/src/career/career.ts']
   .every((f) => git(['diff', '20186718', '--', f]) === ''));
-A('embedding compute seam 零触(qbank-embedding-compute-seams)', git(['diff', '20186718', '--', 'apps/worker/src/qbank-embedding-compute-seams.ts']) === '');
+{
+  // 语义门:相对 20186718 的唯一已审差是 HARDEN-R1(f40577fde,已是 origin/main 祖先)把
+  // Redis eval 改为 sendCommand(['EVAL', …])——安全硬化,不回滚。把本文件的零触基线前移到
+  // 该已审提交;git 失败不得假绿;此后任何对 seam 的改动仍红。
+  const SEAM = 'apps/worker/src/qbank-embedding-compute-seams.ts';
+  const SEAM_PIN = 'f40577fde76e0b031fc0239d50b697fcefdb0bb8';
+  const anc = gitRun(['merge-base', '--is-ancestor', SEAM_PIN, 'HEAD']);
+  const diff = gitRun(['diff', SEAM_PIN, '--', SEAM]);
+  A('embedding compute seam 对 HARDEN-R1 钉(f40577fde)零触(仅允许已审 EVAL→sendCommand)',
+    anc.ok && diff.ok && diff.out === '',
+    !anc.ok ? `pin 非 HEAD 祖先:${anc.out || 'exit 1'}` : (!diff.ok ? `git diff 失败:${diff.out}` : (diff.out === '' ? '' : 'seam 相对 HARDEN-R1 有 diff')));
+}
 A('G-R2-5 门语义字面在位(qbank-retrieve-scope 缺行缺叶同拒)',
   read('apps/worker/src/qbank-retrieve-scope.ts').includes("reason: 'route_snapshot_missing'"));
 {
@@ -155,21 +181,76 @@ A('G-R2-5 门语义字面在位(qbank-retrieve-scope 缺行缺叶同拒)',
 A('派发层双轨读源在位(qbank-track-local-retrieval Phase 1 → ForAdaptiveRole)',
   read('packages/db/src/qbank/qbank-track-local-retrieval.ts').includes('getInterviewRouteSnapshotForAdaptiveRole'));
 
-/* ── §5.8 markers=0(运行时组装词面·消除门自指) ── */
+/* ── §5.8 markers=0 ──
+ * 扫描范围(产品源码改动集,不是 20186718 以来整仓):
+ *   纳入前缀: apps/、packages/、scripts/
+ *   排除: 顶层 ai-docs/、receipts/(历史文档/收据——不去删里面的词);
+ *         scripts/conflict-marker-scan.mjs 及其 proof(注释会描述标记形制,构成门自指);
+ *         锁文件名(完整性哈希会偶然撞上标记词)。
+ *   行范围: 只扫相对基线 20186718 的新增行;未跟踪的产品源码扫全文。
+ *   既有词留在未改行里(例如 qbank-curation.ts 头注在基线已存在的标记词)不当新引入。
+ *   全仓整行冲突标记仍由 conflict-markers:check 覆盖,本门不替代该硬门。
+ */
 {
   const words = [['T', 'O', 'D', 'O'].join(''), ['F', 'I', 'X', 'M', 'E'].join(''), ['X', 'X', 'X'].join(''), ['H', 'A', 'C', 'K'].join('')];
-  const conflict = ['<' + '<' + '<' + '<' + '<' + '<', '>' + '>' + '>' + '>' + '>' + '>'].join('|');
-  const changed = git(['diff', '--name-only', '20186718']).split('\n').map((s) => s.trim()).filter(Boolean)
-    .concat(git(['ls-files', '--others', '--exclude-standard']).split('\n').map((s) => s.trim()).filter(Boolean));
+  const conflict = new RegExp(['<' + '<' + '<' + '<' + '<' + '<', '>' + '>' + '>' + '>' + '>' + '>'].join('|'));
+  const PRODUCT_PREFIXES = ['apps/', 'packages/', 'scripts/'];
+  const EXCLUDED_PREFIXES = ['ai-docs/', 'receipts/'];
+  const EXCLUDED_EXACT = new Set([
+    'scripts/conflict-marker-scan.mjs',
+    'scripts/conflict-marker-scan.proof.mjs',
+  ]);
+  const EXCLUDED_BASENAMES = new Set(['pnpm-lock.yaml', 'package-lock.json', 'yarn.lock']);
+  const isProductSource = (rel) => {
+    const norm = rel.replaceAll('\\', '/');
+    const base = norm.split('/').pop() ?? norm;
+    if (EXCLUDED_EXACT.has(norm) || EXCLUDED_BASENAMES.has(base)) return false;
+    if (EXCLUDED_PREFIXES.some((p) => norm === p.slice(0, -1) || norm.startsWith(p))) return false;
+    return PRODUCT_PREFIXES.some((p) => norm === p.slice(0, -1) || norm.startsWith(p));
+  };
+  const scanText = (rel, text, hits) => {
+    for (const w of words) if (text.includes(w)) hits.push(`${rel}::${w}`);
+    if (conflict.test(text)) hits.push(`${rel}::conflict-marker`);
+  };
+  const parseAddedLinesByFile = (diffText) => {
+    const byFile = new Map();
+    let cur = null;
+    for (const line of diffText.split('\n')) {
+      if (line.startsWith('+++ b/')) {
+        cur = line.slice(6);
+        if (cur === '/dev/null') cur = null;
+        continue;
+      }
+      if (cur && line.startsWith('+') && !line.startsWith('+++')) {
+        const list = byFile.get(cur) ?? [];
+        list.push(line.slice(1));
+        byFile.set(cur, list);
+      }
+    }
+    return byFile;
+  };
+
+  const nameOnly = git(['diff', '--name-only', '20186718']).split('\n').map((s) => s.trim()).filter(Boolean);
+  const untracked = git(['ls-files', '--others', '--exclude-standard']).split('\n').map((s) => s.trim()).filter(Boolean);
+  const scopedTracked = nameOnly.filter(isProductSource);
+  const scopedUntracked = untracked.filter(isProductSource);
   const hits = [];
-  for (const rel of changed) {
+  const addedDiff = gitRun(['diff', '-U0', '20186718', '--', 'apps', 'packages', 'scripts']);
+  A('产品源码改动集 diff 可读取(fail-closed)', addedDiff.ok, addedDiff.ok ? '' : addedDiff.out.slice(0, 200));
+  if (addedDiff.ok) {
+    for (const [rel, lines] of parseAddedLinesByFile(addedDiff.out)) {
+      if (!isProductSource(rel)) continue;
+      for (const line of lines) scanText(rel, line, hits);
+    }
+  }
+  for (const rel of scopedUntracked) {
     let text = '';
     try { text = readFileSync(join(ROOT, rel), 'utf8'); } catch { continue; }
-    for (const w of words) if (text.includes(w)) hits.push(`${rel}::${w}`);
-    if (new RegExp(conflict).test(text)) hits.push(`${rel}::conflict-marker`);
+    scanText(rel, text, hits);
   }
-  A('markers=0(改动集五类标记词零命中)', hits.length === 0, hits.join(' | '));
-  A('改动集文件可枚举(基线 diff+未跟踪)', changed.length > 0, `${changed.length} files`);
+  A('markers=0(产品源码改动集新增行五类标记词零命中)', hits.length === 0, hits.join(' | '));
+  A('产品源码改动集可枚举(基线 diff+未跟踪·已收窄范围)', scopedTracked.length + scopedUntracked.length > 0,
+    `${scopedTracked.length}+${scopedUntracked.length} product-source files (excluded non-product from ${nameOnly.length}+${untracked.length})`);
 }
 
 /* ── 迁移编号裁决(0161 主线占用→0162 起号) ── */
