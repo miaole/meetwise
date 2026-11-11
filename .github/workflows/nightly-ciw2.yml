@@ -14,10 +14,14 @@ permissions:
 jobs:
   prove-placement:
     runs-on: ubuntu-latest
+    # PR243 复审：显式上限（默认 360 分钟）。原 13 步 + 复审补入 13 条隔离 prove，实测约 7–9 分钟（2026-11-11 run 42981810539 约 6m56s；run 42989444727 约 8m28s），timeout 60 留余量。
+    timeout-minutes: 60
     env:
       DATABASE_URL: postgresql://meetwise:meetwise_dev_password@localhost:54329/meetwise
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0          # CI-LEAN：migrate-upgrade:prove 需 git 上一版 main（全历史）
       - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
@@ -39,4 +43,82 @@ jobs:
       - name: sse-push:notify:prove (#155 named · local 56.8s green)
         run: pnpm sse-push:notify:prove
       - name: vector-plane-erasure:prove (#155 named · local 7.6s green)
+        # 隐私步骤：前序步骤红也照跑（只在手动取消时跳过），隐私回归不被无关红遮蔽。
+        if: ${{ !cancelled() }}
         run: pnpm vector-plane-erasure:prove
+      # ── CI-LEAN 归置（2026-11-11 用户决定 CI 轻量）：从 ci.yml verify 移入的少量关键无 key 隔离 prove ──
+      # 选择理由见 ai-docs/architecture/devops/ci-cd.md §8.3；其余移出 CI 的 prove 本地 `pnpm verify:local`。
+      # PR/main 都从同一受信源码上下文构建两份最终镜像；不登录、不推送。
+      # 这可以在撤销线上入口之前捕获 Dockerfile、standalone 与 workspace 打包错误。
+      - name: Full-stack container build gate (no push)
+        run: |
+          commit="$(git rev-parse HEAD)"
+          tree="$(git rev-parse HEAD^{tree})"
+          docker build --build-arg "VCS_REF=$commit" --build-arg "SOURCE_TREE=$tree" -f Dockerfile -t meetwise-backend:ci .
+          docker build --build-arg "VCS_REF=$commit" --build-arg "SOURCE_TREE=$tree" -f apps/web/Dockerfile -t meetwise-web:ci .
+      - name: 部署编排校验（compose.prod 结构合法 · 6 服务 · healthcheck · 依赖顺序）
+        run: pnpm deploy:check
+      # G1（审查 P0-1）：上一版库升级到当前清单（#234 / #235 / #236 账本 + git 上一版 main）·隔离一次性 PG。
+      - name: 旧库升级到当前清单（上一版 main 账本 → tip·防链首插号致 migration_ledger_not_contiguous_prefix）
+        env:
+          MIGRATE_UPGRADE_REQUIRE_GIT_ARM: '1'
+        run: pnpm migrate-upgrade:prove
+      # #175 drift 门恢复（CI-WIRING 裁②=径1·scripts/schema-drift-check.mjs 对账 sql/ 镜像 25 文件：
+      # 临时库 A 全迁移建 vs B 全镜像建，逐列+UNIQUE/PK 约束单向 diff（sql⊆mig）·dbhy1 退役残面经脚本内豁免登记面放行·未登记漂移=红）
+      - name: schema 漂移门（迁移路径 vs sql/ 真相 逐列+约束比对;防"改 sql/ 忘写迁移"致 fresh deploy 缺表/列/约束）
+        run: pnpm drift:prove
+      - name: uc033 跨用户授权负路径（报告/面试/学习全臂）
+        run: pnpm uc033:cross-user-authz:prove
+      - name: commerce saga（共享池 reserve/confirm/release · FIFO · 按比例 · 并发不超卖 · 对账 · 零额度丢失）
+        run: pnpm commerce:prove
+      - name: 隐私删除安全暂停（app_role 无破坏性入口）
+        if: ${{ !cancelled() }}
+        run: |
+          pnpm privacy-erasure:prove
+          pnpm privacy-erasure:http:prove
+          pnpm privacy-erasure-preview:prove
+          pnpm privacy-erasure:pause-upgrade:prove
+      # CI-WIRING3 五门接线（scor-parity 邻位·isolated-runner 一次性本地 PG·fail-loud 红即阻断）。
+      # 裁位亲证 @79382f4d：四门本地实跑绿入 per-push；ha6:prove 基线红（50 PASS/26 FAIL·锚漂+治理门漂）
+      # 不接线——归属 line/ha6-repin 重钉着陆后另批。
+      # 评分/报告 P0 完整性（23 断言·本地实测 10.9s·总分确定性聚合+模型越权防护）
+      - name: 评分/报告 P0 完整性（隔离一次性 PG·总分聚合不可被模型越权改写）
+        run: pnpm scoring-integrity:prove
+      - name: 自适应面试端到端（真图多轮 + 结算 + 报告舱壁）
+        run: pnpm interview:prove
+      - name: 请求路径 + SSE（principal 注入 / RLS fail-closed / 幂等 / Last-Event-ID 重放）
+        run: pnpm api:validate
+      # ── PR243 复审补入（mw-privacy-int + mw-e2e-ha 建议，2026-11-11 用户拍板「nightly 加关键项」）──
+      # 理由见 ai-docs/architecture/devops/ci-cd.md §8.3；全部走 run-e2e-isolated 一次性 PG，无 key。
+      - name: 转写隐私·答案事实根 + 其余 sink（INT-TRANSCRIPT 明文不落库 / 不外溢）
+        if: ${{ !cancelled() }}
+        run: |
+          pnpm int-transcript-answer-fact-root:prove
+          pnpm int-transcript-remaining-sinks:prove
+      - name: 负路径·resume/隐私域（越权 / 围栏 / 擦除负路径）
+        if: ${{ !cancelled() }}
+        run: pnpm neg:resume
+      - name: 负路径·认证/会话域（停用后令牌即时失效 / 再登录拒 / 防枚举）
+        # 前序步骤红也照跑（只在手动取消时跳过），避免容器构建等抖动把本门当晚跳过。
+        if: ${{ !cancelled() }}
+        run: pnpm neg:auth
+      - name: 权限 / RLS 低权账号门（DB ACL · checkpoint · 题库控制面 · RAG 控制面 · 迁移 CLI post-flight）
+        # 前序步骤红也照跑（只在手动取消时跳过），避免容器构建等抖动把本门当晚跳过。
+        if: ${{ !cancelled() }}
+        run: |
+          pnpm db-acl2:prove
+          pnpm checkpoint-role:prove
+          pnpm qbank-control-role:prove
+          pnpm rag-control-role:prove
+          pnpm migrate-cli:prove
+      - name: 迁移升级类（题库完整性升级 · RAG 0032 前缀升级 · DBHY-1 卫生刀）
+        # 前序步骤红也照跑（只在手动取消时跳过），避免容器构建等抖动把本门当晚跳过。
+        if: ${{ !cancelled() }}
+        run: |
+          pnpm dbhy1:prove
+          pnpm qbank-integrity-upgrade:prove
+          pnpm rag-control-upgrade:prove
+      - name: 运行内核（CAS / 租约 / 幂等 / 可恢复 / 迟到成功）
+        # 前序步骤红也照跑（只在手动取消时跳过），避免容器构建等抖动把本门当晚跳过。
+        if: ${{ !cancelled() }}
+        run: pnpm runtime:isolated:prove

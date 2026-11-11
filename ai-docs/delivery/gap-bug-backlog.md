@@ -67,14 +67,14 @@ main 上 `ci` 工作流对上述合入提交均 success。`deploy` 工作流报�
 
 - 跨场重复默认值：本场不重复；本场可换的能力项都换完后，才允许使用别场问过的题（不多调模型、不多扣额度）。如将来要求严格不跨场重复，另开一刀做历史题降权，不靠无上限重摇。
 - 全栈 E2E 不进 CI，不配 `MODEL_API_KEY`；在本地手跑 `pnpm e2e:isolated`。
-- CI 改为轻量，只保留核心校验（瘦身另走 PR，经 mw-e2e-ha 独立审查后再合）。
+- CI 改为轻量，只保留核心校验（瘦身另走 PR，经 mw-e2e-ha 独立审查后再合）。PR #243 已按 mw-privacy-int + mw-e2e-ha 建议补齐（用户拍板）：PR 加回 E2E 静态守卫 12 条 + 503 无库 pin 2 条；nightly 补 13 条关键隔离 prove、隐私步骤 `if: !cancelled()`、job `timeout-minutes: 60`；`docs:check` 新增步骤台账一致性门；`sse-slot:prove` 自封闭。复审通过后再合。
 - 隐私 worker 的生产密钥（`PRIVACY_WORKER_DATABASE_URL` / `PRIVACY_WORKER_DB_USER` / `PRIVACY_WORKER_DB_PASSWORD`）用户确认已配好。
 - 上云口径：除「买云 + 部署」这一项以外，上云前的所有工作都要做完。#238 隐私 worker 实际上线排在「买云 + 部署」这一项里，当前**未上线**。
 
 **后续队列（未关）**
 
 1. #18 `interview_job.payload` 明文 answer 需即时剥离。
-2. #106 deps-audit 只阻断 critical，现存 18 个 high。
+2. #106 deps-audit 18 个 high 已在 `fix/deps-audit-high` 清零，门禁拟升至 `--audit-level=high`（待合入；翻面权归协调方）。残余 medium 仅 qs@6.15.3 ×3，不挡 high 门。
 3. N-11 口径冲突待深审。
 4. #28 ADR 仍写 BullMQ/Redis，需与 PG-retained 对齐。
 5. #70 bodyLimit 12MiB 低于 base64 上限，413 不可达。
@@ -88,6 +88,12 @@ main 上 `ci` 工作流对上述合入提交均 success。`deploy` 工作流报�
 13. `sse-slot:prove` 轮询下界只能稳定抓到约 <875ms 的回归（1000ms 的 2 倍退化抓不到）。
 14. 0000 ledger 老库需要手动 DELETE 孤儿行；是否自动化由用户决定。
 15. 0230 迁移头注释误写为 DEFINER，需要勘误。
+16. **WORKER-INFLIGHT-CRASH-01（P0 · 修复已提 PR，未合 · 2026-11-11）**：2c4g sizing `WORKER_INTERVIEW_GLOBAL_INFLIGHT=16` 压测中 worker 整进程退出（N=20 +14s 未处理 42501 `checkpoint_privacy_fenced`＠`PostgresSaver.put`；N=40 +28s 未处理 pg `Connection terminated`＠`PostgresSaver.putWrites`）。根因：LangGraph 1.4.7 `PregelLoop._trackCheckpointerPromise` 的 checkpoint 写 promise 要到 `_streamIterator` finally 才挂 handler，写失败到 finally 之间节点仍在等模型/DB → unhandledRejection → Node 默认退出，一个 job 拖垮全部在飞 job。修法（分支 `fix/worker-inflight-crash`）：`FenceCheckpointSaver.runContained` 收容作用域（首个写失败锁存 + abort 本次 invoke，返回给 LangGraph 的 promise 不再 reject，锁存后零续写，读缝抛锁存错，invoke 结束原码上抛），`adaptive-lifecycle` 四个 invoke 缝全部经 `invokeWithCheckpointContainment`；pg 连接族无 code 错折算 `checkpoint_connection_lost` 并入 transient 白名单（requeue 后 pg-pool 新建连接重试），42501 仍为确定性终态。回归：`pnpm worker-inflight-crash:prove`（零 DB，约 4s；修前 EXIT=1 / 修后 EXIT=0，内置反证臂）。CI 挂钩待 #243 合入后再定（按 ci-cd.md §8 归 `verify:local`），本 PR 不改 ci.yml。未做：真 PG 断连注入 + 16 inflight 全栈复跑 sizing（需重跑 2c4g 矩阵）。
+17. P3：库里缺 0143 trigger（或空库 `interview_event` 不存在）时，SSE notify 单例降级并退避重连（100 ms 起，上限 5 s），每次掉线都 `wakeAllWaiters`，每个 SSE 连接在 2 s 轮询之外约多 1 次 DB 查询 / 5 s。属设计内降级，记入 SSE 负载评估；生产须确认 0143 trigger 在位。
+18. `scripts/run-e2e-isolated.mjs` 删一次性 PG 容器时没带 `-v`（pgvector 镜像声明了 VOLUME），每个隔离 target 泄漏 1 个匿名卷；PR243 审查两轮 `verify:local` 留下 94 个卷约 7 GB，inode 59%→70%。改成 `docker rm -f -v` 或 `--rm`。
+19. P3：`pnpm verify:local` 是单条 `&&` 链，首错即停、不汇总；后续改成逐条汇总的 runner。
+20. 2c4g sizing 结论（2026-11-11，box 模拟 2 vCPU / 4 GiB 应用机 + 外置 PG / Redis，真模型，零思考时间；原始收据在本地 sizing 工作区、未入库；NOT_HA · UNQUOTED · 不买）：5 场并发完全稳（0 错误，题目延迟 p95 约 4.9 s）；10 场可用（全部完成，SSE 代理 10 s TTFB 超时 502 约 0.7–0.9%，可自动重连，首题 p95 11.6–14 s）；20 场起明显变差。瓶颈不是硬件，是 Worker `globalInflight=4` 加模型延迟（N≥10 吞吐停在约 28–31 场/分，应用 CPU 均值 ≤12.4%、内存峰 ≤1.05 GiB）。推荐托管 PG 2c4g + pgvector（实测峰 0.9 vCPU、≤463 MiB，余量大；1c2g 未实测；max_connections 每套应用约 50）；Redis 256 MB 最小规格即可（实测 ≤3.9 MiB）；swap 不必要。未测：2c4g 硬件真实上限（被第 16 条崩溃挡住）、带宽 6M 限速、托管服务网络 RTT、生产 `NODE_ENV=production` 配置、OCR / 语音、UI、数据量增长后的 PG 内存。
+21. 上云待办（不改 `deploy.yml`）：单一来源见 `ai-docs/architecture/devops/ci-cd.md` §8.3（约 :249），此处不再复述正文。
 
 Pins 不变：NOT_HA · releaseEvidence=false。
 

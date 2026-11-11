@@ -65,7 +65,7 @@ pnpm api:validate
 
 `--core` 在 always-on **之后**再跑 `CORE`：`db:prove`、`runtime:prove`、`graph:prove`、`pipeline:prove`、`api:validate`。它仍不是业务 prove 全集。
 
-CI `verify` 与 always-on **不是同一集合**。`.github/workflows/ci.yml` 的 `verify` 含目录三入口、静态守卫、parity、公开文案、provider-egress、`arch`，以及后续隔离 prove；**不含** `generation-trust:prove`、`golden-tasks:*`、`e2e-helpers:prove`、`e2e-receipt:prove`、`e2e-runner:prove`。合并阻断以 CI 列表为准；变更后最小集仍是本文件的 always-on。CI 绿 ≠ `pnpm regression` 绿。不另加云部署 job。
+CI `verify` 与 always-on **不是同一集合**。2026-11-11 起 CI 轻量（PR243，分类台账见 `ai-docs/architecture/devops/ci-cd.md` §8.2，`docs:check` 双向对账）：`.github/workflows/ci.yml` 的 `verify` 只含 `docs:check`、目录三入口 / E2E 静态守卫 / parity / provider-egress / 公开预览写门（12 条）+ 隐私删除预览 503 无库 pin（2 条）、`arch`、typecheck、lint、无库单元 prove、核心 DB 门（`db:prove` / 迁移编号唯一性 / `migrate:prove`）和单元 prove；公开文案、隔离业务 prove 已移出 PR CI——关键隔离 prove 在 `nightly-ciw2.yml`，其余本地 `pnpm db:up && pnpm verify:local`；**不含** `generation-trust:prove`、`golden-tasks:*`、`e2e-helpers:prove`、`e2e-receipt:prove`、`e2e-runner:prove`。合并阻断以 CI 列表为准；变更后最小集仍是本文件的 always-on。CI 绿 ≠ `pnpm regression` 绿。不另加云部署 job。
 
 ## 2. 隔离业务 prove（仍不需要 live 模型质量）
 
