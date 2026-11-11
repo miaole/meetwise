@@ -5,6 +5,7 @@ import {
   type CragVerdict,
   type DecisionProvenance,
   type InterviewMind,
+  type QuestionDuplicateFallback,
   type QuestionGenerationProvenance,
   type QuestionGenerationResult,
   type QuestionKind,
@@ -138,6 +139,12 @@ export interface PendingQuestion {
   askMode?: QuestionAskMode;
   topicId?: string;
   clarifyCause?: 'non_answer' | 'quote_unverifiable';
+  /**
+   * G2：判重耗尽降级出面时的来源标记（additive 可选·向后兼容）。
+   * 与 generationProvenance.duplicateFallback 同值；仅降级题携带。旧 checkpoint / 正常出题缺省
+   * undefined，JSON 序列化即缺字段，消费者必须降级。不进入 QuestionIdentity 提交令牌。
+   */
+  duplicateFallback?: QuestionDuplicateFallback;
 }
 
 export interface AdaptiveDeps {

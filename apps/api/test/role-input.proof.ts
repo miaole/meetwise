@@ -63,6 +63,11 @@ A('S7-target-role-not-a-table-column(payload 标量传输·Ban 走私面)',
 A('S8-idempotent-existing-branch-untouched(alreadyBegun 短路在 normalize 之后的既有查询面)',
   /alreadyBegun: true/.test(region) && region.indexOf('alreadyBegun: true') > region.indexOf('targetRoleNormalized'));
 
+// G6 N-17:targetRole 参与路由裁决——C 端通用面供给调用必须携带归一化 targetRole(修前只写 payload,不进裁决)。
+A('S9-N17-route-supply-receives-normalized-target-role(targetRole 参与裁决·非仅 payload)',
+  /supplyCandidateProfileRoute\(c, owner, id, resumeId, targetRoleNormalized\)/.test(region)
+  && region.indexOf('supplyCandidateProfileRoute(') < region.indexOf('enqueueInterviewJob(c, owner, id'));
+
 // ── R: in-process real begin + recording fake client(零 DB/网络/模型) ─────────────────
 delete process.env.MODEL_API_KEY;
 delete process.env.MODEL_BASE_URL;
@@ -109,6 +114,11 @@ function makeClient(opts: { existingStartId?: string }): { client: any; inserts:
       // enqueueInterviewJob 邻域:
       if (s.startsWith('SELECT i.resume_id::text') && s.includes('FOR KEY SHARE'))
         return { rowCount: 1, rows: [{ resume_id: RESUME_ID, resume_privacy_epoch: EPOCH }] };
+      // 入队背压闸邻域(interview-jobs.ts 幂等键预查 + per-owner queued 深度;存量桩缺失=R1–R5 UNEXPECTED_SQL):
+      if (s.startsWith('SELECT 1 FROM interview_job WHERE owner_user_id=$1 AND interview_id=$2 AND kind=$3 AND seq=$4'))
+        return { rowCount: 0, rows: [] as Row[] };
+      if (s.startsWith('SELECT count(*)::int AS n FROM interview_job WHERE owner_user_id=$1 AND status=$2'))
+        return { rowCount: 1, rows: [{ n: 0 }] };
       if (s.startsWith('INSERT INTO interview_job')) {
         inserts.push({ sql: s, params: (params ?? []) as unknown[] });
         return { rowCount: 1, rows: [{ id: `job-${inserts.length}` }] };
@@ -121,7 +131,7 @@ function makeClient(opts: { existingStartId?: string }): { client: any; inserts:
 const dbOf = (client: any) => ({ asPrincipal: async (_p: string, fn: (c: any) => Promise<any>) => fn(client) });
 const beginOn = (opts: { existingStartId?: string }, targetRole: string | undefined, requestId: string) => {
   const { client, inserts } = makeClient(opts);
-  const svcInst = new (InterviewService as any)(dbOf(client), {}, {}, {}, {});
+  const svcInst = new (InterviewService as any)(dbOf(client), { allow: async () => true }, {}, {}, {});
   return svcInst.begin(OWNER, IV, RESUME_ID, requestId, undefined, targetRole).then(
     (v: any) => ({ kind: 'ok' as const, v, inserts }),
     (e: any) => ({ kind: 'err' as const, e, inserts }),
@@ -132,6 +142,7 @@ const payloadParamOf = (r: { inserts: Array<{ params: unknown[] }> }) => {
   return { insert, payloadJson: typeof insert?.params?.[4] === 'string' ? (insert!.params![4] as string) : undefined };
 };
 
+// 注:begin 自 83e9a510d 起先过 rl.allow 限流闸;fake RateLimitService 恒放行(修前桩为 {} → R1–R5 TypeError 存量红;入队背压闸两条 SQL 桩同补)。
 // R1 超 100 截断:120 字符输入(带首尾空白)→ payload.targetRole 恰 100 字符且已脱空白。
 const long = `  ${'后'.repeat(118)}  `;
 const r1 = await beginOn({}, long, 'req-role-1');

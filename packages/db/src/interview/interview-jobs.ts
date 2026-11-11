@@ -272,6 +272,31 @@ export async function markJobFailed(c: Client, owner: string, jobId: string, lea
   return r.rowCount === 1;
 }
 
+/**
+ * #18 即时剥离：答案一旦被消费（同事务内 `markInterviewAnswerApplied` 成功），legacy `/turn`
+ * answer job 的顶层 `answer`/`asrOutcome` 立即从 payload 删除，不再等 job 终态。
+ * 调用方必须与“答案已应用”投影处于**同一事务**：要么两者一起提交，要么一起回滚
+ * （投影回滚 = 明文仍在、可重放）。按答题身份（questionId+stateVersion+answerId）匹配，
+ * 不依赖调用方持有 job id / lease，因此崩溃重放、fence 交接后的补投影同样会剥离历史残留。
+ * 只删明文键，身份/追踪字段（questionId/stateVersion/answerId/answerHash/turn/requestId）保留，
+ * 供已应用答案的重放走 checkpoint 补投影路径。不是删除回执，也不是 INT-TRANSCRIPT-01 ref-only。
+ */
+export async function stripConsumedInterviewAnswerPlaintext(
+  c: Client, owner: string, interviewId: string,
+  identity: { questionId: string; stateVersion: number; answerId: string },
+): Promise<number> {
+  const r = await c.query(
+    `UPDATE interview_job SET payload=payload-'answer'-'asrOutcome', version=version+1
+      WHERE owner_user_id=$1 AND interview_id=$2 AND kind='answer'
+        AND (payload ? 'answer' OR payload ? 'asrOutcome')
+        AND payload->>'questionId'=$3
+        AND payload->>'stateVersion'=$4
+        AND payload->>'answerId'=$5`,
+    [owner, interviewId, identity.questionId, String(identity.stateVersion), identity.answerId],
+  );
+  return r.rowCount ?? 0;
+}
+
 /** 放弃时只把仍 queued 的作业写成 failed。running、done、已经 failed 的行不改。没有 queued 时为零行。 */
 export async function failQueuedInterviewJobsOnAbandon(c: Client, owner: string, interviewId: string): Promise<void> {
   await c.query(
@@ -294,6 +319,7 @@ export async function requeueInterviewJob(c: Client, owner: string, jobId: strin
     `UPDATE interview_job
         SET status=CASE WHEN (SELECT i.status FROM interview i WHERE i.id=interview_job.interview_id AND i.owner_user_id=interview_job.owner_user_id)='failed' THEN 'failed' ELSE 'queued' END,
             last_error=CASE WHEN (SELECT i.status FROM interview i WHERE i.id=interview_job.interview_id AND i.owner_user_id=interview_job.owner_user_id)='failed' THEN 'abandoned' ELSE last_error END,
+            payload=CASE WHEN (SELECT i.status FROM interview i WHERE i.id=interview_job.interview_id AND i.owner_user_id=interview_job.owner_user_id)='failed' THEN payload-'answer'-'asrOutcome' ELSE payload END,
             lease_owner=NULL, lease_expires_at=NULL, version=version+1,
             next_attempt_at=CASE WHEN (SELECT i.status FROM interview i WHERE i.id=interview_job.interview_id AND i.owner_user_id=interview_job.owner_user_id)='failed' THEN next_attempt_at
                                  ELSE now()+make_interval(secs=>least(power(2,attempts)::int,$4)) END
@@ -328,11 +354,13 @@ export async function renewInterviewJobLease(
  *    retryExhaustedInterviews 让调用方发 retry_exhausted 终态事件 + 退预留额度（沿上两臂 sweep 同构）。
  * 关键(镜像 sweepExpiredReservations):状态翻转与 lease 过期判定在**同一条原子 UPDATE**里(行锁下复核 lease_expires_at<now()),
  * 杜绝"刚心跳续约成功却仍被收割"的活 job TOCTOU。 */
+// #18：本函数所有写 failed 的臂同拍剥离 `answer`/`asrOutcome`（与 markJobFailed 同纪律）——
+// 终态行不再需要明文；回 queued 的臂保留（重领仍需原文）。
 export async function sweepStuckInterviewJobs(
   c: Client, owner: string, maxAttempts = MAX_INTERVIEW_JOB_ATTEMPTS,
 ): Promise<{ requeued: number; failed: number; failedInterviews: string[]; retryExhaustedInterviews: string[] }> {
   const dead = await c.query(
-    `UPDATE interview_job SET status='failed', last_error='reaped:worker_died', lease_owner=NULL, version=version+1
+    `UPDATE interview_job SET status='failed', last_error='reaped:worker_died', lease_owner=NULL, payload=payload-'answer'-'asrOutcome', version=version+1
        WHERE owner_user_id=$1 AND status='running' AND lease_expires_at < now() AND attempts >= $2
      RETURNING interview_id`, [owner, maxAttempts]);
   // 面试行缺失时子查询为 NULL，仍回到 queued；不用内连接把这种行滤掉。
@@ -340,18 +368,20 @@ export async function sweepStuckInterviewJobs(
     `UPDATE interview_job
         SET status=CASE WHEN (SELECT i.status FROM interview i WHERE i.id=interview_job.interview_id AND i.owner_user_id=interview_job.owner_user_id)='failed' THEN 'failed' ELSE 'queued' END,
             last_error=CASE WHEN (SELECT i.status FROM interview i WHERE i.id=interview_job.interview_id AND i.owner_user_id=interview_job.owner_user_id)='failed' THEN 'abandoned' ELSE last_error END,
+            payload=CASE WHEN (SELECT i.status FROM interview i WHERE i.id=interview_job.interview_id AND i.owner_user_id=interview_job.owner_user_id)='failed' THEN payload-'answer'-'asrOutcome' ELSE payload END,
             lease_owner=NULL, lease_expires_at=NULL, version=version+1
       WHERE owner_user_id=$1 AND status='running' AND lease_expires_at < now() AND attempts < $2`,
     [owner, maxAttempts]);
   if (rq.rowCount) console.warn(JSON.stringify({ event: 'reaper_takeover', kind: 'interview', job_ref: `requeued:${rq.rowCount}`, prev_lease_expired: true }));
   const ex = await c.query(
-    `UPDATE interview_job SET status='failed', last_error='reaped:retry_exhausted', lease_owner=NULL, version=version+1
+    `UPDATE interview_job SET status='failed', last_error='reaped:retry_exhausted', lease_owner=NULL, payload=payload-'answer'-'asrOutcome', version=version+1
        WHERE owner_user_id=$1 AND status='queued' AND attempts >= $2
      RETURNING interview_id`, [owner, maxAttempts]);
   if (ex.rowCount) console.warn(JSON.stringify({ event: 'reaper_takeover', kind: 'interview', job_ref: `retry_exhausted:${ex.rowCount}`, prev_lease_expired: false }));
   await c.query(
     `UPDATE interview_job
-        SET status='failed', last_error='abandoned', lease_owner=NULL, lease_expires_at=NULL, version=version+1
+        SET status='failed', last_error='abandoned', lease_owner=NULL, lease_expires_at=NULL,
+            payload=payload-'answer'-'asrOutcome', version=version+1
       WHERE owner_user_id=$1 AND status='queued' AND attempts < $2
         AND (SELECT i.status FROM interview i
               WHERE i.id=interview_job.interview_id
@@ -387,6 +417,9 @@ export async function purgeStaleInterviewJobPayloads(
          AND (
            (status='queued' AND created_at < now() - ($2||' seconds')::interval)
            OR (status='running' AND lease_expires_at < now() - ($2||' seconds')::interval)
+           -- #18 旧行兼容：终态行（done/failed）不再被任何消费方读取；修复前 reaper 写 failed
+           -- 的三条臂未剥离明文，历史残留不论龄期一律清理（无迁移、无回填、不猜身份）。
+           OR status IN ('done','failed')
          )`,
     [owner, String(ttlSeconds)],
   );
