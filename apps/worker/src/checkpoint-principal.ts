@@ -155,7 +155,40 @@ function staleHandleError(): Error {
  * not touch the live checkout, and the live handle still returns or destroys
  * the client so idle/total/waiting can recover.
  */
-function installReleaseCleanup(client: any): any {
+type QueryResult = { rows: unknown[]; [key: string]: unknown };
+type QueryFn = (...args: unknown[]) => Promise<QueryResult>;
+
+type RawPoolClient = {
+  query: QueryFn;
+  release: (err?: ReleaseArg) => void;
+};
+
+export type CheckpointClientHandle = {
+  query: QueryFn;
+  release: (err?: ReleaseArg) => void;
+  releaseAsync: (err?: ReleaseArg) => Promise<void>;
+};
+
+const HANDLE_KEYS = ['query', 'release', 'releaseAsync'] as const;
+type HandleKey = (typeof HANDLE_KEYS)[number];
+
+function isHandleKey(prop: string | symbol): prop is HandleKey {
+  return typeof prop === 'string' && (HANDLE_KEYS as readonly string[]).includes(prop);
+}
+
+/**
+ * Each checkout returns a dedicated whitelist handle (plain object, not a
+ * Proxy of the shared pg Client). PostgresSaver 1.0.4 and in-repo callers only
+ * use query / release / releaseAsync (plus pool.connect, pool.query, pool.end
+ * on the facade). The handle does not inherit Client.prototype, does not
+ * expose on / once / off / end / connection, and does not hold a reachable
+ * reference to the raw Client (the raw client lives only in this closure).
+ *
+ * After the handle is returned to the pool, any member access throws
+ * checkpoint_pg_stale_handle. A leftover release or query therefore cannot
+ * touch the next holder.
+ */
+function installReleaseCleanup(client: RawPoolClient): CheckpointClientHandle {
   serializeClientQueries(client);
 
   const originalRelease = client.release.bind(client) as (err?: ReleaseArg) => void;
@@ -216,18 +249,60 @@ function installReleaseCleanup(client: any): any {
     });
   };
 
-  const query: ClientQueryFn = (...args: unknown[]) => {
+  const query: QueryFn = (...args: unknown[]) => {
     if (!handleOpen) throw staleHandleError();
     return client.query(...args);
   };
 
-  return new Proxy(client, {
-    get(target: any, prop: string | symbol) {
-      if (prop === 'release') return release;
-      if (prop === 'releaseAsync') return releaseAsync;
-      if (prop === 'query') return query;
-      const val = target[prop];
-      return typeof val === 'function' ? val.bind(target) : val;
+  // WHITELIST_HANDLE: null-prototype plain object; do not wrap the shared Client.
+  const methods = Object.create(null) as CheckpointClientHandle;
+  methods.query = query;
+  methods.release = release;
+  methods.releaseAsync = releaseAsync;
+  Object.preventExtensions(methods);
+
+  const assertOpen = (): void => {
+    if (!handleOpen) throw staleHandleError();
+  };
+
+  const guardedGet = (prop: string | symbol): unknown => {
+    assertOpen();
+    if (isHandleKey(prop)) return methods[prop];
+    throw staleHandleError();
+  };
+
+  return new Proxy(methods, {
+    get(_target, prop) {
+      return guardedGet(prop);
+    },
+    getOwnPropertyDescriptor(_target, prop) {
+      assertOpen();
+      if (!isHandleKey(prop)) return undefined;
+      return { value: methods[prop], writable: false, enumerable: true, configurable: false };
+    },
+    ownKeys() {
+      assertOpen();
+      return [...HANDLE_KEYS];
+    },
+    has(_target, prop) {
+      assertOpen();
+      return isHandleKey(prop);
+    },
+    set() {
+      return false;
+    },
+    defineProperty() {
+      return false;
+    },
+    deleteProperty() {
+      return false;
+    },
+    getPrototypeOf() {
+      assertOpen();
+      return null;
+    },
+    setPrototypeOf() {
+      return false;
     },
   });
 }
@@ -249,11 +324,11 @@ export class PrincipalBoundCheckpointPool {
     return this.pool;
   }
 
-  async connect(): Promise<any> {
+  async connect(): Promise<CheckpointClientHandle> {
     const acquired = await this.pool.connect();
-    // CHECKOUT_HANDLE: return a per-checkout handle. Do not assign release or
-    // query wrappers onto the shared pg Client, so a leftover release on an
-    // old handle cannot hit the next holder once-fn or wrapper.
+    // CHECKOUT_HANDLE: return a per-checkout whitelist handle. Do not assign
+    // release or query wrappers onto the shared pg Client, and do not Proxy
+    // that Client, so leftover or reflected access cannot reach the next holder.
     const client = installReleaseCleanup(acquired);
     try {
       const access = requireAccess();

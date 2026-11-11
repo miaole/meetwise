@@ -40,6 +40,9 @@
  *    E1/E2（真实 PG，max=1）：旧句柄在新持有者期间再 release，不得让 Y 读到 A 的 principal；
  *      必须 warn + 抛错；pool total/idle/waiting 恢复后正常 pool.end()。
  *      反向复现钉死 SHA 135ec7c779c393f082006fd6ac1a9cd94ae10bf4，必须 EXIT 1。
+ *    P1/P2/P3/P4/P5/P7（真实 PG，max=1）：白名单句柄在反射、on 链、notice、end、
+ *      活句柄 on().release 上 fail-closed；Y 始终为本租户；池 1/1/0；end() 正常。
+ *      反向复现钉死 SHA 9faf8655291db3864fca28e92b956800ae77f0ff，必须 EXIT 1。
  *  另：WORKER_ALERT 旧正则对现场崩溃日志假阴性；新正则命中，健康日志不误报。
  *  pnpm pg-client-double-release:prove */
 import { spawnSync } from 'node:child_process';
@@ -55,6 +58,8 @@ const DOUBLE_RELEASE = 'Release called on client which has already been released
 const BEFORE_SHA = '59baa20b231bd6d022cc6290c7803fc40b724208';
 /** 持有者 token 直接 return 造成池泄漏、E1/E2 跨租户共享的 head。 */
 const E12_BEFORE_SHA = '135ec7c779c393f082006fd6ac1a9cd94ae10bf4';
+/** G-3：Proxy 只拦 query/release/releaseAsync，on/descriptor/proto/end 可碰到原始 Client 的 head。 */
+const P_BEFORE_SHA = '9faf8655291db3864fca28e92b956800ae77f0ff';
 const STACK_N = 2000;
 
 /** 现场 worker 崩溃摘录（无密钥）。 */
@@ -86,7 +91,7 @@ export const WORKER_ALERT_RE = /checkpoint_connection_lost|checkpoint_privacy_fe
 
 const ACCESS = { owner: 'owner-a', threadId: 'thread-a', fenceEpoch: 1 };
 
-type Mode = 'after' | 'before' | 'mut-guard' | 'mut-stack' | 'mut-order' | 'xp-after' | 'xp-mut-precedence' | 'xp-e12' | 'xp-e12-before';
+type Mode = 'after' | 'before' | 'mut-guard' | 'mut-stack' | 'mut-order' | 'xp-after' | 'xp-mut-precedence' | 'xp-e12' | 'xp-e12-before' | 'xp-p137' | 'xp-p137-before';
 
 function makeFakeClient(opts: { releaseThrowsAlways?: boolean; overlap?: { current: number; max: number; hits: number }; delayMs?: number; allowReuse?: boolean }): {
   query: (...args: unknown[]) => Promise<{ rows: unknown[]; rowCount: number }>;
@@ -327,16 +332,18 @@ const SESSION_SQL = `SELECT pg_backend_pid()::int AS pid,
            current_user::text AS current_user,
            session_user::text AS session_user,
            nullif(current_setting('app.principal_user', true), '') AS principal,
-           nullif(current_setting('app.checkpoint_thread_id', true), '') AS thread_id,
+           nullif(current_setting('app.checkpoint_thread_id', true), '') AS "threadId",
            nullif(current_setting('app.checkpoint_epoch', true), '') AS epoch`;
 
 type XpAccess = { owner: string; threadId: string; fenceEpoch: number };
 type XpSnap = { principal: string | null; threadId: string | null };
 
-function xpSnapOf(row: { principal?: unknown; thread_id?: unknown }): XpSnap {
+function xpSnapOf(row: Record<string, unknown>): XpSnap {
+  const principal = row['principal'];
+  const threadId = row['threadId'];
   return {
-    principal: row.principal == null || row.principal === '' ? null : String(row.principal),
-    threadId: row.thread_id == null || row.thread_id === '' ? null : String(row.thread_id),
+    principal: principal == null || principal === '' ? null : String(principal),
+    threadId: threadId == null || threadId === '' ? null : String(threadId),
   };
 }
 
@@ -693,10 +700,215 @@ async function runE12(mod: Record<string, unknown>): Promise<void> {
   }
 }
 
+
+const SET_PRINCIPAL_SQL = "SELECT set_config('app.principal_user', $1, false) AS v";
+const NOTICE_SQL = "DO $$ BEGIN RAISE NOTICE 'secret-of-B'; END $$";
+
+function asRow(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' ? value as Record<string, unknown> : {};
+}
+
+async function runP137(mod: Record<string, unknown>): Promise<void> {
+  if (process.env.E2E_ISOLATED !== '1') {
+    console.log('P137 require E2E_ISOLATED=1 (official isolated runner)');
+    process.exit(1);
+  }
+  const ctx = await setupXpBound(mod, 'p137');
+  const { bound, pool, admin, role, withAccess, accessA, accessB } = ctx;
+  const results: string[] = [];
+  let mismatches = 0;
+  let failClosed = 0;
+  let noticeLeak = 0;
+  const samples: string[] = [];
+
+  const mark = (name: string, threw: boolean, snap: XpSnap, extra = ''): void => {
+    const yOk = snap.principal === accessB.owner && snap.threadId === accessB.threadId;
+    if (!yOk) {
+      mismatches += 1;
+      if (samples.length < 8) samples.push(`${name} ${JSON.stringify(snap)} expected=${accessB.owner}/${accessB.threadId}`);
+    }
+    if (threw) failClosed += 1;
+    results.push(`${name} threw=${threw} yOk=${yOk}${extra ? ` ${extra}` : ''}`);
+  };
+
+  let counts: PoolCounts = { totalCount: 0, idleCount: 0, waitingCount: 0 };
+  try {
+    // P1: prototype query.call on a released handle must not run on Y.
+    const cX1 = await withAccess(accessA, () => bound.connect());
+    await cX1.query(SESSION_SQL);
+    if (typeof cX1.releaseAsync === 'function') await cX1.releaseAsync();
+    else cX1.release();
+    const cY1 = await withAccess(accessB, () => bound.connect());
+    let p1threw = false;
+    try {
+      const proto = Object.getPrototypeOf(cX1) as { query?: (...args: unknown[]) => unknown } | null;
+      if (proto && typeof proto.query === 'function') {
+        await proto.query.call(cX1, SET_PRINCIPAL_SQL, [accessA.owner]);
+      } else {
+        p1threw = true;
+      }
+    } catch {
+      p1threw = true;
+    }
+    const y1 = await cY1.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
+    mark('P1', p1threw, xpSnapOf(asRow(y1.rows[0])), `proto=${Object.getPrototypeOf(cX1) === null ? 'null' : typeof Object.getPrototypeOf(cX1)}`);
+    if (typeof cY1.releaseAsync === 'function') await cY1.releaseAsync();
+    else cY1.release();
+
+    // P2: getOwnPropertyDescriptor(query).value must be the guarded handle fn or throw.
+    const cX2 = await withAccess(accessA, () => bound.connect());
+    await cX2.query(SESSION_SQL);
+    if (typeof cX2.releaseAsync === 'function') await cX2.releaseAsync();
+    else cX2.release();
+    const cY2 = await withAccess(accessB, () => bound.connect());
+    let p2threw = false;
+    try {
+      const desc = Reflect.getOwnPropertyDescriptor(cX2, 'query');
+      const fn = desc?.value as ((...args: unknown[]) => unknown) | undefined;
+      if (typeof fn === 'function') await fn(SET_PRINCIPAL_SQL, [accessA.owner]);
+      else p2threw = true;
+    } catch {
+      p2threw = true;
+    }
+    const y2 = await cY2.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
+    mark('P2', p2threw, xpSnapOf(asRow(y2.rows[0])));
+    if (typeof cY2.releaseAsync === 'function') await cY2.releaseAsync();
+    else cY2.release();
+
+    // P3: on() chain must not return the raw Client.
+    const cX3 = await withAccess(accessA, () => bound.connect());
+    await cX3.query(SESSION_SQL);
+    if (typeof cX3.releaseAsync === 'function') await cX3.releaseAsync();
+    else cX3.release();
+    const cY3 = await withAccess(accessB, () => bound.connect());
+    let p3threw = false;
+    try {
+      const chained = (cX3 as { on?: (event: string, fn: () => void) => { query?: (...args: unknown[]) => unknown } }).on?.('x', () => undefined);
+      if (chained && typeof chained.query === 'function') await chained.query(SET_PRINCIPAL_SQL, [accessA.owner]);
+      else p3threw = true;
+    } catch {
+      p3threw = true;
+    }
+    const y3 = await cY3.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
+    mark('P3', p3threw, xpSnapOf(asRow(y3.rows[0])));
+    if (typeof cY3.releaseAsync === 'function') await cY3.releaseAsync();
+    else cY3.release();
+
+    // P4: leftover notice listener must not see Y's NOTICE.
+    const notices: string[] = [];
+    const cX4 = await withAccess(accessA, () => bound.connect());
+    await cX4.query(SESSION_SQL);
+    let p4threw = false;
+    try {
+      (cX4 as { on?: (event: string, fn: (msg: { message?: string } | string) => void) => unknown }).on?.('notice', (msg) => {
+        const text = typeof msg === 'string' ? msg : String(msg?.message ?? msg);
+        notices.push(text);
+        if (text.includes('secret-of-B')) noticeLeak += 1;
+      });
+    } catch {
+      p4threw = true;
+    }
+    if (typeof cX4.releaseAsync === 'function') await cX4.releaseAsync();
+    else cX4.release();
+    const cY4 = await withAccess(accessB, () => bound.connect());
+    await cY4.query(NOTICE_SQL);
+    await new Promise((r) => setTimeout(r, 80));
+    const y4 = await cY4.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
+    mark('P4', p4threw || noticeLeak === 0, xpSnapOf(asRow(y4.rows[0])), `leak=${noticeLeak} notices=${notices.length}`);
+    if (!p4threw && noticeLeak === 0) failClosed += 1;
+    if (typeof cY4.releaseAsync === 'function') await cY4.releaseAsync();
+    else cY4.release();
+
+    // P5: leftover end() must not close Y.
+    const cX5 = await withAccess(accessA, () => bound.connect());
+    await cX5.query(SESSION_SQL);
+    if (typeof cX5.releaseAsync === 'function') await cX5.releaseAsync();
+    else cX5.release();
+    const cY5 = await withAccess(accessB, () => bound.connect());
+    let p5threw = false;
+    try {
+      const ender = cX5 as { end?: () => unknown };
+      if (typeof ender.end === 'function') await ender.end();
+      else p5threw = true;
+    } catch {
+      p5threw = true;
+    }
+    let y5ok = false;
+    let y5snap: XpSnap = { principal: null, threadId: null };
+    try {
+      const y5 = await cY5.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
+      y5snap = xpSnapOf(asRow(y5.rows[0]));
+      y5ok = true;
+    } catch (error) {
+      if (samples.length < 8) samples.push(`P5 y-query ${String((error as Error).message ?? error).slice(0, 80)}`);
+    }
+    mark('P5', p5threw && y5ok, y5snap);
+    if (typeof cY5.releaseAsync === 'function') await cY5.releaseAsync();
+    else cY5.release();
+
+    // P7: live handle on().release() must not skip cleanup (privileged session back to pool).
+    const cX7 = await withAccess(accessA, () => bound.connect());
+    await cX7.query(SESSION_SQL);
+    let p7threw = false;
+    let rawReleased = false;
+    try {
+      const chained = (cX7 as { on?: (event: string, fn: () => void) => { release?: (err?: unknown) => void } }).on?.('x', () => undefined);
+      if (chained && typeof chained.release === 'function') {
+        chained.release();
+        rawReleased = true;
+      } else {
+        p7threw = true;
+      }
+    } catch {
+      p7threw = true;
+    }
+    if (!rawReleased) {
+      if (typeof cX7.releaseAsync === 'function') await cX7.releaseAsync();
+      else cX7.release();
+    } else {
+      await new Promise((r) => setTimeout(r, 80));
+    }
+    const cY7 = await withAccess(accessB, () => bound.connect());
+    const y7 = await cY7.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
+    mark('P7', p7threw, xpSnapOf(asRow(y7.rows[0])), `rawReleased=${rawReleased}`);
+    if (typeof cY7.releaseAsync === 'function') await cY7.releaseAsync();
+    else cY7.release();
+
+    counts = await waitPoolRecovered(pool);
+    let endOk = false;
+    try {
+      await withTimeout(bound.end(), 8_000);
+      endOk = true;
+    } catch (error) {
+      console.log(`P137 end() failed: ${String((error as Error).message ?? error).slice(0, 120)}`);
+      try { await withTimeout(Promise.resolve(pool.end?.() as Promise<void>), 3_000); } catch { /* ignore */ }
+    }
+    const recovered = poolRecovered(counts);
+    // Six arms: P1 P2 P3 P4 P5 P7. failClosed is incremented by mark() when threw=true, plus P4 missing-on adjustment.
+    const ok = mismatches === 0 && noticeLeak === 0 && recovered && endOk && results.every((line) => line.includes('yOk=true') && line.includes('threw=true'));
+    console.log(`P137 ${results.join(' | ')}`);
+    console.log(`P137 mismatches=${mismatches} noticeLeak=${noticeLeak} failClosed=${failClosed} pool=${formatCounts(counts)} end=${endOk ? 'ok' : 'fail'} recovered=${recovered} samples=${samples.join(' | ')}`);
+    if (ok) console.log('CHILD_OK');
+    else {
+      console.log('CHILD_FAIL P137');
+      process.exitCode = 1;
+    }
+  } catch (error) {
+    console.log(`P137 uncaught ${String((error as Error).message ?? error).slice(0, 160)}`);
+    console.log(`P137 mismatches=${mismatches} noticeLeak=${noticeLeak} pool=${formatCounts(counts)} samples=${samples.join(' | ')}`);
+    console.log('CHILD_FAIL P137');
+    process.exitCode = 1;
+  } finally {
+    await admin.query(`DROP ROLE IF EXISTS ${role}`).catch(() => undefined);
+    await admin.end().catch(() => undefined);
+  }
+}
+
 async function child(mode: Mode, moduleUrl: string): Promise<void> {
   const mod = await import(moduleUrl);
   if (mode === 'xp-after' || mode === 'xp-mut-precedence') await runXp2(mod, mode === 'xp-mut-precedence');
   else if (mode === 'xp-e12' || mode === 'xp-e12-before') await runE12(mod);
+  else if (mode === 'xp-p137' || mode === 'xp-p137-before') await runP137(mod);
   else await runScenario(mod);
 }
 
@@ -796,6 +1008,7 @@ async function parent(): Promise<void> {
   A('S-5 吞错路径有 warnReleasePath（无 SQL/principal）', src.includes('warnReleasePath') && !/warnReleasePath\([^)]*principal/i.test(src));
   A('S-6 façade.query finally 显式分支（无 await/?? 优先级陷阱）', src.includes('RELEASE_ASYNC_ONLY') && !/await \(client as \{ releaseAsync\?:/.test(src));
   A('S-7 connect 返回独立句柄（不把 release 包装挂到共享 Client）', src.includes('CHECKOUT_HANDLE') && !/client\.release = /.test(src) && src.includes('checkpoint_pg_stale_handle'));
+  A('S-8 句柄为白名单普通对象（不 Proxy 共享 Client，不暴露 on/end/connection）', src.includes('WHITELIST_HANDLE') && src.includes('Object.create(null)') && !/new Proxy\(client/.test(src));
 
   if (process.env.E2E_ISOLATED !== '1') {
     A('XP-2 须由官方 isolated runner 提供真实 PG（E2E_ISOLATED=1）', false, `E2E_ISOLATED=${process.env.E2E_ISOLATED ?? ''}`);
@@ -856,6 +1069,44 @@ async function parent(): Promise<void> {
         (e12Before.stdout ?? '').split('\n').find((l) => /E1 mismatches=/.test(l) || /E2 mismatches=/.test(l) || /E12 ok=/.test(l)) ?? (e12Before.stderr ?? '').slice(0, 200),
       );
       rmSync(e12Written.dir, { recursive: true, force: true });
+    }
+
+    const p137 = runChild('xp-p137', `file://${srcPath}`, 180_000);
+    process.stdout.write(p137.stdout ?? '');
+    if (p137.status !== 0) process.stderr.write((p137.stderr ?? '').slice(0, 4000));
+    A(
+      'P1-P5/P7 真实 PG 白名单句柄 fail-closed 且池计数恢复',
+      p137.status === 0 && /CHILD_OK/.test(p137.stdout ?? '') && /P137 mismatches=0 /.test(p137.stdout ?? '') && /pool=1\/1\/0/.test(p137.stdout ?? ''),
+      (p137.stdout ?? '').split('\n').find((l) => /P137 mismatches=/.test(l) || /P137 P1/.test(l)) ?? `status=${p137.status}`,
+    );
+
+    const pBeforeSrc = spawnSync('git', ['show', `${P_BEFORE_SHA}:apps/worker/src/checkpoint-principal.ts`], {
+      encoding: 'utf8',
+      cwd: join(here, '../../..'),
+    });
+    A(
+      `P-BEFORE 能读到固定 SHA ${P_BEFORE_SHA.slice(0, 9)} 源`,
+      pBeforeSrc.status === 0 && (pBeforeSrc.stdout ?? '').includes('return new Proxy(client') && !(pBeforeSrc.stdout ?? '').includes('WHITELIST_HANDLE'),
+      `status=${pBeforeSrc.status}`,
+    );
+    if (pBeforeSrc.status === 0) {
+      const pWritten = writePatchedModule(pBeforeSrc.stdout ?? '');
+      const pBefore = runChild('xp-p137-before', pWritten.url, 180_000);
+      process.stdout.write(pBefore.stdout ?? '');
+      if (pBefore.status !== 0) process.stderr.write((pBefore.stderr ?? '').slice(0, 4000));
+      A(
+        'P-BEFORE 反向复现子进程非零退出',
+        pBefore.status !== 0 && /CHILD_FAIL P137/.test(pBefore.stdout ?? ''),
+        `status=${pBefore.status} signal=${pBefore.signal}`,
+      );
+      A(
+        'P-BEFORE 失败在跨租户或未 fail-closed',
+        /P137 mismatches=([1-9]\d*) /.test(pBefore.stdout ?? '')
+          || /noticeLeak=([1-9]\d*)/.test(pBefore.stdout ?? '')
+          || (/yOk=false/.test(pBefore.stdout ?? '') && !/CHILD_OK/.test(pBefore.stdout ?? '')),
+        (pBefore.stdout ?? '').split('\n').find((l) => /P137 mismatches=/.test(l) || /P137 P1/.test(l)) ?? (pBefore.stderr ?? '').slice(0, 200),
+      );
+      rmSync(pWritten.dir, { recursive: true, force: true });
     }
   }
 
