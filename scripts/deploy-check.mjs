@@ -152,14 +152,70 @@ const mig0143 = rf('packages/db/migrations/0143_sse_push_notify.sql', 'utf8');
 must(/CREATE TRIGGER interview_event_sse_notify\b/.test(mig0143)
   && /pg_notify\(\s*'interview_event_ch'/.test(mig0143),
   '0143 必须创建 interview_event_sse_notify 并 pg_notify interview_event_ch');
+// 剥 JS 注释（尊重字符串）后再抽常量：整文件正则会被文档注释里的 tgenabled IN ('O','A') 假绿。
+function stripJsComments(src) {
+  let out = '';
+  let i = 0;
+  while (i < src.length) {
+    const c = src[i];
+    const n = src[i + 1];
+    if (c === '/' && n === '/') {
+      i += 2;
+      while (i < src.length && src[i] !== '\n') i++;
+      continue;
+    }
+    if (c === '/' && n === '*') {
+      i += 2;
+      while (i + 1 < src.length && !(src[i] === '*' && src[i + 1] === '/')) i++;
+      i = Math.min(i + 2, src.length);
+      continue;
+    }
+    if (c === '"' || c === "'" || c === '`') {
+      const q = c;
+      out += c;
+      i++;
+      while (i < src.length) {
+        const ch = src[i];
+        out += ch;
+        i++;
+        if (ch === '\\' && i < src.length) { out += src[i]; i++; continue; }
+        if (ch === q) break;
+      }
+      continue;
+    }
+    out += c;
+    i++;
+  }
+  return out;
+}
+function extractExportedStringConst(src, name) {
+  const stripped = stripJsComments(src);
+  const re = new RegExp(
+    String.raw`export\s+const\s+${name}\s*=\s*("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')\s*;`,
+  );
+  const m = stripped.match(re);
+  if (!m) return null;
+  try {
+    return Function(`"use strict"; return (${m[1]});`)();
+  } catch {
+    return null;
+  }
+}
+// 规范谓词全等：禁止 OR 放宽、禁止把 'R' 放进 IN 列表、禁止只删条件靠注释假绿。
+const SSE_NOTIFY_TRIGGER_HEALTH_SQL_CANONICAL =
+  "SELECT 1 FROM pg_catalog.pg_trigger WHERE tgname = $1 AND tgrelid = to_regclass('public.interview_event') AND NOT tgisinternal AND tgenabled IN ('O', 'A') LIMIT 1";
 const sseNotifySrc = rf('apps/api/src/platform/sse-notify.service.ts', 'utf8');
-must(/SSE_NOTIFY_TRIGGER_HEALTH_SQL/.test(sseNotifySrc)
-  && /tgenabled\s*IN\s*\(\s*'O'\s*,\s*'A'\s*\)/.test(sseNotifySrc)
-  && /to_regclass\(\s*'public\.interview_event'\s*\)/.test(sseNotifySrc),
-  'sse-notify 的 0143 trigger 实证必须用 to_regclass + tgenabled IN (O,A)（禁用态 fail-closed 为 trigger_missing）');
+must(extractExportedStringConst(sseNotifySrc, 'SSE_NOTIFY_TRIGGER_HEALTH_SQL') === SSE_NOTIFY_TRIGGER_HEALTH_SQL_CANONICAL,
+  'sse-notify 的 SSE_NOTIFY_TRIGGER_HEALTH_SQL 必须与规范谓词全等（to_regclass + tgenabled IN (O,A)；禁止注释假绿或 OR 放宽）');
 const healthSrc = rf('apps/api/src/modules/health/health.service.ts', 'utf8');
-must(/sseNotifyReady/.test(healthSrc) && /SSE_NOTIFY_TRIGGER_HEALTH_SQL/.test(healthSrc),
-  'readiness 必须经 sseNotifyReady 做 0143 trigger fail-closed 检查');
+must(/sseNotifyReady/.test(healthSrc) && /SSE_NOTIFY_TRIGGER_HEALTH_SQL/.test(healthSrc)
+  && /SSE_NOTIFY_TRIGGER_HEALTH_TIMEOUT_MS/.test(healthSrc),
+  'readiness 必须经 sseNotifyReady 做 0143 trigger fail-closed 检查，并带专用短超时');
+const healthSseFn = (stripJsComments(healthSrc).match(/async\s+sseNotifyReady\s*\([^)]*\)[\s\S]*$/) ?? [''])[0];
+must(/rowCount\s*!==\s*1\)\s*return\s*'trigger_missing'/.test(healthSseFn)
+  && /catch\s*\{[\s\S]*?return\s*'unknown'/.test(healthSseFn)
+  && !/catch\s*\{[\s\S]*?return\s*'trigger_missing'/.test(healthSseFn),
+  'sseNotifyReady 查询异常必须标 unknown（不得把 catch 标成 trigger_missing）');
 const healthCtl = rf('apps/api/src/modules/health/health.controller.ts', 'utf8');
 must(/sse:\s*\{\s*notify/.test(healthCtl) && /trigger_missing/.test(healthCtl),
   'readyz/api 必须在健康输出中暴露 sse.notify（含 trigger_missing）');

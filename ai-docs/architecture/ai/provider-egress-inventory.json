@@ -2421,7 +2421,7 @@
     },
     {
       "name": "MODEL_API_KEY",
-      "source": "apps/api/test/sse-0143-trigger-health.proof.ts",
+      "source": "apps/api/test/sse-notify-trigger-health.proof.ts",
       "class": "test-isolation"
     },
     {
@@ -2431,7 +2431,7 @@
     },
     {
       "name": "MODEL_BASE_URL",
-      "source": "apps/api/test/sse-0143-trigger-health.proof.ts",
+      "source": "apps/api/test/sse-notify-trigger-health.proof.ts",
       "class": "test-isolation"
     },
     {

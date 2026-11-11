@@ -10,7 +10,8 @@ import { HealthService } from './health.service';
  * ③迁移版本一致（审计 #92：账本 max(version) = 迁移目录 max——`schema.migration` 位，
  * 未迁移完/漂移即 503）④0143 SSE NOTIFY trigger 在场且已启用（`sse.notify` 位：
  * ok / listen_down / trigger_missing / unknown）。trigger 缺席或 tgenabled='D'/'R'
- * → 503 fail-closed（避免缺失 trigger 时每 ≤5s 全量唤醒的降级风暴）。listen_down
+ * → 503 fail-closed（避免缺失 trigger 时每 ≤5s 全量唤醒的降级风暴）。目录查询异常
+ * 标 `unknown`，不单独 503（与 database !== 'ok' 短路同形）。listen_down
  * 可见于 `sse.notify`，HTTP 仍 200（通道设计为回落 legacy 2s 轮询）。`schema.migration`
  * 位实发恰 ok/mismatch/unknown 三值固定枚举（invalid 仅属 `config.envSchema` 配置域，
  * 不混入本位）。位面不携带键名、版本号字符串或拓扑（本类注记纪律）。旧 `/health` 保留为

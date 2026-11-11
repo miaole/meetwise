@@ -60,6 +60,4 @@ regexes = [
   '''(?i)uc0\d{2}[-a-z0-9]+''',
   '''(?i)Key-unset\s+e2e''',
   '''(?i)prove:uc0\d{2}[-a-z0-9]*''',
-  # pnpm 脚本后缀误触 generic-api-key：prove:sse-0143-trigger-health（0143=迁移号，非密钥）。
-  '''(?i)sse-0143-trigger-health''',
 ]

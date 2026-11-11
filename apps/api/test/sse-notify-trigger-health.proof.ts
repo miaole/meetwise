@@ -15,8 +15,8 @@
  * 不改 apps/api prove:sse-slot（#243 的 env -u 六变量封闭化不在本刀，且本刀不碰该脚本）。
  * #243 未合，本证明只登记 pnpm 脚本，待挂 verify:local。
  *
- *   pnpm sse-0143:trigger-health:prove
- *   pnpm -C apps/api prove:sse-0143-trigger-health
+ *   pnpm sse-notify-trigger-health:prove
+ *   pnpm -C apps/api prove:sse-notify-trigger-health
  *
  * releaseEvidence=false · NOT_HA · 本绿 ≠ covered · actualSpendCny=null
  */
@@ -63,7 +63,7 @@ const admin: DbPool = createPool();
 await assertIsolatedTestTarget(admin);
 console.log('ISOLATED_TARGET_ATTESTATION ok loopback+nonce verified');
 
-process.env.AUTH_SECRET = `sse-0143-trigger-health-${randomUUID()}`;
+process.env.AUTH_SECRET = `sse-notify-trigger-health-${randomUUID()}`;
 process.env.MEETWISE_PUBLIC_PREVIEW = '0';
 process.env.OCR_ENABLED = '0';
 process.env.NODE_ENV = 'test';
@@ -77,9 +77,10 @@ const migration0143 = readFileSync(
 
 console.log('SSE 0143 trigger health prove · fail-closed readiness · releaseEvidence=false · NOT_HA');
 
-A('T-static SSE_NOTIFY_TRIGGER_HEALTH_SQL 含 to_regclass + tgenabled IN (O,A)',
-  /to_regclass\(\s*'public\.interview_event'\s*\)/.test(SSE_NOTIFY_TRIGGER_HEALTH_SQL)
-  && /tgenabled\s*IN\s*\(\s*'O'\s*,\s*'A'\s*\)/.test(SSE_NOTIFY_TRIGGER_HEALTH_SQL));
+const SSE_NOTIFY_TRIGGER_HEALTH_SQL_CANONICAL =
+  "SELECT 1 FROM pg_catalog.pg_trigger WHERE tgname = $1 AND tgrelid = to_regclass('public.interview_event') AND NOT tgisinternal AND tgenabled IN ('O', 'A') LIMIT 1";
+A('T-static SSE_NOTIFY_TRIGGER_HEALTH_SQL 与规范谓词全等（to_regclass + tgenabled IN (O,A)）',
+  SSE_NOTIFY_TRIGGER_HEALTH_SQL === SSE_NOTIFY_TRIGGER_HEALTH_SQL_CANONICAL);
 
 const { createApp } = await import('../src/main.ts');
 const app = await createApp();
@@ -233,5 +234,5 @@ try {
   await admin.end().catch(() => undefined);
 }
 
-console.log(`\n${fail === 0 ? `✓ sse-0143:trigger-health: ${total} 条全绿` : `✗ sse-0143:trigger-health: ${fail}/${total} 失败`}`);
+console.log(`\n${fail === 0 ? `✓ sse-notify-trigger-health: ${total} 条全绿` : `✗ sse-notify-trigger-health: ${fail}/${total} 失败`}`);
 process.exit(fail === 0 ? 0 : 1);
