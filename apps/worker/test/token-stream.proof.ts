@@ -383,11 +383,12 @@ async function main() {
       await sleep(300);
       const frames = framesFor(QID, quizKey);
       const withdrawn = frames.find((f) => f.withdrawn === true);
-      A('N-13 臂(1) flag=1 quiz 业务拒绝：LISTEN 实收 withdrawn（reason=blank_question）',
-        threw && errMsg.includes('blank_question')
+      // invoke 业务闸失败的 error 形为 business:${reason}（ai-runtime invoke.ts），再被 quizGenerator 包成 quiz:${error}。
+      A('N-13 臂(1) flag=1 quiz 业务拒绝：LISTEN 实收 withdrawn（reason=business:blank_question）',
+        threw && errMsg === 'quiz:business:blank_question'
         && withdrawn !== undefined
         && withdrawn.v === 1 && withdrawn.streamKey === QID && withdrawn.attemptKey === quizKey
-        && withdrawn.reason === 'blank_question',
+        && withdrawn.reason === 'business:blank_question',
         { threw, errMsg, frames });
     } finally {
       if (prevFlag === undefined) delete process.env.TOKEN_STREAM_WITHDRAW_PREVIEW;
