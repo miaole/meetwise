@@ -21,7 +21,7 @@ related:
 ---
 
 ### ADR-0001 技术栈 · accepted
-**背景**：纯 AI 驱动的可恢复长会话面试系统。**决定**：Next.js App Router(web) + NestJS(api) + LangGraphJS(worker) + Postgres(+pgvector) + Redis/Tair + S3/MinIO。Redis/Tair 用于限流、短期缓存与锁，不是耐久任务队列（队列见 ADR-0023）。**被否**：Nuxt/Vue（前端定 Next）；纯 serverless（长会话+队列不适）。**后果**：单语言 TS 全栈，monorepo。
+**背景**：纯 AI 驱动的可恢复长会话面试系统。**决定**：Next.js App Router(web) + NestJS(api) + LangGraphJS(worker) + Postgres(+pgvector) + Redis/Tair + S3/MinIO。Redis/Tair 用于 RAG 热缓存、嵌入计算缓存与单飞锁（及默认关闭的 Streams 唤醒原型），不是耐久任务队列（队列见 ADR-0023）；限流当前落 PG 共享桶表，Redis 限流未接线。**被否**：Nuxt/Vue（前端定 Next）；纯 serverless（长会话+队列不适）。**后果**：单语言 TS 全栈，monorepo。
 
 ### ADR-0002 ORM = Prisma · accepted
 **背景**：需迁移 + 约束 + 类型安全。**决定**：Prisma。**被否**：Drizzle（生态/迁移成熟度权衡后否）；裸 SQL（失类型安全）。**后果**：迁移用 Prisma Migrate；RLS 用 client extension 注入 `SET LOCAL`。
@@ -81,10 +81,10 @@ related:
 **背景**：全包 version=0.0.0、无 tag/CHANGELOG/发布脚本、探针不报版本，无法钉/校验/回滚部署。**决定**：锁定式 monorepo 单一 semver（根 `package.json`）+ `scripts/release.mjs`（bump→CHANGELOG→tag）+ 运行时 `/meta`（读部署注入 `APP_VERSION`，当前管线未接线）+ CI 一致性门（tag↔版本一致 + CHANGELOG 段 + docs:check/arch）。**被否**：Changesets 独立发版、运行时读文件取版本、脚本自动 push。**后果**：可复现发布、`curl /meta` 锚点就位（注入管线接线后返回真实版本）、回滚有锚点。**详见 [`adr/0022-app-versioning-release.md`](./0022-app-versioning-release.md)。**
 
 ### ADR-0023 耐久任务队列 = Postgres 表 + SKIP LOCKED，唤醒用 LISTEN/NOTIFY · accepted
-**背景**：ADR-0006 曾写「队列用 Redis 上的 BullMQ/pg-boss」。仓库现状不是这条路径：`bullmq` / `@nestjs/bullmq` / `pg-boss` 不在依赖声明里，也没有运行时 import；任务落在 Postgres 队列表（如 `interview_job`、`quiz_job`、`diagnosis_job` 及报告队列表），领取用 `FOR UPDATE SKIP LOCKED`，提交后发固定 `wake` 的 `LISTEN/NOTIFY`，worker 专用会话只合并唤醒现有领取循环，通知不含业务数据；各 loop 仍以约 5 秒为上限做恢复扫描。Redis/Tair 仍用于限流、短期缓存与锁（及 RAG 热缓存），不是耐久队列真相。Redis Streams 唤醒只是特性旗 `MEETWISE_WAKEUP_REDIS_STREAMS`（默认关）下的附加原型，不是生产切流，也不等于用户硬否 Redis。
+**背景**：ADR-0006 曾写「队列用 Redis 上的 BullMQ/pg-boss」。仓库现状不是这条路径：`bullmq` / `@nestjs/bullmq` / `pg-boss` 不在依赖声明里，也没有运行时 import；任务落在 Postgres 队列表（如 `interview_job`、`quiz_job`、`diagnosis_job` 及报告队列表），领取用 `FOR UPDATE SKIP LOCKED`，提交后发固定 `wake` 的 `LISTEN/NOTIFY`，worker 专用会话只合并唤醒现有领取循环；**worker 唤醒通道** `meetwise_worker_wakeup_v1` 的通知不含业务数据（SSE 的 `interview_event_ch` / `interview_token_ch` 会传 `stream_key` / token delta，不在本约束内）；各 loop 仍以约 5 秒为上限做恢复扫描。Redis/Tair 用于 RAG 热缓存、嵌入计算缓存与单飞锁（及默认关闭的 Streams 唤醒原型），不是耐久队列真相；限流当前落 PG 共享桶表，Redis 限流未接线。Redis Streams 唤醒只是特性旗 `MEETWISE_WAKEUP_REDIS_STREAMS`（默认关）下的附加原型，不是生产切流，也不等于用户硬否 Redis。
 **决定**：耐久任务队列的事实源是 Postgres 队列表 + 租约 / `SKIP LOCKED`；生产唤醒偏好继续 Postgres `LISTEN/NOTIFY`（与交付 ADR [`adr-postgres-retained.md`](../../delivery/adr-postgres-retained.md) 一致）。BullMQ / pg-boss 不再作为队列选型。
 **被否**：以 Redis 上的 BullMQ 或 pg-boss 作为耐久队列真相；把 `LISTEN/NOTIFY` 或 Redis 锁当成队列本身；把本地接线称为 HA / 发布证据。
-**后果**：上云选型时，队列容量与正确性首先看 Postgres（表、触发器、RLS、租约），不因本条去买队列专用 Redis；Redis/Tair 规格仍按缓存/限流/锁评估。真实云上的事务、触发器、RLS、多副本与故障恢复验收尚未完成，`releaseEvidence=false`，≠HA，≠生产已上线。详见 [`current-runtime-truth.md`](../current-runtime-truth.md)、[`worker-event-driven-dispatch.md`](../../requirements/use-cases/worker-event-driven-dispatch.md)。
+**后果**：上云选型时，队列容量与正确性首先看 Postgres（表、触发器、RLS、租约），不因本条去买队列专用 Redis，也不按 Redis 限流去选型（限流当前落 PG 共享桶表，Redis 限流未接线）；Redis/Tair 规格按 RAG 热缓存、嵌入计算缓存与单飞锁评估（Streams 唤醒原型默认关闭，不是必开项）。真实云上的事务、触发器、RLS、多副本与故障恢复验收尚未完成，`releaseEvidence=false`，≠HA，≠生产已上线。详见 [`current-runtime-truth.md`](../current-runtime-truth.md)、[`worker-event-driven-dispatch.md`](../../requirements/use-cases/worker-event-driven-dispatch.md)。
 
 ---
 
