@@ -14,7 +14,7 @@ permissions:
 jobs:
   prove-placement:
     runs-on: ubuntu-latest
-    # PR243 复审：显式上限（默认 360 分钟）。原 13 步 + 复审补入 13 条隔离 prove，实测约 7 分钟（2026-11-11 run 42981810539，约 6m56s），timeout 60 留余量。
+    # PR243 复审：显式上限（默认 360 分钟）。原 13 步 + 复审补入 13 条隔离 prove，实测约 7–9 分钟（2026-11-11 run 42981810539 约 6m56s；run 42989444727 约 8m28s），timeout 60 留余量。
     timeout-minutes: 60
     env:
       DATABASE_URL: postgresql://meetwise:meetwise_dev_password@localhost:54329/meetwise
