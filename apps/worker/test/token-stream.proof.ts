@@ -49,7 +49,7 @@ function fakeNotifyPool(opts: { failAll?: boolean } = {}): { pool: Parameters<ty
   return { pool: pool as unknown as Parameters<typeof withTokenStream>[0], payloads };
 }
 
-interface CapturedFrame { v: number; streamKey: string; attemptKey: string; seq: number; text: string; coalesced?: boolean }
+interface CapturedFrame { v: number; streamKey: string; attemptKey: string; seq: number; text?: string; coalesced?: boolean; withdrawn?: boolean; reason?: string }
 
 /** 流式 fake 模型：prepare.execute 逐片吐 raw 全文（R1b② 可选回调位消费面·经 invoke 线程到 sink）。 */
 function streamingModel(rawByText: Record<string, string>): ModelClient {
@@ -102,7 +102,7 @@ async function main() {
     const allFramesWithinBudget = payloads.every((p) => Buffer.byteLength(p, 'utf8') <= TOKEN_NOTIFY_MAX_PAYLOAD_BYTES);
     A('R2-b 超限切分：>4KB delta 同步切帧（多帧·零丢字符·帧字节 ≤4KB·载荷 ≤NOTIFY 预算）',
       frames.length >= 2 && concat === big && allFramesWithinBudget
-      && frames.every((f) => Buffer.byteLength(f.text, 'utf8') <= 4096),
+      && frames.every((f) => Buffer.byteLength(f.text ?? '', 'utf8') <= 4096),
       { frames: frames.length, concatLen: concat.length });
   }
   {
@@ -168,6 +168,114 @@ async function main() {
     A('R2-f Σdelta 对账非恒 0：deltaChars 累计推送字符数（>0）与 completionTokens 并排落盘',
       reconciles.length === 1 && reconcile !== undefined && reconcile.deltaChars === 5 && reconcile.deltaChars > 0,
       { logLines: logLines.length, reconciles });
+  }
+
+  /* ═══ N-13 撤回帧（flag 缺省关=旧行为；开=发 withdrawn 帧；与 abortReason 正交）═══ */
+  const prevWithdrawFlag = process.env.TOKEN_STREAM_WITHDRAW_PREVIEW;
+  const setWithdrawFlag = (on: boolean) => {
+    if (on) process.env.TOKEN_STREAM_WITHDRAW_PREVIEW = '1';
+    else delete process.env.TOKEN_STREAM_WITHDRAW_PREVIEW;
+  };
+  const restoreWithdrawFlag = () => {
+    if (prevWithdrawFlag === undefined) delete process.env.TOKEN_STREAM_WITHDRAW_PREVIEW;
+    else process.env.TOKEN_STREAM_WITHDRAW_PREVIEW = prevWithdrawFlag;
+  };
+  try {
+    {
+      setWithdrawFlag(false);
+      const { pool: fp, payloads } = fakeNotifyPool();
+      const warnLines: string[] = [];
+      const origWarn = console.warn;
+      console.warn = ((...args: unknown[]) => { warnLines.push(String(args[0])); }) as typeof console.warn;
+      try {
+        await withTokenStream(fp, OWNER, 'n13-off', { attemptKey: 'k-off', jobKind: 'quiz' }, async (t) => {
+          t.pushDelta('rejected-preview');
+          t.withdrawRejected('照搬原文(版权)');
+          t.pushDelta('still-accepted-when-flag-off');
+          return 'ok-off';
+        });
+      } finally { console.warn = origWarn; }
+      await sleep(20);
+      const frames = payloads.map((p) => JSON.parse(p) as CapturedFrame);
+      const texts = frames.map((f) => f.text ?? '').join('');
+      A('N-13 flag 关：withdrawRejected 零操作（不发 withdrawn 帧、不打 token_stream_withdrawn、pending 仍冲出）',
+        frames.every((f) => f.withdrawn !== true)
+        && texts === 'rejected-previewstill-accepted-when-flag-off'
+        && warnLines.every((l) => !l.includes('token_stream_withdrawn')),
+        { frames, warnLines });
+    }
+    {
+      // 对照：同一输入不调用 withdrawRejected，载荷应与「flag 关 + 调用」逐字节一致。
+      setWithdrawFlag(false);
+      const a = fakeNotifyPool();
+      const b = fakeNotifyPool();
+      await withTokenStream(a.pool, OWNER, 'n13-eq', { attemptKey: 'k-eq', jobKind: 'quiz' }, async (t) => {
+        t.pushDelta('same'); t.withdrawRejected('business_invalid'); return 'ok';
+      });
+      await withTokenStream(b.pool, OWNER, 'n13-eq', { attemptKey: 'k-eq', jobKind: 'quiz' }, async (t) => {
+        t.pushDelta('same'); return 'ok';
+      });
+      await sleep(20);
+      A('N-13 flag 关：调用 withdrawRejected 与不调用的 NOTIFY 载荷逐字节一致',
+        JSON.stringify(a.payloads) === JSON.stringify(b.payloads) && a.payloads.length >= 1,
+        { a: a.payloads, b: b.payloads });
+    }
+    {
+      setWithdrawFlag(true);
+      const { pool: fp, payloads } = fakeNotifyPool();
+      await withTokenStream(fp, OWNER, 'n13-on', { attemptKey: 'k-on', jobKind: 'next_question' }, async (t) => {
+        t.pushDelta('verbatim-copy-draft');
+        t.withdrawRejected('照搬原文(版权)');
+        t.pushDelta('reroll-ok');
+        return 'ok-on';
+      });
+      await sleep(20);
+      const frames = payloads.map((p) => JSON.parse(p) as CapturedFrame);
+      const withdraw = frames.find((f) => f.withdrawn === true);
+      const texts = frames.filter((f) => f.withdrawn !== true).map((f) => f.text ?? '').join('');
+      A('N-13 flag 开：pending 拒稿不冲出 + 发 withdrawn 帧 + sink 不停收（re-roll 后续 delta 仍出）',
+        withdraw !== undefined
+        && withdraw.v === 1 && withdraw.streamKey === 'n13-on' && withdraw.attemptKey === 'k-on'
+        && withdraw.reason === '照搬原文(版权)'
+        && !texts.includes('verbatim-copy-draft')
+        && texts === 'reroll-ok'
+        && frames.length === 2
+        && frames[0]!.seq === 1 && frames[0]!.withdrawn === true
+        && frames[1]!.seq === 2 && frames[1]!.text === 'reroll-ok',
+        { frames });
+    }
+    {
+      setWithdrawFlag(true);
+      const { pool: fp, payloads } = fakeNotifyPool();
+      await withTokenStream(fp, OWNER, 'n13-abort', { attemptKey: 'k-ab', jobKind: 'quiz' }, async (t) => {
+        t.pushDelta('pre');
+        t.abortReason('probe_abort');
+        t.pushDelta('post-abort-ignored');
+        t.withdrawRejected('too-late');
+        return 'ok-ab';
+      });
+      await sleep(20);
+      const frames = payloads.map((p) => JSON.parse(p) as CapturedFrame);
+      A('N-13 flag 开：abortReason 仍停收+冲 pre、不改成撤回帧；abort 后 withdrawRejected 不再发帧',
+        frames.length === 1 && frames[0]!.text === 'pre' && frames[0]!.withdrawn !== true,
+        { frames });
+    }
+    {
+      // 反证：flag 开但调用方不调 withdrawRejected（本刀前生产路径）= 拒稿会被 finally 冲出。
+      setWithdrawFlag(true);
+      const { pool: fp, payloads } = fakeNotifyPool();
+      await withTokenStream(fp, OWNER, 'n13-mut', { attemptKey: 'k-mut', jobKind: 'quiz' }, async (t) => {
+        t.pushDelta('leaked-if-unwired');
+        return 'ok-mut';
+      });
+      await sleep(20);
+      const frames = payloads.map((p) => JSON.parse(p) as CapturedFrame);
+      A('N-13 反证：不调 withdrawRejected 时 flag 开也仍会冲出预览（证明接线位不是空转）',
+        frames.some((f) => f.text === 'leaked-if-unwired') && frames.every((f) => f.withdrawn !== true),
+        { frames });
+    }
+  } finally {
+    restoreWithdrawFlag();
   }
 
   /* ═══ R3 三触发面接线臂（隔离 PG·LISTEN 实收）═══ */
@@ -295,6 +403,16 @@ async function main() {
       && a.includes('withTokenStream(') && a.includes('onModelDelta: (delta: { text: string }) => tokenSink.pushDelta(delta.text)'));
     A('静态 R2：单写者前提配置上界声明在场（MODEL_EXECUTION_TIMEOUT_MS ≤ lease 60s·seq 回归由 web max-seq 吸收注记）',
       t.includes('MODEL_EXECUTION_TIMEOUT_MS') && t.includes('lease 60s') && t.includes('max-seq'));
+    A('静态 N-13：撤回门缺省关（=== \'1\'）+ withdrawRejected 发 withdrawn:true + 三面拒绝路径已接线',
+      t.includes("env[TOKEN_STREAM_WITHDRAW_PREVIEW_ENV] === '1'")
+      && t.includes('withdrawn: true as const')
+      && t.includes('if (ended || !isTokenStreamWithdrawPreviewEnabled()) return;')
+      && quizFace.includes('tokenSink?.withdrawRejected(out.error)')
+      && reportFace.includes('tokenSink?.withdrawRejected(out.error)')
+      && a.includes('tokenSink.withdrawRejected(reason)')
+      && a.includes("rejectPreview('error' in out ? out.error : 'question_critique_failed')")
+      && a.includes('rejectPreview(GROUNDED_REFS_GATE_ERROR)')
+      && a.includes("rejectPreview('duplicate_question')"));
   }
 
   listener.off('notification', onNotification as never);

@@ -37,8 +37,11 @@ export interface SseEventRow {
 export interface SseDeltaFrame {
   attemptKey: string;
   seq: number;
-  text: string;
+  text?: string;
   coalesced?: boolean;
+  /** N-13：预览作废。emit 为 event: token_withdraw（无 id·光标防毒同 token_delta）。 */
+  withdrawn?: boolean;
+  reason?: string;
 }
 
 export interface SsePumpOptions {
@@ -158,6 +161,14 @@ export async function pumpSseEvents(o: SsePumpOptions): Promise<void> {
   const deltaSub = o.deltaSource?.(pushDeltaFrame);
   const emitDeltaFrames = (frames: SseDeltaFrame[]): boolean => {
     for (const f of frames) {
+      if (f.withdrawn === true) {
+        const payload = JSON.stringify({
+          attemptKey: f.attemptKey, seq: f.seq,
+          ...(f.reason ? { reason: f.reason } : {}),
+        });
+        if (!safeWrite(`event: token_withdraw\ndata: ${payload}\n\n`)) return false;   // 无 id 帧（光标防毒）
+        continue;
+      }
       const payload = JSON.stringify({
         attemptKey: f.attemptKey, seq: f.seq, text: f.text,
         ...(f.coalesced ? { coalesced: true as const } : {}),

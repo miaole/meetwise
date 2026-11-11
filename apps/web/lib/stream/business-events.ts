@@ -87,6 +87,17 @@ export const BusinessEvent = z.discriminatedUnion('event', [
       coalesced: z.boolean().optional(),      // L1 合帧标记(帧≠供应商 chunk 边界)
     }).loose(),                               // .loose() 容演进字段(沿 generation_* 成员惯例)
   }),
+  // N-13：token_withdraw=传输态作废帧（非持久 kind·无 interview_event 行·一律不带 id，光标防毒同 token_delta）。
+  // 旧前端 unknown kind → null 丢弃，缓冲等到权威终态覆盖=向后兼容。decodeSSE/toBusinessEvent 零改。
+  z.object({
+    event: z.literal('token_withdraw'),
+    id: z.number().int().optional(),
+    data: z.object({
+      attemptKey: z.string(),
+      seq: z.number().int().positive(),
+      reason: z.string().optional(),
+    }).loose(),
+  }),
   z.object({ event: z.literal('error'), id: z.number().int(), data: z.record(z.string(), z.unknown()) }),
 ]);
 export type BusinessEvent = z.infer<typeof BusinessEvent>;

@@ -176,6 +176,55 @@ function main() {
       ), undefined) === undefined);
   }
 
+  // ===== N-13 token_withdraw：清对应缓冲、水位拦迟到 delta、同键更高 seq 开新缓冲、光标不毒化 =====
+  {
+    const withdrawFrame = (seq: number, attemptKey = 'ak', reason = 'business_invalid'): string =>
+      `event: token_withdraw\ndata: {"attemptKey":"${attemptKey}","seq":${seq},"reason":"${reason}"}\n\n`;
+    const withdrawEvent = (seq: number, attemptKey = 'ak', reason = 'business_invalid') =>
+      toBusinessEvent({ id: undefined, event: 'token_withdraw', data: JSON.stringify({ attemptKey, seq, reason }) });
+
+    const wire = deltaFrame(1, '拒') + deltaFrame(2, '稿') + withdrawFrame(3);
+    const { frames } = decodeSSE(wire);
+    const evs = frames.map((f) => toBusinessEvent(f));
+    A('N-13 token_withdraw 可解析（无 id 合法·reason 可选）',
+      evs[2] !== null && evs[2]!.event === 'token_withdraw' && evs[2]!.id === undefined
+      && evs[2]!.event === 'token_withdraw' && (evs[2] as { data: { seq: number; reason?: string } }).data.seq === 3
+      && (evs[2] as { data: { reason?: string } }).data.reason === 'business_invalid',
+      { evs: evs.map((e) => e && e.event) });
+
+    let v = applyEvent(initialView, deltaEvent(1, 'verbatim'));
+    v = applyEvent(v, deltaEvent(2, '-copy'));
+    A('N-13 撤回前缓冲已拼接', v.tokenBuffer?.text === 'verbatim-copy' && v.lastEventId === 0);
+    const after = applyEvent(v, withdrawEvent(3)!);
+    A('N-13 撤回后缓冲清空 + 显示面 undefined + lastEventId 不毒化',
+      after.tokenBuffer === undefined
+      && after.tokenWithdrawnByKey?.ak === 3
+      && after.lastEventId === 0
+      && after.degraded === false
+      && after.phase === 'connecting'
+      && streamingTextDisplay(after, undefined) === undefined
+      && lastEventIdHeaderValue(after.lastEventId) === undefined,
+      { after: { buffer: after.tokenBuffer, withdrawn: after.tokenWithdrawnByKey, lastEventId: after.lastEventId } });
+
+    const late = applyEvent(after, deltaEvent(2, 'stale'));
+    A('N-13 撤回后迟到旧 seq 丢弃（不复活拒稿）',
+      late.tokenBuffer === undefined && late.tokenWithdrawnByKey?.ak === 3);
+
+    const reroll = applyEvent(after, deltaEvent(4, 'new-q'));
+    A('N-13 同键更高 seq（re-roll）开新缓冲',
+      reroll.tokenBuffer?.text === 'new-q' && reroll.tokenBuffer?.maxSeq === 4,
+      { buffer: reroll.tokenBuffer });
+
+    const other = applyEvent(after, deltaEvent(1, 'other', 'ak2'));
+    A('N-13 异键 delta 不受本键撤回水位误伤',
+      other.tokenBuffer?.attemptKey === 'ak2' && other.tokenBuffer?.text === 'other');
+
+    const unknown = toBusinessEvent({ id: undefined, event: 'token_withdraw', data: JSON.stringify({ attemptKey: 'ak', seq: 1, reason: 'x' }) });
+    A('N-13 反证参照：未知 kind 丢弃（mystery_kind→null）不误伤既有解析；token_withdraw 已被识别',
+      toBusinessEvent({ id: 1, event: 'mystery_kind', data: '{"x":1}' }) === null
+      && unknown !== null && unknown.event === 'token_withdraw');
+  }
+
   console.log(failures ? `\n✗ ${failures} 项失败` : '\n✓ TOKSTREAM S4b web token_delta 矩阵全部通过（纯函数·零模型外呼·actualSpendCny=null）');
   if (failures) process.exit(1);
 }
