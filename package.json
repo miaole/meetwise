@@ -192,6 +192,8 @@
     "uc018:abandon:prove:raw": "pnpm -C packages/db prove:uc018-abandon",
     "uc018:abandon:http:prove": "node scripts/run-e2e-isolated.mjs uc018:abandon:http:prove:raw",
     "uc018:abandon:http:prove:raw": "pnpm -C apps/api prove:uc018-abandon-http",
+    "skip-as-clarify:http:prove": "node scripts/run-e2e-isolated.mjs skip-as-clarify:http:prove:raw",
+    "skip-as-clarify:http:prove:raw": "pnpm -C apps/api prove:skip-as-clarify-http",
     "uc018:abandon:full-e2e:prove": "E2E_UC018_ABANDON_ONLY=1 node scripts/run-e2e-isolated.mjs e2e:prove",
     "uc018:graph:prove": "node scripts/run-e2e-isolated.mjs uc018:graph:prove:raw",
     "uc018:graph:prove:raw": "pnpm -C packages/db prove:uc018-graph",

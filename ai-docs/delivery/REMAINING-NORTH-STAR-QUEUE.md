@@ -37,7 +37,7 @@ main 上 `ci` 工作流对上述合入提交均 success。`deploy` 工作流报�
 7. `ha6:prove` 在 main 上原本即红（3 条），单独跟进。
 8. G5（N-13/N-14）、G6（N-17）后置。
 9. G2 `duplicateFallback` 标记未投影到 `question_ready` 事件，运营不可见；§4.5 缺 `provenance=cross_session_repeat` 断言。
-10. 缺 HTTP 层「跳过当澄清」的 E2E。
+10. HTTP 层「跳过当澄清」E2E：分支 `test/http-skip-as-clarify-e2e` 的 `pnpm skip-as-clarify:http:prove`（真实 HTTP create/begin/turn + 生产 consumer + 脚本模型，含非 happy-path）已由 mw-e2e-ha 于 2026-11-11 审查 PASS。`score_card=0` 是前提条件（明文 `/turn` 路径不产 `score_request`，0126 双写围栏），不是已证的「跳过不供卡」属性；本绿 ≠ covered。
 11. isolated 场景 `runFullE2E` 吞掉 stderr，Key-block 易被误读为 PG 静默失败。
 12. 跨场撞题降权（确定性相似度、当场仍硬拒）另开一刀，需 PRE 双审。
 13. `sse-slot:prove` 轮询下界只能稳定抓到约 <875ms 的回归（1000ms 的 2 倍退化抓不到）。
