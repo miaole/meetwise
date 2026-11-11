@@ -284,7 +284,8 @@ export async function beginInterviewCore(
     // candidate_route_undecided(拒因从 worker 异步 throw 前移为 begin 同步业务拒绝,拒的本体
     // 零消失);worker fail-closed 门(adaptive-role-resolve 默认 ON)零改动,缺行/缺叶仍拒。
     if (cur.rows[0].application_id == null) {
-      const supply = await supplyCandidateProfileRoute(c, owner, id, resumeId);
+      // G6 N-17：targetRole 参与裁决(简历歧义/零命中时用户明示岗位做裁决证据;缺省=修前字节)。
+      const supply = await supplyCandidateProfileRoute(c, owner, id, resumeId, targetRoleNormalized);
       if (supply.status === 'undecided')
         throw new HttpException({ error: 'candidate_route_undecided', reason: supply.reason }, HttpStatus.CONFLICT);
     }
