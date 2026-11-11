@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { latestMigrationVersion } from '@meetwise/db';
 import { DbService } from '../../platform/db.service';
 import { parseCriticalEnv } from '../../platform/env-schema';
+import { getSseNotify, SSE_NOTIFY_TRIGGER_HEALTH_SQL, SSE_NOTIFY_TRIGGER_NAME } from '../../platform/sse-notify.service';
 
 /**
  * 探针语义必须稳定且最小：liveness（存活）绝不能被数据库、缓存、模型或队列拖成失败；
@@ -11,6 +12,12 @@ import { parseCriticalEnv } from '../../platform/env-schema';
 
 /** API readiness 三态：ok / 数据库不可达 / 迁移版本漂移（账本 max ≠ 目录 max）。 */
 export type ApiReadiness = 'ok' | 'db_unreachable' | 'migration_mismatch';
+
+/**
+ * 0143 SSE NOTIFY 通道位（公开探针固定枚举，不携带 trigger 名/连接串）。
+ * unknown = 数据库不可达时无法实证；trigger_missing 含缺席与 tgenabled='D'/'R'。
+ */
+export type SseNotifyReadiness = 'ok' | 'trigger_missing' | 'listen_down' | 'unknown';
 
 /**
  * 迁移目录唯一真源：与一次性 migrate 服务同一个 `packages/db/migrations` 工件。
@@ -100,5 +107,24 @@ export class HealthService {
    */
   configReady(): boolean {
     return parseCriticalEnv().ok;
+  }
+
+  /**
+   * 0143 NOTIFY trigger fail-closed 检查（有界目录只读，不触业务表）。
+   * 目录读失败或 trigger 缺席/禁用 → trigger_missing；目录 ok 后再读进程内 LISTEN 健康面
+   * （零请求池查询）→ listen_down 可见但不由本函数单独抛错。连接类错误 fail-closed 为
+   * trigger_missing（无法证明 trigger 在场且已启用）。
+   */
+  async sseNotifyReady(): Promise<SseNotifyReadiness> {
+    try {
+      const trig = await this.db.pool.query(SSE_NOTIFY_TRIGGER_HEALTH_SQL, [SSE_NOTIFY_TRIGGER_NAME]);
+      if (trig.rowCount !== 1) return 'trigger_missing';
+    } catch {
+      // 无法证明 trigger 在场且已启用 → fail-closed。连接类抖动也不 fail-open。
+      return 'trigger_missing';
+    }
+    const h = getSseNotify().health();
+    if (h.healthy) return 'ok';
+    return h.reason;
   }
 }

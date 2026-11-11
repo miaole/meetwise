@@ -145,5 +145,24 @@ must(beforeBaseline.length === 0, `迁移不得排在 0001_baseline 之前(会�
 const proofInMigrations = migrations.filter((f) => /\\(set|pset)\b/.test(rf(`packages/db/migrations/${f}`, 'utf8')));
 must(proofInMigrations.length === 0, `migration 目录混入 psql 证明文件:${proofInMigrations.join(',')}`);
 
+// SSE 0143 trigger 存在性：静态门（无 DB）。迁移必须创建具名 trigger；运行时实证必须把
+// tgenabled='D'（及 'R'）判为 trigger_missing，不能只查 tgname 在场；readiness 必须暴露该位。
+must(migrations.includes('0143_sse_push_notify.sql'), '必须保留 0143_sse_push_notify.sql（SSE NOTIFY trigger）');
+const mig0143 = rf('packages/db/migrations/0143_sse_push_notify.sql', 'utf8');
+must(/CREATE TRIGGER interview_event_sse_notify\b/.test(mig0143)
+  && /pg_notify\(\s*'interview_event_ch'/.test(mig0143),
+  '0143 必须创建 interview_event_sse_notify 并 pg_notify interview_event_ch');
+const sseNotifySrc = rf('apps/api/src/platform/sse-notify.service.ts', 'utf8');
+must(/SSE_NOTIFY_TRIGGER_HEALTH_SQL/.test(sseNotifySrc)
+  && /tgenabled\s*IN\s*\(\s*'O'\s*,\s*'A'\s*\)/.test(sseNotifySrc)
+  && /to_regclass\(\s*'public\.interview_event'\s*\)/.test(sseNotifySrc),
+  'sse-notify 的 0143 trigger 实证必须用 to_regclass + tgenabled IN (O,A)（禁用态 fail-closed 为 trigger_missing）');
+const healthSrc = rf('apps/api/src/modules/health/health.service.ts', 'utf8');
+must(/sseNotifyReady/.test(healthSrc) && /SSE_NOTIFY_TRIGGER_HEALTH_SQL/.test(healthSrc),
+  'readiness 必须经 sseNotifyReady 做 0143 trigger fail-closed 检查');
+const healthCtl = rf('apps/api/src/modules/health/health.controller.ts', 'utf8');
+must(/sse:\s*\{\s*notify/.test(healthCtl) && /trigger_missing/.test(healthCtl),
+  'readyz/api 必须在健康输出中暴露 sse.notify（含 trigger_missing）');
+
 if (fails.length) { console.error('✗ 部署校验失败:\n  - ' + fails.join('\n  - ')); process.exit(1); }
 console.log(`✓ deploy-check-ok（API/Worker 直达 @swc-node/register、migrate 直达 tsx CLI · 云端唯一数据面 · ${migrations.length} 个版本化迁移由一次性服务执行）`);

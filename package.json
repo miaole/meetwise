@@ -261,6 +261,8 @@
     "uc010:sse-resume:prove:raw": "pnpm -C apps/api prove:uc010-sse-resume",
     "sse-push:notify:prove": "node scripts/run-e2e-isolated.mjs sse-push:notify:prove:raw",
     "sse-push:notify:prove:raw": "pnpm -C apps/api prove:sse-push-notify",
+    "sse-0143:trigger-health:prove": "node scripts/run-e2e-isolated.mjs sse-0143:trigger-health:prove:raw",
+    "sse-0143:trigger-health:prove:raw": "pnpm -C apps/api prove:sse-0143-trigger-health",
     "sse:xrep:prove": "node scripts/run-e2e-isolated.mjs sse:xrep:prove:raw",
     "sse:xrep:prove:raw": "pnpm -C apps/api prove:sse-cross-replica",
     "quizdx:sse-http:prove": "node scripts/run-e2e-isolated.mjs quizdx:sse-http:prove:raw",
