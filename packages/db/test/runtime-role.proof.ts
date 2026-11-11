@@ -1,6 +1,7 @@
 /** Production runtime login proof: a migrated DB creates an app-role member that cannot elevate or bypass RLS. */
 import { fileURLToPath } from 'node:url';
 import { assertIsolatedTestTarget, createPool, asGateway, asPrincipal, loadMigrations, provisionRuntimeLogin, runMigrations } from '../src/index.ts';
+import * as principalSrc from '../src/principal.ts';
 
 const admin = createPool();
 const role = `runtime_role_${process.pid}`;
@@ -119,6 +120,73 @@ async function main() {
       && Object.keys(budget.rows[0] ?? {}).sort().join(',') === 'monthly_limit_micro_cny,unknown_count,used_micro_cny');
     A('费用指标网关拒绝畸形 scope，而非把它拼进查询', await rejects(() =>
       asGateway(runtime, (c) => c.query("SELECT * FROM gateway_cost_budget_snapshot('bad scope')"))));
+
+    // B1 · mw_admin_revoke_exec_all grantee 白名单（0229 FROM %s 未引号；本刀不改 0229 字节）
+    // 隔离库不一定有 postgres 角色，故自建哨兵角色 mw253priv* 作为注入 GRANT 目标。
+    const revokeGrantee = (principalSrc as { assertMwAdminRevokeExecAllGrantee?: (roleName: string) => string }).assertMwAdminRevokeExecAllGrantee;
+    const victim = `mw253v${process.pid}`;
+    const privileged = `mw253priv${process.pid}`;
+    const probeFnName = `mw253_probe_${process.pid}`;
+    const injectionRole = `app_role; GRANT ${privileged} TO ${victim}; --`;
+    const probeFn = `${probeFnName}()`;
+    const ident = async (name: string): Promise<string> => {
+      const quoted = await admin.query<{ q: string }>('SELECT quote_ident($1) AS q', [name]);
+      const value = quoted.rows[0]?.q;
+      if (!value) throw new Error('quote_ident_missing');
+      return value;
+    };
+    const roleIsMember = async (member: string, roleName: string): Promise<boolean> => {
+      const row = await admin.query<{ m: boolean }>('SELECT pg_has_role($1, $2, $3) AS m', [member, roleName, 'MEMBER']);
+      return row.rows[0]?.m === true;
+    };
+    await admin.query(`CREATE ROLE ${await ident(victim)} NOLOGIN`);
+    await admin.query(`CREATE ROLE ${await ident(privileged)} NOLOGIN`);
+    await admin.query(`CREATE ROLE ${await ident(injectionRole)} NOLOGIN`);
+    await admin.query(`CREATE OR REPLACE FUNCTION ${probeFnName}() RETURNS void LANGUAGE sql AS $f$SELECT$f$`);
+    try {
+      await admin.query(`GRANT EXECUTE ON FUNCTION ${probeFnName}() TO ${await ident(injectionRole)}`);
+      await admin.query('SELECT mw_admin_revoke_exec_all($1::regprocedure, $2)', [probeFn, injectionRole]);
+      A('0229 直调（无调用方白名单）注入成立：victim 成为哨兵角色成员（残差面，本刀不改 0229 字节）',
+        await roleIsMember(victim, privileged));
+      await admin.query(`REVOKE ${await ident(privileged)} FROM ${await ident(victim)}`);
+      A('清理注入后 victim 不再是哨兵角色成员', !(await roleIsMember(victim, privileged)));
+
+      const guardMessage = (() => {
+        if (typeof revokeGrantee !== 'function') return undefined;
+        try { revokeGrantee(injectionRole); return undefined; }
+        catch (error) { return String((error as Error).message); }
+      })();
+      A('调用方白名单已导出', typeof revokeGrantee === 'function');
+      A('调用方白名单拒绝注入角色名',
+        (guardMessage ?? '').startsWith('mw_admin_revoke_exec_all_grantee_not_allowlisted:'));
+      A('调用方白名单拒绝大写合法角色名 AppRole（RUNTIME_ROLE_NAME 仅小写；0229 未引号不能安全传入）',
+        (() => {
+          if (typeof revokeGrantee !== 'function') return false;
+          try { revokeGrantee('AppRole'); return false; }
+          catch (error) { return String((error as Error).message).startsWith('mw_admin_revoke_exec_all_grantee_not_allowlisted:'); }
+        })());
+      A('调用方白名单放行 PUBLIC 与 app_role',
+        typeof revokeGrantee === 'function'
+        && revokeGrantee('PUBLIC') === 'PUBLIC'
+        && revokeGrantee('app_role') === 'app_role');
+
+      let productionShapedThrew = false;
+      try {
+        if (typeof revokeGrantee !== 'function') throw new Error('guard_missing');
+        const safe = revokeGrantee(injectionRole);
+        await admin.query('SELECT mw_admin_revoke_exec_all($1::regprocedure, $2)', [probeFn, safe]);
+      } catch (error) {
+        productionShapedThrew = String((error as Error).message).startsWith('mw_admin_revoke_exec_all_grantee_not_allowlisted:');
+      }
+      A('生产形循环在 0229 调用前拒绝注入角色名', productionShapedThrew);
+      A('经调用方白名单后 victim 不是哨兵角色成员', !(await roleIsMember(victim, privileged)));
+    } finally {
+      await admin.query(`REVOKE ${await ident(privileged)} FROM ${await ident(victim)}`).catch(() => undefined);
+      await admin.query(`DROP FUNCTION IF EXISTS ${probeFnName}()`).catch(() => undefined);
+      await admin.query(`DROP ROLE IF EXISTS ${await ident(injectionRole)}`).catch(() => undefined);
+      await admin.query(`DROP ROLE IF EXISTS ${await ident(victim)}`).catch(() => undefined);
+      await admin.query(`DROP ROLE IF EXISTS ${await ident(privileged)}`).catch(() => undefined);
+    }
   } finally {
     await runtime.end();
     await admin.query(`DROP ROLE IF EXISTS ${role}`);

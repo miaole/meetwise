@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { latestMigrationVersion } from '@meetwise/db';
 import { DbService } from '../../platform/db.service';
 import { parseCriticalEnv } from '../../platform/env-schema';
+import { getSseNotify, SSE_NOTIFY_TRIGGER_HEALTH_SQL, SSE_NOTIFY_TRIGGER_NAME } from '../../platform/sse-notify.service';
 
 /**
  * 探针语义必须稳定且最小：liveness（存活）绝不能被数据库、缓存、模型或队列拖成失败；
@@ -11,6 +12,47 @@ import { parseCriticalEnv } from '../../platform/env-schema';
 
 /** API readiness 三态：ok / 数据库不可达 / 迁移版本漂移（账本 max ≠ 目录 max）。 */
 export type ApiReadiness = 'ok' | 'db_unreachable' | 'migration_mismatch';
+
+/**
+ * 0143 SSE NOTIFY 通道位（公开探针固定枚举，不携带 trigger 名/连接串）。
+ * unknown = 数据库不可达，或 trigger 目录查询异常（超时/连接抖动/权限/锁等待）无法实证；
+ * trigger_missing 仅含缺席与 tgenabled='D'/'R'（rowCount !== 1）。
+ * 查询异常不单独 503（与既有 ready 公式、database !== 'ok' 短路同形；SELECT 1 已成功时
+ * HTTP 仍 200，避免目录抖动把全部实例摘出流量池）。真缺席/禁用仍 trigger_missing → 503。
+ */
+export type SseNotifyReadiness = 'ok' | 'trigger_missing' | 'listen_down' | 'unknown';
+
+/**
+ * 目录读专用短超时。compose api healthcheck timeout=3s（docker/compose.prod.yml），
+ * 本查询须先于探活超时失败，避免沿用池级 15s statement timeout 把探活打挂。
+ * 无缓存（每次 readiness 现查）。
+ */
+export const SSE_NOTIFY_TRIGGER_HEALTH_TIMEOUT_MS = 2_000;
+
+function withShortTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      reject(new Error(`${label}_timeout`));
+    }, ms);
+    promise.then(
+      (value) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
 
 /**
  * 迁移目录唯一真源：与一次性 migrate 服务同一个 `packages/db/migrations` 工件。
@@ -100,5 +142,29 @@ export class HealthService {
    */
   configReady(): boolean {
     return parseCriticalEnv().ok;
+  }
+
+  /**
+   * 0143 NOTIFY trigger fail-closed 检查（有界目录只读，不触业务表）。
+   * trigger 缺席/禁用（rowCount !== 1）→ trigger_missing；目录查询异常（含专用短超时）
+   * → unknown（不与缺席混同，不单独 503）。目录 ok 后再读进程内 LISTEN 健康面
+   * （零请求池查询）→ listen_down 可见但不由本函数单独抛错。
+   */
+  async sseNotifyReady(): Promise<SseNotifyReadiness> {
+    try {
+      const trig = await withShortTimeout(
+        this.db.pool.query(SSE_NOTIFY_TRIGGER_HEALTH_SQL, [SSE_NOTIFY_TRIGGER_NAME]),
+        SSE_NOTIFY_TRIGGER_HEALTH_TIMEOUT_MS,
+        'sse_notify_trigger_health',
+      );
+      if (trig.rowCount !== 1) return 'trigger_missing';
+    } catch {
+      // 查询异常标 unknown：与 DB 不可达时的短路同形，既有 ready 公式不单独 503。
+      // 真缺席/禁用走上方 rowCount 分支，仍为 trigger_missing → 503。
+      return 'unknown';
+    }
+    const h = getSseNotify().health();
+    if (h.healthy) return 'ok';
+    return h.reason;
   }
 }

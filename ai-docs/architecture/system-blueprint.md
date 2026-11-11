@@ -21,15 +21,16 @@ tags:
 
 | 层 | 选型 | 原因 |
 | --- | --- | --- |
-| 前端 | Next.js App Router + React + TypeScript | 适合 SEO、应用页、RSC、服务端数据预取和 Vercel 部署 |
+| 前端 | Next.js App Router + React + TypeScript | 适合 SEO、应用页、RSC、服务端数据预取。部署不是 Vercel（ADR-0006：不上 Vercel，自管 / 当前仓内 lean compose CD）。 |
 | UI | Tailwind CSS + shadcn/ui 或自建轻量组件 | 私人项目先快后稳，后续可沉淀设计系统 |
 | API | NestJS + TypeScript | 模块化、依赖注入、契约清晰，便于和 LangGraphJS 共用类型 |
 | AI 编排 | LangGraphJS | 状态机、持久化、streaming、interrupt、恢复能力契合模拟面试 |
 | 数据库 | Postgres | 支付、权益、状态机、审计和报表更适合关系模型 |
 | 向量 | pgvector | 简历片段、岗位画像、题库和推荐可复用 Postgres |
-| 缓存/队列 | Redis | 限流、短期缓存、任务状态、BullMQ/Graph job |
+| 缓存 | Redis/Tair | RAG 热缓存、嵌入计算缓存与单飞锁（及默认关闭的 Streams 唤醒原型）；不是耐久任务队列。限流当前落 PG 共享桶表，Redis 限流未接线。云 Redis 真实 E2E 未完成。 |
+| 任务队列 | Postgres 表 + `SKIP LOCKED`；唤醒用 `LISTEN/NOTIFY` | 耐久事实在队列表与租约（ADR-0023）。通知不是队列本身。本地接线 ≠ HA / 发布证据。 |
 | 对象存储 | S3/MinIO | 简历文件、导出报告、语音文件 |
-| 契约 | 共享 zod4 schema + zod-openapi | 防止前后端接口漂移 |
+| 契约 | 共享 zod4 schema；OpenAPI 由 `packages/contracts` 用 zod4 原生 `z.toJSONSchema` 生成（无 `zod-openapi` 包） | 防止前后端接口漂移 |
 | 测试 | 隔离 prove + HTTP E2E（fetch/SSE，`pnpm e2e:isolated`）+ 浏览器 Playwright（`e2e:ui:isolated`）+ golden-tasks 登记 | 分层见 `testing/strategy/test-strategy.md`；live E2E 不在 per-push |
 | 观测 | OpenTelemetry + Prometheus/Grafana + LangSmith/Langfuse 可选 | trace、成本、graph run、prompt 质量 |
 
@@ -38,16 +39,19 @@ tags:
 ```text
 meetwise/
   apps/
-    web/                  # Next.js
-    api/                  # NestJS HTTP API
-    worker/               # LangGraph jobs/report/async tasks
+    web/                  # Next.js（组件在 apps/web/components/ui，无 packages/ui）
+    api/                  # NestJS + Fastify HTTP API
+    worker/               # LangGraph jobs/report/async tasks（唯一 redis 客户端）
   packages/
     ai-graphs/            # LangGraph graphs, states, nodes
-    contracts/            # 共享 zod4 schema contract (+ zod-openapi)
-    db/                   # Prisma/Drizzle schema, migrations, seed
-    domain/               # shared domain types and policies
-    ui/                   # shared UI components
-    config/               # eslint/tsconfig/env schema
+    ai-runtime/           # 模型调用关口、Langfuse v5 OTel
+    contracts/            # 共享 zod4 schema；OpenAPI 自研生成（无 zod-openapi 包）
+    db/                   # 手写 SQL migrations + pg（不是 Prisma/Drizzle）
+    db-mysql/             # 本地 MySQL 骨架，未切流
+    domain/               # shared domain types；简历解析 mammoth / pdf-parse
+    errors/               # 共享错误类型
+    qdrant-store/         # Qdrant 原型，非生产切流
+    config/               # eslint / prettier / tsconfig
   docker/
     compose.dev.yml
     compose.demo.yml
@@ -63,16 +67,16 @@ flowchart LR
   User["用户浏览器"] --> Web["Next.js Web"]
   Web --> Api["NestJS API"]
   Api --> DB["Postgres"]
-  Api --> Redis["Redis"]
-  Api --> S3["S3/MinIO"]
   Api --> Worker["Worker"]
+  Worker --> Redis["Redis/Tair"]
   Worker --> Graphs["LangGraph"]
   Graphs --> LLM["Model Providers"]
   Graphs --> DB
-  Graphs --> Redis
   Api --> Obs["OTel/Metrics/Logs"]
   Worker --> Obs
 ```
+
+> 依赖实态：api **无** Redis 客户端；Redis/Tair 只在 worker 用于 RAG 热缓存、嵌入计算缓存与单飞锁（及默认关闭的 Streams 唤醒原型），不是任务队列，Redis 限流未接线。对象存储 SDK 未安装；简历原文落 PostgreSQL `resume_blob`，compose 中的 MinIO 是本地基础设施、应用客户端未接线。
 
 ## 后端模块
 
@@ -100,7 +104,7 @@ flowchart LR
 
 ## 数据库建议
 
-第一阶段建议使用 Prisma 或 Drizzle 二选一。私人项目如偏效率可选 Prisma；如果更重视 SQL 控制和迁移可读性，可选 Drizzle。
+现行数据层是手写 SQL migration + `pg`（`packages/db`），**不是** Prisma 或 Drizzle。下面表组名称是领域建议，不以本页冒充已落表名；现行 schema 以 `packages/db/migrations` 为准。
 
 核心表组：
 
