@@ -42,6 +42,7 @@
   "prove:uc033-cross-user-authz": "node --import @swc-node/register/esm-register test/uc-e2e-033-cross-user-authz.proof.ts",
   "prove:uc033-nhp-adv": "node --import @swc-node/register/esm-register test/uc-e2e-033-nhp-adv.proof.ts",
   "prove:uc018-abandon-http": "node --import @swc-node/register/esm-register test/uc-e2e-018-user-abandon-http.proof.ts",
+  "prove:skip-as-clarify-http": "node --import @swc-node/register/esm-register test/http-skip-as-clarify.proof.ts",
   "prove:uc030-nhp-fault": "node --import @swc-node/register/esm-register test/uc-e2e-030-nhp-fault.proof.ts",
   "prove:uc030-nhp-bound": "node --import @swc-node/register/esm-register test/uc-e2e-030-nhp-bound.proof.ts",
   "prove:uc030-nhp-adv": "node --import @swc-node/register/esm-register test/uc-e2e-030-nhp-adv.proof.ts",
