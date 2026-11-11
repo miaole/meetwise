@@ -354,6 +354,7 @@ async function runXp2(mod: Record<string, unknown>): Promise<void> {
   let mismatches = 0;
   let fenced = 0;
   let fenceMiss = 0;
+  let opErrors = 0;
   const mismatchSamples: string[] = [];
   try {
     await db.assertIsolatedTestTarget(admin);
@@ -399,41 +400,49 @@ async function runXp2(mod: Record<string, unknown>): Promise<void> {
       const access = (round + slot) % 2 === 0 ? accessA : accessB;
       const other = access === accessA ? accessB : accessA;
       const mode = slot % 3;
-      await withAccess(access, async () => {
-        if (mode === 0) {
-          const result = await bound.query(SESSION_SQL);
-          checkSnap(`q:r${round}s${slot}`, xpSnapOf(result.rows[0] ?? {}), access);
-          return;
-        }
-        const client = await bound.connect();
-        try {
-          const raw = await client.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
-          checkSnap(`c:r${round}s${slot}`, xpSnapOf(raw.rows[0] ?? {}), access);
-          if (mode === 2) {
-            try {
-              await client.query(
-                "INSERT INTO checkpoints(thread_id,checkpoint_ns,checkpoint_id,checkpoint,metadata) VALUES ($1,'','xp2-write','{}'::jsonb,'{}'::jsonb)",
-                [other.threadId],
-              );
-              fenceMiss += 1;
-            } catch (error) {
-              const err = error as { code?: unknown; message?: unknown };
-              if (err.code === '42501' && String(err.message ?? '').includes('checkpoint_privacy_fenced')) fenced += 1;
-              else throw error;
-            }
+      try {
+        await withAccess(access, async () => {
+          if (mode === 0) {
+            const result = await bound.query(SESSION_SQL);
+            checkSnap(`q:r${round}s${slot}`, xpSnapOf(result.rows[0] ?? {}), access);
+            return;
           }
-        } finally {
-          client.release();
+          const client = await bound.connect();
+          try {
+            const raw = await client.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
+            checkSnap(`c:r${round}s${slot}`, xpSnapOf(raw.rows[0] ?? {}), access);
+            if (mode === 2) {
+              try {
+                await client.query(
+                  "INSERT INTO checkpoints(thread_id,checkpoint_ns,checkpoint_id,checkpoint,metadata) VALUES ($1,'','xp2-write','{}'::jsonb,'{}'::jsonb)",
+                  [other.threadId],
+                );
+                fenceMiss += 1;
+              } catch (error) {
+                const err = error as { code?: unknown; message?: unknown };
+                if (err.code === '42501' && String(err.message ?? '').includes('checkpoint_privacy_fenced')) fenced += 1;
+                else throw error;
+              }
+            }
+          } finally {
+            client.release();
+          }
+        });
+      } catch (error) {
+        opErrors += 1;
+        if (mismatchSamples.length < 6) {
+          const err = error as { code?: unknown; message?: unknown };
+          mismatchSamples.push(`err:r${round}s${slot} ${String(err.code ?? '')}:${String(err.message ?? error).slice(0, 80)}`);
         }
-      });
+      }
     };
 
     for (let round = 0; round < XP_ROUNDS; round++) {
       await Promise.all(Array.from({ length: XP_CONCURRENCY }, (_, slot) => oneOp(round, slot)));
     }
 
-    console.log(`XP2 mismatches=${mismatches} fenced=${fenced} fenceMiss=${fenceMiss} samples=${mismatchSamples.join(' | ')}`);
-    const ok = mismatches === 0 && fenceMiss === 0 && fenced > 0;
+    console.log(`XP2 mismatches=${mismatches} fenced=${fenced} fenceMiss=${fenceMiss} opErrors=${opErrors} samples=${mismatchSamples.join(' | ')}`);
+    const ok = mismatches === 0 && fenceMiss === 0 && fenced > 0 && opErrors === 0;
     if (ok) console.log('CHILD_OK');
     else console.log('CHILD_FAIL XP-2');
     try { await bound.end(); } catch { /* ignore */ }
