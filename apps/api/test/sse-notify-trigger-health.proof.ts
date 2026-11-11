@@ -11,6 +11,9 @@
  * T-5  重装 0143 后 pg_terminate_backend(application_name=meetwise-sse-listen)
  *      → health() 与 /readyz sse.notify=listen_down（HTTP 仍 200，通道设计回落 2s 轮询）
  * T-6  单元缝：假客户端 trigger 查询 rowCount=0 → health()=trigger_missing + 结构化降级日志
+ * T-R  ENABLE REPLICA TRIGGER（tgenabled='R'）→ 503，sse.notify=trigger_missing
+ * T-table  表改名使 to_regclass 为 NULL → 503，sse.notify=trigger_missing（非 listen_down）
+ * T-7  目录查询抛错 → sse.notify=unknown，HTTP 200（不单独 503）
  *
  * 不改 apps/api prove:sse-slot（#243 的 env -u 六变量封闭化不在本刀，且本刀不碰该脚本）。
  * #243 未合，本证明只登记 pnpm 脚本，待挂 verify:local。
@@ -32,6 +35,7 @@ import {
   SSE_NOTIFY_TRIGGER_HEALTH_SQL,
   SSE_NOTIFY_TRIGGER_NAME,
 } from '../src/platform/sse-notify.service.ts';
+import { HealthService } from '../src/modules/health/health.service.ts';
 
 let fail = 0;
 let total = 0;
@@ -143,6 +147,71 @@ try {
     const r = await get('/readyz/api');
     A('T-3 /readyz/api 恢复 200 sse.notify=ok',
       r.status === 200 && r.body.status === 'ok' && r.body.sse?.notify === 'ok', r);
+  }
+
+
+  // ── T-R ENABLE REPLICA → tgenabled='R' → 503 trigger_missing ──
+  {
+    console.log('\n──────── T-R · ENABLE REPLICA trigger (tgenabled=R) ────────');
+    await admin.query(`ALTER TABLE interview_event ENABLE REPLICA TRIGGER ${SSE_NOTIFY_TRIGGER_NAME}`);
+    try {
+      const state = await admin.query<{ tgenabled: string }>(
+        'SELECT tgenabled FROM pg_catalog.pg_trigger WHERE tgname=$1 AND tgrelid=to_regclass(\'public.interview_event\') AND NOT tgisinternal',
+        [SSE_NOTIFY_TRIGGER_NAME],
+      );
+      A('T-Ra 目录实证 tgenabled=R',
+        state.rowCount === 1 && state.rows[0]?.tgenabled === 'R', state.rows);
+      const r = await get('/readyz/api');
+      A('T-Rb /readyz/api → 503 sse.notify=trigger_missing（replica 态主库不会触发）',
+        r.status === 503 && r.body.status === 'degraded' && r.body.sse?.notify === 'trigger_missing', r);
+    } finally {
+      await admin.query(`ALTER TABLE interview_event ENABLE TRIGGER ${SSE_NOTIFY_TRIGGER_NAME}`);
+    }
+    const restored = await get('/readyz/api');
+    A('T-Rc ENABLE 恢复后 /readyz/api 200 sse.notify=ok',
+      restored.status === 200 && restored.body.sse?.notify === 'ok', restored);
+  }
+
+  // ── T-table 表缺席（rename 使 to_regclass 为 NULL）→ 503 trigger_missing，不误标 listen_down ──
+  {
+    console.log('\n──────── T-table · to_regclass NULL (table renamed) ────────');
+    await admin.query('ALTER TABLE interview_event RENAME TO interview_event_pr263_absent');
+    try {
+      const r = await get('/readyz/api');
+      A('T-table-a /readyz/api 表缺席 → 503 sse.notify=trigger_missing（非 listen_down）',
+        r.status === 503 && r.body.status === 'degraded' && r.body.sse?.notify === 'trigger_missing', r);
+    } finally {
+      await admin.query('ALTER TABLE interview_event_pr263_absent RENAME TO interview_event');
+    }
+    const restored = await get('/readyz/api');
+    A('T-table-b 恢复表名后 /readyz/api 200',
+      restored.status === 200 && (restored.body.sse?.notify === 'ok' || restored.body.sse?.notify === 'listen_down'), restored);
+  }
+
+  // ── T-7 目录查询抛错 → unknown，HTTP 200（不单独 503；与既有 ready 公式同形）──
+  {
+    console.log('\n──────── T-7 · catalog query throw → unknown, HTTP 200 ────────');
+    const health = app.get(HealthService);
+    const db = (health as unknown as { db: { pool: { query: (...args: unknown[]) => Promise<unknown> } } }).db;
+    const orig = db.pool.query.bind(db.pool);
+    db.pool.query = ((...args: unknown[]) => {
+      const sql = String(args[0] ?? '');
+      if (sql.includes('pg_trigger')) return Promise.reject(new Error('catalog_boom'));
+      return orig(...args);
+    }) as typeof db.pool.query;
+    try {
+      const r = await get('/readyz/api');
+      A('T-7a /readyz/api 查询异常 → 200 sse.notify=unknown（不单独 503）',
+        r.status === 200 && r.body.status === 'ok' && r.body.sse?.notify === 'unknown', r);
+      const alias = await get('/health');
+      A('T-7b /health 同面 200 sse.notify=unknown',
+        alias.status === 200 && alias.body.sse?.notify === 'unknown', alias);
+    } finally {
+      db.pool.query = orig;
+    }
+    const restored = await get('/readyz/api');
+    A('T-7c 还原查询后 /readyz/api 不再标 unknown',
+      restored.body.sse?.notify !== 'unknown', restored);
   }
 
   // ── T-4 DROP TRIGGER → 503 trigger_missing ──

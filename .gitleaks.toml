@@ -60,4 +60,8 @@ regexes = [
   '''(?i)uc0\d{2}[-a-z0-9]+''',
   '''(?i)Key-unset\s+e2e''',
   '''(?i)prove:uc0\d{2}[-a-z0-9]*''',
+  # 锚定精确串：只放过提取出的 secret 恰等于 sse-0143-trigger-health（旧脚本名误报；
+  # 本 PR 历史 commit 4f05ca48c 仍含此字面量，CI 扫全历史）。内嵌该子串的假 api_key /
+  # github_token 因不是精确全等，必须仍被抓住。
+  '''(?i)^sse-0143-trigger-health$''',
 ]
