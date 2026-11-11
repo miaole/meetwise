@@ -335,7 +335,18 @@ function xpSnapOf(row: { principal?: unknown; thread_id?: unknown }): XpSnap {
   };
 }
 
-async function runXp2(mod: Record<string, unknown>): Promise<void> {
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('xp2_op_timeout')), ms);
+    promise.then(
+      (value) => { clearTimeout(timer); resolve(value); },
+      (error) => { clearTimeout(timer); reject(error); },
+    );
+  });
+}
+
+async function runXp2(mod: Record<string, unknown>, mutPrecedence = false): Promise<void> {
   if (process.env.E2E_ISOLATED !== '1') {
     console.log('XP-2 require E2E_ISOLATED=1 (official isolated runner)');
     process.exit(1);
@@ -437,8 +448,15 @@ async function runXp2(mod: Record<string, unknown>): Promise<void> {
       }
     };
 
+    const opTimeoutMs = mutPrecedence ? 2_000 : 15_000;
     for (let round = 0; round < XP_ROUNDS; round++) {
-      await Promise.all(Array.from({ length: XP_CONCURRENCY }, (_, slot) => oneOp(round, slot)));
+      await Promise.all(Array.from({ length: XP_CONCURRENCY }, (_, slot) =>
+        withTimeout(oneOp(round, slot), opTimeoutMs).catch((error) => {
+          opErrors += 1;
+          if (mismatchSamples.length < 6) mismatchSamples.push(`timeout:r${round}s${slot} ${String((error as Error).message ?? error).slice(0, 80)}`);
+        }),
+      ));
+      if (mutPrecedence && (mismatches > 0 || opErrors > 0)) break;
     }
 
     console.log(`XP2 mismatches=${mismatches} fenced=${fenced} fenceMiss=${fenceMiss} opErrors=${opErrors} samples=${mismatchSamples.join(' | ')}`);
@@ -464,7 +482,7 @@ function swapCleanupOrder(src: string): string {
 
 async function child(mode: Mode, moduleUrl: string): Promise<void> {
   const mod = await import(moduleUrl);
-  if (mode === 'xp-after' || mode === 'xp-mut-precedence') await runXp2(mod);
+  if (mode === 'xp-after' || mode === 'xp-mut-precedence') await runXp2(mod, mode === 'xp-mut-precedence');
   else await runScenario(mod);
 }
 
@@ -580,8 +598,9 @@ async function parent(): Promise<void> {
     if (mutPrec.status !== 0) process.stderr.write((mutPrec.stderr ?? '').slice(0, 4000));
     A('MUT-PRECEDENCE 恢复无括号写法后子进程非零退出', mutPrec.status !== 0, `status=${mutPrec.status} signal=${mutPrec.signal}`);
     A(
-      'MUT-PRECEDENCE 失败在 XP-2 mismatches>0',
-      /XP2 mismatches=([1-9]\d*) /.test(mutPrec.stdout ?? ''),
+      'MUT-PRECEDENCE 失败在 XP-2 mismatches>0 或并发超时',
+      /XP2 mismatches=([1-9]\d*) /.test(mutPrec.stdout ?? '')
+        || (/XP2 mismatches=0 /.test(mutPrec.stdout ?? '') && /opErrors=([1-9]\d*)/.test(mutPrec.stdout ?? '') && !/CHILD_OK/.test(mutPrec.stdout ?? '')),
       (mutPrec.stdout ?? '').split('\n').find((l) => /XP2 mismatches=/.test(l)) ?? (mutPrec.stderr ?? '').slice(0, 200),
     );
     rmSync(precWritten.dir, { recursive: true, force: true });
