@@ -89,7 +89,7 @@ DoD：标"已 wired"的每条都是 CI 里真实运行、真能卡住合并的 j
 | job | 内容 | 必过 |
 |---|---|---|
 | `secrets-scan` | gitleaks 全历史 + 全仓合并冲突标记扫描（`conflict-marker-scan.proof.mjs` + `conflict-marker-scan.mjs`） | 是 |
-| `verify` | install → `docs:check` → `arch` → typecheck 门 → lint 门 → 核心 DB 门（`db:up` + `db:prove` 四原语 + 迁移编号唯一性 + `migrate:prove`）→ 无库单元 prove（28 条，确定性秒级） | 是 |
+| `verify` | install → `docs:check` → `arch` → typecheck 门 → lint 门 → 无库单元 prove 8 条（**必须在 `db:up` 之前**：`sse-slot:prove` 依赖库不可达，库可达时 SSE notify 降级 wakeAllWaiters 会多轮询、触发每 holder ≤3 次下界）→ 核心 DB 门（`db:up` + `db:prove` 四原语 + 迁移编号唯一性 + `migrate:prove`）→ 单元 prove 20 条（确定性秒级，保持原 verify 中位于 db:up 之后的顺序）。checkout 需 `fetch-depth: 0`（迁移编号唯一性门读父提交） | 是 |
 | `deps-audit`（独立 workflow） | `pnpm audit --prod --audit-level=critical` | 否（PR/main 均跑） |
 
 `verify` 设 `timeout-minutes: 15`；目标耗时 < 5 分钟（原 verify 约 10.5–14 分钟）。

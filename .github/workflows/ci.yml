@@ -79,6 +79,20 @@ jobs:
       - name: lint gate (turbo lint · #96 LINT S3-S5 lit)
         run: pnpm turbo lint
 
+      # 无库单元 prove 必须在 db:up 之前（与原 verify 同序）：sse-slot:prove 依赖「库不可达」环境——
+      # 库可达时 SSE notify 单例会建 LISTEN 连接并在 trigger_missing 降级时 wakeAllWaiters，holder 额外轮询，
+      # 触发 FIX-G3 的「每 holder ≤3 次」节律下界（CI run 42947057277 实测 4 次）。
+      - name: 无库单元 prove（dispatch / dual-claim / drain / Last-Event-ID / model-slot / SSE 槽 / Web 预览门）
+        run: |
+          pnpm interview-dispatch:unit:prove
+          pnpm interview-dispatch:gate:prove
+          pnpm quiz-dual-claim:unit:prove
+          pnpm owner-drain-order:unit:prove
+          pnpm last-event-id:unit:prove
+          pnpm model-slot-bypass:static:prove
+          pnpm sse-slot:prove
+          pnpm -C apps/web prove:middleware
+
       # 核心 DB 门（四原语 CAS / 幂等 / RLS 越权=0 / 事件 seq + 迁移编号唯一 + 迁移运行器）。
       # 起 Postgres（复用 dev compose，与本地同一映射端口）
       - run: pnpm db:up
@@ -101,17 +115,9 @@ jobs:
       - name: 版本化迁移运行器（只跑待应用·幂等·事务·漂移检测·advisory锁）
         run: pnpm migrate:prove
 
-      # 无库单元 prove（确定性、秒级；放在 db:up 之后，即便个别脚本探测本地库也不受影响）。
-      - name: 无库单元 prove（dispatch / SSE / 图 / 检索 / 评分数学 / 鉴权 / 契约 / 前端逻辑）
+      # 单元 prove（图 / 信号 / 检索 / 评分数学 / 鉴权 / 契约 / 前端逻辑；原 verify 中位于 db:up 之后，保持原序）。
+      - name: 单元 prove（图 / 信号 / 检索 / 评分数学 / 鉴权 / 契约 / 前端逻辑）
         run: |
-          pnpm interview-dispatch:unit:prove
-          pnpm interview-dispatch:gate:prove
-          pnpm quiz-dual-claim:unit:prove
-          pnpm owner-drain-order:unit:prove
-          pnpm last-event-id:unit:prove
-          pnpm model-slot-bypass:static:prove
-          pnpm sse-slot:prove
-          pnpm -C apps/web prove:middleware
           pnpm failover:prove
           pnpm adaptive-signals:prove
           pnpm adaptive-signals-graph:prove
