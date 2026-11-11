@@ -42,7 +42,9 @@ jobs:
       DATABASE_URL: postgresql://meetwise:meetwise_dev_password@localhost:54329/meetwise
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        # 浅克隆即可：需要全历史的 db-acl2（冻结锚 diff）与 migrate-upgrade（git 上一版 main）已移到 nightly / 本地。
+        # 全历史：迁移编号唯一性门要读父提交的迁移目录（浅克隆 = migration_parent_unreadable 机械红）。
+        with:
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
         # 版本读 package.json packageManager(pnpm@10.18.0)：catalog 需 pnpm≥9.5，不能再钉 9
