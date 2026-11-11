@@ -4,7 +4,7 @@
  * 安全铁律落地:**不可信用户数据进 user 的 <data> 块,绝不拼进 system 指令**(防注入越权)。
  */
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
-import { resolveModelDeadlineConfig, type Model, type ModelCallPlan, type ModelCostPolicy, type ModelResult, type ModelUsage, type OnModelDelta } from './invoke.ts';
+import { resolveModelDeadlineConfig, type Model, type ModelCallPlan, type ModelCostPolicy, type ModelPrepareRoute, type ModelResult, type ModelUsage, type OnModelDelta } from './invoke.ts';
 import { combineAbortSignals, ExternalHttpStatusError, fetchJsonWithTimeout, timeoutSignal } from './timeout.ts';
 import { getPrompt } from './prompts.ts';
 import { rejectTextTransportOverride, resolveTextBackupEndpointConfig, resolveTextEndpointConfig } from './text-endpoint-config.ts';
@@ -38,8 +38,11 @@ export interface CompletionRequest {
 }
 export interface ModelClient {
   complete(req: CompletionRequest, attempt: number, signal?: AbortSignal): Promise<ModelResult>;
-  /** Pure endpoint selection. Wrappers use this to choose a healthy backup before the durable dispatch boundary. */
-  prepare?(req: CompletionRequest, attempt: number, signal?: AbortSignal): Promise<ModelCallPlan> | ModelCallPlan;
+  /**
+   * Pure endpoint selection. Wrappers use this to choose a healthy backup before the durable dispatch boundary.
+   * G5 N-14：可选 `route` 只由 invoke 给出（avoidAdmissionEndpoints），单端点实现可忽略。
+   */
+  prepare?(req: CompletionRequest, attempt: number, signal?: AbortSignal, route?: ModelPrepareRoute): Promise<ModelCallPlan> | ModelCallPlan;
   /** Static endpoint billing identity. Dynamic failover returns the selected policy from prepare instead. */
   costPolicy?: ModelCostPolicy;
 }
@@ -1223,8 +1226,9 @@ export function modelFor(client: ModelClient, req: CompletionRequest): Model {
     // R1b① 层3 结构性非流式落点（注记·EXEC 定谳=注记声明恒非流式不施工）：本臂仅 prepare-less
     // client 可达；prepare-less ⇒ 无 completeStream 可路由（OpenAICompatibleClient 恒自带 prepare，
     // 库内无一「有流式通道而无 prepare」的实现）→ 恒非流式 fail-safe，路由在此结构性不可达。
-    prepare: (attempt, signal) => client.prepare
-      ? client.prepare(req, attempt, signal)
+    // G5 N-14：route（claim 前避开端点提示）原样转给 failover 链；无 route 时调用形与原先逐字一致。
+    prepare: (attempt, signal, route) => client.prepare
+      ? (route ? client.prepare(req, attempt, signal, route) : client.prepare(req, attempt, signal))
       : { ready: true, execute: (executeSignal) => client.complete(req, attempt, executeSignal), cost: client.costPolicy },
   };
 }
