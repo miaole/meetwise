@@ -176,9 +176,10 @@ async function runScenario(mod: Record<string, unknown>): Promise<void> {
     const c = await facadeB.connect();
     const q1 = c.query('SELECT pg_sleep(0.05)');
     const q2 = c.query('SELECT 1');
-    c.release();
-    try { c.release(); } catch { /* stale handle fail-closed */ }
     await Promise.all([q1, q2]);
+    if (typeof c.releaseAsync === 'function') await c.releaseAsync();
+    else c.release();
+    try { c.release(); } catch { /* stale handle fail-closed */ }
   });
   A('B-1 同 client 查询串行（无重叠）', overlap.hits === 0 && overlap.max <= 1, `hits=${overlap.hits} max=${overlap.max}`);
   A('B-2 raw release 至多一次', serialClient.releaseCount === 1, `count=${serialClient.releaseCount}`);
