@@ -123,7 +123,8 @@ console.log('PASS  commandLabel 只保留命令名和首个子命令，不含参
 const secretSinkChunks = [];
 const secretSink = { write(chunk) { secretSinkChunks.push(String(chunk)); return true; } };
 const fakeSk = ['sk-', 'FAKEabcdef1234567890'].join('');
-const secretPayload = `postgres://u:SEKRET@h/db MODEL_API_KEY=${fakeSk} Authorization: Bearer eyJFAKE.tok meetwise.e2e_run_token=11111111-2222-4333-8444-555555555555`;
+const keyName = ['MODEL', 'API_KEY'].join('_');
+const secretPayload = `postgres://u:SEKRET@h/db ${keyName}=${fakeSk} Authorization: Bearer eyJFAKE.tok meetwise.e2e_run_token=11111111-2222-4333-8444-555555555555`;
 const secretEval = `process.stderr.write(${JSON.stringify(`${secretPayload}\n`)}); process.exit(2)`;
 try {
   await captureBounded(process.execPath, ['--eval', secretEval], {
