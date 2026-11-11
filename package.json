@@ -470,6 +470,8 @@
     "checkpoint-role:prove": "node scripts/run-e2e-isolated.mjs checkpoint-role:prove:raw",
     "checkpoint-role:prove:raw": "pnpm -C apps/worker prove:checkpoint-runtime-role",
     "privacy-erasure:prove": "node scripts/run-e2e-isolated.mjs privacy-erasure:prove:raw",
+    "erasure-job-projection:prove": "node scripts/run-e2e-isolated.mjs erasure-job-projection:prove:raw",
+    "erasure-job-projection:prove:raw": "pnpm -C apps/worker prove:erasure-job-projection",
     "privacy-erasure:prove:raw": "pnpm -C apps/worker prove:checkpoint-privacy-erasure",
     "privacy-erasure:pause-upgrade:prove": "node scripts/run-e2e-isolated.mjs privacy-erasure:pause-upgrade:prove:raw",
     "privacy-erasure:pause-upgrade:prove:raw": "pnpm -C apps/worker prove:privacy-erasure-pause-upgrade",

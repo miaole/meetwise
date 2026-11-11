@@ -377,6 +377,7 @@ export type {
 // 答案事实根之外的剩余 sink（INT-TRANSCRIPT-01）：event + report 的删除 resolver/purge
 export {
   beginInterviewProjectionErasure, listClaimableInterviewProjectionTargets, purgeInterviewProjectionTarget,
+  resolveInterviewProjectionTargetConsumedJti, purgeFencedInterviewJobResidue,
 } from './transcript/int-transcript-projection.ts';
 export type {
   InterviewProjectionErasureTarget, InterviewProjectionErasureRequest,
