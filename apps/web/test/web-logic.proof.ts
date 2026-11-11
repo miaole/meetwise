@@ -1555,6 +1555,20 @@ async function main() {
     const legacyView = reduceInterview([legacyQ]);
     A('旧流缺 plannedTurns → schema 零破坏+投影 undefined（显示面降级）',
       legacyView.phase === 'question' && legacyView.plannedTurns === undefined);
+    // G2：question_ready.duplicateFallback 投影到视图；旧流缺字段零破坏；不进提交令牌。
+    const fbQ = toBusinessEvent({ event: 'question_ready', id: 5, data: JSON.stringify({ question: '跨场重复题', questionId: 'q-v2-t0-c0', stateVersion: 2, turn: 0, duplicateFallback: 'cross_session_repeat' }) })!;
+    const fbView = reduceInterview([fbQ]);
+    A('G2 question_ready.duplicateFallback=cross_session_repeat → 视图投影且不进 QuestionIdentity',
+      fbView.duplicateFallback === 'cross_session_repeat'
+      && fbView.questionIdentity?.questionId === 'q-v2-t0-c0'
+      && !('duplicateFallback' in (fbView.questionIdentity ?? {})));
+    const fbNext = applyEvent(fbView, toBusinessEvent({ event: 'question_ready', id: 6, data: JSON.stringify({ question: '正常新题', questionId: 'q-v3-t1-c0', stateVersion: 3, turn: 1 }) })!);
+    A('G2 下一题缺 duplicateFallback → 覆盖为 undefined（不残留上一题旧值）',
+      fbNext.duplicateFallback === undefined && fbNext.questionIdentity?.questionId === 'q-v3-t1-c0');
+    A('G2 旧流缺 duplicateFallback → schema 零破坏+投影 undefined',
+      legacyView.duplicateFallback === undefined);
+    A('G2 非法 duplicateFallback 值 → 整帧拒解析（枚举 fail-closed，不把未知串写进视图）',
+      toBusinessEvent({ event: 'question_ready', id: 7, data: JSON.stringify({ question: '坏标记', duplicateFallback: 'invented' }) }) === null);
   }
 
   section('G4 #59 提交失败分码映射：turnSubmitFeedback 纯函数输出断言（形制 A·mock res 仅输入叙述）+ 组件源码静态接线（read-file 四件）');

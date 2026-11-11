@@ -243,6 +243,9 @@ export function createGenerateQuestionNode(deps: AdaptiveDeps) {
         // #256 形制 A：decide 节点已经 rememberDecision 写回 mind（maxTurns=nextSoft，含 raise 后现值，
         // domain adaptive-interview.ts rememberDecision/:400-404 raise 臂）——此处直读即发射时点软预算约数。
         plannedTurns: state.mind.maxTurns,
+        // G2：降级出面时把 provenance.duplicateFallback 写进 pending，供 lifecycle 投影到 question_ready。
+        // 正常出题 / 旧形 provenance 缺字段 → undefined，不进 JSON。
+        ...(provenance.duplicateFallback ? { duplicateFallback: provenance.duplicateFallback } : {}),
       },
       // pivot=话题起点（主问题 id 落位）；probe/clarify 继承现值；旧 checkpoint 缺省维持 null。
       topicMainQuestionId: askMode === 'pivot' ? newQuestionId : (state.topicMainQuestionId ?? null),

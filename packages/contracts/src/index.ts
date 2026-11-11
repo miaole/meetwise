@@ -63,6 +63,14 @@ export const TurnDto = z.object({
 }).strict();
 export type TurnDto = z.infer<typeof TurnDto>;
 /**
+ * G2：question_ready 的 additive 可选审计字段。判重耗尽降级出面时携带
+ * `cross_session_repeat`（跨场重复的已过本场闸模型题）或 `approved_template`（模板兜底）；
+ * 正常出题与旧流缺字段，消费者必须降级。与 domain QUESTION_DUPLICATE_FALLBACKS 同值。
+ */
+export const QUESTION_DUPLICATE_FALLBACKS = ['cross_session_repeat', 'approved_template'] as const;
+export const QuestionDuplicateFallback = z.enum(QUESTION_DUPLICATE_FALLBACKS);
+export type QuestionDuplicateFallback = z.infer<typeof QuestionDuplicateFallback>;
+/**
  * 面试视图(GET /interview 列表项与 GET /interview/:id)。
  * 进度四字段是题目账本只读投影，不是 ScoreCard：
  * issued_turns = status<>'cancelled'；answered_turns = status='answered'；
@@ -121,15 +129,20 @@ export type SessionConcludedPayload = z.infer<typeof SessionConcludedPayload>;
  * 不覆盖录音持久化、电话/会议接入、远端音轨或说话人分离。
  */
 export const VOICE_CAPTURE_POLICY_VERSION = 'voice_ephemeral_v1' as const;
-/** 语音作答语义上限**单源**（#70 三值矛盾归一·5E 裁决项②=10MB·2026-10-12）。
+/** 语音作答语义上限**单源**（#70 三值矛盾归一·5E 裁决项②=10MB）。
  *  此前三处各写：契约 base64≤13.5M 字符、api 全局 bodyLimit 12MiB、服务内 MAX_AUDIO_BYTES 10MB（互矛盾且
  *  服务检查被前两层遮蔽=不可达）。归一口径：10MB=单题语音语义上限（唯一真源）；契约 base64 字符上限由本值
- *  派生（4*ceil(n/3)=13,981,016）；api 全局 bodyLimit 12MiB 是简历+语音**共享传输信封**（为 ~8MB 简历原文
- *  校准，见 apps/api/src/main.ts），不再是第三个语音上限——超 10MB 的语音由服务内 413 audio_too_large 兜底。
- *  收紧/放宽语义如实呈报：有效受理窗由旧 bodyLimit 遮蔽出的 ~9.4MB 放宽到语义 10MB（9.4-10MB 区间旧 400/413
- *  现受理）；>10MB 一律 413（旧为散落的 400/413）。 */
+ *  派生为精确膨胀（4*ceil(n/3)=13,981,016）再加 32KiB 余量，使解码后 >10MB 的请求能穿过 zod，落到服务内
+ *  413 `{error:audio_too_large}`（与简历 `contentBase64` 11.2MB 略高于 8MB 原文、好让 413 `file_too_large`
+ *  可达同形）。上传路由传输信封是 `UPLOAD_BODY_LIMIT_BYTES`（15MiB），必须大于本字符上限+JSON 外壳，
+ *  否则 Fastify 会在服务检查前用非业务信封 413，10MB 语义上限再次不可达。非上传路由另见
+ *  `SMALL_BODY_LIMIT_BYTES`（1MiB → 413 `payload_too_large`）。 */
 export const VOICE_MAX_AUDIO_BYTES = 10 * 1024 * 1024;
-export const VOICE_MAX_AUDIO_BASE64_CHARS = 4 * Math.ceil(VOICE_MAX_AUDIO_BYTES / 3);
+export const VOICE_MAX_AUDIO_BASE64_CHARS = 4 * Math.ceil(VOICE_MAX_AUDIO_BYTES / 3) + 32_768;
+/** 非上传路由传输层封顶。超限在 body 解析前 413 `payload_too_large`。 */
+export const SMALL_BODY_LIMIT_BYTES = 1 * 1024 * 1024;
+/** 简历/语音上传共享传输信封。必须能容下 `VOICE_MAX_AUDIO_BASE64_CHARS`+JSON 外壳，才能让服务内 413 可达。 */
+export const UPLOAD_BODY_LIMIT_BYTES = 15 * 1024 * 1024;
 const VoiceAudioBase64 = z.string()
   .min(4)
   .max(VOICE_MAX_AUDIO_BASE64_CHARS)

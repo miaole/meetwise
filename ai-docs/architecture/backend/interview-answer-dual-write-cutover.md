@@ -27,9 +27,10 @@ related:
 | 路径 | 写什么 | 谁写 | 是否生产 HTTP | 是否原文 | 状态 |
 | --- | --- | --- | --- | --- | --- |
 | Legacy `/turn` → `claimInterviewAnswer` | `interview_question.answer_id` + 裸 SHA-256 `answer_hash` | `apps/api/src/modules/interview/interview.service.ts` | 是 | 否（低熵指纹） | 现行身份账本；删除流会清 hash |
-| Legacy `/turn` → `enqueueInterviewJob` | `interview_job.payload` 含 TurnDto **明文 `answer`** | 同上 + `packages/db/src/interview-jobs.ts` | 是 | 是，至 job 终态 | `INT-P0-RAW-QUEUE` 仍 open |
+| Legacy `/turn` → `enqueueInterviewJob` | `interview_job.payload` 含 TurnDto **明文 `answer`** | 同上 + `packages/db/src/interview-jobs.ts` | 是 | 是，至答案被 worker 消费（#18：`markInterviewAnswerApplied` 同事务剥离；消费前仍持有） | `INT-P0-RAW-QUEUE` 仍 open |
 | Worker hydrate | `loadClaimedInterviewAnswerPayload` 读明文 | `apps/worker/src/interview-consumer.ts` | 是 | 是，lease 内 | 图 checkpoint 只留 `answerId` |
 | Job 终态 | `payload-'answer'` | `markJobDone` / `markJobFailed` | 是 | 剥离明文，保留 identity 字段 | 不是删除 receipt |
+| 消费即剥（#18） | `payload-'answer'-'asrOutcome'` | `stripConsumedInterviewAnswerPlaintext`（与 `markInterviewAnswerApplied` 同一投影事务）；reaper/requeue 写 `failed` 的臂同拍剥离；`purgeStaleInterviewJobPayloads` 清理终态旧行残留 | 是 | 剥离明文，保留 identity；已应用答案的重放只走 checkpoint 补投影（`isInterviewAnswerApplied`） | 不是删除 receipt；`int18:payload-strip:prove` |
 | Event / SSE | `answer_evaluated` 等：`answerId`/`answerHash`/题面/hint 分 | `apps/worker/src/adaptive-lifecycle.ts` → `appendEvent` | 是 | 否（源码无 `answer` 键） | 0126 禁止再写入**顶层** `answer`；嵌套键不拦 |
 | Ledger rehearsal | `interview_answer_submission` + 加密 `interview_answer_artifact` + ref-only `interview_answer_job` | `packages/db/src/int-transcript.ts` `submitInterviewAnswer`；预览 HTTP 经 `InterviewService.submitPreviewAnswer` | 预览 `POST /interview/:id/answers`（`MEETWISE_PUBLIC_PREVIEW=1`）；非预览 404。**不是** 01 生产 write | 密文 + keyed HMAC | 受 0126 围栏；见 `UC-INT-TRANSCRIPT-PREVIEW-SUBMIT`。proof / SCOR rehearsal 仍可直调 |
 | Transcript GET | 拼 event + ScoreCard | `interview.service.ts` `transcript()` | 读 | 无原文 | 不能当 canonical 回放 |
