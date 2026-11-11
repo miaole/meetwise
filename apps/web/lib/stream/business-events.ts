@@ -119,7 +119,14 @@ export function decodeSSE(buffer: string): { frames: SSEFrame[]; rest: string; s
     const f: SSEFrame = { data: '' };
     for (const line of block.split(/\r\n|\r|\n/)) {
       if (line.startsWith(':')) continue;               // 注释/心跳行,spec 要求忽略
-      if (line.startsWith('id:')) f.id = Number(line.slice(3).trim());
+      // 空 id: 不得写成 0（Number('')===0）：否则 token_withdraw 会被驱动水位滤网（ev.id<=highestId）丢掉（P3-b）。
+      if (line.startsWith('id:')) {
+        const rawId = line.slice(3).trim();
+        if (rawId !== '') {
+          const parsedId = Number(rawId);
+          if (Number.isFinite(parsedId)) f.id = parsedId;
+        }
+      }
       else if (line.startsWith('event:')) f.event = line.slice(6).trim();
       else if (line.startsWith('data:')) dataLines.push(line.slice(5).replace(/^ /, '')); // spec:只去一个前导空格
     }
