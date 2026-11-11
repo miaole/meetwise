@@ -250,25 +250,25 @@ export class PrincipalBoundCheckpointPool {
   }
 
   async connect(): Promise<any> {
-    const client = await this.pool.connect();
+    const acquired = await this.pool.connect();
     // CHECKOUT_HANDLE: return a per-checkout handle. Do not assign release or
     // query wrappers onto the shared pg Client, so a leftover release on an
     // old handle cannot hit the next holder once-fn or wrapper.
-    const handle = installReleaseCleanup(client);
+    const client = installReleaseCleanup(acquired);
     try {
       const access = requireAccess();
       // Session-scoped (not LOCAL): required for PostgresSaver autocommit reads.
-      await handle.query('SET ROLE app_role');
-      await handle.query(
+      await client.query('SET ROLE app_role');
+      await client.query(
         `SELECT set_config('app.principal_user', $1, false),
                 set_config('app.checkpoint_thread_id', $2, false),
                 set_config('app.checkpoint_epoch', $3, false)`,
         [access.owner, access.threadId, String(access.fenceEpoch)],
       );
-      return handle;
+      return client;
     } catch (error) {
       // connect() failed after wrap — destroy rather than return a half-bound client.
-      handle.release(true);
+      client.release(true);
       throw error;
     }
   }

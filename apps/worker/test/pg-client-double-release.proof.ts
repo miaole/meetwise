@@ -179,7 +179,6 @@ async function runScenario(mod: Record<string, unknown>): Promise<void> {
     c.release();
     try { c.release(); } catch { /* stale handle fail-closed */ }
     await Promise.all([q1, q2]);
-    if (typeof c.releaseAsync === 'function') await c.releaseAsync();
   });
   A('B-1 同 client 查询串行（无重叠）', overlap.hits === 0 && overlap.max <= 1, `hits=${overlap.hits} max=${overlap.max}`);
   A('B-2 raw release 至多一次', serialClient.releaseCount === 1, `count=${serialClient.releaseCount}`);
@@ -355,6 +354,17 @@ function poolRecovered(counts: PoolCounts, max = 1): boolean {
   return counts.waitingCount === 0 && counts.idleCount === counts.totalCount && counts.totalCount <= max;
 }
 
+async function waitPoolRecovered(pool: { totalCount?: unknown; idleCount?: unknown; waitingCount?: unknown }, ms = 2_000): Promise<PoolCounts> {
+  const deadline = Date.now() + ms;
+  let counts = readPoolCounts(pool);
+  while (Date.now() < deadline) {
+    counts = readPoolCounts(pool);
+    if (poolRecovered(counts)) return counts;
+    await new Promise((r) => setTimeout(r, 20));
+  }
+  return counts;
+}
+
 function formatCounts(counts: PoolCounts): string {
   return `${counts.totalCount}/${counts.idleCount}/${counts.waitingCount}`;
 }
@@ -482,7 +492,7 @@ async function runXp2(mod: Record<string, unknown>, mutPrecedence = false): Prom
       if (mutPrecedence && (mismatches > 0 || opErrors > 0)) break;
     }
 
-    const counts = readPoolCounts(pool);
+    const counts = await waitPoolRecovered(pool);
     let endOk = false;
     try {
       await withTimeout(bound.end(), 8_000);
@@ -595,6 +605,8 @@ async function runE12(mod: Record<string, unknown>): Promise<void> {
       if (samples.length < 8) samples.push(`${tag} ${JSON.stringify(snap)} expected=${access.owner}/${access.threadId}`);
     }
   };
+  let e1counts: PoolCounts = { totalCount: 0, idleCount: 0, waitingCount: 0 };
+  let e2counts: PoolCounts = { totalCount: 0, idleCount: 0, waitingCount: 0 };
   try {
     // E1: X releases, Y holds, leftover cX.release() must not steal Y.
     const cX = await withAccess(accessA, () => bound.connect());
@@ -608,8 +620,14 @@ async function runE12(mod: Record<string, unknown>): Promise<void> {
     } catch {
       staleRelease += 1;
     }
-    const y1 = await cY.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
-    check('e1-y', xpSnapOf(y1.rows[0] ?? {}), accessB);
+    await new Promise((r) => setTimeout(r, 80));
+    try {
+      const y1 = await cY.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
+      check('e1-y', xpSnapOf(y1.rows[0] ?? {}), accessB);
+    } catch (error) {
+      mismatches += 1;
+      if (samples.length < 8) samples.push(`e1-y query ${String((error as Error).message ?? error).slice(0, 80)}`);
+    }
     try {
       await cX.query(SESSION_SQL);
     } catch {
@@ -617,7 +635,7 @@ async function runE12(mod: Record<string, unknown>): Promise<void> {
     }
     if (typeof cY.releaseAsync === 'function') await cY.releaseAsync();
     else cY.release();
-    const e1counts = readPoolCounts(pool);
+    e1counts = await waitPoolRecovered(pool);
     console.log(`E1 mismatches=${mismatches} staleRelease=${staleRelease} staleQuery=${staleQuery} pool=${formatCounts(e1counts)}`);
 
     // E2: leftover release immediately after releaseAsync, while Y is waiting (max=1).
@@ -632,12 +650,17 @@ async function runE12(mod: Record<string, unknown>): Promise<void> {
     } catch {
       staleRelease += 1;
     }
-    const cY2 = await withTimeout(pendingY, 8_000);
-    const y2 = await cY2.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
-    check('e2-y', xpSnapOf(y2.rows[0] ?? {}), accessB);
-    if (typeof cY2.releaseAsync === 'function') await cY2.releaseAsync();
-    else cY2.release();
-    const e2counts = readPoolCounts(pool);
+    try {
+      const cY2 = await withTimeout(pendingY, 8_000);
+      const y2 = await cY2.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
+      check('e2-y', xpSnapOf(y2.rows[0] ?? {}), accessB);
+      if (typeof cY2.releaseAsync === 'function') await cY2.releaseAsync();
+      else cY2.release();
+    } catch (error) {
+      mismatches += 1;
+      if (samples.length < 8) samples.push(`e2-y ${String((error as Error).message ?? error).slice(0, 80)}`);
+    }
+    e2counts = await waitPoolRecovered(pool);
     staleWarn = warns.filter((w) => w.includes('checkpoint_pg_stale_handle')).length;
     console.log(`E2 mismatches=${mismatches} staleRelease=${staleRelease} staleWarn=${staleWarn} pool=${formatCounts(e2counts)} samples=${samples.join(' | ')}`);
 
@@ -657,6 +680,11 @@ async function runE12(mod: Record<string, unknown>): Promise<void> {
       console.log('CHILD_FAIL E12');
       process.exitCode = 1;
     }
+  } catch (error) {
+    console.log(`E12 uncaught ${String((error as Error).message ?? error).slice(0, 160)}`);
+    console.log(`E12 ok=false recovered=false end=fail poolE1=${formatCounts(e1counts)} poolE2=${formatCounts(e2counts)} samples=${samples.join(' | ')}`);
+    console.log('CHILD_FAIL E12');
+    process.exitCode = 1;
   } finally {
     console.warn = origWarn;
     await admin.query(`DROP ROLE IF EXISTS ${role}`).catch(() => undefined);
