@@ -66,7 +66,7 @@ related:
 | #263 | fix(api): 0143 SSE NOTIFY trigger 缺失或禁用时 readiness fail-closed | `b4de00205` | 2542 |
 | #264 | docs(privacy): 0091 授权快照谁来签发（方案，不写实现） | `660671c4f` | 2543 |
 | #254 | test(e2e): HTTP 层跳过当澄清 prove（含非 happy-path） | `fbf0afb4e` | 2544 |
-| #262 | fix(token-stream): G5 N-13 业务拒绝发撤回帧（预览开关缺省关） | `f8b8fa092` | 2544 |
+| #262 | fix(token-stream): G5 N-13 业务拒绝发撤回帧（预览开关缺省关）；**含 #268**（重连漏撤回，base 为 #262 分支，17:50 以 `a210de9ce` 合入该分支，经 #262 `f8b8fa092` 间接进入 main） | `f8b8fa092` | 2544 |
 | #267 | chore(lint): 清 worker 机械警告并把帽收回实测值（合并树实测重算：root 5431→5378、worker 1007→956） | `d70b75587` | 2544 |
 | #266 | fix(test): 收窄 qbank-corpus-gates 的 seam 钉与 markers 扫描范围（已审 head `0ec17e42b` 只并入 main，diff 与已审补丁逐字一致） | `3d508f72b` | 2544 |
 
@@ -86,7 +86,7 @@ related:
 
 **新增跟进（未关项未标「已修复」的都仍 open）**
 
-1. 上传路由按原始 URL 判定（`main.ts` onRequest），构造路径可让服务先缓冲 15MiB 再拒（#248 审查 P1）。#261 已改为按路由模板判定，待复核后关项。
+1. ~~上传路由按原始 URL 判定（`main.ts` onRequest），构造路径可让服务先缓冲 15MiB 再拒（#248 审查 P1）。~~ **已由 #261 关闭**：#261 审查复核 `POST /auth/login#/resume/file` 一类后缀绕过在本树返回 413，「#248 P1 已关」，反证 A（改回后缀正则）可重开。
 2. 公网 nginx 未设 `client_max_body_size`（默认 1m），Next serverActions bodySizeLimit 也是默认；**买云前改**（#248 P2-2）。#261 已把 nginx 设为 15m，但与应用上限相等、Server Action 仍是 1MB（见第 27 条）。
 3. 音频超限返回码不单调：约 10.02–11.25MiB 返回 400 zod too_big，只有 10MiB 以上约 24KiB 窗口是 413（#248 P2-1）；#261 已统一 413，`contentBase64` too_big 仍不是 413（见第 27 条）。
 4. `FST_ERR_CTP_BODY_TOO_LARGE` 映射原是死代码、启动有 FSTWRN004（#248 P2-3）；#261 已补 FST 信封，待复核。
@@ -96,7 +96,7 @@ related:
 8. 已擦除面试的 `interview_job` 明文与投影物理 purge——**已由 #257 修复**（0232）；生产路径仍无人签发 0091 快照，投影行只会计 `skippedUnauthorized`，签发方案见 #264 文档，**待用户拍板**。
 9. N-11 深审结论：原缺陷早已修好，「口径冲突」是过时待办，应改为「已修」，**待用户确认关项**。
 10. G6-N17 targetRole（#252）P2：①简历歧义时 targetRole 可选简历未命中的叶；②短 targetRole 单叶分支绕过 v4 强证据闸，"rag"→ai_ml、"自动化测试"→qa；③简历只命中 general 时 targetRole 不生效。P3：大小写 digest 不同、`resumeDegradedFrom` 未落库、「targetRole 原文不落库」注释说过头。
-11. `tenant-rls-isolation:prove` 在 main 上 EXIT 1：仍引用 `0225_auth_user_session_owner_rls.sql`，已改名 0227（ENOENT）。
+11. ~~`tenant-rls-isolation:prove` 在 main 上 EXIT 1：引用 `0225_auth_user_session_owner_rls.sql`，已改名 0227（ENOENT）。~~ **已由 #259 修复**：见证改为按后缀 `auth_user_session_owner_rls` 匹配（`readMigrationByNameSuffix`，要求恰好 1 个文件），容器臂已 PASS；仅剩 P3-b 注释仍写 0225。
 12. #246 审查 P2：postcss override 8.4.31→8.5.32 未做 CSS/UI 回归（box 无 Playwright 浏览器）。
 13. G5-N14 粘住重试预算失败时报 mismatch 提示不准（#255）——**已由 #269 修复**。
 14. #269 跟进：`usageCauseForInvokeError` 用 `startsWith('budget')`，漏掉 `model_context_budget_exceeded`（`apps/worker/src/adaptive-interview-service.ts:242`）。
@@ -104,9 +104,9 @@ related:
 16. #258 P2-a..d、P3-a：删掉 `runCiStepLedgerGate()` 调用后 docs:check 仍 EXIT 0（门本身无自检臂）。
 17. #247 非阻塞：无码 PG 断连报文白名单很窄（未知报文直接终态）；新 proof 用假连接池，未接进 CI。42501 晚到不能覆盖已锁存可重试错——**已由 #260 修复**。
 18. #260 非阻塞：未知错误会覆盖 connection_lost 窗口；L-sync 只单向。
-19. #262（G5 N-13 撤回帧）：`TOKEN_STREAM_WITHDRAW_PREVIEW` 保持 **OFF**（缺省关，只认 `=== '1'`，部署配置未设）。P2 漏 critique 面；P3-c、P3-d；MUT-B 变异臂未补；report / adaptive 两面只有静态断言。
-20. #263（0143 SSE trigger readiness）：P1 catch→unknown 无日志/指标；`withShortTimeout` 与 `statement_timeout` 未对齐；M5 health fail-open；P3-b/c/d。
-21. #253 P2-R1；#259 P2-b。
+19. #262（G5 N-13 撤回帧）：`TOKEN_STREAM_WITHDRAW_PREVIEW` 保持 **OFF**（缺省关，只认 `=== '1'`，部署配置未设）。P2 漏 critique 面；P3-c；P3-d（环满时撤回帧可能在未断流窗口被 `sse-pump.ts` `shift()` 挤掉，前端仍可能把 re-roll 拼到拒稿上）；report / adaptive 两面只有静态断言。#268（重连漏撤回）MUT-B 变异（同时清空 `tokenWithdrawnByKey`）全绿，属覆盖缺口：没有「撤回已达 → 断流 → 迟到旧 seq 仍丢」的臂。**开 `TOKEN_STREAM_WITHDRAW_PREVIEW` 之前必须先修 P3-d、补 MUT-B 臂**（#268 mw-model-op / mw-e2e-ha 审查均列为开 flag 前提；#268 的 PASS 不是开 flag 的授权）。
+20. #263（0143 SSE trigger readiness）：P1 catch→unknown 无结构化日志/指标/告警；M5 health fail-open（有意政策变更，未升 BLOCK）；**超时后查询不取消**：`withShortTimeout` 是 Promise 竞速（`health.service.ts:32-55`），不是 `SET statement_timeout`，实证 `pg_sleep(3)` 下 HTTP 约 2007ms 返回，返回后 `pg_stat_activity` 仍见 `pg_sleep`，查询继续占连接直到结束；持续超时会叠加占用。建议对查询 `cancel` 或设更紧的 `statement_timeout`。P3-b/c/d。
+21. #253（DEFINER 勘误钉 + format %s 白名单）：**P1-1 仍 OPEN**——DEFINER 钉只覆盖 0229/0230 两个文件内部，新迁移 `ALTER FUNCTION mw_admin_* SECURITY DEFINER`（或 `CREATE OR REPLACE` 时模板不带 %s）可把函数切成 DEFINER 而门禁不拦；建议全目录加拒绝门。**P1-2 仍 OPEN**——`format(%s)` 扫描器可被相邻字面量续接、`E'…'`、位置参数 `%1$s`、宽度 `%-5s` 绕过，变量模板 `format(t, …)` 与 `EXECUTE '…' || x` 不在覆盖范围（存量 21 处无隐藏站点）。P2-1 检测器在 D2/D3/D3b/D4 形态下漏检，只靠 checksum 兜底；P2-2 白名单键是 `file:line:template`、不含实参，非钉死文件（0032/0073/0226）换实参门禁看不出；P2-3 principal.ts 白名单无单测或静态门；P2-R1 `principal-config:prove` 不覆盖调用点是否套上 assert（去掉包装仍 EXIT 0）；P2-R2 0229:89 `%s` 未引号（未改 `%I`）的 SQL 层纵深防御缺口，有意保留，要关须另开迁移。
 22. #264 方案文档 N-A..N-D、L182/L209 措辞；方案**待用户拍板**，未实现。
 23. #265 P2：README / CLAUDE 仍写 zod-openapi；已否决方案回归门有绕过口。
 24. #266（qbank 门作用域）：双审 PASS @`0ec17e42b`；原 head 落后 main 致 CI parity 红，已只并入 main（diff 与已审补丁逐字一致、无 cap 变动），CI 绿后合入 `3d508f72b`。其跟进：旧 `git()` 吞错、文件不存在时断言空转、门未进 CI（先问用户）。
@@ -114,10 +114,16 @@ related:
 26. ha2-drain 清单与 interview-event-retention 不一致——**#270 已对齐**（worker ha2-drain 61/0）。#270 审查 P2：清单只查「必须出现」，不是闭集；应加源码检查，`main.ts` 每个启动的 loop/listener 都要出现在 `drainStops` 或在 `shutdownWorker` 显式停止（`jobWakeupListener` / `jobWakeupRedisListener` 现状在 `drainStops` 外，必须允许），反之亦然。回执见 `reviews/REVIEW-PR270-ha2drain-mw-model-op.md`。
 27. #261 P2/P3：Server Action 仍 1MB；`contentBase64` too_big 不是 413；nginx 15m 与应用上限相等无余量；`sourceDigests` 只有静态门。
 28. db-trigfam P1：SD 计数钉值需修订。
-29. #250 残留：P1 脱敏缺口仍有；P2 脱敏耗时随长度平方增长（128KiB 约 10s）。
+29. #250 残留：**P1（非阻塞）** 以下 7 种仍可泄漏进 CI 日志（`redactFailureText`，`scripts/bounded-command.mjs`）：①JSON 数组值 `{"password":["s1","s2"]}`；②转义引号 `\"password\":\"…\"`；③Unicode 转义键名 `{"\u0070assword":"…"}`；④键名内侧空格 `{ " password ": "…" }`；⑤多段 base64（密钥拆两段分别编码）；⑥双重 URL 编码（未登记时）；⑦不在已知列表、无键名/URL 形态的裸密钥及其 base64。P2 脱敏正则在病理输入上呈二次方耗时（128KiB 约 10s）。
 30. 3 个匿名卷 `97faea65` / `575ef41e76` / `56fcfe95` 来源不明，只登记、不删。
 31. 新增 prove 挂 `verify:local` / `ci-cd.md` §8.2.1：`worker-inflight-crash:prove`、`int18:payload-strip:prove`、`body-limit:prove`、`skip-as-clarify:http:prove`、`sse-notify-trigger-health:prove`、`erasure-job-projection:prove`——另开小 PR 送审。
 32. 合并过程记录：冻结期间 role-input:prove 起过一次隔离容器；#252/#255 本地检查曾用错依赖（node_modules 是 #246 的），已按锁文件离线重装后复跑。
+33. #259 A6 **残留 P1**：字符串诱饵（`"INSERT INTO interview_route_snapshot("` / `"FROM …"`）、未使用的模板字面量、以及「改名 + 桩文件」仍可让检查假通过（MUT-A6-STRING / MUT-A6-TEMPLATE 仍 PASS）；原注释类 P1 已关。建议把 INSERT/FROM 钉到实际查询调用，而不是再扩正则。另 #259 P2-b：移走 0219 后计数=226、链头仍 `0230` 两条 PASS，只能靠行为臂变红。
+34. #271（pg-pool 双 release）**BLOCK，未合，另一条线在修**：`checkpoint-principal.ts:227-228` 的 `await (client as …).releaseAsync?.() ?? Promise.resolve(client.release())` 因 `await` 优先级高于 `??`，被解析成 `(await releaseAsync()) ?? …`，façade.query 在 cleanup + release 之后又用原始 release 释放下一个持有者的 checkout，同一连接交给两个租户（跨租户共享连接，真实 PG 复现 mismatches=60），:141-144 又把随之出现的 already-released 静默吞掉。mw-privacy-int 上轮 PASS @842252d4a 已作废。
+35. #254 P2-1：H1 不能单独证明 isSkip 分流（isSkip 恒 false 变异下 H1 仍全绿，判别力只来自 H2）；P2-3：收据 sourceDigests 未含 `evaluate-answer.ts`、`adaptive-lifecycle.ts`、`score-writer.ts`、`principal.guard.ts`，这些文件变了收据不会失效。（P2-2 runner 匿名卷泄漏已由 #250 关。）
+36. #245 P2-b：旧 checkpoint 回退分支（pending 缺字段、只有 generationProvenance 有值，`adaptive-lifecycle.ts:58` `??` 右侧）没有任何断言覆盖。
+37. #257 非阻塞：N-1 列表队头饿死（0096 `ORDER BY created_at LIMIT 32`，无授权 target 永远占住前 32 个名额，**建议在 0091 签发方上线前修**）；N-2 A1 清除与 A2 物理删除都没有持久收据；N-4 两条 policy 删掉 `pt.owner_user_id = interview_job.owner_user_id`（0232:206/:220）后 proof 仍 32/32，缺跨 owner 臂；N-6 清扫每 5 秒扫几乎全部 `interview_job` 行逐行 EXISTS，`privacy_checkpoint_target` 无 (thread_id, owner_user_id) 索引。
+38. `ha6:prove` 不在 CI 中：main 上曾因此存量变红（#244 修复前即 3 条红，之后 scripts digest 又多次漂红；每次改根 `package.json` scripts 都会让 scripts digest 漂移，CI 绿兜不住）。合入改 scripts 的 PR 前须在合并树上跑 `ha6:prove`=0；是否接进 CI 待用户决定。
 
 Pins 不变：NOT_HA · releaseEvidence=false · claimProductionHA=false · DELETE=503。
 
@@ -161,7 +167,7 @@ main 上 `ci` 工作流对上述合入提交均 success。`deploy` 工作流报�
 15. 0230 迁移头注释误写为 DEFINER，需要勘误。
 16. Worker 高并发崩溃（2c4g sizing 加测，`WORKER_INTERVIEW_GLOBAL_INFLIGHT=16`，默认 4）：N=20 负载开始 +14 s worker 因未捕获的 `checkpoint_privacy_fenced`（42501，`PostgresSaver.put`）退出，20 场全超时；N=40 +28 s 因 `Connection terminated`（`PostgresSaver.putWrites`，同时有 pg「client.query() when the client is already executing a query」告警）退出。两次 CPU / 内存都远低于上限，是稳定性缺陷不是资源问题；默认 4 的各档 0 次退出。调高 inflight 之前必须先修。
 17. P3：库里缺 0143 trigger（或空库 `interview_event` 不存在）时，SSE notify 单例降级并退避重连（100 ms 起，上限 5 s），每次掉线都 `wakeAllWaiters`，每个 SSE 连接在 2 s 轮询之外约多 1 次 DB 查询 / 5 s。属设计内降级，记入 SSE 负载评估；生产须确认 0143 trigger 在位。
-18. `scripts/run-e2e-isolated.mjs` 删一次性 PG 容器时没带 `-v`（pgvector 镜像声明了 VOLUME），每个隔离 target 泄漏 1 个匿名卷；PR243 审查两轮 `verify:local` 留下 94 个卷约 7 GB，inode 59%→70%。改成 `docker rm -f -v` 或 `--rm`。
+18. `scripts/run-e2e-isolated.mjs` 删一次性 PG 容器时没带 `-v`（pgvector 镜像声明了 VOLUME），每个隔离 target 泄漏 1 个匿名卷；PR243 审查两轮 `verify:local` 留下 94 个卷约 7 GB，inode 59%→70%。改成 `docker rm -f -v` 或 `--rm`。 **已由 #250 修复**（runner 删容器已带 `-v`）。
 19. P3：`pnpm verify:local` 是单条 `&&` 链，首错即停、不汇总；后续改成逐条汇总的 runner。
 20. 2c4g sizing 结论（2026-11-11，box 模拟 2 vCPU / 4 GiB 应用机 + 外置 PG / Redis，真模型，零思考时间；原始收据在本地 sizing 工作区、未入库；NOT_HA · UNQUOTED · 不买）：5 场并发完全稳（0 错误，题目延迟 p95 约 4.9 s）；10 场可用（全部完成，SSE 代理 10 s TTFB 超时 502 约 0.7–0.9%，可自动重连，首题 p95 11.6–14 s）；20 场起明显变差。瓶颈不是硬件，是 Worker `globalInflight=4` 加模型延迟（N≥10 吞吐停在约 28–31 场/分，应用 CPU 均值 ≤12.4%、内存峰 ≤1.05 GiB）。推荐托管 PG 2c4g + pgvector（实测峰 0.9 vCPU、≤463 MiB，余量大；1c2g 未实测；max_connections 每套应用约 50）；Redis 256 MB 最小规格即可（实测 ≤3.9 MiB）；swap 不必要。未测：2c4g 硬件真实上限（被第 16 条崩溃挡住）、带宽 6M 限速、托管服务网络 RTT、生产 `NODE_ENV=production` 配置、OCR / 语音、UI、数据量增长后的 PG 内存。
 21. 上云待办（不改 `deploy.yml`）：单一来源见 `ai-docs/architecture/devops/ci-cd.md` §8.3（约 :249），此处不再复述正文。
