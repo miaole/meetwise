@@ -18,6 +18,8 @@ related:
 
 本蓝图综合各块设计与对抗评审，已就评审暴露的 P0 矛盾逐条拍板。凡评审标"落地即崩/自相矛盾"处，本稿给出唯一定调 + 锁版前 must-smoke 闸门。
 
+> **2026-11-11 对账**：本文大量段落仍是脚手架「定稿 / 落代码前」叙事，其中若干包与中间件声明已与代码不符。现行直接依赖与中间件以 [`dependency-footprint.md`](../dependency-footprint.md) 和 [`current-runtime-truth.md`](../current-runtime-truth.md) 为准。下面在仍写成「现行 / 必须」的关键行上就地勘误，不把规划包写成已安装。
+
 ---
 
 ## 0. 三条全局定调（先消除块间矛盾）
@@ -38,14 +40,15 @@ meetwise/
 │   └── worker/     @meetwise/worker   LangGraphJS 进程 (tsx watch / swc 编译出 dist)
 ├── packages/
 │   ├── config/        @meetwise/config        tsconfig/eslint/tailwind preset + ./env (zod 片段)
-│   ├── domain/        @meetwise/domain        状态机/枚举/不变量 (叶, 仅 zod)
+│   ├── domain/        @meetwise/domain        状态机/枚举/不变量；简历解析 mammoth / pdf-parse
 │   ├── contracts/     @meetwise/contracts     zod4 schema 契约 (→domain)
-│   ├── db/            @meetwise/db            Prisma client 封装 + 迁移 + raw pg(RLS)
+│   ├── db/            @meetwise/db            手写 SQL 迁移 + pg（不是 Prisma）
 │   ├── ai-graphs/     @meetwise/ai-graphs     纯图/节点 (→domain; @langchain/core peer)
 │   ├── ai-runtime/    @meetwise/ai-runtime    模型调用关口: invoke 双校验/重试/幂等 trace + router/validators/catalog (→db)
-│   ├── ui/            @meetwise/ui            shadcn 组件 (react peer)
-│   ├── observability/ @meetwise/observability 共享脱敏 logger/otel (叶, pino/otel)
-│   └── testkit/       @meetwise/testkit       测试夹具/fake-model/pg helper (test-only)
+│   ├── errors/        @meetwise/errors        共享错误类型（现行）
+│   ├── qdrant-store/  @meetwise/qdrant-store  Qdrant 原型，非生产切流
+│   └── db-mysql/      @meetwise/db-mysql      本地 MySQL 骨架，未切流
+│   # 规划中的 ui / observability / testkit 包不存在；shadcn 在 apps/web/components/ui
 ├── turbo.json
 ├── .dependency-cruiser.cjs        # 根级（不进被构建包，避免自举）
 ├── .npmrc · .nvmrc · .gitleaks.toml
@@ -71,18 +74,18 @@ testkit:   test-only，对业务包仅 import type
 
 | 包 | type | exports/产物 | 关键依赖位 |
 |---|---|---|---|
-| config | module | `./tsconfig/*`、`./eslint`、`./tailwind`、`./env`(zod 片段, tsup 出 dist) | dep: zod(catalog) |
-| domain | module | esm-only dist + dts (tsup/tsc -b) | dep: zod 仅此一项 |
-| contracts | module | esm-only | dep: zod(catalog)；workspace: domain |
-| db | module | esm-only；`build: prisma generate && tsup` | dep: @prisma/client, pg, pgvector |
-| ai-graphs | module | esm-only | dep: @langchain/langgraph(catalog)；**@langchain/core 走 peer** |
-| ai-runtime | module | esm-only | dep: zod(catalog)；workspace: db（关口公共面只导出 invoke，禁深链 router/validators/catalog） |
-| ui | module | esm-only + `./styles.css` | **react/react-dom 走 peerDependencies(>=19)** |
-| observability | module | esm-only | dep: pino, @opentelemetry/* |
-| api | module | 无 exports；`build: nest build -b swc` | dep: @nestjs/*, @fastify/*, reflect-metadata, rxjs + workspace 内部包 |
-| worker | module | 无 exports；prod swc 编译出 dist | dep: @langchain/*, bullmq, ioredis, pg + 内部包 |
+| config | module | 现行导出 eslint / prettier / tsconfig；**无** `./env` zod 产物、**无** tsup | 现行 devDeps: `eslint`、`eslint-plugin-import`、`prettier`、`typescript-eslint`。**无** zod 直接依赖 |
+| domain | module | 源码导出；**无** tsup 直接依赖 | 现行 deps: `@meetwise/contracts`、`mammoth`、`pdf-parse`。**不是**「仅 zod」；`zod` 不是本包直接依赖 |
+| contracts | module | 源码导出；OpenAPI 由本包自研（zod4 `z.toJSONSchema`），**无** `zod-openapi` / tsup / vitest 直接依赖 | dep: `zod`(catalog)；workspace: 声明了 `@meetwise/contracts`←domain 方向需以代码为准（现行 domain 依赖 contracts） |
+| db | module | 手写 SQL migrations + `pg`；**无** Prisma、**无** tsup、**无** npm `pgvector` | 现行 deps: `pg`、`tsx` + 内部包（含可选 `@meetwise/qdrant-store` 原型）。向量用 Postgres 扩展 `vector` |
+| ai-graphs | module | 源码导出 | 现行 deps: `@langchain/langgraph`、`@meetwise/domain`。**未**把 `@langchain/core` 声明为 peer |
+| ai-runtime | module | 源码导出 | 现行 deps: `@langfuse/client` / `@langfuse/otel` / `@langfuse/tracing`、`@opentelemetry/sdk-node`、`ipaddr.js`、`zod` + 内部包 |
+| ui | — | **包不存在**。shadcn 源码在 `apps/web/components/ui` | 不要把 `@meetwise/ui` 写成现行工作区 |
+| observability | — | **包不存在**。日志走 Fastify 内置 pino（传递依赖）；OTel / Langfuse v5 在 `ai-runtime` | 不要把 `@meetwise/observability` 写成现行工作区 |
+| api | module | 以 `node --import @swc-node/register/esm-register src/main.ts` 启动；**无** Nest CLI 构建脚本，**无** `@fastify/*` 插件包 | 现行 deps: `@nestjs/common` / `core` / `platform-fastify`、`fastify`、`reflect-metadata`、`rxjs`、`zod`、SWC 加载器 + 内部包。`@nestjs/platform-express` 已声明但零 import |
+| worker | module | 无 exports | 现行 deps: `@langchain/langgraph`、`@langchain/langgraph-checkpoint-postgres`、`pg`、`redis`（缓存/锁，非队列，限流未接线）+ 内部包；耐久队列是 Postgres 表（ADR-0023），不是 bullmq / pg-boss |
 | web | — | Next 自管 | dep: next, react + 内部包 |
-| testkit | module | test-only，私有，无运行期产物 | devDep workspace:*；业务包仅 type |
+| testkit | — | **包不存在** | 不要把 `@meetwise/testkit` 写成现行工作区 |
 
 叶库分发：**dist + `^build` 拓扑**（非 source-export）——SWC 不编 node_modules 里的 .ts，source-export 会让 api 解析不到；代价用 turbo `^build` + `predev` 兜（§4/§7）。
 
@@ -101,7 +104,7 @@ testkit:   test-only，对业务包仅 import type
 | **turbo 任务图** | `build:{dependsOn:["^build", db#db:generate]}`、`typecheck/test:{dependsOn:["^build"]}`、`lint/arch:{}`(零依赖并行)、`dev:{cache:false,persistent:true}`、`db:generate:{outputs:[generated]}` | `^build` 自动拓扑序、循环即报错；lint/arch 最快出红 |
 | **tsconfig base 继承** | `config/tsconfig/base.json`(ES2022/ESNext/Bundler/strict/isolatedModules) 全继承；`config/tsconfig/nest.json` extends base 仅 api 用(开 `experimentalDecorators`+`emitDecoratorMetadata`、关 `verbatimModuleSyntax`)；web 用 next preset | 单一 base；装饰器开关与 verbatim 冲突项隔离到 nest preset |
 | **适配器** | **platform-fastify**（按 footprint，纠正 root 误装的 express） | **must-smoke #2 已过**：薄 `ZodValidationPipe`(zod4)×Fastify×类型DI 校验 3/3（`api:smoke`），不再依赖 ts-rest |
-| **pnpm** | **`pnpm@10.18.0`（`packageManager` 钉死 + corepack 复现）**，catalog 需 ≥9.5；engines `node>=22`(不封上界)，`.nvmrc` | catalog 协议硬前提；packageManager 钉死保 10 年可复现；require(ESM) 依赖 Node≥22.12 |
+| **pnpm** | **`pnpm@10.18.0`（`packageManager` 钉死 + corepack 复现）**，catalog 需 ≥9.5；CI 使用 Node 22。仓库**没有** `.nvmrc`，也**没有** `engines` 字段 | catalog 协议硬前提；packageManager 钉死保 10 年可复现；require(ESM) 依赖 Node≥22.12 |
 
 `.swcrc`(apps/api) 关键字段：`jsc.parser.decorators:true` / `transform.{legacyDecorator,decoratorMetadata}:true` / `keepClassNames:true` / `useDefineForClassFields:false` / `module.type:"es6"`。
 
@@ -118,7 +121,7 @@ testkit:   test-only，对业务包仅 import type
 | pg / zod | 按 import 下沉 db·worker / domain·contracts·worker | catalog: |
 | @types/*·tsx·typescript(dev) | 下沉各包 devDeps | catalog: |
 
-root 只留工具链 devDeps：`turbo, typescript(catalog), prettier, dependency-cruiser, syncpack, knip, husky, lint-staged, vitest(catalog), @vitest/coverage-v8, dotenv-cli`。**砍 commitlint**（单作者 showcase 纯仪式）。验收信号：root 无 `dependencies`，`pnpm why @nestjs/core` 为空。
+root 现行 devDeps 只有：`turbo`、`typescript`、`@types/node`、`eslint`、`tsx`、`esbuild`、`dependency-cruiser`。**未安装** `prettier`（在 config 包）、`syncpack`、`knip`、`husky`、`lint-staged`、`vitest`、`@vitest/coverage-v8`、`dotenv-cli`。root 无 `dependencies` 这一点属实；但 `@nestjs/core` 已下沉到 `apps/api`，`pnpm why @nestjs/core` 不应再按「为空」验收。
 
 **catalog（`pnpm-workspace.yaml`，单一版本真相）**——只收**≥2 工作区共享且双版本有害**者，版本**用 `pnpm view` 取真实最新、对齐已装大版本**（勿手抄）：
 ```
@@ -126,7 +129,7 @@ catalog:
   typescript: 6.0.3        # 2026 真实版本（^6 非笔误，已装）
   "@types/node": 26.0.1    # 2026 真实版本（已装，对齐 Node22 运行时无碍）
   zod: 4.4.x               # 已装 zod4，勿降 zod3
-  vitest / tsup / pg / @types/pg / @prisma/client / prisma
+  pg / @types/pg（现行 catalog 有）。`vitest` / `tsup` / `@prisma/client` / `prisma` **未**进现行 catalog，不要写成已统一版本。
 catalogs:
   langchain: { "@langchain/core": 1.2.x, "@langchain/langgraph": 1.4.x, ...checkpoint-postgres }
   otel / react(19.x)       # 待对应包真存在再启用
@@ -168,9 +171,9 @@ pnpm -C apps/web dev
 
 **关键配置纪律：**
 - **eslint flat**：`base+node+react` 三层；`no-restricted-properties process.env`（仅放行各 app 单一 env loader）；`import/order`+`no-relative-packages`+禁深导入；**配 `eslint-import-resolver-typescript`**(否则边界规则静默 no-op)；server 包关 `consistent-type-imports`；`no-restricted-imports` 配置文件 glob 豁免。`import/no-cycle` **砍**（与 cruiser 重叠）。
-- **dependency-cruiser**（根级，`tsPreCompilationDeps:true` 看穿 import type）：`no-circular`、`pkg-no-import-app`、`no-cross-app`、`ai-graphs-no-io`(含 `node_modules/@langchain/(openai|anthropic|community)` + pg/bullmq/ioredis/aws-sdk/checkpoint-postgres/`^packages/db`)、`domain-poor`(排除 `.test/.spec`/config)、`web-no-server`、`db-only-server`、testkit `import type`-only。`controllers-dont-orchestrate` 等命名规则**待 api 文件结构落地再加**。
-- **env**：每 app 各自 `.env`/`.env.example`(仅 committed example)；`@meetwise/config/env` 只导出 zod 片段(不读 process.env)；api=`@nestjs/config`+zod validate(fail-fast 只打 key 名)，web=`@t3-oss/env-nextjs`(server/client 隔离 + `server-only`，**锁版前验 t3-env×zod4**)，worker=**惰性 `getEnv()`(无顶层 process.exit)** + 显式 `import 'dotenv/config'`/`--env-file`。turbo `envMode:strict`。
-- **密钥**：gitleaks 一处收口(pre-commit `--staged` + CI 全历史) + `.gitleaks.toml` allowlist 放行 `*.env.example` 占位；砍 secretlint 双引擎。
+- **dependency-cruiser**（根级，`tsPreCompilationDeps:true` 看穿 import type）：`no-circular`、`pkg-no-import-app`、`no-cross-app`、`ai-graphs-no-io`（禁止图包直接碰 IO / 队列 / 数据面客户端；规则以 `.dependency-cruiser.cjs` 为准，bullmq 不是现行依赖）、`domain-poor`(排除 `.test/.spec`/config)、`web-no-server`、`db-only-server`、testkit `import type`-only。`controllers-dont-orchestrate` 等命名规则**待 api 文件结构落地再加**。
+- **env**：每 app 有各自 example / 运行时环境变量。`@meetwise/config/env`、`@nestjs/config`、`@t3-oss/env-nextjs`、`server-only` **均未安装**。不要把这些规划加载器写成现行中间件。
+- **密钥**：CI 走仓内 `secrets-scan` 工作流。`gitleaks` / `secretlint` / `husky` **均未作为直接依赖安装**；不要把规划中的 pre-commit 密钥扫描写成现行钩子。
 
 ---
 
@@ -192,9 +195,9 @@ pnpm -C apps/web dev
 
 **测试基建**：全仓 Vitest projects（按文件后缀切分 `*.test/.contract.test/.graph.test/.int.test/.eval`）；api/worker 走 `unplugin-swc`；CI 复用 compose 库(`TEST_PG_URL` 切换，不双供库)；**库隔离默认事务 ROLLBACK**，模板库仅 DDL/迁移套件；**单一 root globalSetup** 供库(幂等守门)；testkit 提供 `FakeChatModel`(按调用序号脚本：正常/重试/拒绝/幻觉)。覆盖率差异化(核心域 domain/validators/contracts 卡严，apps/* 初期不设地板)。
 
-**过渡纪律**：旧 5 脚本 job 与新 Vitest job **并存**，某 gate 断言全搬完且 CI 绿再删旧；`api:validate` 翻向真 Nest **必须先有 AppModule + validate 子命令移植完**(期间 spike 续 tsx 保绿)。db 迁移在 Prisma schema 落地前先用 `psql -f sql/*.sql`；RLS policy/pgvector 走**手写 migration SQL**(prisma migrate 不托管)。
+**过渡纪律**：旧 5 脚本 job 与新 Vitest job **并存**，某 gate 断言全搬完且 CI 绿再删旧；`api:validate` 翻向真 Nest **必须先有 AppModule + validate 子命令移植完**(期间 spike 续 tsx 保绿)。db 迁移本来就是手写 SQL（`packages/db/migrations`），没有 Prisma schema 落地步骤。RLS 与 pgvector 扩展都走手写 migration SQL。
 
-**must-smoke #3**：经 PrismaClient 工厂（`SET LOCAL app.principal` 包在交互式事务）的查询**越权读=0**，别用 raw 证过蒙混。
+**must-smoke #3**（规划稿原文写 PrismaClient 工厂）：现行没有 Prisma。主体上下文与越权读=0 的证明走 `asPrincipal` + 手写 SQL / RLS，不得再把 PrismaClient 写成现行门。
 
 ---
 
@@ -221,6 +224,6 @@ pnpm -C apps/web dev
 **锁版前 must-smoke（任一不过即退回退路径，不得带病锁版）：**
 1. SWC `decoratorMetadata` × ESM × **跨包注入 + forwardRef 循环**真 provider 解析（不过→退 CJS-api，**勿退 tsc-ESM**）。
 2. 薄 `ZodValidationPipe`(zod4) × Fastify × 类型DI 启动校验（已过，见 `api:smoke`）。
-3. PrismaClient 工厂走 RLS **越权读=0**。
+3. 规划稿的 PrismaClient 工厂已不适用；现行是 `asPrincipal` + 手写 SQL / RLS，越权读=0 另有 prove，不以 Prisma 为门。
 
 > 本蓝图为 L2 基建定稿，按项目门禁须过一次对抗式 `expert-audit`（构建系统 / Node 模块解析 / Nest 编译链三类专家）后并入 production-backlog，重点复核上述三处 must-smoke——它们是全稿唯一未经实测、又最 load-bearing 的承重点。

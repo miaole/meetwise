@@ -3,7 +3,7 @@
  * 与后端 interview_event 的 kind 对齐（见 CLAUDE.md SSE 事件目录）。纯函数,可确定性单测,不依赖 React/浏览器。
  */
 import { z } from 'zod';
-import { SessionConcludedPayload } from '@meetwise/contracts';
+import { QuestionDuplicateFallback, SessionConcludedPayload } from '@meetwise/contracts';
 
 /**
  * 题型来自 `packages/domain/src/adaptive-interview.ts`。保留旧值是为了让
@@ -29,6 +29,8 @@ export const BusinessEvent = z.discriminatedUnion('event', [
     turn: z.number().int().nonnegative().optional(),
     qkind: QuestionKind.optional(),
     plannedTurns: z.number().int().nonnegative().optional(),
+    // G2：判重降级标记（additive 可选；旧流缺字段零破坏。不进提交令牌）。
+    duplicateFallback: QuestionDuplicateFallback.optional(),
   }) }),
   z.object({ event: z.literal('waiting_user'), id: z.number().int(), data: z.record(z.string(), z.unknown()) }),
   // outcome 区分 answered / unresolved(跳过/探尽未决):unresolved 不是"得0分",前端标 skipped、不展示惩罚分;报告侧亦剔除。

@@ -247,7 +247,7 @@ related:
 | TC-AUTH-08-ttl | 集成 | TTL 过期 + CONFIRMED → EXPIRED（TTL 优先） |
 
 ## UC-AUTH-09 · qrCreate 限流/防刷（匿名 DoS 护栏）
-> **实现态（2026-10-11 I5 口径刀）：仅设计** —— qrCreate 限流/防刷未落（扫码链路未落）。
+> **实现态（2026-10-11 I5 口径刀）：仅设计** —— qrCreate 限流/防刷未落（扫码链路未落）。下文 Redis 计数 / INCR+TTL 是**目标态，未接线**；现行限流是 `RateLimitService` + PG 共享桶表，Redis 限流未接线。
 **覆盖类**：逃逸 · 高并发 · 刁钻
 - **角色**：匿名客户端 / 系统
 - **触发**：匿名高频建 ticket。
@@ -255,8 +255,8 @@ related:
 
 | flow | 类 | 场景 | 机制 | 后置 |
 |---|---|---|---|---|
-| E5 | 逃逸 | 突发流量 | 限流 kill-switch（Redis 计数 CAS/INCR+TTL） | 拒新建 ticket |
-| 并发 | 高并发 | 单 IP 并发暴建 | 原子计数器（Redis INCR 原子） | 限速精确，无超发 |
+| E5 | 逃逸 | 突发流量 | 限流 kill-switch（Redis 计数 CAS/INCR+TTL，**目标态，未接线**） | 拒新建 ticket |
+| 并发 | 高并发 | 单 IP 并发暴建 | 原子计数器（Redis INCR 原子，**目标态，未接线**） | 限速精确，无超发 |
 | Z1 | 刁钻 | 分布式刷码 | 多维(IP/指纹/全局)阈值 + 全局熔断 | 全局降级保护 |
 
 - **后置**：超阈记 `security_audit(qr_rate_limited)`。**验收**：单 IP 超阈第 K+1 次 → 429 且未创建 ticket 行。

@@ -37,7 +37,7 @@
  *   pnpm scoring-integrity:prove # 评分/报告完整性 proof（绝不触碰开发库）
  *   pnpm runtime-role:prove      # 应用登录最小权限/RLS proof（绝不触碰开发库）
  */
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { randomUUID, createHash } from 'node:crypto';
 import { mkdirSync, writeFileSync, renameSync, readFileSync, existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -48,7 +48,7 @@ import {
   parseE2EFailureLine,
   tagE2EFailure,
 } from '../e2e/helpers/failure-class.mjs';
-import { captureBounded } from './bounded-command.mjs';
+import { captureBounded, appendStderrTail, commandLabel, disposableDockerRmArgs, writeFailureStderrTail, installDisposableContainerSignalCleanup, registerFailureRedactionSecrets } from './bounded-command.mjs';
 import { assertNoFakeServiceFlags } from './e2e-fake-service-flags.mjs';
 import { writeLocalE2EReceipt, writeLocalIsolatedReceipt } from './local-e2e-receipt.mjs';
 import { withheldOutputSummary } from './withheld-output.mjs';
@@ -677,6 +677,7 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0131_job_route_classify_admission.sql',
     'packages/db/migrations/0200_ag08_admission_partition_per_endpoint_seeds.sql',
     'packages/db/migrations/0204_ai_cost_cached_input_price.sql',
+    'packages/db/migrations/0231_g5_n14_admission_breaker_peek.sql',
   ],
   'model-slot-bypass:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -1046,6 +1047,15 @@ const isolatedReceiptSources = {
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/migrations/0021_interview_question_identity.sql',
     'packages/db/migrations/0149_money_status_constraints.sql',
+  ],
+  // #18 INT-P0-RAW-QUEUE 即时剥离：消费后同事务剥 payload 明文 + 已应用重放无明文 + 终态/旧行清理（隔离 PG·est live=0）。
+  'int18:payload-strip:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/int18-payload-plaintext-strip.proof.ts', 'apps/worker/package.json',
+    'apps/worker/src/interview-consumer.ts', 'apps/worker/src/adaptive-lifecycle.ts',
+    'packages/db/src/interview/interview-jobs.ts', 'packages/db/src/interview/interview-question.ts',
+    'packages/db/src/index.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0126_interview_answer_dual_write_fence.sql',
   ],
   'uc012:nhp-adv:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -3048,6 +3058,7 @@ if (![
   'uc012:nhp-neg:prove:raw',
   'uc012:nhp-bound:prove:raw',
   'uc012:nhp-adv:prove:raw',
+  'int18:payload-strip:prove:raw',
   'uc030:nhp-fault:prove:raw',
   'uc003:nhp-adv:prove:raw',
   // UC-003 残面（NHP-003-NEG-01 · 批 A uc003:nhp-adv 同族 · 一行一 case 一收据）。
@@ -3198,7 +3209,7 @@ writeFileSync(CAPS_PATH, JSON.stringify({
 }, null, 2) + '\\n');
 console.log('UC001_CAPS written enforced=' + enforced + ' api NanoCpus=' + apiHost.NanoCpus + ' Memory=' + apiHost.Memory);
 const start = spawnSync('docker', ['start', '-a', API_NAME], { cwd: ROOT, stdio: 'inherit' });
-spawnSync('docker', ['rm', '-f', API_NAME], { stdio: 'ignore' });
+spawnSync('docker', ['rm', '-f', '-v', API_NAME], { stdio: 'ignore' });
 process.exit(start.status ?? 1);
 `;
 
@@ -3248,7 +3259,7 @@ function containerLogs(name) {
 function fail(blocker, extra) {
   writeFileSync(CAPS_PATH, JSON.stringify({ enforced: false, blocker, ...(extra ?? {}) }, null, 2) + '\\n');
   console.error('UC001WEB_CAPS fail blocker=' + blocker);
-  spawnSync('docker', ['rm', '-f', API_NAME, WEB_NAME], { stdio: 'ignore' });
+  spawnSync('docker', ['rm', '-f', '-v', API_NAME, WEB_NAME], { stdio: 'ignore' });
   process.exit(1);
 }
 const pgContainer = process.env.E2E_TEST_CONTAINER;
@@ -3358,7 +3369,7 @@ const proof = spawnSync('pnpm', ['-C', 'apps/web', 'prove:nhp-perf-web'], {
   env: { ...process.env, PERF_WEB_WEB_BASE: 'http://127.0.0.1:' + webPub, PERF_WEB_API_BASE: 'http://127.0.0.1:' + apiPub },
   stdio: 'inherit',
 });
-spawnSync('docker', ['rm', '-f', API_NAME, WEB_NAME], { stdio: 'ignore' });
+spawnSync('docker', ['rm', '-f', '-v', API_NAME, WEB_NAME], { stdio: 'ignore' });
 process.exit(proof.status ?? 1);
 `;
 
@@ -3441,7 +3452,7 @@ writeFileSync(CAPS_PATH, JSON.stringify({
 }, null, 2) + '\\n');
 console.log('${ucId.toUpperCase()}_CAPS written enforced=' + enforced + ' api NanoCpus=' + apiHost.NanoCpus + ' Memory=' + apiHost.Memory);
 const start = spawnSync('docker', ['start', '-a', API_NAME], { cwd: ROOT, stdio: 'inherit' });
-spawnSync('docker', ['rm', '-f', API_NAME], { stdio: 'ignore' });
+spawnSync('docker', ['rm', '-f', '-v', API_NAME], { stdio: 'ignore' });
 process.exit(start.status ?? 1);
 `;
 const UC011_PERF_API_CAPS_CHILD = PERF_API_CAPS_CHILD_SRC('uc011', 'test/uc-e2e-011-nhp-perf-api.proof.ts');
@@ -3504,6 +3515,8 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:uc012-nhp-bound']]
   : target === 'uc012:nhp-adv:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:uc012-nhp-adv']]
+  : target === 'int18:payload-strip:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:int18-payload-strip']]
   // RCLOAD RC-01（REQUEST 件② 触点③·worker 侧同构 uc012 形）。
   : target === 'rcload:route-classify:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:rcload-route-classify']]
@@ -3978,6 +3991,16 @@ const isolatedCommand = target === 'api-harden:prove'
   : undefined;
 
 const container = `meetwise-e2e-${process.pid}-${Date.now()}`;
+let isolatedContainerCreated = false;
+function cleanupOwnIsolatedContainer() {
+  if (!isolatedContainerCreated) return;
+  isolatedContainerCreated = false;
+  spawnSync('docker', disposableDockerRmArgs([container]), { stdio: 'ignore', timeout: 20_000 });
+}
+installDisposableContainerSignalCleanup({
+  getContainerNames: () => (isolatedContainerCreated ? [container] : []),
+  cleanup: cleanupOwnIsolatedContainer,
+});
 // G3: legacy-track default image UNCHANGED (≠ flip / ≠ retire default value this slice).
 const LEGACY_PG_IMAGE_DEFAULT = 'pgvector/pgvector:pg16';
 const image = process.env.E2E_PG_IMAGE ?? LEGACY_PG_IMAGE_DEFAULT;
@@ -4114,6 +4137,7 @@ for (const key of [
 for (const key of Object.keys(inheritedEnv)) if (key.startsWith('LANGFUSE_')) delete inheritedEnv[key];
 if (LIVE_E2E_TARGETS.has(target)) assertNoFakeServiceFlags(inheritedEnv);
 const targetToken = randomUUID();
+registerFailureRedactionSecrets(['meetwise_dev_password', targetToken]);
 const baseEnv = {
   ...inheritedEnv,
   E2E_ISOLATED: '1',
@@ -4140,8 +4164,8 @@ if (baseEnv.G7_RUN_COST_LEDGER_PATH) process.env.G7_RUN_COST_LEDGER_PATH = baseE
 if (baseEnv.G7_FREETIER_REPROVE) process.env.G7_FREETIER_REPROVE = baseEnv.G7_FREETIER_REPROVE;
 
 
-function capture(command, args, env = baseEnv, cwd = ROOT, timeoutMs = 15_000) {
-  return captureBounded(command, args, { cwd, env, timeoutMs });
+function capture(command, args, env = baseEnv, cwd = ROOT, timeoutMs = 15_000, options = {}) {
+  return captureBounded(command, args, { cwd, env, timeoutMs, ...options });
 }
 
 function run(command, args, env = baseEnv) {
@@ -4222,13 +4246,17 @@ function runQbankRetrievalEvalProof(command, args, env = baseEnv) {
 function runFullE2E(command, args, env = baseEnv) {
   return new Promise((resolve, reject) => {
     let stdout = '';
+    let stderrTail = '';
     const child = spawn(command, args, { cwd: ROOT, env, stdio: ['ignore', 'pipe', 'pipe'] });
     child.stdout.on('data', (chunk) => { stdout += chunk; });
-    // stderr（标准错误）永不转存或回显；错误结果只由退出码和安全回执表达。
-    child.stderr.on('data', () => {});
+    // Keep a bounded stderr tail in memory only. On failure print it so the
+    // operator can see why the child died; never persist the tail in receipts.
+    child.stderr.on('data', (chunk) => { stderrTail = appendStderrTail(stderrTail, chunk); });
     child.on('error', reject);
     child.on('exit', (code) => {
-      const judged = evaluateIsolatedHttpE2E({ exitCode: code ?? 1, stdout });
+      const exitCode = code ?? 1;
+      if (exitCode !== 0) writeFailureStderrTail(stderrTail, { exitCode, command: commandLabel(command, args) });
+      const judged = evaluateIsolatedHttpE2E({ exitCode, stdout });
       if (judged.reject) return reject(tagE2EFailure(judged.reject.class, judged.reject.code));
       if (judged.accept) {
         console.log(`E2E_FINAL_SUMMARY assertions=${judged.assertionCount}`);
@@ -4260,10 +4288,10 @@ const HOST_SQL_PROBE = [
   "try { await client.connect(); await client.query('SELECT 1'); } finally { await client.end().catch(() => undefined); }",
 ].join(' ');
 
-async function probeHostSql(env) {
+async function probeHostSql(env, options = {}) {
   // `pg` 是 db workspace 的直接依赖，而不是仓库根依赖。以该 workspace 作为
   // 模块解析起点，避免为了测试探针把数据库驱动错误提升为根生产依赖。
-  await capture('node', ['--input-type=module', '--eval', HOST_SQL_PROBE], env, `${ROOT}packages/db`, 5_000);
+  await capture('node', ['--input-type=module', '--eval', HOST_SQL_PROBE], env, `${ROOT}packages/db`, 5_000, options);
 }
 
 /**
@@ -4295,10 +4323,14 @@ async function waitForPostgres(env, { consecutive = 3, label = 'boot' } = {}) {
   // SELECT 1 successes and re-probe after migrate (see call sites) so a brief
   // postmaster bounce cannot pass a single probe then refuse the prove.
   let streak = 0;
+  let lastFailureTail = '';
+  const pollSink = { write(chunk) { lastFailureTail += String(chunk); return true; } };
+  const pollOpts = { stderrSink: pollSink };
   for (let attempt = 0; attempt < 90; attempt++) {
+    lastFailureTail = '';
     try {
-      await capture('docker', ['exec', container, 'psql', '-v', 'ON_ERROR_STOP=1', '-U', 'meetwise', '-d', 'meetwise', '-Atqc', 'SELECT 1'], baseEnv, ROOT, 5_000);
-      if (env) await probeHostSql(env);
+      await capture('docker', ['exec', container, 'psql', '-v', 'ON_ERROR_STOP=1', '-U', 'meetwise', '-d', 'meetwise', '-Atqc', 'SELECT 1'], baseEnv, ROOT, 5_000, pollOpts);
+      if (env) await probeHostSql(env, pollOpts);
       streak += 1;
       if (streak >= consecutive) {
         console.log(`E2E_POSTGRES_READY label=${label} consecutive=${streak} attempt=${attempt + 1}`);
@@ -4309,6 +4341,9 @@ async function waitForPostgres(env, { consecutive = 3, label = 'boot' } = {}) {
       await sleep(1_000);
     }
   }
+  // Expected probe failures stay quiet during the retry loop; print only the
+  // last tail once the poll has been exhausted.
+  if (lastFailureTail) process.stderr.write(lastFailureTail);
   throw new Error(`isolated_postgres_database_not_ready:${label}`);
 }
 
@@ -4328,7 +4363,7 @@ async function migrateWithRecovery(env) {
 }
 
 async function main() {
-  let created = false;
+  isolatedContainerCreated = false;
   let failed = false;
   const startedAt = new Date();
   let targetExitCode = 1;
@@ -4445,7 +4480,7 @@ async function main() {
       '-p', '127.0.0.1::5432', image,
       'postgres', '-c', `meetwise.e2e_run_token=${targetToken}`,
     ], baseEnv, ROOT, 120_000);
-    created = true;
+    isolatedContainerCreated = true;
     const portOutput = await capture('docker', ['port', container, '5432/tcp'], baseEnv, ROOT, 10_000);
     const match = portOutput.match(/127\.0\.0\.1:(\d+)/);
     if (!match) throw new Error(`isolated_postgres_port_unparseable:${portOutput}`);
@@ -4464,7 +4499,7 @@ async function main() {
   'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:external-sink-async-purge:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw', 'int-transcript-preview-submit:http:prove:raw', 'int-transcript-answer-fact-root:prove:raw', 'int-transcript-remaining-sinks:prove:raw', 'api-harden:prove', 'scor-01:prove:raw', 'scor-02:prove:raw', 'scor03-evidence-conflict:prove:raw', 'scor-parity:prove:raw', 'growth:prove:raw', 'rag03-route:prove:raw', 'rag04-track-local:prove:raw', 'rag03-filter-locus:prove:raw', 'rag03-hnsw-completeness:prove:raw', 'rag03c-exactk-observe:prove:raw', 'r4-wrong-track-adv-live-pg:prove:raw', 'nhp-r4-adv-covered:prove:raw', 'r4-wrong-track-prod-surface:prove:raw', 'rag05-qbank-miss:prove:raw', 'rag06-route-scope-cache:prove:raw', 'rag07-free-text-route:prove:raw', 'memory-governance:prove:raw', 'db-id-v7:prove:raw', 'db-intfk:prove:raw', 'db-money3:prove:raw', 'memory-admission:prove:raw', 'memory-fact-adjudication:prove:raw', 'memory-index-generation:prove:raw', 'memory-two-stage-recall:prove:raw', 'memory-control-surface:prove:raw', 'ctx03-event-source:prove:raw', 'mem02-summary:prove:raw', 'mem03-summary-tree:prove:raw', 'ctx04-compression-snapshot:prove:raw', 'ctx05-concurrency-recovery:prove:raw', 'ctx06-deletion-closure:prove:raw', 'int-answer-dual-write-fence:prove:raw', 'memory-vector-chunk-erasure:prove:raw', 'vector-plane-erasure:prove:raw', 'uc004:career-path-fault:prove:raw', 'uc004:career-path:http:prove:raw', 'uc001:nhp-neg:prove:raw', 'uc001:nhp-bound:prove:raw', 'uc001:nhp-adv:prove:raw', 'uc001:nhp-fault:prove:raw', 'uc016:nhp-fault:prove:raw',
   // DBHY-1: sql/ 兼容镜像退役(案A 机械迁面)——这些目标改为预迁移(migrations 单真相),proof 内 sql/ 重放已剥。
   // (vectorstore:prove:raw 不入此名单:marked-red legacy fixture 自证只装 legacy 向量面,归 B' 残面=sql/ 夹具保留至 legacy 退役刀。)
-  'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'estimate-threading-invoke:prove:raw', 'failover-price-policy:prove:raw', 'model-op00-usage-reconciler:prove:raw', 'ucal-windowing:prove:raw', 'adaptive-latency:prove', 'uc028:nhp-fault:prove:raw', 'uc028:recon-truth-inject:prove:raw', 'uc012:nhp-fault:prove:raw', 'uc012:nhp-neg:prove:raw', 'uc012:nhp-bound:prove:raw', 'uc012:nhp-adv:prove:raw', 'uc030:nhp-fault:prove:raw',
+  'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'estimate-threading-invoke:prove:raw', 'failover-price-policy:prove:raw', 'model-op00-usage-reconciler:prove:raw', 'ucal-windowing:prove:raw', 'adaptive-latency:prove', 'uc028:nhp-fault:prove:raw', 'uc028:recon-truth-inject:prove:raw', 'uc012:nhp-fault:prove:raw', 'uc012:nhp-neg:prove:raw', 'uc012:nhp-bound:prove:raw', 'uc012:nhp-adv:prove:raw', 'int18:payload-strip:prove:raw', 'uc030:nhp-fault:prove:raw',
   // NHP 批 C 三行（UC-016/029 NEG · UC-015 ADV · UC-001 PERF_api · pre-migrate 名单第四注册位全登记——批 A §9-EXEC 第四位教训承登）。
   'uc016:nhp-neg:prove:raw', 'uc015:nhp-adv:prove:raw', 'uc001:nhp-perf-api:prove:raw',
   // UC-015 FAULT 一行（NHP-015-FAULT-01 · pre-migrate 名单第四注册位·**承重披露（r1 修订⑤·非程序性）**：
@@ -4566,8 +4601,8 @@ async function main() {
     }
     throw error;
   } finally {
-    if (created && failed) await emitFailureDiagnostic();
-    if (created) await capture('docker', ['rm', '-f', container]).catch(() => {});
+    if (isolatedContainerCreated && failed) await emitFailureDiagnostic();
+    cleanupOwnIsolatedContainer();
     if (target === 'e2e:prove') {
       try {
         const g7Base = loadG7ReceiptFromLedger(process.env);
