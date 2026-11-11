@@ -5,7 +5,8 @@
 import {
   asPrincipal, appendEvent, closeTopic, completeInterviewAndConfirm, failInterviewAndRelease, enqueueReport, markApplicationAssessmentUnavailable, markApplicationNoEligibleScore,
   writeNoEvidenceReadyReport, NO_EVIDENCE_REPORT_CONTENT,
-  persistInterviewQuestion, verifyInterviewAnswerClaim, markInterviewAnswerApplied, enrollCheckpointThread,
+  persistInterviewQuestion, verifyInterviewAnswerClaim, markInterviewAnswerApplied, isInterviewAnswerApplied, enrollCheckpointThread,
+  stripConsumedInterviewAnswerPlaintext,
   assertInterviewGraphFence, publishRubricAndIssueContract,
   writeTopicShadowMeter,
   readGraphRunObservation, recordGraphRunObservation, graphRunPositionIsStuck,
@@ -14,11 +15,12 @@ import {
 import { Command, type LangGraphRunnableConfig } from '@langchain/langgraph';
 import { buildAdaptiveInterviewGraph, type PendingQuestion } from '@meetwise/ai-graphs';
 import { getMetrics, METRIC, type ModelClient, type GraphObserver, type ModelCostPolicy } from '@meetwise/ai-runtime';
-import { admitInterviewResume, assertInterviewAnswerContentAcceptable, type QuestionGenerationProvenance, type ScoredRef, type SourceDoc, type CompetencySpec, type ResearchBoundaryDecision, type ScoredCriterionDisposition } from '@meetwise/domain';
+import { admitInterviewResume, assertInterviewAnswerContentAcceptable, QUESTION_DUPLICATE_FALLBACKS, type QuestionDuplicateFallback, type QuestionGenerationProvenance, type ScoredRef, type SourceDoc, type CompetencySpec, type ResearchBoundaryDecision, type ScoredCriterionDisposition } from '@meetwise/domain';
 import { buildAdaptiveDeps, buildResumeFactPool, planCompetencies, selectPlannerFacts } from './adaptive-interview-service.ts';
 import { writeScoreCardAfterProjectionFenceTolerant } from './score-writer.ts';
 import { recordAskedQuestions } from './memory-service.ts';
 import { emitSignalConcludeEvent } from './signal-conclude-event.ts';
+import { invokeWithCheckpointContainment } from './checkpoint-fence.ts';
 
 export type InterviewGenerationUnavailable = {
   reason: string;
@@ -48,6 +50,18 @@ const pendingQuestion = (snap: any): PendingQuestion | undefined => {
   if (snap.values?.concluded === true || generationFailureOf(snap)) return undefined;
   return snap.values?.pending ?? snap.tasks?.[0]?.interrupts?.[0]?.value;
 };
+
+/**
+ * G2：把 duplicateFallback 投影到 question_ready。优先读 pending（新世代写入），
+ * 旧 checkpoint 仅记在 generationProvenance 时回退读 snap。非法值丢弃，避免把未知串写入事件。
+ * undefined 经 JSON.stringify 缺字段，旧消费者零破坏。
+ */
+function projectedDuplicateFallback(p: PendingQuestion, snap?: any): QuestionDuplicateFallback | undefined {
+  const raw = p.duplicateFallback ?? (snap?.values?.generationProvenance as QuestionGenerationProvenance | undefined)?.duplicateFallback;
+  return (QUESTION_DUPLICATE_FALLBACKS as readonly string[]).includes(raw as string)
+    ? raw as QuestionDuplicateFallback
+    : undefined;
+}
 
 /** AG-15 卡死检测（§1.2 语义定稿·纯函数零 IO）：done→'END'；pending→'interrupt:<next[0]>'；
  *  其余（next 非空∧无 interrupt∧非 failure）→裸节点名=卡死形状。failure 臂 lastError 带 generation_* reason。 */
@@ -205,7 +219,7 @@ function makeDeps(
     trackLocalDeficitRef: d.trackLocalDeficitRef,
     askCostPolicy: d.askCostPolicy,
     loadAnswer: async (reference) => {
-      if (!answer || reference.answerId !== answer.answerId)
+      if (!answer || reference.answerId !== answer.answerId || typeof answer.answer !== 'string')
         throw Object.assign(new Error('answer_artifact_unavailable'), { code: 'answer_artifact_unavailable' });
       return answer.answer;
     },
@@ -307,7 +321,7 @@ async function observeGraphRunPosition(d: AdaptiveLifecycleDeps, snap: unknown):
 }
 
 /** pending question 先入 question ledger，再发具有相同 identity 的 SSE 业务事件。 */
-async function persistAndEmitQuestion(d: AdaptiveLifecycleDeps, p: PendingQuestion): Promise<void> {
+async function persistAndEmitQuestion(d: AdaptiveLifecycleDeps, p: PendingQuestion, snap?: any): Promise<void> {
   await asPrincipal(d.pool, d.owner, async (c) => {
     await requireCurrentFence(c, d);
     await persistInterviewQuestion(c, d.owner, d.interviewId, {
@@ -331,6 +345,8 @@ async function persistAndEmitQuestion(d: AdaptiveLifecycleDeps, p: PendingQuesti
       // billing P1（BILL1-TOPIC-FIELDS 修法⑥）：话题维度 additive 可选字段（沿 plannedTurns 同形制 A；
       // 旧 checkpoint 缺省 undefined，JSON 序列化即缺字段，消费者必须降级）。
       topicId: p.topicId, askMode: p.askMode, clarifyCause: p.clarifyCause,
+      // G2：判重降级标记投影到 question_ready（additive 可选；正常出题/旧流缺字段）。
+      duplicateFallback: projectedDuplicateFallback(p, snap),
     }, `question_ready:${p.questionId}`);
   });
 }
@@ -391,9 +407,9 @@ async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string
   let snap = await g.getState(cfg);
   if (!pendingQuestion(snap)) {
     if ((snap.next?.length ?? 0) > 0) {
-      await g.invoke(null, cfg);
+      await invokeWithCheckpointContainment(d.cp, (signal) => g.invoke(null, signal ? { ...cfg, signal } : cfg));
     } else {
-      await g.invoke({}, cfg);
+      await invokeWithCheckpointContainment(d.cp, (signal) => g.invoke({}, signal ? { ...cfg, signal } : cfg));
     }
     snap = await g.getState(cfg);
     await observeGraphRunPosition(d, snap);
@@ -409,7 +425,7 @@ async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string
     await deleteCommittedTerminalCheckpoints(d);
     return { unavailable };
   }
-  await persistAndEmitQuestion(d, pending);
+  await persistAndEmitQuestion(d, pending, snap);
   return { question: pending.question, questionId: pending.questionId, stateVersion: pending.stateVersion };
 }
 
@@ -435,7 +451,12 @@ async function submitAdaptiveAnswerImpl(
   // ledger/事件/计费零副作用，题目状态不变可重答。文本路径合法流量在 API 层已过同判定（此处为
   // 缝内等价闸=纵深兜底，非 HTTP-only 校验的缺口）；语音路径由 submitVoiceTranscriptAnswer 在
   // claim 之前过同一判定（claim 吃题不可发生在拒收轮次）。
-  assertInterviewAnswerContentAcceptable(input.answer);
+  // #18：明文已在“答案已应用”的同一投影事务里剥离 → 重放（崩溃/瞬时错误 requeue）不再带原文。
+  // 仅当 DB 证明该 identity 已 answered 时放行（只做 checkpoint 补投影，不再 Command(resume)）；
+  // 否则（未消费却缺原文，如 TTL 清理后被领）走原有内容闸，失败关闭语义零变。
+  const plaintextConsumed = typeof input.answer !== 'string'
+    && await asPrincipal(d.pool, d.owner, (c) => isInterviewAnswerApplied(c, d.owner, d.interviewId, input));
+  if (!plaintextConsumed) assertInterviewAnswerContentAcceptable(input.answer);
   await asPrincipal(d.pool, d.owner, (c) => enrollCheckpointThread(c, d.owner, d.interviewId));
   // C2/G2(RESUME-GROUNDING):answer 链进入点同源注入——一次 RLS 读出授权位+consent 门控 facts 池
   // (S2 grounded 真出题与 S3 追问上下文共用的弹药面;撤回后新一轮面试 buildData 零 digest/facts,G4)。
@@ -472,15 +493,17 @@ async function submitAdaptiveAnswerImpl(
   // alreadyApplied 且 next 空/已有 interrupt 的既有纯重放路径（proof 等价重放臂）逐字节保留。
   let snap = before;
   if (!alreadyApplied) {
+    // 原文已消费却 checkpoint 未前进（例如终态后 checkpoint 已删）：绝不拿空原文 resume。
+    if (plaintextConsumed) throw Object.assign(new Error('stale_question'), { code: 'stale_question' });
     const pending = pendingQuestion(before);
     if (!pending || pending.questionId !== input.questionId || pending.stateVersion !== input.stateVersion || pending.turn !== input.turn)
       throw Object.assign(new Error('stale_question'), { code: 'stale_question' });
     const claimed = await asPrincipal(d.pool, d.owner, (c) => verifyInterviewAnswerClaim(c, d.owner, d.interviewId, input));
     if (!claimed) throw Object.assign(new Error('answer_identity_not_claimed'), { code: 'answer_identity_not_claimed' });
-    await g.invoke(new Command({ resume: { answerId: input.answerId } }), cfg);
+    await invokeWithCheckpointContainment(d.cp, (signal) => g.invoke(new Command({ resume: { answerId: input.answerId } }), signal ? { ...cfg, signal } : cfg));
     snap = await g.getState(cfg);
   } else if ((before.next?.length ?? 0) > 0 && pendingQuestion(before) === undefined) {
-    await g.invoke(null, cfg);
+    await invokeWithCheckpointContainment(d.cp, (signal) => g.invoke(null, signal ? { ...cfg, signal } : cfg));
     snap = await g.getState(cfg);
   }
   await observeGraphRunPosition(d, snap);
@@ -503,6 +526,9 @@ async function submitAdaptiveAnswerImpl(
     if (!claimed) throw Object.assign(new Error('answer_identity_lost'), { code: 'answer_identity_lost' });
     if (!await markInterviewAnswerApplied(c, d.owner, d.interviewId, input))
       throw Object.assign(new Error('answer_apply_fence_lost'), { code: 'answer_apply_fence_lost' });
+    // #18 即时剥离：与“答案已应用”同事务提交（回滚则明文仍在、可重放）。之后的结算/写卡/
+    // markJobDone 均不再需要 legacy payload 原文（明文 /turn 家族结构性无 score_request）。
+    await stripConsumedInterviewAnswerPlaintext(c, d.owner, d.interviewId, input);
     if (next) {
       await persistInterviewQuestion(c, d.owner, d.interviewId, {
         questionId: next.questionId, stateVersion: next.stateVersion, turn: next.turn,
@@ -548,6 +574,8 @@ async function submitAdaptiveAnswerImpl(
         questionId: next.questionId, stateVersion: next.stateVersion, turn: next.turn,
         question: next.question, competency: next.competency, qkind: next.kind,
         plannedTurns: next.plannedTurns,
+        // G2：answer/unscored 臂同面投影降级标记（additive 可选）。
+        duplicateFallback: projectedDuplicateFallback(next, snap),
       }, `question_ready:${next.questionId}`);
       return;
     }
@@ -575,6 +603,8 @@ async function submitAdaptiveAnswerImpl(
       question: next.question, competency: next.competency, qkind: next.kind,
       // #256 形制 A：answer 臂同面（next=pendingQuestion(snap)，发射作用域直读·R2 勘误路径）。
       plannedTurns: next.plannedTurns,
+      // G2：answer 臂同面投影降级标记（additive 可选；正常出题/旧流缺字段）。
+      duplicateFallback: projectedDuplicateFallback(next, snap),
     }, `question_ready:${next.questionId}`);
   });
 
