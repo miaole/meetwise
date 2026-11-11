@@ -677,6 +677,7 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0131_job_route_classify_admission.sql',
     'packages/db/migrations/0200_ag08_admission_partition_per_endpoint_seeds.sql',
     'packages/db/migrations/0204_ai_cost_cached_input_price.sql',
+    'packages/db/migrations/0231_g5_n14_admission_breaker_peek.sql',
   ],
   'model-slot-bypass:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',

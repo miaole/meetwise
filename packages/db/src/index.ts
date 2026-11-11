@@ -263,10 +263,10 @@ export type {
 } from './model-op/usage-calibration.ts';
 
 // MODEL-OP-02 共享 provider 准入/费用账本/断路器/并发 数据访问（SECURITY DEFINER 过程真相）。
-export { acquireModelAdmission, recordModelAdmission } from './model-op/model-operation-admission.ts';
+export { acquireModelAdmission, recordModelAdmission, peekModelAdmissionBreaker } from './model-op/model-operation-admission.ts';
 export type {
   ModelAdmissionPartition, ModelAdmissionDecision, ModelBreakerOutcome, ModelFeeStatus,
-  ModelAdmissionAcquireInput, ModelAdmissionAcquireResult, ModelAdmissionRecordInput,
+  ModelAdmissionAcquireInput, ModelAdmissionAcquireResult, ModelAdmissionRecordInput, ModelAdmissionBreakerPeek,
 } from './model-op/model-operation-admission.ts';
 
 // 在线 Judge 控制面：只处理 HMAC 引用和状态机；不持有用户正文或模型 payload。
