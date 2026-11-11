@@ -2,8 +2,8 @@
  * 同一面试图执行的双层 fencing。
  *
  * PostgreSQL 事务级 advisory lock（pg_advisory_xact_lock，与旧 session 锁同键）只
- * 覆盖 begin 竞态窗：事务 COMMIT 即自动释放，不再独占池连接（PgBouncer 事务池
- * 语义下成立；对齐 0037 durable-claim 先例——长模型调用不由事务锁承重）；
+ * 覆盖 begin 竞态窗：事务 COMMIT 即自动释放，不再独占池连接（在连接于事务结束
+ * 即归还的池化模式下亦成立；对齐 0037 durable-claim 先例——长模型调用不由事务锁承重）；
  * ai_graph_run 的 lease/version 是 invoke 全程的唯一可审计 fence，并在旧进程消失
  * 后由 TTL 允许接管。
  */
