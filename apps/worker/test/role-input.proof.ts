@@ -240,6 +240,50 @@ async function main() {
   A('⑤d 填岗位:目标岗位条件段前缀(diagnosis :59 同形)', !!q2 && q2.userData.startsWith(`目标岗位:${USER_ROLE}\n`), q2?.userData.slice(0, 40));
   A('⑤e v2 userData 仍含 facts 接地(岗位段与事实同帧)', !!q2 && q2.userData.endsWith(quizFacts.join('\n')));
 
+  // ── ⑥ G6 N-17:targetRole 参与路由裁决(真 PG·生产同链 supplyCandidateProfileRoute·修前 targetRole 只写 payload) ──
+  section('⑥ N-17 targetRole 参与裁决(歧义简历+用户岗位 → 用户岗位叶;缺省=修前字节)');
+  {
+    const AMBIG_RESUME = ['工作经历', 'Java Spring 微服务开发', 'Python Django 数据平台'].join('\n');
+    const ambResume = await asPrincipal(pool, OWNER, async (c) => {
+      const created = await createResumeWithBlob(c, OWNER, AMBIG_RESUME);
+      await transitionResume(c, OWNER, created.resumeId, 'uploaded', 'ingesting');
+      await completeIngestion(c, OWNER, created.resumeId, ingestResume(AMBIG_RESUME));
+      return created.resumeId;
+    });
+    const ambEpoch = Number((await asPrincipal(pool, OWNER, async (c) => await c.query<{ privacy_epoch: number }>(
+      'SELECT privacy_epoch FROM resume WHERE id=$1 AND owner_user_id=$2', [ambResume, OWNER],
+    ))).rows[0]?.privacy_epoch);
+    const supplyFor = async (tag: string, targetRole?: string) => {
+      const iid = `ri-n17-${tag}-${Date.now()}-${randomUUID().slice(0, 8)}`;
+      await asPrincipal(pool, OWNER, (c) => c.query(
+        "INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'created',$3,$4)",
+        [iid, OWNER, ambResume, ambEpoch],
+      ));
+      const supply = await asPrincipal(pool, OWNER, (c) =>
+        (supplyCandidateProfileRoute as (...a: unknown[]) => ReturnType<typeof supplyCandidateProfileRoute>)(c, OWNER, iid, ambResume, targetRole));
+      const row = await asPrincipal(pool, OWNER, async (c) => (await c.query<{ leaf: string; policy: string; digest: string; sdigest: string }>(
+        `SELECT d.leaf_track_id AS leaf, d.policy_version AS policy, d.input_digest AS digest, s.input_digest AS sdigest
+           FROM candidate_profile_route_decision d JOIN candidate_profile_route_snapshot s ON s.decision_id=d.id
+          WHERE d.interview_id=$1`, [iid],
+      )).rows[0]);
+      const snap = await asPrincipal(pool, OWNER, (c) => getInterviewRouteSnapshotForAdaptiveRole(c, OWNER, iid));
+      return { supply, row, snapLeaf: snap?.allocations?.[0]?.leafTrackId };
+    };
+    const withRole = await supplyFor('java', 'Java 后端工程师');
+    A('⑥a 歧义简历+targetRole「Java 后端工程师」→ decision/snapshot 叶=backend/java(修前恒 general)',
+      withRole.supply.status === 'supplied' && withRole.row?.leaf === 'backend/java' && withRole.snapLeaf === 'backend/java',
+      `leaf=${withRole.row?.leaf} snap=${withRole.snapLeaf}`);
+    A('⑥b 采纳行 policy_version 带 +target-role:v1 后缀;decision/snapshot input_digest 同值', /\+target-role:v1$/.test(withRole.row?.policy ?? '')
+      && withRole.row?.digest === withRole.row?.sdigest, `policy=${withRole.row?.policy}`);
+    const noRole = await supplyFor('none');
+    A('⑥c 同简历缺省 targetRole → backend/general(降级现状)·policy 无后缀(修前逐字节)',
+      noRole.row?.leaf === 'backend/general' && !/target-role/.test(noRole.row?.policy ?? ''), `leaf=${noRole.row?.leaf} policy=${noRole.row?.policy}`);
+    A('⑥d 采纳行 digest ≠ 纯简历 digest(决策身份可区分·审计可对账)', !!withRole.row && !!noRole.row && withRole.row.digest !== noRole.row.digest);
+    const genericRole = await supplyFor('generic', USER_ROLE);   // 「后端开发工程师」只命中 general → 不改
+    A('⑥e targetRole 只命中 general(后端开发工程师)→ 维持降级 general·policy 无后缀',
+      genericRole.row?.leaf === 'backend/general' && !/target-role/.test(genericRole.row?.policy ?? ''), `leaf=${genericRole.row?.leaf}`);
+  }
+
   console.log(`\n${failures === 0 ? '✓ ROLE-INPUT prove(①②③④⑤·payload→planner 段+quiz prompt 段)全部通过' : `✗ ${failures} 项失败`}`);
   await pool.end();
   process.exit(failures === 0 ? 0 : 1);

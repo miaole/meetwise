@@ -755,13 +755,15 @@ PII 字段清单（脱敏断言基线）：身份证号、手机号、邮箱、�
 ## UC-quiz-079 · 反滥用状态机落点 + 阈值固化 ★必补
 **七类：逃逸(限流/kill-switch) · 刁钻(刷量)**
 
+> **目标态，未接线**：下面「限流中间件计数器（Redis）」是设计规格，不是现行实现。现行限流是 `RateLimitService` + PG 共享桶表；Redis 限流未接线。
+>
 > 机制化原 UC-023。
 
 - 角色：系统（限流中间件 + 配额 kill-switch）
 - 触发：用户在 `N 次/时窗`（固化常量，如 **20 次/分钟/用户**，生成类更严）之上刷生成/重生成。
 
 主流程
-1. 限流中间件计数器（Redis）；超阈值 → QuizSet/请求路由 `throttled` 枚举；返回 429。
+1. 限流中间件计数器（Redis，**目标态，未接线**）；超阈值 → QuizSet/请求路由 `throttled` 枚举；返回 429。
 2. 写 `rate_limit_audit(counter, threshold, window, kill_switch)`；超阈值**不 reserve**（不扣额度、不进 generating）。
 3. 全局 kill-switch 可一键降级只读。
 

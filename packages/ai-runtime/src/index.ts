@@ -7,7 +7,7 @@
  * 适配器，它们尚未完成 MODEL-OP-01 接线，不能误称为无旁路网关。
  */
 export { invoke, resolveModelDeadlineConfig } from './invoke.ts';
-export type { Model, ModelResult, ModelUsage, ModelCostPolicy, ModelCallPlan, ModelAdmission, ModelDeadlineConfig, InvokeSpec, InvokeOutcome } from './invoke.ts';
+export type { Model, ModelResult, ModelUsage, ModelCostPolicy, ModelCallPlan, ModelAdmission, ModelDeadlineConfig, ModelPrepareRoute, InvokeSpec, InvokeOutcome } from './invoke.ts';
 export {
   MODEL_OPERATION_REGISTRY, MODEL_OPERATION_REGISTRY_VERSION, DETERMINISTIC_NODE_MATRIX,
   lookupModelOperation, resolveModelOperation, isRegistryLogicalNodeKey, registryLogicalNodeKeyDigest,

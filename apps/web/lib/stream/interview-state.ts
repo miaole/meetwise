@@ -3,7 +3,7 @@
  * 不变量(无静默死胡同):任何情形都有出路——report_unavailable→degraded;流断在非终态→reconnecting(自动重连+显式"重连中");
  * 重连耗尽或 HTTP 400 非法 Last-Event-ID→degraded/error（不得用同一游标重试）。绝不停在干等无出口的转圈。状态真相在服务端 checkpoint,断线用同一 resultId + Last-Event-ID 续。
  */
-import type { InterviewSignalConcludeReason } from '@meetwise/contracts';
+import type { InterviewSignalConcludeReason, QuestionDuplicateFallback } from '@meetwise/contracts';
 import type { BusinessEvent, QuestionKind } from './business-events';
 import type { QuestionIdentity } from '../interview/turn-submission';
 import { practiceHintScore } from './scoring-honesty';
@@ -47,6 +47,11 @@ export interface InterviewView {
    * 缺失/旧流 → 显示面降级只显「第 N 题」；约数+可调注记，非承诺非上限。
    */
   plannedTurns?: number;
+  /**
+   * G2：最新 question_ready 携带的判重降级标记。只进渲染/运营投影——**不塞 QuestionIdentity**。
+   * 逐题覆盖写；旧流/正常出题缺字段 → undefined，不残留上一题旧值。
+   */
+  duplicateFallback?: QuestionDuplicateFallback;
   /** 引导态(非终态):回答没正面回应本题 → 展示引导 + 可重答/跳过。收到下一个 question_ready/answer_evaluated 即清(自动消解,无死胡同)。 */
   guidance?: { hint: string; question: string; competency?: string };
   /** 报告不可用(被隔离)或重连耗尽 → true：前端显示"暂不可用,可重试/联系支持",而不是永远等。 */
@@ -129,7 +134,7 @@ export function applyEvents(v: InterviewView, events: readonly BusinessEvent[]):
     switch (e.event) {
     case 'question_ready': {
       const competency = (e.data as any).competency as string | undefined;
-      const candidate = e.data as { questionId?: string; stateVersion?: number; turn?: number; qkind?: InterviewTurn['qkind']; plannedTurns?: number };
+      const candidate = e.data as { questionId?: string; stateVersion?: number; turn?: number; qkind?: InterviewTurn['qkind']; plannedTurns?: number; duplicateFallback?: QuestionDuplicateFallback };
       const questionIdentity = candidate.questionId !== undefined && candidate.stateVersion !== undefined && candidate.turn !== undefined
         ? { questionId: candidate.questionId, stateVersion: candidate.stateVersion, turn: candidate.turn }
         : undefined;
@@ -138,6 +143,8 @@ export function applyEvents(v: InterviewView, events: readonly BusinessEvent[]):
       next.phase = 'question'; next.question = e.data.question; next.competency = competency; next.questionIdentity = questionIdentity;
       // #256 形制 A：随题读入预算约数（逐题覆盖写；缺字段=undefined 即显示面降级，不残留上一题旧值）。
       next.plannedTurns = candidate.plannedTurns;
+      // G2：随题覆盖写降级标记（缺字段=undefined，不残留上一题旧值；不进 identity）。
+      next.duplicateFallback = candidate.duplicateFallback;
       turns.push({ q: e.data.question, competency, followUp, questionIdentity, qkind: candidate.qkind });
       next.guidance = undefined;                                     // 新题 → 清引导(已消解)
       break;

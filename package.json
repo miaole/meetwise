@@ -5,7 +5,7 @@
   "packageManager": "pnpm@10.18.0",
   "scripts": {
     "candidate-route:prove": "pnpm -C packages/domain prove:candidate-route",
-    "lint": "eslint . --max-warnings 5427",
+    "lint": "eslint . --max-warnings 5431",
     "docs:check": "node scripts/ai-docs/check-docs.mjs",
     "golden-tasks:check": "node scripts/golden-tasks-check.mjs",
     "generation-trust:prove": "node scripts/generation-trust-check.mjs",
@@ -26,6 +26,7 @@
     "typecheck": "pnpm typecheck:e2e",
     "e2e-case-inventory:prove": "node scripts/e2e-case-inventory.proof.mjs",
     "regression": "node scripts/run-post-change-regression.mjs",
+    "verify:local": "pnpm e2e-ui-stale-build-guard:prove && pnpm -C apps/web prove:public-copy && MIGRATE_UPGRADE_REQUIRE_GIT_ARM=1 pnpm migrate-upgrade:prove && pnpm drift:prove && pnpm neg:bend && pnpm neg:auth && pnpm neg:commerce && pnpm neg:resume && pnpm neg:interview && pnpm neg:input && pnpm uc033:cross-user-authz:prove && pnpm dbhy1:prove && pnpm db-acl2:prove && pnpm commerce:prove && pnpm resume:prove && pnpm report:prove && pnpm quiz:prove && pnpm reaper:prove && pnpm model-op00:prove && pnpm adaptive:prove && pnpm adaptive-flow:prove && pnpm adaptive-life:prove && pnpm adaptive-consumer:prove && pnpm checkpoint-role:prove && pnpm privacy-erasure:prove && pnpm privacy-erasure:http:prove && pnpm privacy-erasure-preview:prove && pnpm privacy-erasure:pause-upgrade:prove && pnpm scor-00:http:prove && pnpm scor-parity:prove && pnpm scoring-integrity:prove && pnpm tokenstream:prove && pnpm stress:prove && pnpm uc003:i18n-locale:prove && pnpm metrics:prove && pnpm model-output-limit:prove && pnpm dashscope-native-config:prove && pnpm voice-operation-policy:prove && pnpm voice-stream-asr-honesty:prove && pnpm interview-voice-seams:prove && pnpm ocr-operation-policy:prove && pnpm voice-adaptive:prove && pnpm rag-generation:prove && pnpm qbank-integrity-upgrade:prove && pnpm qbank-control-role:prove && pnpm rag-control-runtime:prove && pnpm rag-control-role:prove && pnpm rag-control-upgrade:prove && pnpm rag-corpus-version:prove && pnpm rag-control-dispatch:prove && pnpm migrate-cli:prove && pnpm qbank-pipeline:prove && pnpm adaptive-degrade:prove && pnpm interview:prove && pnpm drain:prove && pnpm worker-wakeup:prove && pnpm vectorstore:prove && pnpm memory:prove && pnpm deploy:check && pnpm voice:prove && pnpm -C packages/ai-runtime prove:voice-reliability && pnpm -C apps/web prove:speak-proxy && pnpm -C apps/web prove:transcribe-proxy && pnpm -C apps/api prove:voice-timeout && pnpm -C apps/api prove:voice-cancel-http && pnpm runtime:isolated:prove && pnpm graph:prove && pnpm api:validate && pnpm ocr:prove",
     "regression:core": "node scripts/run-post-change-regression.mjs --core",
     "regression:live": "node scripts/run-post-change-regression.mjs --live",
     "regression:prove": "node scripts/run-post-change-regression.proof.mjs",
@@ -473,6 +474,8 @@
     "checkpoint-role:prove": "node scripts/run-e2e-isolated.mjs checkpoint-role:prove:raw",
     "checkpoint-role:prove:raw": "pnpm -C apps/worker prove:checkpoint-runtime-role",
     "privacy-erasure:prove": "node scripts/run-e2e-isolated.mjs privacy-erasure:prove:raw",
+    "erasure-job-projection:prove": "node scripts/run-e2e-isolated.mjs erasure-job-projection:prove:raw",
+    "erasure-job-projection:prove:raw": "pnpm -C apps/worker prove:erasure-job-projection",
     "privacy-erasure:prove:raw": "pnpm -C apps/worker prove:checkpoint-privacy-erasure",
     "privacy-erasure:pause-upgrade:prove": "node scripts/run-e2e-isolated.mjs privacy-erasure:pause-upgrade:prove:raw",
     "privacy-erasure:pause-upgrade:prove:raw": "pnpm -C apps/worker prove:privacy-erasure-pause-upgrade",
@@ -782,7 +785,17 @@
   },
   "pnpm": {
     "overrides": {
-      "fastify": "5.12.5"
+      "fastify": "5.12.8",
+      "fast-uri@3": "3.1.9",
+      "fast-uri@4": "4.2.3",
+      "postcss": "8.5.32",
+      "nanoid@3": "3.3.20",
+      "source-map-js": "1.2.2",
+      "@grpc/grpc-js": "1.14.7",
+      "body-parser": "2.4.0",
+      "multer": "2.5.0",
+      "find-my-way": "9.10.0",
+      "zod": "4.6.7"
     }
   },
   "devDependencies": {

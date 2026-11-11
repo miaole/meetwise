@@ -1,5 +1,10 @@
-import { PipeTransform, Injectable, BadRequestException } from '@nestjs/common';
+import { PipeTransform, Injectable, BadRequestException, HttpException, HttpStatus } from '@nestjs/common';
 import type { z } from 'zod';
+
+/** 音频 base64 字符超契约上限时，与服务层/传输层统一为 413 audio_too_large，避免中间窗口返回 400 too_big。 */
+function audioSizeOverflow(issues: ReadonlyArray<{ code: string; path: PropertyKey[] }>): boolean {
+  return issues.some((issue) => issue.code === 'too_big' && issue.path[0] === 'audioBase64');
+}
 
 /** zod4-native 校验管道：用共享 @meetwise/contracts schema 在 NestJS+Fastify 校验请求体（替代 ts-rest）。 */
 @Injectable()
@@ -10,7 +15,10 @@ export class ZodValidationPipe<T> implements PipeTransform {
   constructor(private readonly schema: z.ZodType<T>, private readonly errorWord = 'invalid') {}
   transform(v: unknown): T {
     const r = this.schema.safeParse(v);
-    if (!r.success) throw new BadRequestException({ error: this.errorWord, issues: r.error.issues });
+    if (!r.success) {
+      if (audioSizeOverflow(r.error.issues)) throw new HttpException({ error: 'audio_too_large' }, HttpStatus.PAYLOAD_TOO_LARGE);
+      throw new BadRequestException({ error: this.errorWord, issues: r.error.issues });
+    }
     return r.data;
   }
 }
