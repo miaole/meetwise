@@ -89,12 +89,12 @@ const checks = {
     assert.equal(result.stats.releaseEvidence, false);
     assert.equal(result.stats.fileCount, 7);
     assert.equal(result.stats.testCount, 39);
-    assert.equal(result.stats.assertionCount, 428);
+    assert.equal(result.stats.assertionCount, 496);
     assert.equal(result.stats.floors.testCount, 53);
-    assert.equal(result.stats.floors.assertionCount, 472);
+    assert.equal(result.stats.floors.assertionCount, 544);
     assert.equal(result.stats.effectiveFloors.testCount, 39);
-    assert.equal(result.stats.effectiveFloors.assertionCount, 428);
-    assert.equal(result.stats.allowlistCount, 9);
+    assert.equal(result.stats.effectiveFloors.assertionCount, 496);
+    assert.equal(result.stats.allowlistCount, 10);
   },
 
   'TC-e2e-parity-01-E1': () => {
