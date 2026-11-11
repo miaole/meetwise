@@ -66,7 +66,7 @@
  *      can never re-open the alias blind spot. `auth_user_session.user_id`
  *      (0169 granted SELECT/INSERT/UPDATE to app_role, zero RLS — the P1-1 live
  *      cross-owner read/revoke leak) is closed at the root by migration
- *      0225_auth_user_session_owner_rls.sql (ENABLE+FORCE RLS + p_owner
+ *      0227_auth_user_session_owner_rls.sql (historically numbered 0225; ENABLE+FORCE RLS + p_owner
  *      `user_id = current_setting('app.principal_user', true)`, same shape as the
  *      0001 canonical p_owner); the three app code paths
  *      (apps/api/src/platform/auth-session.ts INSERT-login / UPDATE-revoke /
@@ -206,7 +206,7 @@
  *                                        predicate (interview_event: pinned function call + live prosrc
  *                                        first-gate witness; real pg_policies deparse, Ban grep substitute,
  *                                        Ban substring SOME semantics)
- *   M8  session-table face (rev r3)   — auth_user_session (0169 + 0225 owner RLS): asPrincipal-shaped
+ *   M8  session-table face (rev r3)   — auth_user_session (0169 + 0227 owner RLS): asPrincipal-shaped
  *                                        INSERT seeding (the login code path shape) succeeds; cross-owner
  *                                        SELECT=0; cross-owner revoke UPDATE=0 rows and B's row stays
  *                                        unrevoked; impersonating INSERT (user_id=B) → 42501 + absent;
@@ -214,7 +214,7 @@
  *                                        DELETE grant absent pinned (revocation is UPDATE revoked_at, no
  *                                        DELETE by 0169 design); relrowsecurity+force + exactly one
  *                                        app_role-facing policy exact-matching the session predicate on
- *                                        both sides; auth-session.ts three code-path statements + 0225
+ *                                        both sides; auth-session.ts three code-path statements + 0227
  *                                        migration witnesses
  *   I3  policy census receipt          — total policy count + RLS table count pinned EXACT to this branch's
  *                                        migration chain (drift = conscious re-count at merge, like the cap) +
@@ -572,7 +572,7 @@ const SD_DEFINER_ROSTER: readonly string[] = [
  *  lines of the app-facing policy set: ANY predicate widening, roles rebinding (incl. the
  *  TO-clause merge blind spot, P3-乙6), drop or add turns this arm red even if the
  *  exact-face arm is deleted. Re-pin consciously on a legitimate policy migration.
- *  Computed 2026-11-07 one-off container, full 223-file chain, 139 policies. */
+ *  Computed 2026-11-07 one-off container, full 227-file chain, 139 policies. */
 const APP_FACE_POLICY_DIGEST = 'b083ad4abf524194';
 
 /** rev r3 G-V: view exemptions. All views/materialized views are enumerated; any whose
@@ -611,14 +611,14 @@ const VIEW_EXEMPT: readonly { view: string; invokerMustBe: boolean; defExact: st
  *  turn a live grant green is Ban'd. */
 const RLS_FREE_GRANT_TRIPLES: readonly { table: string; role: string; privilege: string; reason: string }[] = [];
 
-/** Census baseline pinned to THIS branch's migration chain (223 files since rev r3 —
- *  0225_auth_user_session_owner_rls adds one policy + flips auth_user_session to an
+/** Census baseline pinned to THIS branch's migration chain (227 files since rev r3 —
+ *  0227_auth_user_session_owner_rls adds one policy + flips auth_user_session to an
  *  RLS table: 340+1/166+1 from the rev r2 chain). If a rebase/merge moves the chain,
  *  re-count and update these two constants consciously — drift must never green
  *  silently. */
 const POLICY_CENSUS_BASELINE = { policies: 341, rlsTables: 167 };
 
-/** rev r3 session-table policy predicate (0225), exact-equality target for the M8
+/** rev r3 session-table policy predicate (0227 / auth_user_session_owner_rls), exact-equality target for the M8
  *  introspection arm — same normalization as the canonical OWNER_PREDICATE. */
 const SESSION_PREDICATE_RAW = "user_id = current_setting('app.principal_user', true)";
 const SESSION_PREDICATE = normPolicy(SESSION_PREDICATE_RAW);
@@ -628,7 +628,7 @@ const SESSION_PREDICATE = normPolicy(SESSION_PREDICATE_RAW);
  *  APP_FACE_PINS (owner-form bucket — bijective per-policy exact pins) or
  *  APP_FACE_SHARED (shared/control bucket — name-set pins + receipt registration). The
  *  pins were derived from the live migration chain by whole-census (101 tables / 139
- *  app-facing policies, 2026-11-07 one-off container, full 223-file chain) and are
+ *  app-facing policies, 2026-11-07 one-off container, full 227-file chain) and are
  *  committed as constants: any future policy drift forces a conscious re-pin here,
  *  same contract as POLICY_CENSUS_BASELINE. Bucketing criterion: a table lands in the
  *  owner-form bucket iff EVERY app-facing policy of the table is principal-bound (its
@@ -1155,7 +1155,7 @@ try {
       await asPrincipal(admin, OWNER_B, (c) => c.query(
         'INSERT INTO auth_user_session(jti, user_id, pwd_epoch) VALUES ($1,$2,$3)', [SES_B, OWNER_B, 0]));
     } catch (e) { seedErr = code(e); }
-    A('M8a login-path INSERT positive control: asPrincipal(uid) INSERT INTO auth_user_session succeeds (issueSessionToken shape, 0225 predicate self-satisfying)',
+    A('M8a login-path INSERT positive control: asPrincipal(uid) INSERT INTO auth_user_session succeeds (issueSessionToken shape, 0227 session-owner RLS predicate self-satisfying)',
       seedErr === null, `err=${seedErr ?? 'none'}`);
   }
 
@@ -1507,10 +1507,10 @@ try {
     }
   }
 
-  // ---- M8 (rev r3): auth_user_session face — the P1-1 live leak closed by 0225 ----
+  // ---- M8 (rev r3): auth_user_session face — the P1-1 live leak closed by 0227 (renumbered from 0225) ----
   // Falsification priv1-post-2 P1-1: this table (user_id attribution, 0169 object grants
   // SELECT/INSERT/UPDATE to app_role, zero RLS) let app_role read and REVOKE other users'
-  // session rows (jti/pwd_epoch truth source) — live-tested. 0225 adds FORCE RLS + p_owner
+  // session rows (jti/pwd_epoch truth source) — live-tested. 0227 (renumbered from 0225) adds FORCE RLS + p_owner
   // keyed on user_id; the three app paths already run inside db.asPrincipal(uid). This
   // matrix evidences the closed face; the falsification's F5-style alias blind spot is
   // closed by the widened G census + migration scan below.
@@ -1576,10 +1576,10 @@ try {
     const appFacing = (pol.rows as SesPol[]).filter((x) => toRolesSafe(x.roles).includes('app_role') || toRolesSafe(x.roles).includes('public'));
     const usingExact = appFacing.every((x) => x.qual !== null && normPolicy(x.qual) === SESSION_PREDICATE);
     const withCheckExact = appFacing.every((x) => x.with_check !== null && normPolicy(x.with_check) === SESSION_PREDICATE);
-    A('M8g introspection: auth_user_session relrowsecurity+relforcerowsecurity=true (0225)',
+    A('M8g introspection: auth_user_session relrowsecurity+relforcerowsecurity=true (0227)',
       rls.rows[0]?.rls === true && rls.rows[0]?.force_rls === true,
       `rls=${String(rls.rows[0]?.rls)} force=${String(rls.rows[0]?.force_rls)}`);
-    A('M8h introspection: exactly one app_role-facing policy, USING and WITH CHECK exact-match the 0225 session predicate (Ban substring)',
+    A('M8h introspection: exactly one app_role-facing policy, USING and WITH CHECK exact-match the 0227 session-owner RLS predicate (Ban substring)',
       appFacing.length === 1 && usingExact && withCheckExact,
       `policies=${appFacing.length} usingExact=${String(usingExact)} withCheckExact=${String(withCheckExact)}`);
     receipt.sessionFace.policies = appFacing.length;
@@ -1591,14 +1591,14 @@ try {
     const wUpdate = ses.includes('UPDATE auth_user_session SET revoked_at=now() WHERE jti=$1 AND revoked_at IS NULL RETURNING 1');
     const wSelect = ses.includes('SELECT 1 FROM auth_user_session WHERE jti=$1 AND revoked_at IS NULL');
     const wAsPrincipal = (ses.match(/asPrincipal\(uid/g) ?? []).length >= 3;
-    const m0225 = readMigrationByNameSuffix('auth_user_session_owner_rls');
-    const w0225 = m0225.includes('FORCE ROW LEVEL SECURITY') && m0225.includes(SESSION_PREDICATE_RAW);
+    const mSessionOwnerRls = readMigrationByNameSuffix('auth_user_session_owner_rls');
+    const wSessionOwnerRls = mSessionOwnerRls.includes('FORCE ROW LEVEL SECURITY') && mSessionOwnerRls.includes(SESSION_PREDICATE_RAW);
     const m0169 = readWitness('packages/db/migrations/0169_auth_user_session.sql');
     const w0169 = m0169.includes('GRANT SELECT, INSERT, UPDATE ON auth_user_session TO app_role');
-    A('M8i witnesses: three auth-session.ts paths (INSERT/UPDATE/SELECT) inside asPrincipal(uid) + 0225 predicate + 0169 grant face',
-      wInsert && wUpdate && wSelect && wAsPrincipal && w0225 && w0169,
-      `insert=${String(wInsert)} update=${String(wUpdate)} select=${String(wSelect)} asPrincipal=${String(wAsPrincipal)} m0225=${String(w0225)} m0169=${String(w0169)}`);
-    receipt.sessionFace.codePathsWitnessed = wInsert && wUpdate && wSelect && wAsPrincipal && w0225 && w0169;
+    A('M8i witnesses: three auth-session.ts paths (INSERT/UPDATE/SELECT) inside asPrincipal(uid) + 0227 session-owner RLS predicate + 0169 grant face',
+      wInsert && wUpdate && wSelect && wAsPrincipal && wSessionOwnerRls && w0169,
+      `insert=${String(wInsert)} update=${String(wUpdate)} select=${String(wSelect)} asPrincipal=${String(wAsPrincipal)} mSessionOwnerRls=${String(wSessionOwnerRls)} m0169=${String(w0169)}`);
+    receipt.sessionFace.codePathsWitnessed = wInsert && wUpdate && wSelect && wAsPrincipal && wSessionOwnerRls && w0169;
   }
 
   // ---- I1: canonical owner family ENABLE + FORCE RLS ----
