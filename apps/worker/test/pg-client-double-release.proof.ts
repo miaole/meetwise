@@ -246,8 +246,6 @@ async function parent(): Promise<void> {
       env: (() => {
         const env: NodeJS.ProcessEnv = { ...process.env };
         env.NODE_OPTIONS = `${process.env.NODE_OPTIONS ?? ''} --unhandled-rejections=throw`.trim();
-        delete env.MODEL_API_KEY;
-        delete env.MODEL_BASE_URL;
         return env;
       })(),
     });
