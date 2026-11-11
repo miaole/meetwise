@@ -12,9 +12,9 @@ pnpm compose:down
 ## Services
 
 - Postgres + pgvector：主业务库、LangGraph checkpoint、向量索引。
-- Redis：任务队列、缓存、限流。
+- Redis：RAG 热缓存、嵌入计算缓存与单飞锁（及默认关闭的 Streams 唤醒原型）。**不是**任务队列。限流当前落 PG 共享桶表，Redis 限流未接线。
 - MinIO：简历、报告附件和导出物。
-- Mailhog：本地邮件预览。
+- Mailhog：compose 仍有该服务；应用未接线 SMTP / nodemailer，不能当成现行邮件栈。
 
 ## Ports
 

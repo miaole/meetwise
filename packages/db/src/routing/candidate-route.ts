@@ -20,8 +20,8 @@
 import { newEntityId } from '../ids.ts';
 import type { PoolClient as Client } from 'pg';
 import {
-  CANDIDATE_ROUTE_TAXONOMY_VERSION, CANDIDATE_ROUTE_POLICY_VERSION, CANDIDATE_ROUTE_REVISION,
-  canonicalCandidateProfileDigest, candidateRouteDecisionHash, classifyCandidateProfileByRule,
+  CANDIDATE_ROUTE_TAXONOMY_VERSION, CANDIDATE_ROUTE_REVISION,
+  candidateRouteDecisionHash, arbitrateCandidateRouteWithTargetRole,
 } from '@meetwise/domain';
 import { requireOwnerUserId } from '../tenant/index.ts';   // PRIV01-C 第二层 E1(应用层 tenant ≠ RLS · 授权根仍为 asPrincipal+RLS)
 import { decryptResumeBlob } from '../resume/resume.ts';
@@ -36,7 +36,7 @@ export type CandidateProfileRouteSupply =
  * 幂等：decision UNIQUE(interview_id) + snapshot PK(interview_id)，ON CONFLICT DO NOTHING 后回读既有行。
  * 派生输入 = 简历解密原文（owner-scoped；零外发零模型）；输出只有 leaf + sha256 digest。
  */
-export async function supplyCandidateProfileRoute(c: Client, owner: string, interviewId: string, resumeId: string): Promise<CandidateProfileRouteSupply> {
+export async function supplyCandidateProfileRoute(c: Client, owner: string, interviewId: string, resumeId: string, targetRole?: string): Promise<CandidateProfileRouteSupply> {
   const ownerScope = requireOwnerUserId(owner, 'candidate-route.supply');   // PRIV01-C 第二层 E1(两席一致裁定纳入 · 候选 owner 归属读写平面)
   // 幂等回读：本 interview 已供给 → 复用（重复 begin / 崩溃后重放不会产生第二份决策）。
   const existing = await c.query(
@@ -63,14 +63,16 @@ export async function supplyCandidateProfileRoute(c: Client, owner: string, inte
   } catch {
     return { status: 'undecided', reason: 'profile_unavailable' };
   }
-  const rule = classifyCandidateProfileByRule(raw ?? '');
+  // G6 N-17：targetRole（begin 归一化后的用户目标岗位）参与裁决——仅在简历 rule 降级（歧义/零命中）时
+  // 作裁决证据；未采纳时 policyVersion/inputDigest 与修前逐字节一致（domain arbitrateCandidateRouteWithTargetRole）。
+  const rule = arbitrateCandidateRouteWithTargetRole(raw ?? '', targetRole);
   if (!rule.decided) {
-    return { status: 'undecided', reason: rule.reason === 'profile_empty' ? 'profile_unavailable' : rule.reason };
+    return { status: 'undecided', reason: 'profile_unavailable' };
   }
-  const inputDigest = canonicalCandidateProfileDigest(raw ?? '');
+  const inputDigest = rule.inputDigest;
   const decisionHash = candidateRouteDecisionHash({
     interviewId, resumeId, inputDigest,
-    leafTrackId: rule.leafTrackId, allocationBps: rule.allocationBps, policyVersion: CANDIDATE_ROUTE_POLICY_VERSION,
+    leafTrackId: rule.leafTrackId, allocationBps: rule.allocationBps, policyVersion: rule.policyVersion,
   });
   const decisionId = newEntityId('cprd');
   const ins = await c.query(
@@ -81,7 +83,7 @@ export async function supplyCandidateProfileRoute(c: Client, owner: string, inte
      ON CONFLICT (interview_id) DO NOTHING
      RETURNING id`,
     [decisionId, interviewId, ownerScope, resumeId, resumeContentSha, inputDigest,
-      CANDIDATE_ROUTE_TAXONOMY_VERSION, CANDIDATE_ROUTE_POLICY_VERSION,
+      CANDIDATE_ROUTE_TAXONOMY_VERSION, rule.policyVersion,
       rule.leafTrackId, rule.allocationBps, decisionHash],
   );
   // 并发 begin（advisory 锁下罕见）撞 UNIQUE → 回读既有 decision，snapshot 引用真实行。
