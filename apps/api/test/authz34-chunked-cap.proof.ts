@@ -12,6 +12,9 @@
  *   ⑧常量一致性：上传信封 > 契约 base64 上限 > 10MB 精确膨胀，服务检查可达;
  *   ⑨既有 content-length 1MiB 双臂回归=neg-commerce / neg-input;
  *   ⑩chunked 注入 RST 容忍:响应已达则以 status 断言·写侧 RST 不另行判红;响应未达不得绿判。
+ *   ⑪# 后缀 / 未注册上传形路径按路由模板判定，不得按 15MiB 收体（#248 P1）；
+ *   ⑫音频 base64 越过契约上限但仍小于上传信封 → 413 audio_too_large（不再 400 too_big）；
+ *   ⑬非法 URL（/%world）→ 400 invalid_request 统一信封，不含 FST_ 内部码。
  * 运行:pnpm -C apps/api authz34:chunked-cap 或 pnpm body-limit:prove（隔离库包装 run-e2e-isolated）。
  */
 import { readFileSync } from 'node:fs';
@@ -129,7 +132,49 @@ function declaredLengthPost(base: string, path: string, declaredLength: number, 
   });
 }
 
+
+/**
+ * 自定义 request-target（含非法百分号编码、absolute-form+#）的 POST。
+ * 用于覆盖 Fastify onBadUrl（FST_ERR_BAD_URL）与 find-my-way 对 absolute-form 的解析。
+ */
+function rawTargetPost(base: string, requestTarget: string, body: string, opts: { headers?: Record<string, string> } = {}): Promise<ChunkedResult> {
+  return new Promise((resolve) => {
+    const u = new URL(base);
+    let settled = false;
+    let status = 0;
+    let raw: string | null = null;
+    const parts: Buffer[] = [];
+    const buf = Buffer.from(body, 'utf8');
+    const settle = () => {
+      if (settled) return;
+      settled = true;
+      let parsed: Record<string, unknown> | null = null;
+      if (raw != null && raw.length > 0) { try { parsed = JSON.parse(raw); } catch { parsed = { _raw: raw }; } }
+      resolve({ status, body: parsed, raw });
+    };
+    const req = httpRequest({
+      host: u.hostname, port: Number(u.port) || 80, path: requestTarget, method: 'POST',
+      agent: false,
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- HTTP 头 wire 名连字符小写为传输格式字面值,非代码标识符,不可改名(行内豁免)
+      headers: { 'content-type': 'application/json', 'content-length': String(buf.length), host: u.host, connection: 'close', ...(opts.headers ?? {}) },
+    }, (res) => {
+      status = res.statusCode ?? 0;
+      res.on('data', (c: Buffer) => parts.push(c));
+      res.on('end', () => { raw = Buffer.concat(parts).toString('utf8'); settle(); });
+      res.on('error', () => { raw = Buffer.concat(parts).toString('utf8'); settle(); });
+    });
+    req.on('error', (err: NodeJS.ErrnoException) => {
+      const code = err?.code ?? '';
+      raw = `client-error:${code || err?.message}`;
+      settle();
+    });
+    req.end(buf);
+    setTimeout(settle, 20_000);
+  });
+}
+
 async function main() {
+
   const { A, done } = mkAssert('authz34:chunked-cap');
 
   // ── 静态:钩子在位 + 常量一致性（#70：服务内 413 必须可达）──
@@ -147,6 +192,17 @@ async function main() {
     UPLOAD_BODY_LIMIT_BYTES > VOICE_MAX_AUDIO_BASE64_CHARS);
   A('静态/非上传封顶为 1MiB 且小于上传信封',
     SMALL_BODY_LIMIT_BYTES === 1 * 1024 * 1024 && SMALL_BODY_LIMIT_BYTES < UPLOAD_BODY_LIMIT_BYTES);
+  A('静态/上传路由按 req.routeOptions.url 模板判定（不以请求行原始 URL 后缀为准）',
+    mainSrc.includes('UPLOAD_ROUTE_TEMPLATES') && mainSrc.includes('req.routeOptions?.url') && mainSrc.includes("isUploadRoute(req)"));
+  const filterSrc = readFileSync(join(here, '..', 'src', 'platform', 'all-exceptions.filter.ts'), 'utf8');
+  A('静态/已拆除 FST_ERR_CTP_BODY_TOO_LARGE 的 setErrorHandler / 过滤器映射',
+    !mainSrc.includes('fastify.setErrorHandler') && !mainSrc.includes("err?.code === 'FST_ERR_CTP_BODY_TOO_LARGE'") && !filterSrc.includes("code === 'FST_ERR_CTP_BODY_TOO_LARGE'"));
+  A('静态/frameworkErrors 把非法 URL 收成统一信封 invalid_request',
+    mainSrc.includes('frameworkErrors:') && mainSrc.includes("error: 'invalid_request'"));
+  const nginxHost = readFileSync(join(here, '..', '..', '..', 'ops', 'deploy', 'nginx.conf'), 'utf8');
+  const nginxLb = readFileSync(join(here, '..', '..', '..', 'docker', 'lb.nginx.conf'), 'utf8');
+  A('静态/宿主与 LB nginx 均设 client_max_body_size 15m（与上传信封一致）',
+    /client_max_body_size\s+15m\s*;/.test(nginxHost) && /client_max_body_size\s+15m\s*;/.test(nginxLb));
 
   const h = await boot();
   // 服务内 audio_too_large 在同意门之后；为本证明补 voice_capture 同意（不改共享 harness 种子）。
@@ -241,6 +297,71 @@ async function main() {
     // eslint-disable-next-line @typescript-eslint/naming-convention -- x-user-id 为服务端约定 wire 头名,非代码标识符,不可改名(行内豁免)
     const r = await chunkedPost(h.base, '/commerce/orders', JSON.stringify({ productId: 'pack_10' }), { headers: { 'x-user-id': 'userA' } });
     A('chunked/KB 级正常体非上传路由 → 200 正常受理(未超阈不 413)', r.status === 200);
+  }
+
+  // ── ⑪ #248 P1：# 后缀不得把非上传路由抬成 15MiB 上传面 ──
+  {
+    const mid = '{"email":"pw@x.com","password":"' + 'x'.repeat(2 * 1024 * 1024) + '"}';
+    const r = await chunkedPost(h.base, '/auth/login#/resume/file', mid);
+    A('chunked/2MiB /auth/login#/resume/file → 413 payload_too_large（不以上传路由收体）',
+      r.status === 413 && r.body?.error === 'payload_too_large');
+  }
+  {
+    const mid = '{"productId":"' + 'x'.repeat(2 * 1024 * 1024) + '"}';
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- x-user-id 为服务端约定 wire 头名,非代码标识符,不可改名(行内豁免)
+    const r = await chunkedPost(h.base, '/commerce/orders#/resume/file', mid, { headers: { 'x-user-id': 'userA' } });
+    A('chunked/2MiB /commerce/orders#/resume/file → 413 payload_too_large（不以上传路由收体）',
+      r.status === 413 && r.body?.error === 'payload_too_large');
+  }
+  {
+    const mid = '{"pad":"' + 'x'.repeat(2 * 1024 * 1024) + '"}';
+    const r = await chunkedPost(h.base, '/zzz/resume/file', mid);
+    A('chunked/2MiB 未注册 /zzz/resume/file → 413 payload_too_large（不得按上传模板收 15MiB）',
+      r.status === 413 && r.body?.error === 'payload_too_large');
+  }
+  {
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- x-user-id 为服务端约定 wire 头名,非代码标识符,不可改名(行内豁免)
+    const r = await declaredLengthPost(h.base, '/auth/login#/resume/file', 14 * 1024 * 1024, { headers: { 'x-user-id': 'userA' } });
+    A('content-length/14MiB /auth/login#/resume/file → 413 payload_too_large（缓冲前）',
+      r.status === 413 && r.body?.error === 'payload_too_large');
+  }
+
+  // ── ⑫ 音频契约 base64 超限窗统一 413 audio_too_large（不再 400 too_big）──
+  {
+    const audioBase64 = 'A'.repeat(VOICE_MAX_AUDIO_BASE64_CHARS + 4);
+    const payload = JSON.stringify({
+      audioBase64,
+      mimeType: 'audio/webm',
+      capture: { mode: 'single_local_microphone', consent: true, policyVersion: VOICE_CAPTURE_POLICY_VERSION },
+    });
+    A('静态/该契约超限语音体仍小于上传信封', Buffer.byteLength(payload) < UPLOAD_BODY_LIMIT_BYTES);
+    const r = await chunkedPost(h.base, '/interview/IV_ACT/transcribe', payload, {
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- x-user-id 为服务端约定 wire 头名,非代码标识符,不可改名(行内豁免)
+      headers: { 'x-user-id': 'userA' },
+    });
+    const leaked = JSON.stringify(r.body ?? {}) + (r.raw ?? '');
+    A('HTTP/契约 base64 超限窗 → 413 audio_too_large（统一信封，非 400 too_big）',
+      r.status === 413 && r.body?.error === 'audio_too_large' && !leaked.includes('too_big') && !leaked.includes('FST_'));
+  }
+
+  // ── ⑬ 非法 URL / absolute-form+#：统一信封，禁止泄漏 FST_ 内部码 ──
+  {
+    const r = await rawTargetPost(h.base, '/%world', '{}');
+    const leaked = JSON.stringify(r.body ?? {}) + (r.raw ?? '');
+    A('HTTP/非法百分号编码 URL → 400 invalid_request（无 FST_ERR_BAD_URL 原生信封）',
+      r.status === 400 && r.body?.error === 'invalid_request' && r.body?.code == null && !leaked.includes('FST_'));
+  }
+  {
+    const mid = '{"productId":"' + 'x'.repeat(2 * 1024 * 1024) + '"}';
+    const r = await rawTargetPost(h.base, 'http://x/commerce/orders#/resume/file', mid, {
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- x-user-id 为服务端约定 wire 头名,非代码标识符,不可改名(行内豁免)
+      headers: { 'x-user-id': 'userA' },
+    });
+    const leaked = JSON.stringify(r.body ?? {}) + (r.raw ?? '');
+    const mapped = r.status === 400 && r.body?.error === 'invalid_request';
+    const limited = r.status === 413 && r.body?.error === 'payload_too_large';
+    A('HTTP/absolute-form+# → 统一信封（400 invalid_request 或 413 payload_too_large，无 FST_ 内部码）',
+      (mapped || limited) && r.body?.code == null && !leaked.includes('FST_'));
   }
 
   // ── 进程存活:超阈 413 断流后服务仍存活 ──

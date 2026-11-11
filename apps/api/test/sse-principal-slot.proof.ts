@@ -34,8 +34,16 @@ import { AllExceptionsFilter } from '../src/platform/all-exceptions.filter.ts';
 import { DbService } from '../src/platform/db.service.ts';
 import { PrincipalGuard } from '../src/platform/principal.guard.ts';
 import { RateLimitService } from '../src/platform/rate-limit.service.ts';
+import { getSseNotify } from '../src/platform/sse-notify.service.ts';
 
 process.env.AUTH_DEV_HEADER = '1';
+// PR243 小门B：proof 自封闭（hermetic），不依赖「环境里的库是否可达」。
+// SSE notify 单例在 import 期就可能被启动（principal.guard 模块加载时 onPrincipalEvict → whenHealthy → createPool），
+// 早于本文件任何语句，所以剥库目标环境变量必须在进程入口做：`prove:sse-slot` 脚本用 `env -u DATABASE_URL -u PG*` 启动。
+// 库可达时单例会建 LISTEN；空库 / 缺 0143 trigger 时降级退避重连并 wakeAllWaiters，holder 额外轮询，
+// 触发「每 holder ≤3 次」下界（CI run 42947057277、本地可达空库 ×3 均 4 次）。这里 fail-loud：带库环境直接跑即红。
+const DB_TARGET_ENV = ['DATABASE_URL', 'PGHOST', 'PGPORT', 'PGUSER', 'PGPASSWORD', 'PGDATABASE'] as const;
+const leakedDbEnv = DB_TARGET_ENV.filter((k) => (process.env[k] ?? '') !== '');
 if (process.env.NODE_ENV === 'production') process.env.NODE_ENV = 'test';
 
 let failures = 0;
@@ -227,6 +235,9 @@ async function main() {
     A(`满额后 5 条 holder 各自完成 ≥2 个 poll 周期（${cycleSummary}）`, everyHolderPolledTwice);
     A(`counting stub(userA) 增量 = holder 轮询之和（stub +${dbDelta}，holders +${holderDelta}，userA 全部轮询 +${pollDelta}），无未归因轮询`, dbDelta === holderDelta && pollDelta === holderDelta && holderDelta >= 10);
     A(`每条 holder 在 ≥2 周期且 ≥${FREQ_WINDOW_MS}ms 观察窗结束时轮询 ≤${MAX_CYCLES_IN_WINDOW} 次（节律下界；间隔 200ms 会超；${cycleSummary}，elapsed=${elapsedMs}ms）`, everyHolderPolledTwice && holderStreams.every((s) => holderCycles(s) <= MAX_CYCLES_IN_WINDOW));
+    const notifyHealth = getSseNotify().health();
+    const notifyPool = (getSseNotify() as unknown as { pool?: unknown }).pool;
+    A(`hermetic：进程无库目标环境变量（leaked=${leakedDbEnv.join(',') || 'none'}），SSE notify 未建 LISTEN 池、固定 listen_down 降级（health=${JSON.stringify(notifyHealth)}）`, leakedDbEnv.length === 0 && notifyPool === undefined && !notifyHealth.healthy && notifyHealth.reason === 'listen_down');
     A('被拒连接（iv/qz/dx-reject）零 catch-up、零轮询，不入环', rejectStreams.every((s) => streamCalls(`userA|${s}`) === 0));
 
     for (const h of userAHolds) await release(h);

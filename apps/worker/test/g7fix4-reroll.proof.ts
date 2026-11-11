@@ -297,6 +297,8 @@ async function main() {
   A('G2 事件面:恰一条 question_ready·零 assessment_unavailable/interview_unavailable',
     boundEvents.rows.length === 1 && boundEvents.rows[0]?.kind === 'question_ready'
     && normalizeQuestion(String(boundEvents.rows[0]?.payload?.question ?? '')) === normalizeQuestion(S1));
+  A('G2 事件面:question_ready 投影 duplicateFallback=cross_session_repeat（运营可见·旧流缺字段）',
+    boundEvents.rows[0]?.payload?.duplicateFallback === 'cross_session_repeat');
   const boundState = (await pool.query(
     `SELECT i.status AS interview_status, ec.status AS consumption_status
        FROM interview i LEFT JOIN entitlement_consumption ec ON ec.owner_user_id=i.owner_user_id AND ec.idempotency_key=i.id

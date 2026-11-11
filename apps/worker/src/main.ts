@@ -765,6 +765,8 @@ async function bootstrap() {
   const qbankReleaseSweepLoop = qbankControlPool && qbankReleaseSweepControl.enabled
     ? runQbankReleaseSweep(qbankControlPool, qbankReleaseSweepControl.intervalMs)
     : undefined;
+  // 0232：同一 privacy 循环每拍依次跑 checkpoint 擦除 → 0096 投影物理 purge（event/ai_graph_run/
+  // report；无已消费 0091 授权即跳过，无授权不删）→ 已围栏面试 interview_job 残留明文删除。
   const privacyErasureLoop = privacyPool ? runCheckpointPrivacyEraser(privacyPool, `${leaseOwner}:privacy`) : undefined;
   // GAP-PRIV-04：向量面 sweep 步（0141 · 0125 memory_vector_chunk 同形收尾）。仅
   // sink='memory_vector_chunk'；INT sink='vector' 诚实 no-target；qbank 永不删；

@@ -289,10 +289,10 @@ async function healthControllerProof() {
   // rev3 重钉（协调方 wave70 授权·预存漂移回填非本刀引入）：3684bc00（audit #92 readiness 深化）将 HealthService.apiReady
   // 契约由 boolean 改三值枚举（'ok'|'migration_mismatch'|其余→unknown）且 ok 体增 schema.migration 位——本段 fake 契约钉
   // 与 ok 体 deepEqual 钉自 64522c62 后未随翻（本线组装点 b284d8ca 起红）。回填='ok' 合法枚举值+schema 位入断言（钉面增强）。
-  const fakeHealth = { livez: () => ({ status: 'ok' }), configReady: () => true, apiReady: async () => 'ok' } as never;
+  const fakeHealth = { livez: () => ({ status: 'ok' }), configReady: () => true, apiReady: async () => 'ok', sseNotifyReady: async () => 'ok' } as never;
   const controller = new HealthController(fakeHealth);
   const okBody = await controller.apiReady();
-  assert.deepEqual(okBody, { status: 'ok', config: { envSchema: 'ok' }, schema: { migration: 'ok' } });
+  assert.deepEqual(okBody, { status: 'ok', config: { envSchema: 'ok' }, schema: { migration: 'ok' }, sse: { notify: 'ok' } });
   A('未排水 readiness ok', okBody.status === 'ok');
   getSseRegistry().beginDrain();   // 进程单例置排水态（本段置底：后续断言不再依赖未排水态）
   try {
