@@ -111,9 +111,11 @@ related:
 
 免费额度是业务事实，落业务表 + 显式状态枚举——不把 Redis 计数器当额度真相（重启/多实例会丢、无审计、对不上账）。本域落法：
 
+> 其中「Redis 仅作快路径限流缓存」是**目标态，未接线**。现行限流是 `RateLimitService` + PG 共享桶表，Redis 限流未接线。额度真相仍然必须是业务表。
+
 - 免费额度是 `consumption_record` 中 `entitlementType=free` 的业务行，状态枚举 `granted · reserved · confirmed · released · refunded`，`idempotency_key` UNIQUE，所有迁移 CAS。
 - 「跨形态合并计数」= 对该用户 `entitlementType=free ∧ status∈{reserved,confirmed}` 行做**带 `FOR UPDATE`/CAS 的额度校验**（事务内查业务表），而非读 Redis 数。
-- Redis 仅作**快路径限流缓存**（`rate_limit_audit`），命中即拒；但**额度真相永远是业务表**——Redis 与业务表不一致时以业务表为准（reconcile）。UC-MODE-16/18 的免费额度断言全部打在业务账本上。
+- Redis 仅作**快路径限流缓存**（`rate_limit_audit`）是**目标态，未接线**；命中即拒的设计不得写成现行。**额度真相永远是业务表**——即便将来接 Redis 快路径，与业务表不一致时仍以业务表为准（reconcile）。UC-MODE-16/18 的免费额度断言全部打在业务账本上。
 
 ### 0.7 本域 Open-Decisions（显式未决，禁当既成事实）
 
@@ -738,14 +740,14 @@ related:
 ---
 
 ## UC-MODE-18 · 反滥用：刷选择/刷确认单/跨形态薅额度
-> **实现态（2026-10-11 I5 口径刀）：仅设计** —— 通用限流已实现（RateLimitService）·形态级反滥用未建。
+> **实现态（2026-10-11 I5 口径刀）：仅设计** —— 通用限流已实现（RateLimitService / PG 共享桶表）·形态级反滥用未建。下文「限流中间件计数（Redis，仅快路径）」是**目标态，未接线**；Redis 限流未接线。
 **七类：刁·并·逃**
 - **角色**：求职者（薅）/ 系统
 - **前置**：用户高频发选择/确认/切换。
 - **触发**：超 `N 次/时窗` 刷 draft / 创建 / 切换。
 
 **主流程 Main**
-1. 限流中间件计数（Redis，仅快路径）：`special-confirm 创建`、`/interview` 创建、`/switch`/`/upgrade` 各自阈值。
+1. 限流中间件计数（Redis，仅快路径，**目标态，未接线**）：`special-confirm 创建`、`/interview` 创建、`/switch`/`/upgrade` 各自阈值。
 2. `maxConcurrentDrafts` 配额 CAS（未 commit 的 draft 占位上限；cancelled/expired 均释放，UC-MODE-07/08）。
 3. 超阈值 → 429 + `rate_limit_audit`，**不 reserve、不建 draft**；全局 kill-switch 可降级只读。
 

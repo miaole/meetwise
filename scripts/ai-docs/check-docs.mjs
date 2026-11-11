@@ -1,9 +1,99 @@
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { join, relative } from "node:path";
 import { scanPublicTextPolicy } from "./public-text-policy.mjs";
 
 const root = new URL("../..", import.meta.url).pathname;
 
+
+function listMarkdownFiles(absDir, acc = []) {
+  if (!existsSync(absDir)) return acc;
+  for (const entry of readdirSync(absDir, { withFileTypes: true })) {
+    const abs = join(absDir, entry.name);
+    if (entry.isDirectory()) {
+      if (entry.name === "node_modules" || entry.name === ".git" || entry.name === ".tmp" || entry.name === "receipts") continue;
+      listMarkdownFiles(abs, acc);
+      continue;
+    }
+    if (entry.isFile() && entry.name.endsWith(".md")) acc.push(abs);
+  }
+  return acc;
+}
+
+// Prevent rejected stacks (BullMQ / pg-boss / throttler-storage-redis) from
+// being written back as present-tense fact. A mention is allowed only when a
+// rejection / unwired / historical marker sits in the same clause (or in the
+// 24 characters immediately before the term, so lists like "无 bullmq / pg-boss"
+// stay legal). Redis-as-current-queue-or-ratelimiter is checked only in the
+// current-architecture documents that are supposed to state runtime fact.
+const REJECTED_STACK_PATTERNS = [
+  { id: "bullmq", re: /@nestjs\/bullmq|bullmq/gi },
+  { id: "pg-boss", re: /pg-boss|pgboss/gi },
+  { id: "throttler-storage-redis", re: /throttler-storage-redis/gi },
+];
+const LOCAL_REJECTION = /无|不是|并非|未采用|未安装|未引用|不在|不以|不把|不要|不得|禁止|已否决|被否|已退役|已删|不再|不换|零码|零 import|仍写|曾写|曾用|原写|旧定论|旧叙事|旧文|历史|草稿|残留|勘误|目标态|仅设计|未接线|已取代|superseded|候选|已砍|砍除|勿把|作废/;
+const REDIS_FACT_FILES = new Set([
+  "ai-docs/architecture/dependency-footprint.md",
+  "ai-docs/architecture/system-blueprint.md",
+  "ai-docs/architecture/devops/infra-blueprint.md",
+  "ai-docs/architecture/current-runtime-truth.md",
+  "ai-docs/architecture/adr/README.md",
+  "ai-docs/observability/observability-strategy.md",
+  "docker/README.md",
+]);
+const REDIS_CURRENT_QUEUE_OR_RATELIMIT = /redis[^。；;\n]{0,80}(任务队列|限流)|(任务队列|限流)[^。；;\n]{0,80}redis/gi;
+const REDIS_REJECTION = /未接线|不是任务队列|不是耐久|当前落 PG|落 PG 共享|目标态|仅设计|不证明|不能把它|尚非|不承担|不含限流|都不依赖|不要把|不得写成|勘误/;
+
+function clauseOf(line, index) {
+  const marks = /[。；;\n]/g;
+  let start = 0;
+  let end = line.length;
+  for (const m of line.matchAll(marks)) {
+    if (m.index < index) start = m.index + 1;
+    else {
+      end = m.index;
+      break;
+    }
+  }
+  return line.slice(start, end);
+}
+
+function termIsRejectedInLine(line, index) {
+  const prefix = line.slice(Math.max(0, index - 24), index);
+  if (LOCAL_REJECTION.test(prefix)) return true;
+  return LOCAL_REJECTION.test(clauseOf(line, index));
+}
+
+function checkRejectedCurrentNarratives() {
+  const files = [
+    ...listMarkdownFiles(join(root, "ai-docs")),
+    join(root, "docker/README.md"),
+    join(root, "README.md"),
+  ].filter((abs) => existsSync(abs) && statSync(abs).isFile());
+  for (const abs of files) {
+    const rel = relative(root, abs);
+    const lines = readFileSync(abs, "utf8").split(/\r?\n/);
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      for (const { id, re } of REJECTED_STACK_PATTERNS) {
+        re.lastIndex = 0;
+        for (const m of line.matchAll(re)) {
+          if (!termIsRejectedInLine(line, m.index)) {
+            errors.push(`rejected_stack_narrative:${rel}:${i + 1} mentions ${id} as current without a rejection/unwired marker`);
+          }
+        }
+      }
+      if (REDIS_FACT_FILES.has(rel)) {
+        REDIS_CURRENT_QUEUE_OR_RATELIMIT.lastIndex = 0;
+        for (const m of line.matchAll(REDIS_CURRENT_QUEUE_OR_RATELIMIT)) {
+          const clause = clauseOf(line, m.index);
+          if (!REDIS_REJECTION.test(clause) && !REDIS_REJECTION.test(line)) {
+            errors.push(`rejected_stack_narrative:${rel}:${i + 1} describes Redis as the current queue or rate limiter without an unwired/rejection marker`);
+          }
+        }
+      }
+    }
+  }
+}
 
 const requiredFiles = [
   "README.md",
@@ -457,6 +547,7 @@ for (const file of questionBanksWithSpeakableAnswerGate) {
   }
 }
 
+checkRejectedCurrentNarratives();
 // PR243 小门A：CI 步骤台账一致性门（ai-docs/architecture/devops/ci-cd.md §8.2 / §8.2.1）。
 // 三处执行面 = ci.yml（全部 job）/ nightly-ciw2.yml / package.json `verify:local`（按 && 拆分）；双向对账：
 //   ① 执行面里每条受跟踪命令都必须在台账里；
