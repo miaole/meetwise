@@ -6,6 +6,8 @@ import {
   CANDIDATE_ROUTE_POLICY_VERSION, CANDIDATE_ROUTE_TAXONOMY_VERSION, CANDIDATE_ROUTE_ALLOCATION_BPS,
   candidateRouteDecisionHash, classifyCandidateProfileByRule,
 } from '../src/index.ts';
+/** N17 视图(宽松读形:修前导出缺失时 proof 仍可加载并如实 FAIL)。 */
+type ArbView = { decided: boolean; leafTrackId?: string; targetRoleApplied?: boolean; resumeDegradedFrom?: string; policyVersion: string; inputDigest: string; reason?: string };
 
 let fail = 0;
 let total = 0;
@@ -162,7 +164,7 @@ A('v4-f v3 g6 形零翻：裸「自动化测试」单独在场（唯一命中）
 /* ── 6. G6 N-17 targetRole 参与裁决（重构审查 P2-5·修前 targetRole 只写 payload 不参与裁决）──────── */
 {
   const dm = await import('../src/index.ts') as Record<string, unknown>;
-  const arb = dm.arbitrateCandidateRouteWithTargetRole as undefined | ((raw: string, role?: string) => any);
+  const arb = dm.arbitrateCandidateRouteWithTargetRole as undefined | ((raw: string, role?: string) => ArbView);
   A('N17-0 domain 导出 arbitrateCandidateRouteWithTargetRole（修前缺失=targetRole 无裁决入口）', typeof arb === 'function');
   if (typeof arb === 'function') {
     const AMBIG = 'Java Spring 微服务开发；Python Django 数据平台'; // ≥2 specific → 简历降级 general
