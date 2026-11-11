@@ -290,6 +290,17 @@ if (!hasUrl && !hasComponents) {
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const readWitness = (rel: string): string => readFileSync(join(REPO_ROOT, normalize(rel)), 'utf8');
 
+/** Resolve a migration witness by stable name suffix so a prefix renumber (0225→0227, …) cannot ENOENT. Exactly one *.sql match required. */
+const readMigrationByNameSuffix = (suffix: string): string => {
+  const dir = join(REPO_ROOT, 'packages', 'db', 'migrations');
+  const matches = readdirSync(dir).filter((f) => f.endsWith(`_${suffix}.sql`) || f === `${suffix}.sql`).sort();
+  if (matches.length !== 1) {
+    throw new Error(`migration witness ${suffix}: expected exactly 1 file, got ${matches.length} [${matches.join(', ')}]`);
+  }
+  return readFileSync(join(dir, matches[0]), 'utf8');
+};
+
+
 /** pg_policies deparses expressions with ::text casts and redundant parens.
  *  Normalize (strip casts, strip parens, collapse spaces) so the predicate
  *  shape check is deparse-format tolerant but still content-exact. The
@@ -1579,7 +1590,7 @@ try {
     const wUpdate = ses.includes('UPDATE auth_user_session SET revoked_at=now() WHERE jti=$1 AND revoked_at IS NULL RETURNING 1');
     const wSelect = ses.includes('SELECT 1 FROM auth_user_session WHERE jti=$1 AND revoked_at IS NULL');
     const wAsPrincipal = (ses.match(/asPrincipal\(uid/g) ?? []).length >= 3;
-    const m0225 = readWitness('packages/db/migrations/0225_auth_user_session_owner_rls.sql');
+    const m0225 = readMigrationByNameSuffix('auth_user_session_owner_rls');
     const w0225 = m0225.includes('FORCE ROW LEVEL SECURITY') && m0225.includes(SESSION_PREDICATE_RAW);
     const m0169 = readWitness('packages/db/migrations/0169_auth_user_session.sql');
     const w0169 = m0169.includes('GRANT SELECT, INSERT, UPDATE ON auth_user_session TO app_role');

@@ -18,6 +18,7 @@
  * 运行：node scripts/run-e2e-isolated.mjs interview-event-retention:prove:raw（隔离库包装）。
  * est live=0：零模型外呼·零生产操作·零 secrets。
  */
+import { readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import {
   createPool, runMigrations, loadMigrations, assertIsolatedTestTarget,
@@ -74,13 +75,15 @@ async function main() {
   const admin = createPool({ purpose: 'event_ttl_probe_admin' });
   await assertIsolatedTestTarget(admin);
   const manifest = loadMigrations(MIG_DIR);
+  const dirVersions = readdirSync(MIG_DIR).filter((f) => f.endsWith('.sql')).sort().map((f) => f.replace(/\.sql$/, ''));
+  const chainHead = dirVersions[dirVersions.length - 1];
   await admin.query(`DROP DATABASE IF EXISTS ${PROBE_DB} WITH (FORCE)`);
   await admin.query(`CREATE DATABASE ${PROBE_DB}`);
   db = createPool({ purpose: 'event_ttl_probe', database: PROBE_DB });
   const migrations = await runMigrations(db, manifest);
-  A('迁移链全量应用(全链恰一次·链头 0225)', migrations.applied.length === manifest.length
-    && migrations.applied[migrations.applied.length - 1] === '0225_auth_user_session_owner_rls');
-  A(`迁移目录文件数=223(现最大 0219 顺延·0220-0224 认领零冲突·0225 PRIV01 rev r3 会话表 owner RLS·实测 ${manifest.length})`, manifest.length === 223);
+  A(`迁移链全量应用(全链恰一次·链头由目录推导 ${chainHead})`, migrations.applied.length === manifest.length
+    && migrations.applied[migrations.applied.length - 1] === chainHead);
+  A(`迁移目录文件数=${dirVersions.length}(由 migrations/*.sql 推导·与 loadMigrations 同源排序·实测 manifest=${manifest.length})`, manifest.length === dirVersions.length);
   const fnMeta = await one(
     `SELECT proowner::regrole::text AS owner, prosecdef AS sd FROM pg_proc
       WHERE oid = to_regprocedure('interview_event_retention_purge(integer,integer)')`,

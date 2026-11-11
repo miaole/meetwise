@@ -50,10 +50,17 @@ const git = (args) => { try { return execFileSync('git', args, { cwd: ROOT, enco
   A('A5b 消费面旧表直读退役(不再调用 getInterviewRouteSnapshot)',
     !cons.some((l) => l.includes('getInterviewRouteSnapshot(')));
 }
-A('A6 interview_route_snapshot 在 job-route-decision 的命中={333,358}(零触面行号原值)', (() => {
+A('A6 interview_route_snapshot 在 job-route-decision 恰 2 处（INSERT 写 + SELECT 读·内容门·行号非门读数）', (() => {
+  const src = read('packages/db/src/routing/job-route-decision.ts');
   const hits = linesOf('packages/db/src/routing/job-route-decision.ts')
     .map((l, i) => (l.includes('interview_route_snapshot') ? i + 1 : 0)).filter(Boolean);
-  return JSON.stringify(hits) === JSON.stringify([333, 358]);
+  const hasInsert = /INSERT INTO interview_route_snapshot\s*\(/.test(src);
+  const hasSelect = /FROM interview_route_snapshot/.test(src);
+  return hits.length === 2 && hasInsert && hasSelect;
+})(), (() => {
+  const hits = linesOf('packages/db/src/routing/job-route-decision.ts')
+    .map((l, i) => (l.includes('interview_route_snapshot') ? i + 1 : 0)).filter(Boolean);
+  return hits.join(',');
 })());
 {
   const cr = read('packages/db/src/routing/candidate-route.ts');
