@@ -21,6 +21,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
     const code = (exception as { code?: string })?.code;
     if (code === '23505') return reply.code(409).send({ error: 'conflict' });   // unique 违反
+    // Fastify 传输层 bodyLimit（若未在 main.ts setErrorHandler 先截住）→ 按路由给出明确 413 契约。
+    if (code === 'FST_ERR_CTP_BODY_TOO_LARGE') {
+      const url = String(host.switchToHttp().getRequest()?.url ?? '').split('?')[0] ?? '';
+      const error = /\/resume\/file$/.test(url) ? 'file_too_large'
+        : /\/interview\/[^/]+\/transcribe$/.test(url) ? 'audio_too_large'
+        : 'payload_too_large';
+      return reply.code(413).send({ error });
+    }
     // 未知错:结构化日志(审计#89:500 必须带 reqId/路径/堆栈,排障前提) + 不透明 500(防泄露内部细节)。
     // 堆栈只进日志、绝不进响应体。日志走 fastify 内置 pino(reply.log,NestFactory logger:false 下
     // Nest Logger 不落盘);无 pino 时退回 Nest Logger(尽力而为)。url 去掉 query,避免入日志。

@@ -109,6 +109,7 @@
     "apih:cost-rl:prove": "node scripts/run-e2e-isolated.mjs apih:cost-rl:prove",
     "authz34:scrypt-async:prove": "node scripts/run-e2e-isolated.mjs authz34:scrypt-async:prove",
     "authz34:chunked-cap:prove": "node scripts/run-e2e-isolated.mjs authz34:chunked-cap:prove",
+    "body-limit:prove": "node scripts/run-e2e-isolated.mjs authz34:chunked-cap:prove",
     "neg:commerce": "node scripts/run-e2e-isolated.mjs neg:commerce",
     "trial:grant:prove": "node scripts/run-e2e-isolated.mjs trial:grant:prove",
     "quiz-list:prove": "node scripts/run-e2e-isolated.mjs quiz-list:prove",
