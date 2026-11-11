@@ -63,13 +63,11 @@ const admin: DbPool = createPool();
 await assertIsolatedTestTarget(admin);
 console.log('ISOLATED_TARGET_ATTESTATION ok loopback+nonce verified');
 
-Object.assign(process.env, {
-  AUTH_SECRET: `sse-0143-trigger-health-${randomUUID()}`,
-  MEETWISE_PUBLIC_PREVIEW: '0',
-  OCR_ENABLED: '0',
-  NODE_ENV: 'test',
-  WEB_ORIGIN: 'https://web.example.test',
-});
+process.env.AUTH_SECRET = `sse-0143-trigger-health-${randomUUID()}`;
+process.env.MEETWISE_PUBLIC_PREVIEW = '0';
+process.env.OCR_ENABLED = '0';
+process.env.NODE_ENV = 'test';
+process.env.WEB_ORIGIN = 'https://web.example.test';
 delete process.env.MIGRATIONS_DIR;
 
 const migration0143 = readFileSync(

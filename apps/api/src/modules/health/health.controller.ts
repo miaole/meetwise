@@ -1,7 +1,7 @@
 import { Controller, Get, HttpException, HttpStatus } from '@nestjs/common';
-import { HealthService } from './health.service';
 import { APP_VERSION, APP_REVISION } from '../../version';
 import { getSseRegistry } from '../../platform/sse-registry';
+import { HealthService } from './health.service';
 
 /**
  * 公开探针，不读取 principal（主体）也不泄露依赖拓扑。
