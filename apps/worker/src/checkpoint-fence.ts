@@ -24,11 +24,14 @@
  * PregelLoop._trackCheckpointerPromise 把 put/putWrites 的 promise 包成 `tracked` 放进 Set，只在
  * _streamIterator 的 finally 里 Promise.all——写失败到 finally 之间（节点还在等模型/DB）`tracked`
  * 无 handler=unhandledRejection=Node 默认整进程退出（2c4g sizing globalInflight=16：42501
- * checkpoint_privacy_fenced / pg `Connection terminated` 两例真崩）。收容形：作用域内首个写失败
+ * checkpoint_privacy_fenced / pg `Connection terminated` 两例真崩）。收容形：作用域内写失败
  * 被锁存（latch）+ abort 本次 invoke 的 signal，返回给 LangGraph 的 promise 一律 resolve（不再有
  * 可外溢的 rejected promise）；锁存后写缝零续写（fail-closed：不落任何后续 checkpoint），读缝
  * getTuple/list 直接抛锁存错；runContained 结束时原样抛锁存错（码不改→consumer 既有分类器：
- * 42501 确定性终态、graph_fence_lost/连接族 transient requeue）。pg 连接族无 code 的错
+ * 42501 确定性终态、graph_fence_lost/连接族 transient requeue）。
+ * 锁存优先级：不可重试（42501 / 其他非瞬时码）覆盖更早锁存的可重试错（如
+ * checkpoint_connection_lost）；同级（都可重试或都不可重试）仍首个获胜——避免权限拒绝被当成
+ * 可重试反复 requeue。pg 连接族无 code 的错
  * （Connection terminated/Query read timeout/pool connect timeout）折算为
  * `checkpoint_connection_lost`（cause 保原错）——下一次 claim 由 pg-pool 新建连接=重连。
  * 作用域外（直调 put/putWrites）语义零变：原样上抛。
@@ -44,7 +47,7 @@ import {
   type CheckpointTuple,
   type LangGraphRunnableConfig,
 } from '@langchain/langgraph';
-import { asPrincipal, assertInterviewGraphFence, type DbPool, type InterviewGraphFence } from '@meetwise/db';
+import { asPrincipal, assertInterviewGraphFence, errCode, type DbPool, type InterviewGraphFence } from '@meetwise/db';
 
 /** 沿类面派生的窄类型别名（零新增传递依赖）。 */
 type ListOptions = Parameters<BaseCheckpointSaver<number>['list']>[1];
@@ -61,6 +64,25 @@ const PG_CONNECTION_LOSS_MESSAGES: ReadonlySet<string> = new Set([
 ]);
 export const CHECKPOINT_CONNECTION_LOST = 'checkpoint_connection_lost';
 
+/**
+ * 与 interview-consumer.TRANSIENT_INTERVIEW_JOB_ERROR_CODES 同集（08* 另计）。
+ * 不从 consumer 引用，避免 checkpoint-fence ↔ interview-consumer 循环依赖；
+ * 集合变更时两边必须一起改（worker-inflight-crash.proof L-sync 对拍）。
+ */
+const RETRYABLE_CHECKPOINT_LATCH_CODES: ReadonlySet<string> = new Set([
+  'graph_fence_lost', '57014', '57P01', '57P02', '57P03', 'ECONNRESET', 'EPIPE', 'ETIMEDOUT',
+  'model_circuit_open', 'model_circuit_half_open', 'model_concurrency_exhausted',
+  'cost_budget_exhausted', 'model_admission_timeout', 'model_admission_failed',
+  CHECKPOINT_CONNECTION_LOST,
+]);
+
+/** 与 isTransientInterviewJobError 同口径：无 code = 不可重试（fail-closed）。 */
+export function isRetryableCheckpointLatchError(error: unknown): boolean {
+  const code = errCode(error);
+  if (!code) return false;
+  return code.startsWith('08') || RETRYABLE_CHECKPOINT_LATCH_CODES.has(code);
+}
+
 /** 有字符串 code 的错原样返回；无 code 的 pg 连接族错折算为 checkpoint_connection_lost（cause 保原错）。 */
 export function normalizeCheckpointWriteError(error: unknown): unknown {
   const e = error as { code?: unknown; message?: unknown } | null | undefined;
@@ -76,7 +98,7 @@ export class FenceCheckpointSaver extends BaseCheckpointSaver<number> {
   private readonly fence: InterviewGraphFence;
   /** runContained 嵌套深度（>0=写失败收容生效）。 */
   private containDepth = 0;
-  /** 首个被收容的写失败（job 级锁存·一旦置位永不清）。 */
+  /** 被收容的写失败（job 级锁存·一旦置位永不清；不可重试可覆盖已锁存的可重试）。 */
   private latched: { error: unknown } | undefined;
   private abortCurrent: AbortController | undefined;
   /** 内层真写调用计数（proof 断言锁存后零续写）。 */
@@ -150,8 +172,16 @@ export class FenceCheckpointSaver extends BaseCheckpointSaver<number> {
     } catch (raw) {
       if (this.containDepth === 0) throw raw;
       const error = normalizeCheckpointWriteError(raw);
-      this.latched ??= { error };
-      try { this.abortCurrent?.abort(this.latched.error); } catch { /* abort 监听器异常不得外溢 */ }
+      // 不可重试 > 可重试：42501 等确定性终态覆盖更早锁存的 checkpoint_connection_lost，
+      // 避免权限拒绝被当成可重试反复 requeue。同级仍首个获胜。
+      // 经 currentLatch() 读：本方法开头 `if (this.latched) return/throw` 会把字段收窄成
+      // undefined，但并发写可在检查之后才锁存，窄化不成立。
+      const prev = this.currentLatch();
+      const next = (!prev || (isRetryableCheckpointLatchError(prev.error) && !isRetryableCheckpointLatchError(error)))
+        ? error
+        : prev.error;
+      this.latched = { error: next };
+      try { this.abortCurrent?.abort(next); } catch { /* abort 监听器异常不得外溢 */ }
       return fallback;
     }
   }
