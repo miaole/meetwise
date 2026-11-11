@@ -61,11 +61,19 @@ async function main() {
     `INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'active',$3,$4)`,
     [IID, OWNER, resumeId, resumeEpoch]));
   // v64 引用闸:answer job 须同面试存在 v64 start job(0064 触发器)——先落 start 再落四枚 answer。
-  await asPrincipal(db, OWNER, (c) => enqueueInterviewJob(c, OWNER, IID, 'start', {}, 0));
+  // 入队背压闸（MAX_INTERVIEW_PER_OWNER_QUEUED=3·仅 queued 计数）晚于本 prove 落地：逐枚入队后先把
+  // 非 queued 目标态的行移出 queued，避免夹具自身撞 interview_queue_saturated（下方假时钟 UPDATE 照旧定终形）。
+  const startJob = await asPrincipal(db, OWNER, (c) => enqueueInterviewJob(c, OWNER, IID, 'start', {}, 0));
+  const leaveQueued = (id: string) => asPrincipal(db, OWNER, (c) => c.query(
+    `UPDATE interview_job SET status='running', lease_owner='fixture', lease_expires_at=now()+interval '1 hour' WHERE id=$1`, [id]));
+  await asPrincipal(db, OWNER, (c) => c.query(`UPDATE interview_job SET status='done' WHERE id=$1`, [startJob]));
   const jStale = await asPrincipal(db, OWNER, (c) => enqueueInterviewJob(c, OWNER, IID, 'answer', {}, 1));
   const jActive = await asPrincipal(db, OWNER, (c) => enqueueInterviewJob(c, OWNER, IID, 'answer', {}, 2));
+  await leaveQueued(jActive);
   const jFresh = await asPrincipal(db, OWNER, (c) => enqueueInterviewJob(c, OWNER, IID, 'answer', {}, 3));
+  await leaveQueued(jFresh);
   const jRunning = await asPrincipal(db, OWNER, (c) => enqueueInterviewJob(c, OWNER, IID, 'answer', {}, 4));
+  await leaveQueued(jRunning);
   await asPrincipal(db, OWNER, (c) => c.query(
     `UPDATE interview_job SET payload = payload || jsonb_build_object('answer', '明文答案-' || seq::text) WHERE interview_id=$1 AND kind='answer'`, [IID]));
   // 假时钟:stale queued 回拨 25h(>TTL 24h);fresh queued 不动;running 租约拨到 3h 前(>TTL)与 5min 前(刚过期<TTL)各一。
