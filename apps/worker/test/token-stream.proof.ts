@@ -12,6 +12,7 @@
  *   与基线一致（generation_started 在位；全臂行为基线由 prove:tokenstream 原值回归承底）。
  * R7 worker 侧断言：断开不取消（无听众生成照常至终态）/流中失败禁自动重 invoke（单飞恰一次）/
  *   「为补 delta 重跑」静态零新增。
+ * N-13 补臂（本刀，隔离 PG）：flag=1 时 quiz 业务闸拒绝 → LISTEN 实收 {withdrawn:true}。
  * 运行：node scripts/run-e2e-isolated.mjs s4b-token-stream:prove:raw（隔离 PG）；直跑
  * pnpm -C apps/worker prove:token-stream 需隔离 DATABASE_URL。
  */
@@ -359,6 +360,39 @@ async function main() {
     A('R3-adaptive generation_* 落表与基线一致（generation_started segments=[retrieve,generate,validate]）',
       (await familyRows(IID)).some((r) => r.kind === 'generation_started'
         && JSON.stringify(r.payload.segments) === JSON.stringify(['retrieve', 'generate', 'validate'])));
+  }
+
+  /* ── N-13 臂(1) flag=1 业务拒绝 → LISTEN 实收 withdrawn（隔离 PG；本阶段本地不跑）── */
+  {
+    const prevFlag = process.env.TOKEN_STREAM_WITHDRAW_PREVIEW;
+    process.env.TOKEN_STREAM_WITHDRAW_PREVIEW = '1';
+    try {
+      const QID = `s4bq-rej-${Date.now()}`;
+      const quizKey = `${QID}:quiz`;
+      // items.q 空白 → businessValidate 返回 blank_question（schema 过、业务闸拒）。
+      // streamingModel 仍会先经 onDelta 外发预览，随后 withdrawRejected 应发出 withdrawn 帧。
+      const raw = '{"items":[{"q":"   ","refs":[]}]}';
+      let threw = false;
+      let errMsg = '';
+      try {
+        await quizGenerator(pool, OWNER, [], quizKey, streamingModel({ 'resume-quiz.generate': raw }), QID)(EMPTY_PROFILE);
+      } catch (e) {
+        threw = true;
+        errMsg = e instanceof Error ? e.message : String(e);
+      }
+      await sleep(300);
+      const frames = framesFor(QID, quizKey);
+      const withdrawn = frames.find((f) => f.withdrawn === true);
+      A('N-13 臂(1) flag=1 quiz 业务拒绝：LISTEN 实收 withdrawn（reason=blank_question）',
+        threw && errMsg.includes('blank_question')
+        && withdrawn !== undefined
+        && withdrawn.v === 1 && withdrawn.streamKey === QID && withdrawn.attemptKey === quizKey
+        && withdrawn.reason === 'blank_question',
+        { threw, errMsg, frames });
+    } finally {
+      if (prevFlag === undefined) delete process.env.TOKEN_STREAM_WITHDRAW_PREVIEW;
+      else process.env.TOKEN_STREAM_WITHDRAW_PREVIEW = prevFlag;
+    }
   }
 
   /* ── R7 worker 侧：断开不取消+流中失败禁自动重 invoke ── */

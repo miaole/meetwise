@@ -358,8 +358,17 @@ async function main() {
   // ===== N-13 token_withdraw：同通道解析+无 id emit；缺 text 的非撤回帧仍丢 =====
   {
     const pumpSrc = readFileSync(fileURLToPath(new URL('../src/platform/sse-pump.ts', import.meta.url)), 'utf8');
-    A('契约面：token_withdraw emit 无 id 帧（与 token_delta 并列单点 safeWrite）',
-      pumpSrc.includes('event: token_withdraw\\ndata: ${payload}\\n\\n'));
+    // P3-a：不得只靠「子串 includes 模板」——前缀 id: 行仍能让旧断言 PASS。改为提取
+    // safeWrite 模板本身，断言其内容恰好是无 id 的 token_withdraw 帧（与运行时 !w.includes('id:') 同强度）。
+    const withdrawEmit = 'safeWrite(`event: token_withdraw\\ndata: ${payload}\\n\\n`)';
+    const emitAt = pumpSrc.indexOf(withdrawEmit);
+    const tmplMatch = emitAt >= 0 ? pumpSrc.slice(emitAt).match(/safeWrite\(`([^`]+)`\)/) : null;
+    const withdrawTmpl = tmplMatch?.[1] ?? '';
+    A('契约面：token_withdraw emit 无 id 帧（模板本身不含 id:，防前缀绕过）',
+      emitAt >= 0
+      && withdrawTmpl === 'event: token_withdraw\\ndata: ${payload}\\n\\n'
+      && !withdrawTmpl.includes('id:'),
+      { emitAt, withdrawTmpl });
 
     let client: Client | undefined;
     const notify = new SseNotifyService({ connect: async () => { client = fakePgClient(); return client; }, log: () => {}, random: () => 0 });

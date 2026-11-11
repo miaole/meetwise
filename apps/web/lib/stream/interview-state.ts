@@ -246,9 +246,12 @@ export function reduceInterview(events: BusinessEvent[], init: InterviewView = i
 
 /** 流关闭：非终态 → reconnecting(组件据此用同一 resultId+Last-Event-ID 自动重连,显示"重连中");终态 → closed(正常)。
  *  SSE-RESILIENCE(C5)：flags.stopReason 按打开状态码承载原因；flags.cleanEnd 标记"无错干净 end"轮换闪回（注记C 软措辞臂）；
- *  两旗缺省时**清除**陈旧旗（普通断线不得残留上一场连接的原因）。 */
+ *  两旗缺省时**清除**陈旧旗（普通断线不得残留上一场连接的原因）。
+ *  N-13 P1：token_delta / token_withdraw 不落 interview_event，重连 catch-up 与 per-connection deltaRing
+ *  都不含上一连接的撤回帧。未权威化的 tokenBuffer 在断流时丢弃，避免丢失的撤回让拒稿残留，
+ *  同键更高 seq 的 re-roll 再拼到拒稿上。tokenWithdrawnByKey（已达水位）跨连接保留。 */
 export function onStreamClosed(v: InterviewView, flags?: { stopReason?: StreamStopReason; cleanEnd?: boolean }): InterviewView {
-  const base = { ...v, connection: isTerminal(v.phase) ? 'closed' as const : 'reconnecting' as const };
+  const base = { ...v, connection: isTerminal(v.phase) ? 'closed' as const : 'reconnecting' as const, tokenBuffer: undefined };
   if (flags?.stopReason) return { ...base, streamStopReason: flags.stopReason, cleanEndReconnect: undefined };
   if (flags?.cleanEnd) return { ...base, cleanEndReconnect: true, streamStopReason: undefined };
   return { ...base, streamStopReason: undefined, cleanEndReconnect: undefined };
