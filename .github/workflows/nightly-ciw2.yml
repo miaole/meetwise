@@ -14,6 +14,8 @@ permissions:
 jobs:
   prove-placement:
     runs-on: ubuntu-latest
+    # PR243 复审：显式上限（默认 360 分钟）。原 13 步 + 复审补入 13 条隔离 prove，预计 25–35 分钟，留余量。
+    timeout-minutes: 60
     env:
       DATABASE_URL: postgresql://meetwise:meetwise_dev_password@localhost:54329/meetwise
     steps:
@@ -41,6 +43,8 @@ jobs:
       - name: sse-push:notify:prove (#155 named · local 56.8s green)
         run: pnpm sse-push:notify:prove
       - name: vector-plane-erasure:prove (#155 named · local 7.6s green)
+        # 隐私步骤：前序步骤红也照跑（只在手动取消时跳过），隐私回归不被无关红遮蔽。
+        if: ${{ !cancelled() }}
         run: pnpm vector-plane-erasure:prove
       # ── CI-LEAN 归置（2026-11-11 用户决定 CI 轻量）：从 ci.yml verify 移入的少量关键无 key 隔离 prove ──
       # 选择理由见 ai-docs/architecture/devops/ci-cd.md §8.3；其余移出 CI 的 prove 本地 `pnpm verify:local`。
@@ -68,6 +72,7 @@ jobs:
       - name: commerce saga（共享池 reserve/confirm/release · FIFO · 按比例 · 并发不超卖 · 对账 · 零额度丢失）
         run: pnpm commerce:prove
       - name: 隐私删除安全暂停（app_role 无破坏性入口）
+        if: ${{ !cancelled() }}
         run: |
           pnpm privacy-erasure:prove
           pnpm privacy-erasure:http:prove
@@ -83,3 +88,29 @@ jobs:
         run: pnpm interview:prove
       - name: 请求路径 + SSE（principal 注入 / RLS fail-closed / 幂等 / Last-Event-ID 重放）
         run: pnpm api:validate
+      # ── PR243 复审补入（mw-privacy-int + mw-e2e-ha 建议，2026-11-11 用户拍板「nightly 加关键项」）──
+      # 理由见 ai-docs/architecture/devops/ci-cd.md §8.3；全部走 run-e2e-isolated 一次性 PG，无 key。
+      - name: 转写隐私·答案事实根 + 其余 sink（INT-TRANSCRIPT 明文不落库 / 不外溢）
+        if: ${{ !cancelled() }}
+        run: |
+          pnpm int-transcript-answer-fact-root:prove
+          pnpm int-transcript-remaining-sinks:prove
+      - name: 负路径·resume/隐私域（越权 / 围栏 / 擦除负路径）
+        if: ${{ !cancelled() }}
+        run: pnpm neg:resume
+      - name: 负路径·认证/会话域（停用后令牌即时失效 / 再登录拒 / 防枚举）
+        run: pnpm neg:auth
+      - name: 权限 / RLS 低权账号门（DB ACL · checkpoint · 题库控制面 · RAG 控制面 · 迁移 CLI post-flight）
+        run: |
+          pnpm db-acl2:prove
+          pnpm checkpoint-role:prove
+          pnpm qbank-control-role:prove
+          pnpm rag-control-role:prove
+          pnpm migrate-cli:prove
+      - name: 迁移升级类（题库完整性升级 · RAG 0032 前缀升级 · DBHY-1 卫生刀）
+        run: |
+          pnpm dbhy1:prove
+          pnpm qbank-integrity-upgrade:prove
+          pnpm rag-control-upgrade:prove
+      - name: 运行内核（CAS / 租约 / 幂等 / 可恢复 / 迟到成功）
+        run: pnpm runtime:isolated:prove

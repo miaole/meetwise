@@ -56,8 +56,27 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # 文档门禁：必需文件 + 关键术语
+      # 文档门禁：必需文件 + 关键术语 + ci-cd.md §8.2 步骤台账一致性门（ci.yml / nightly-ciw2 / verify:local 三处双向对账）
       - run: pnpm docs:check
+
+      # PR243 复审补回（2026-11-11 用户拍板「PR 上加约 8 秒静态检查」）：E2E 静态守卫 12 条 + 隐私删除预览 503 无库 pin 2 条。
+      # 全部无库、秒级（本地实测合计约 10s），防假绿：fake-service 旗标 / secret 脱敏扫描 / parity / 出站清单 / 公开预览写门。
+      - name: E2E 静态守卫 + 隐私删除预览 503 无库 pin（无库，秒级，非 live E2E、非发布证据）
+        run: |
+          pnpm e2e-platform:check
+          pnpm e2e-platform:prove
+          pnpm e2e-platform:layout:prove
+          pnpm e2e-static-guards:check
+          pnpm e2e-static-guards:prove
+          pnpm e2e-parity:check
+          pnpm e2e-parity:prove
+          pnpm privacy-erasure-preview:domain:prove
+          pnpm privacy-erasure-preview:contract:prove
+          pnpm provider-egress:inventory
+          pnpm provider-egress:prove
+          pnpm public-preview-write:inventory
+          pnpm public-preview-write:prove
+          pnpm public-preview-write-gate:prove
 
       # 模块边界 / 包 DAG（跨包 @meetwise/* 经 tsconfig paths 真解析，边界规则真生效；无需 Postgres）
       - name: 架构边界（无环 / 依赖向下 / ai-graphs 纯 / ai-runtime 关口）
@@ -79,9 +98,9 @@ jobs:
       - name: lint gate (turbo lint · #96 LINT S3-S5 lit)
         run: pnpm turbo lint
 
-      # 无库单元 prove 必须在 db:up 之前（与原 verify 同序）：sse-slot:prove 依赖「库不可达」环境——
-      # 库可达时 SSE notify 单例会建 LISTEN 连接并在 trigger_missing 降级时 wakeAllWaiters，holder 额外轮询，
-      # 触发 FIX-G3 的「每 holder ≤3 次」节律下界（CI run 42947057277 实测 4 次）。
+      # 无库单元 prove（与原 verify 同序，位于 db:up 之前）。sse-slot:prove 已自封闭（PR243 小门B）：
+      # apps/api `prove:sse-slot` 以 `env -u DATABASE_URL -u PG*` 启动，SSE notify 单例不建 LISTEN 池，
+      # db:up 前后结果一致；带库环境直跑 node 会被 proof 内 hermetic 断言判红（不再靠步骤顺序兜底）。
       - name: 无库单元 prove（dispatch / dual-claim / drain / Last-Event-ID / model-slot / SSE 槽 / Web 预览门）
         run: |
           pnpm interview-dispatch:unit:prove
@@ -142,4 +161,5 @@ jobs:
       # 全栈跨进程 HTTP E2E 不进 CI（用户决定：不配 MODEL_API_KEY），本地手跑 `pnpm e2e:isolated`。
       # nightly（nightly-ciw2.yml）只放少量关键无 key 隔离 prove：容器构建 / compose 校验 / 旧库升级 / schema 漂移 /
       # 跨用户授权 / commerce saga / 隐私删除暂停 / 评分完整性 / 面试端到端 / 请求路径+SSE。
-      # 其余 prove 移出 CI，本地 `pnpm db:up && pnpm verify:local`（与原 verify 同序）。
+      # 以及 PR243 复审补入的权限/RLS、迁移升级、运行内核、认证/隐私负路径、转写隐私 sink 两条。
+      # 其余 prove 移出 CI，本地 `pnpm db:up && pnpm verify:local`（与原 verify 同序；单条 && 链，首错即停）。

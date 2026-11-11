@@ -457,6 +457,104 @@ for (const file of questionBanksWithSpeakableAnswerGate) {
   }
 }
 
+// PR243 小门A：CI 步骤台账一致性门（ai-docs/architecture/devops/ci-cd.md §8.2）。
+// 三处执行面 = ci.yml（全部 job）/ nightly-ciw2.yml / package.json `verify:local`（按 && 拆分）；双向对账：
+//   ① 执行面里每条命令（pnpm … / node scripts/… / docker build …，剥前缀 VAR=val）都必须在台账里；
+//   ② 台账每条命令必须恰在其「去向」声明的执行面出现，且不得出现在未声明的执行面（基础设施命令除外）。
+// 去向词：「保留」→ ci；「仅 nightly」→ nightly；其余含「nightly」→ nightly + verify:local；「本地手跑」→ verify:local。
+const CI_LEDGER_DOC = "ai-docs/architecture/devops/ci-cd.md";
+const CI_LEDGER_INFRA = new Set(["pnpm install --frozen-lockfile", "pnpm db:up"]);
+function normalizeLedgerCommand(raw) {
+  let cmd = raw.trim().replace(/\s+/g, " ");
+  while (/^[A-Z][A-Z0-9_]*=\S+ /.test(cmd)) cmd = cmd.replace(/^[A-Z][A-Z0-9_]*=\S+ /, "");
+  if (/^docker build\b/.test(cmd)) return "docker build";
+  return cmd;
+}
+function isLedgerCommand(cmd) {
+  return /^(pnpm |node scripts\/|docker build)/.test(cmd);
+}
+function workflowRunCommands(text) {
+  const out = [];
+  const lines = text.split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    const m = /^(\s*)(?:-\s+)?run:\s*(.*)$/.exec(lines[i]);
+    if (!m) continue;
+    const keyIndent = lines[i].indexOf("run:");
+    const rest = m[2].trim();
+    const body = [];
+    if (rest === "|" || rest === ">" || rest === "|-" || rest === ">-") {
+      for (let j = i + 1; j < lines.length; j++) {
+        const line = lines[j];
+        if (line.trim() === "") continue;
+        const indent = line.length - line.trimStart().length;
+        if (indent <= keyIndent) break;
+        body.push(line);
+        i = j;
+      }
+    } else {
+      body.push(rest);
+    }
+    for (const line of body) {
+      const cmd = normalizeLedgerCommand(line);
+      if (isLedgerCommand(cmd)) out.push(cmd);
+    }
+  }
+  return out;
+}
+function checkCiStepLedger() {
+  const problems = [];
+  const read = (rel) => (existsSync(join(root, rel)) ? readFileSync(join(root, rel), "utf8") : undefined);
+  const doc = read(CI_LEDGER_DOC);
+  const ciText = read(".github/workflows/ci.yml");
+  const nightlyText = read(".github/workflows/nightly-ciw2.yml");
+  const pkgText = read("package.json");
+  if (!doc || !ciText || !nightlyText || !pkgText) return ["ci step ledger: missing ci-cd.md / ci.yml / nightly-ciw2.yml / package.json"];
+  const start = doc.indexOf("### 8.2");
+  const end = doc.indexOf("### 8.3", start + 1);
+  if (start < 0 || end < 0) return [`ci step ledger: ${CI_LEDGER_DOC} must contain §8.2 and §8.3 headings`];
+  const ledger = new Map();
+  for (const line of doc.slice(start, end).split("\n")) {
+    if (!line.startsWith("|")) continue;
+    const cells = line.split("|").slice(1, -1).map((c) => c.trim());
+    if (cells.length < 4 || cells[0] === "#" || /^-+$/.test(cells[0])) continue;
+    const [id, , cmdCell, destCell] = cells;
+    let dest;
+    if (destCell.includes("保留")) dest = ["ci"];
+    else if (destCell.includes("仅 nightly")) dest = ["nightly"];
+    else if (destCell.includes("nightly")) dest = ["nightly", "local"];
+    else if (destCell.includes("本地手跑")) dest = ["local"];
+    else { problems.push(`ci step ledger: row ${id} has unknown destination ${JSON.stringify(destCell)}`); continue; }
+    for (const m of cmdCell.matchAll(/`([^`]+)`/g)) {
+      const cmd = normalizeLedgerCommand(m[1]);
+      if (!isLedgerCommand(cmd)) continue;
+      if (ledger.has(cmd)) problems.push(`ci step ledger: command ${JSON.stringify(cmd)} listed twice (rows ${ledger.get(cmd).id} and ${id})`);
+      ledger.set(cmd, { id, dest });
+    }
+  }
+  if (ledger.size === 0) return [`ci step ledger: no commands parsed from ${CI_LEDGER_DOC} §8.2`];
+  const verifyLocal = JSON.parse(pkgText).scripts?.["verify:local"] ?? "";
+  const surfaces = {
+    ci: new Set(workflowRunCommands(ciText)),
+    nightly: new Set(workflowRunCommands(nightlyText)),
+    local: new Set(verifyLocal.split("&&").map(normalizeLedgerCommand).filter(isLedgerCommand)),
+  };
+  const surfaceName = { ci: ".github/workflows/ci.yml", nightly: ".github/workflows/nightly-ciw2.yml", local: "package.json verify:local" };
+  for (const [surface, cmds] of Object.entries(surfaces)) {
+    for (const cmd of cmds) {
+      if (!ledger.has(cmd)) problems.push(`ci step ledger: ${surfaceName[surface]} runs ${JSON.stringify(cmd)} but ${CI_LEDGER_DOC} §8.2 has no row for it`);
+    }
+  }
+  for (const [cmd, { id, dest }] of ledger) {
+    for (const surface of Object.keys(surfaces)) {
+      const present = surfaces[surface].has(cmd);
+      if (dest.includes(surface) && !present) problems.push(`ci step ledger: row ${id} ${JSON.stringify(cmd)} declared in ${surfaceName[surface]} but missing there`);
+      if (!dest.includes(surface) && present && !CI_LEDGER_INFRA.has(cmd)) problems.push(`ci step ledger: row ${id} ${JSON.stringify(cmd)} also runs in ${surfaceName[surface]} but ledger destination excludes it`);
+    }
+  }
+  return problems;
+}
+for (const problem of checkCiStepLedger()) errors.push(problem);
+
 const publicTextPolicy = scanPublicTextPolicy({ repoRoot: root });
 for (const policyError of publicTextPolicy.errors) errors.push(`public_text_policy:${policyError}`);
 
