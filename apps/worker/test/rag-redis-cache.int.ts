@@ -6,8 +6,8 @@
  *   RAG_REDIS_TEST_URL=rediss://... pnpm -C apps/worker prove:rag-redis-cache
  */
 import { createHash } from 'node:crypto';
-import { RedisQbankRetrievalCache, resolveRagRedisCacheConfig } from '../src/rag-redis-cache.ts';
 import type { QbankRetrievalCacheAddress } from '@meetwise/db';
+import { RedisQbankRetrievalCache, resolveRagRedisCacheConfig } from '../src/rag-redis-cache.ts';
 
 const testUrl = process.env.RAG_REDIS_TEST_URL;
 if (!testUrl) throw new Error('rag_redis_test_url_missing');

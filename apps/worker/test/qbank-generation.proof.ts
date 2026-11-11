@@ -8,9 +8,9 @@ import { assertIsolatedTestTarget, createPool, asPrincipal, asQbankControlExecut
 // 5c449d46 \u5c06 fakeEmbedder \u516c\u5171\u5bfc\u51fa\u79fb\u5165 test-support\uff08#74\uff09\u2014\u2014\u672c\u955c\u50cf import \u672a\u968f\u6539\u81f3\u52a0\u8f7d\u5373\u70b8\uff08qbank-control-sec \u5200\u968f\u951a\u590d\u6d3b\u672c\u95e8\u65f6\u4fee\u5f15\u5165\u884c\u00b7\u975e\u8bed\u4e49\u6539\u52a8\uff09\u3002
 import { fakeEmbedder } from '@meetwise/ai-runtime/test-support';
 import { ingestQbank, ingestQuestionBankArtifacts, QBANK_OWNER, qbankMetadataHash, type QbankItem, type QbankQuestionArtifact } from '@meetwise/db';
-import { ensureActiveQbankGeneration } from '../src/qbank-generation.ts';
 import { reviewSource } from '@meetwise/db';
-import { readGenerationQuestionChunkProjection, buildQbankProviderInputRecipe, validateQbankProviderInputRecipe, qbankProviderInputDigest, QBANK_PROVIDER_INPUT_SCHEMA, QBANK_PROVIDER_INPUT_MAX_EXCERPT, type GenerationQuestionChunkProjection, type QbankProviderInputRecipe } from '@meetwise/db';
+import { readGenerationQuestionChunkProjection, buildQbankProviderInputRecipe, validateQbankProviderInputRecipe, qbankProviderInputDigest, QBANK_PROVIDER_INPUT_SCHEMA, QBANK_PROVIDER_INPUT_MAX_EXCERPT } from '@meetwise/db';
+import { ensureActiveQbankGeneration } from '../src/qbank-generation.ts';
 
 // Synthetic, non-production HMAC material.  The isolated runner strips every
 // inherited cache secret, so this proof never sees or relies on a cloud key.

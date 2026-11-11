@@ -1,8 +1,8 @@
 /** 生产主线替换证明:自适应 lifecycle(start/submit)驱动自适应图,发 SSE 事件 + 收尾结算 + 报告走舱壁。
  *  脚本模型(CI);MemorySaver。 pnpm adaptive-life:prove (需 db:up) */
 import { fileURLToPath } from 'node:url';
-import { MemorySaver, type LangGraphRunnableConfig } from '@langchain/langgraph';
 import { randomUUID } from 'node:crypto';
+import { MemorySaver, type LangGraphRunnableConfig } from '@langchain/langgraph';
 import { createPool, asPrincipal, reserveEntitlement, appendEvent, answerHash, claimInterviewAnswer, loadMigrations, runMigrations, inviteCandidate, startApplicationInterview, createJob, classifyJobRoute, finalizeApplication, failInterviewAndRelease, enrollCheckpointThread, withInterviewGraphFence } from '@meetwise/db';
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
 import { buildAdaptiveInterviewGraph } from '@meetwise/ai-graphs';

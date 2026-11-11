@@ -4,8 +4,8 @@
  *   pnpm report:prove   (需 pnpm db:up)
  */
 import {
-  assertIsolatedTestTarget, createPool, asPrincipal, appendEvent,
-  enqueueReport, claimReport, markReportReady, markReportFailed, requeueFailedReport, sweepReports, getReport,
+  assertIsolatedTestTarget, createPool, asPrincipal,
+  enqueueReport, claimReport, markReportReady, requeueFailedReport, getReport,
   MAX_REPORT_ATTEMPTS,
 } from '@meetwise/db';
 import type { InterviewSummary, ReportContent } from '@meetwise/ai-graphs';

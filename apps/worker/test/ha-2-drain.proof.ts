@@ -5,7 +5,6 @@
  * vectorPlaneErasureLoop）。两阶段排空分相断言（分相序/份额保护/逐相在飞名/退化
  * 形态/源级相位贴标）另见本卷 §5/§6。 pnpm -C apps/worker prove:ha2-drain
  */
-import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';

@@ -9,6 +9,7 @@
 import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
 import { MemorySaver } from '@langchain/langgraph';
+import { z } from 'zod';
 import {
   createPool, asPrincipal, assertIsolatedTestTarget, runMigrations, loadMigrations,
   answerHash, claimInterviewAnswer, reserveEntitlement, createResumeWithBlob, transitionResume, completeIngestion,
@@ -16,19 +17,16 @@ import {
 } from '@meetwise/db';
 import { invoke, promptedModel, resolveModelOperation, registryLogicalNodeKeyDigest, MODEL_OPERATION_REGISTRY_VERSION, scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
 import { isQuestionGenerationFailure, normalizeQuestionGenerationResult, ingestResume, type QuestionGenerationResult } from '@meetwise/domain';
-import { normalizeQuestion } from '@meetwise/db';
 import { buildAdaptiveInterviewGraph, createEphemeralAnswerVault } from '@meetwise/ai-graphs';
 import { buildAdaptiveDeps } from '../src/adaptive-interview-service.ts';
 import { recordAskedQuestions } from '../src/memory-service.ts';
 import { startAdaptiveInterview, submitAdaptiveAnswer, type AdaptiveLifecycleDeps } from '../src/adaptive-lifecycle.ts';
-import { z } from 'zod';
 
 // Test-only HMAC key for createJob/classifyJobRoute(bound 面前置;同 adaptive-lifecycle.proof 先例,非生产)。
 process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'ag-f-reroll-job-route-input-hmac-proof-key-not-production';
 
 const pool = createPool();
 let fail = 0; const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
-const section = (t: string) => console.log(`\n──── ${t} ────`);
 const nonce = Date.now();
 
 const GOOD_Q = '请结合一次你在线上限流阈值校准中的具体做法与验证结果展开说明。';
@@ -115,7 +113,7 @@ async function main() {
     contract: `agf-con-${nonce}`, replay: `agf-rep-${nonce}`, dup: `agf-dup-${nonce}`, memory: `agf-mem-${nonce}`,
     template: `agf-tmpl-${nonce}`, tmplSwitch: `agf-tmlsw-${nonce}`,
   };
-  const threads = Object.fromEntries(Object.entries(owners).map(([k, v]) => [k, `agf-t-${k}-${nonce}`]));
+  const threads = Object.fromEntries(Object.entries(owners).map(([k, _v]) => [k, `agf-t-${k}-${nonce}`]));
 
   console.log('\n──── §A seam 四类族有界 re-roll(修法①·键 :r{k}+revision 同换·统一计数) ────');
   // A1 schema 臂:初诊 q=42 违例 AskSchema → :r1 合法新题 → ok。

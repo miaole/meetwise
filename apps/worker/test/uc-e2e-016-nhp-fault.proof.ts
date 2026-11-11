@@ -169,8 +169,8 @@ async function main() {
   await asPrincipal(pool, OWNER, (c) => enqueueQuizJob(c, OWNER, QID('F1'), resumeId, epoch));
   await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, DID('F2'), 'resume_diagnosis', UNITS_PER_FLOW));
   await asPrincipal(pool, OWNER, (c) => enqueueDiagnosisJob(c, OWNER, DID('F2'), resumeId, epoch));
-  const f1Tick = await quizDispatchTick({ pool, model: scriptedModelClient(throwF1Script), leaseOwner: 'nhp16-w2' } as QuizConsumerDeps);
-  const f2Tick = await diagnosisDispatchTick({ pool, model: scriptedModelClient(throwF2Script), leaseOwner: 'nhp16-w2' } as DiagnosisConsumerDeps);
+  await quizDispatchTick({ pool, model: scriptedModelClient(throwF1Script), leaseOwner: 'nhp16-w2' } as QuizConsumerDeps);
+  await diagnosisDispatchTick({ pool, model: scriptedModelClient(throwF2Script), leaseOwner: 'nhp16-w2' } as DiagnosisConsumerDeps);
   const f1j = await quizJob(QID('F1')); const f2j = await diagJob(DID('F2'));
   A('F1 quiz_job failed（终态 · 不无限重试）', f1j.status === 'failed');
   A('F2 diagnosis_job failed（同族）', f2j.status === 'failed');
