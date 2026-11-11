@@ -120,9 +120,9 @@ related:
 | 1 | 首页营销区块 / FAQ / 联系 / 用户协议 / 隐私政策 / SEO(breadcrumb·sitemap·meta) / 反馈按钮 / 实时面试计数 | `marketing-legal-seo.md` | 存在 FAQ / legal / features 等部分预览或静态页；不等于该用例矩阵已全部落地，也不能当隐私或 SEO 承诺 |
 | 2 | admin/运营后台：RBAC / 用户 / 订单 / 内容 / 运营位 / RLS 最小权限 / C 端隔离 | `admin-console.md` | 存在 `apps/web/app/admin` 运营页；不等于 RBAC/订单/内容/RLS 最小权限等用例已全部落地或可发布 |
 | 3 | 面试服务细分：服务选择入口 + 简历押题/专项/行为/模拟四类显式区分 + SpecialInterviewConfirm | `interview-modality.md` | 未见该用例所写四类显式区分与 `SpecialInterviewConfirm` 的完整业务实现；不得读成已落地 |
-| 4 | 作答辅助：答案建议/优化 + STAR 引导（不造假·不编经历·保留用户最终决定） | `answer-assist.md` | **仅设计，未落代码** |
-| 5 | 3D 数字人面试官：多模态形象（语音口型/表情）+ 3D→语音→文本降级阶梯，不阻塞面试主路径 | `avatar-3d.md` | **仅设计，未落代码**（`apps/web/components/ui/avatar.tsx` 是通用头像组件，不是 3D 数字人面试官） |
-| 6 | 兑换码/兑换服务：兑换 vs 充值双路径，对齐共享权益池 + FIFO 扣减 | `redemption.md` | **仅设计，未落代码** |
+| 4 | 作答辅助：答案建议/优化 + STAR 引导（不造假·不编经历·保留用户最终决定） | `answer-assist.md`（仅设计·未落代码） | **仅设计，未落代码** |
+| 5 | 3D 数字人面试官：多模态形象（语音口型/表情）+ 3D→语音→文本降级阶梯，不阻塞面试主路径 | `avatar-3d.md`（仅设计·未落代码） | **仅设计，未落代码**（`apps/web/components/ui/avatar.tsx` 是通用头像组件，不是 3D 数字人面试官） |
+| 6 | 兑换码/兑换服务：兑换 vs 充值双路径，对齐共享权益池 + FIFO 扣减 | `redemption.md`（仅设计·未落代码） | **仅设计，未落代码** |
 | 7 | 面试历史：列表 / 详情 / 继续未完成 / 重看报告 | `interview-history.md` | 存在 `apps/web/app/interviews` 列表/继续入口；不等于该用例矩阵已全部落地或可发布 |
 
 ## 4. 落代码前置条件
