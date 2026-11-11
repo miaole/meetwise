@@ -60,7 +60,7 @@ main 上 `ci` 工作流对上述合入提交均 success。`deploy` 工作流报�
 **后续队列（未关）**
 
 1. #18 `interview_job.payload` 明文 answer 需即时剥离。
-2. #106 deps-audit 只阻断 critical，现存 18 个 high。
+2. #106 deps-audit 18 个 high 已在 `fix/deps-audit-high` 清零，门禁拟升至 `--audit-level=high`（待合入；翻面权归协调方）。残余 medium 仅 qs@6.15.3 ×3，不挡 high 门。
 3. N-11 口径冲突待深审。
 4. #28 ADR 仍写 BullMQ/Redis，需与 PG-retained 对齐。
 5. #70 bodyLimit 12MiB 低于 base64 上限，413 不可达。
