@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "lint": "eslint . --max-warnings 956",
+    "lint": "eslint . --max-warnings 954",
     "start": "node --import @swc-node/register/esm-register src/main.ts",
     "cost:configure": "node --import @swc-node/register/esm-register src/cost-configure.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -67,6 +67,7 @@
     "prove:adaptive-legacy-checkpoint": "tsx test/adaptive-legacy-checkpoint.proof.ts",
     "prove:graph-fence-write": "tsx test/graph-fence-write.proof.ts",
     "prove:worker-inflight-crash": "tsx test/worker-inflight-crash.proof.ts",
+    "prove:pg-client-double-release": "tsx test/pg-client-double-release.proof.ts",
     "prove:signal-sse": "tsx test/signal-conclude-event.proof.ts",
     "prove:adaptive-consumer": "tsx test/adaptive-consumer.proof.ts",
     "prove:voice-adaptive": "tsx test/voice-adaptive.proof.ts",

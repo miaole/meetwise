@@ -87,36 +87,232 @@ async function cleanupCheckpointPrincipalSession(
 
 type ReleaseArg = Error | boolean | undefined;
 
-function installReleaseCleanup(client: any): { releaseAsync: () => Promise<void> } {
+const DOUBLE_RELEASE_RE = /already been released to the pool/i;
+
+/**
+ * Serialize queries on one PoolClient.  pg@8 allows overlapping client.query()
+ * (deprecation warning) but the second query corrupts the session; cleanup's
+ * SET ROLE NONE then races the in-flight saver query, and the release catch
+ * path can call the raw pg-pool release twice (unhandledRejection → exit).
+ */
+type ClientQueryFn = (...args: unknown[]) => unknown;
+/** pg-pool reuses the same Client object and only resets `release` on checkout.
+ *  Mark the client so query serialization is installed once; re-wrapping would
+ *  nest promise tails and grow query latency with checkout count squared. */
+const QUERY_SERIALIZED = Symbol.for('meetwise.checkpointQuerySerialized');
+type QueryMarked = { query: ClientQueryFn; [QUERY_SERIALIZED]?: true };
+
+function serializeClientQueries(client: { query: ClientQueryFn }): void {
+  const marked = client as QueryMarked;
+  if (marked[QUERY_SERIALIZED]) return; // SERIALIZE_ONCE_GUARD
+  marked[QUERY_SERIALIZED] = true;
+  const originalQuery: ClientQueryFn = client.query.bind(client);
+  let tail: Promise<void> = Promise.resolve();
+  client.query = (...args: unknown[]) => {
+    const started = tail.then(() => originalQuery(...args), () => originalQuery(...args));
+    tail = started.then(() => undefined, () => undefined);
+    return started;
+  };
+}
+
+const SQLSTATE_RE = /^[0-9A-Z]{5}$/;
+type ReleaseWarnEvent =
+  | 'checkpoint_pg_double_release'
+  | 'checkpoint_pg_release_unhandled'
+  | 'checkpoint_pg_release_holder_mismatch'
+  | 'checkpoint_pg_stale_handle';
+
+function warnReleasePath(event: ReleaseWarnEvent, error?: unknown): void {
+  let code: string = event;
+  if (error && typeof error === 'object' && 'code' in error) {
+    const raw = (error as { code: unknown }).code;
+    if (typeof raw === 'string' && SQLSTATE_RE.test(raw)) code = raw;
+  }
+  console.warn(JSON.stringify({ event, code }));
+}
+
+function isDoubleRelease(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return DOUBLE_RELEASE_RE.test(message);
+}
+
+function staleHandleError(): Error {
+  warnReleasePath('checkpoint_pg_stale_handle');
+  return Object.assign(new Error('checkpoint_pg_stale_handle'), { code: 'checkpoint_pg_stale_handle' });
+}
+
+/**
+ * Each checkout returns a dedicated handle (a proxy), not the shared pg Client.
+ * query / release / releaseAsync live only on that handle. After the handle is
+ * returned to the pool, a later release or query on it warns and throws; it
+ * cannot look up the live client.release property and so cannot release the
+ * next holder. The raw once-fn is closed over at checkout, immediately after
+ * acquire and before any await.
+ *
+ * A leftover release on a previous shared-wrapper path used to return early
+ * when the holder token did not match, leaving the client checked out forever
+ * (pool counts stuck, checkout timeout). That path is gone: stale handles do
+ * not touch the live checkout, and the live handle still returns or destroys
+ * the client so idle/total/waiting can recover.
+ */
+type QueryResult = { rows: unknown[]; [key: string]: unknown };
+type QueryFn = (...args: unknown[]) => Promise<QueryResult>;
+
+type RawPoolClient = {
+  query: QueryFn;
+  release: (err?: ReleaseArg) => void;
+};
+
+export type CheckpointClientHandle = {
+  query: QueryFn;
+  release: (err?: ReleaseArg) => void;
+  releaseAsync: (err?: ReleaseArg) => Promise<void>;
+};
+
+const HANDLE_KEYS = ['query', 'release', 'releaseAsync'] as const;
+type HandleKey = (typeof HANDLE_KEYS)[number];
+
+function isHandleKey(prop: string | symbol): prop is HandleKey {
+  return typeof prop === 'string' && (HANDLE_KEYS as readonly string[]).includes(prop);
+}
+
+/**
+ * Each checkout returns a dedicated whitelist handle (plain object, not a
+ * Proxy of the shared pg Client). PostgresSaver 1.0.4 and in-repo callers only
+ * use query / release / releaseAsync (plus pool.connect, pool.query, pool.end
+ * on the facade). The handle does not inherit Client.prototype, does not
+ * expose on / once / off / end / connection, and does not hold a reachable
+ * reference to the raw Client (the raw client lives only in this closure).
+ *
+ * After the handle is returned to the pool, any member access throws
+ * checkpoint_pg_stale_handle. A leftover release or query therefore cannot
+ * touch the next holder.
+ */
+function installReleaseCleanup(client: RawPoolClient): CheckpointClientHandle {
+  serializeClientQueries(client);
+
   const originalRelease = client.release.bind(client) as (err?: ReleaseArg) => void;
   let releasePromise: Promise<void> | null = null;
+  let originalReleased = false; // RELEASE_ONCE_GUARD
+  let handleOpen = true;
+
+  const releaseOnce = (err?: ReleaseArg): void => {
+    if (originalReleased) return; // RELEASE_ONCE_GUARD
+    originalReleased = true;
+    try {
+      originalRelease(err);
+    } catch (error) {
+      if (isDoubleRelease(error)) {
+        // Fail-closed: this checkout once-fn was already consumed.
+        warnReleasePath('checkpoint_pg_double_release', error);
+        throw error;
+      }
+      throw error;
+    }
+  };
 
   const runRelease = (err?: ReleaseArg): Promise<void> => {
     if (releasePromise) return releasePromise;
     releasePromise = (async () => {
       if (err) {
-        originalRelease(err);
+        releaseOnce(err);
         return;
       }
       try {
-        await cleanupCheckpointPrincipalSession(client);
-        originalRelease();
+        await cleanupCheckpointPrincipalSession(client); // CLEANUP_BEFORE_RELEASE
+        releaseOnce(); // CLEANUP_BEFORE_RELEASE
       } catch (resetErr) {
+        if (isDoubleRelease(resetErr)) throw resetErr;
         // Destroy: never return a still-privileged connection to the pool.
-        originalRelease(resetErr instanceof Error ? resetErr : true);
+        releaseOnce(resetErr instanceof Error ? resetErr : true);
       }
     })();
     return releasePromise;
   };
 
-  // pg.PoolClient.release is sync void; callers (PostgresSaver) do not await.
-  // Keep the client checked out until async cleanup finishes, then call the
-  // original release — that is the pool-return gate.
-  client.release = (err?: ReleaseArg) => {
-    void runRelease(err);
+  const releaseAsync = (err?: ReleaseArg): Promise<void> => {
+    if (!handleOpen) throw staleHandleError();
+    handleOpen = false;
+    return runRelease(err);
   };
 
-  return { releaseAsync: () => runRelease() };
+  // pg.PoolClient.release is sync void; callers (PostgresSaver) do not await.
+  // Keep the client checked out until async cleanup finishes, then call the
+  // closed-over original release — that is the pool-return gate.
+  const release = (err?: ReleaseArg): void => {
+    if (!handleOpen) throw staleHandleError();
+    handleOpen = false;
+    // Swallow rejection: fire-and-forget must never become unhandledRejection.
+    // Fence / privacy errors still propagate through query() callers.
+    void runRelease(err).catch((error) => {
+      warnReleasePath('checkpoint_pg_release_unhandled', error);
+    });
+  };
+
+  const query: QueryFn = (...args: unknown[]) => {
+    if (!handleOpen) throw staleHandleError();
+    return client.query(...args);
+  };
+
+  // WHITELIST_HANDLE: null-prototype plain object; do not wrap the shared Client.
+  const methods = Object.create(null) as CheckpointClientHandle;
+  methods.query = query;
+  methods.release = release;
+  methods.releaseAsync = releaseAsync;
+  Object.preventExtensions(methods);
+
+  const assertOpen = (): void => {
+    if (!handleOpen) throw staleHandleError();
+  };
+
+  // An async function that returns the handle will look up .then to see if the
+  // value is thenable. That lookup must not throw and must not be thenable.
+  const isThenableProbe = (prop: string | symbol): boolean =>
+    prop === 'then' || prop === 'catch' || prop === 'finally';
+
+  const guardedGet = (prop: string | symbol): unknown => {
+    if (isThenableProbe(prop)) return undefined;
+    assertOpen();
+    if (isHandleKey(prop)) return methods[prop];
+    throw staleHandleError();
+  };
+
+  return new Proxy(methods, {
+    get(_target, prop) {
+      return guardedGet(prop);
+    },
+    getOwnPropertyDescriptor(_target, prop) {
+      if (isThenableProbe(prop)) return undefined;
+      assertOpen();
+      if (!isHandleKey(prop)) return undefined;
+      return { value: methods[prop], writable: false, enumerable: true, configurable: false };
+    },
+    ownKeys() {
+      assertOpen();
+      return [...HANDLE_KEYS];
+    },
+    has(_target, prop) {
+      if (isThenableProbe(prop)) return false;
+      assertOpen();
+      return isHandleKey(prop);
+    },
+    set() {
+      return false;
+    },
+    defineProperty() {
+      return false;
+    },
+    deleteProperty() {
+      return false;
+    },
+    getPrototypeOf() {
+      assertOpen();
+      return null;
+    },
+    setPrototypeOf() {
+      return false;
+    },
+  });
 }
 
 /**
@@ -136,8 +332,12 @@ export class PrincipalBoundCheckpointPool {
     return this.pool;
   }
 
-  async connect(): Promise<any> {
-    const client = await this.pool.connect();
+  async connect(): Promise<CheckpointClientHandle> {
+    const acquired = await this.pool.connect();
+    // CHECKOUT_HANDLE: return a per-checkout whitelist handle. Do not assign
+    // release or query wrappers onto the shared pg Client, and do not Proxy
+    // that Client, so leftover or reflected access cannot reach the next holder.
+    const client = installReleaseCleanup(acquired);
     try {
       const access = requireAccess();
       // Session-scoped (not LOCAL): required for PostgresSaver autocommit reads.
@@ -148,11 +348,9 @@ export class PrincipalBoundCheckpointPool {
                 set_config('app.checkpoint_epoch', $3, false)`,
         [access.owner, access.threadId, String(access.fenceEpoch)],
       );
-      const { releaseAsync } = installReleaseCleanup(client);
-      (client as { releaseAsync?: () => Promise<void> }).releaseAsync = releaseAsync;
       return client;
     } catch (error) {
-      // connect() failed before wrap — destroy rather than return a half-bound client.
+      // connect() failed after wrap — destroy rather than return a half-bound client.
       client.release(true);
       throw error;
     }
@@ -163,8 +361,16 @@ export class PrincipalBoundCheckpointPool {
     try {
       return await client.query(...args);
     } finally {
-      await (client as { releaseAsync?: () => Promise<void> }).releaseAsync?.()
-        ?? Promise.resolve(client.release());
+      // RELEASE_ASYNC_ONLY: await binds tighter than ??, so an unparenthesized
+      // await releaseAsync?.() ?? Promise.resolve(client.release()) would
+      // call client.release() again after a successful cleanup+return, handing
+      // the next holder checkout back to the pool (cross-tenant share).
+      const releasable = client as { releaseAsync?: () => Promise<void>; release: (err?: ReleaseArg) => void };
+      if (releasable.releaseAsync) {
+        await releasable.releaseAsync(); // RELEASE_ASYNC_ONLY
+      } else {
+        releasable.release();
+      }
     }
   }
 

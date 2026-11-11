@@ -2273,6 +2273,15 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0045_checkpoint_thread_rls.sql',
     'packages/db/migrations/0047_checkpoint_privacy_fence.sql',
   ],
+  'pg-client-double-release:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/pg-client-double-release.proof.ts',
+    'apps/worker/src/checkpoint-principal.ts',
+    'packages/db/src/principal.ts',
+    'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0045_checkpoint_thread_rls.sql',
+    'packages/db/migrations/0047_checkpoint_privacy_fence.sql',
+  ],
   'tenant-wiring-neg:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/tenant-wiring-neg.proof.ts', 'packages/db/test/tenant-wiring.manifest.ts',
@@ -3003,7 +3012,7 @@ if (![
   'privacy-authorization:prove:raw', 'tenant-wiring-neg:prove:raw',
   // PRIV01-A owner 隔离实证（GAP-PRIV-01 候选 A·矩阵+内省·additive 沿 tenant-wiring-neg 同形）。
   'tenant-rls-isolation:prove:raw',
-  'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:external-sink-async-purge:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw',
+  'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:external-sink-async-purge:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw', 'pg-client-double-release:prove:raw',
   'memory-governance:prove:raw',
   'db-id-v7:prove:raw',
   'db-trigfam:prove:raw',
@@ -3864,6 +3873,8 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'packages/db', 'prove:uc052-checkpoint-physical']]
   : target === 'uc052:pool-role-leak:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:uc052-pool-role-leak']]
+  : target === 'pg-client-double-release:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:pg-client-double-release']]
   : target === 'privacy-authorization:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:privacy-authorization']]
     : target === 'db-id-v7:prove:raw'
@@ -4516,7 +4527,7 @@ async function main() {
   'tenant-rls-isolation:prove:raw',
   // 0232 擦除域存量缺口（pre-migrate 名单第四注册位）。
   'erasure-job-projection:prove:raw',
-  'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:external-sink-async-purge:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw', 'int-transcript-preview-submit:http:prove:raw', 'int-transcript-answer-fact-root:prove:raw', 'int-transcript-remaining-sinks:prove:raw', 'api-harden:prove', 'scor-01:prove:raw', 'scor-02:prove:raw', 'scor03-evidence-conflict:prove:raw', 'scor-parity:prove:raw', 'growth:prove:raw', 'rag03-route:prove:raw', 'rag04-track-local:prove:raw', 'rag03-filter-locus:prove:raw', 'rag03-hnsw-completeness:prove:raw', 'rag03c-exactk-observe:prove:raw', 'r4-wrong-track-adv-live-pg:prove:raw', 'nhp-r4-adv-covered:prove:raw', 'r4-wrong-track-prod-surface:prove:raw', 'rag05-qbank-miss:prove:raw', 'rag06-route-scope-cache:prove:raw', 'rag07-free-text-route:prove:raw', 'memory-governance:prove:raw', 'db-id-v7:prove:raw', 'db-intfk:prove:raw', 'db-money3:prove:raw', 'memory-admission:prove:raw', 'memory-fact-adjudication:prove:raw', 'memory-index-generation:prove:raw', 'memory-two-stage-recall:prove:raw', 'memory-control-surface:prove:raw', 'ctx03-event-source:prove:raw', 'mem02-summary:prove:raw', 'mem03-summary-tree:prove:raw', 'ctx04-compression-snapshot:prove:raw', 'ctx05-concurrency-recovery:prove:raw', 'ctx06-deletion-closure:prove:raw', 'int-answer-dual-write-fence:prove:raw', 'memory-vector-chunk-erasure:prove:raw', 'vector-plane-erasure:prove:raw', 'uc004:career-path-fault:prove:raw', 'uc004:career-path:http:prove:raw', 'uc001:nhp-neg:prove:raw', 'uc001:nhp-bound:prove:raw', 'uc001:nhp-adv:prove:raw', 'uc001:nhp-fault:prove:raw', 'uc016:nhp-fault:prove:raw',
+  'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:external-sink-async-purge:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw', 'pg-client-double-release:prove:raw', 'int-transcript-preview-submit:http:prove:raw', 'int-transcript-answer-fact-root:prove:raw', 'int-transcript-remaining-sinks:prove:raw', 'api-harden:prove', 'scor-01:prove:raw', 'scor-02:prove:raw', 'scor03-evidence-conflict:prove:raw', 'scor-parity:prove:raw', 'growth:prove:raw', 'rag03-route:prove:raw', 'rag04-track-local:prove:raw', 'rag03-filter-locus:prove:raw', 'rag03-hnsw-completeness:prove:raw', 'rag03c-exactk-observe:prove:raw', 'r4-wrong-track-adv-live-pg:prove:raw', 'nhp-r4-adv-covered:prove:raw', 'r4-wrong-track-prod-surface:prove:raw', 'rag05-qbank-miss:prove:raw', 'rag06-route-scope-cache:prove:raw', 'rag07-free-text-route:prove:raw', 'memory-governance:prove:raw', 'db-id-v7:prove:raw', 'db-intfk:prove:raw', 'db-money3:prove:raw', 'memory-admission:prove:raw', 'memory-fact-adjudication:prove:raw', 'memory-index-generation:prove:raw', 'memory-two-stage-recall:prove:raw', 'memory-control-surface:prove:raw', 'ctx03-event-source:prove:raw', 'mem02-summary:prove:raw', 'mem03-summary-tree:prove:raw', 'ctx04-compression-snapshot:prove:raw', 'ctx05-concurrency-recovery:prove:raw', 'ctx06-deletion-closure:prove:raw', 'int-answer-dual-write-fence:prove:raw', 'memory-vector-chunk-erasure:prove:raw', 'vector-plane-erasure:prove:raw', 'uc004:career-path-fault:prove:raw', 'uc004:career-path:http:prove:raw', 'uc001:nhp-neg:prove:raw', 'uc001:nhp-bound:prove:raw', 'uc001:nhp-adv:prove:raw', 'uc001:nhp-fault:prove:raw', 'uc016:nhp-fault:prove:raw',
   // DBHY-1: sql/ 兼容镜像退役(案A 机械迁面)——这些目标改为预迁移(migrations 单真相),proof 内 sql/ 重放已剥。
   // (vectorstore:prove:raw 不入此名单:marked-red legacy fixture 自证只装 legacy 向量面,归 B' 残面=sql/ 夹具保留至 legacy 退役刀。)
   'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'estimate-threading-invoke:prove:raw', 'failover-price-policy:prove:raw', 'model-op00-usage-reconciler:prove:raw', 'ucal-windowing:prove:raw', 'adaptive-latency:prove', 'uc028:nhp-fault:prove:raw', 'uc028:recon-truth-inject:prove:raw', 'uc012:nhp-fault:prove:raw', 'uc012:nhp-neg:prove:raw', 'uc012:nhp-bound:prove:raw', 'uc012:nhp-adv:prove:raw', 'int18:payload-strip:prove:raw', 'uc030:nhp-fault:prove:raw',

@@ -1,0 +1,1131 @@
+/** PG-CLIENT-DOUBLE-RELEASE 回归 proof（零 DB、零模型密钥）。
+ *
+ *  现场（/workspace/mw-b3-sizing-out/raw/noswap-inflight16-n20-r3/worker.log，
+ *  代码 607f709a0，mock，inflight=16，N=20 r3，负载 +22.1s）：
+ *    DeprecationWarning: Calling client.query() when the client is already executing a query
+ *    Error: Release called on client which has already been released to the pool.
+ *        at throwOnDoubleRelease (pg-pool/index.js:27)
+ *        at Client.<anonymous> (pg-pool/index.js:374)
+ *        at checkpoint-principal.ts:93:17   // swc 发出行 = catch 里第二次 originalRelease
+ *        at processTicksAndRejections
+ *    Node.js v24.22.1
+ *
+ *  根因时序（installReleaseCleanup）：
+ *    1. PostgresSaver 在同一 PoolClient 上 await query（BEGIN/写/COMMIT）；release() 是
+ *       同步 void，包装器用 `void runRelease()` 启动异步 cleanup（SET ROLE NONE + 清 GUC）。
+ *    2. 并发下另一条 query 在 cleanup 期间进入同一 client（pg@8 只警告不拒）——现场
+ *       concurrent-query 告警。cleanup 失败或 raw release 已被先调用时，try 里的
+ *       originalRelease() 抛 already-released。
+ *    3. catch 把该错当成 reset 失败，再调一次 originalRelease(resetErr)。
+ *       `void runRelease()` 无 .catch → unhandledRejection → Node 默认退出整进程。
+ *    既有 releasePromise 只保证 runRelease 主体进一次，不能让 originalRelease 幂等，
+ *    也挡不住 catch 里的第二次调用。
+ *
+ *  N-1：pg-pool 复用同一 client 对象，checkout 只重置 release、不重置 query。
+ *    serializeClientQueries 若每次 checkout 再包一层会平方变慢。修法=Symbol 标记，
+ *    每 client 只装一次包装（不依赖 release 成功才拆包）。
+ *
+ *  形制：父进程 fork 子进程（钉死 unhandled-rejections=throw）。假 pool 臂不变。
+ *    AFTER（当前树）：子进程 EXIT 0（含叠加臂 D：同 client 2000 次 checkout，query
+ *      包装函数恒等；顺序臂 E：先 cleanup 再 raw release）。
+ *    BEFORE（固定 SHA 59baa20b231bd6d022cc6290c7803fc40b724208，合入后也不漂）：
+ *      子进程必须非零且 stderr 含 already been released。
+ *    MUT-GUARD（去掉 RELEASE_ONCE_GUARD / 恢复无 .catch 的 void runRelease）：EXIT 1。
+ *    MUT-STACK（去掉 SERIALIZE_ONCE_GUARD）：叠加臂必须失败，EXIT 1。
+ *    MUT-ORDER（先 releaseOnce 再 cleanup）：顺序臂必须失败，EXIT 1。
+ *    XP-2（真实 PG，官方 isolated runner，PGPOOL_MAX=1）：60 轮 × 3 并发，A/B 交替，
+ *      混合 facade.query / connect 读 / 42501 写，connect 路径 release 不 await。
+ *      每次读到的 principal/thread 必须属于本租户，mismatches=0。
+ *    MUT-PRECEDENCE（恢复无括号 await releaseAsync?.() ?? client.release()）：XP-2 必须 EXIT 1。
+ *    E1/E2（真实 PG，max=1）：旧句柄在新持有者期间再 release，不得让 Y 读到 A 的 principal；
+ *      必须 warn + 抛错；pool total/idle/waiting 恢复后正常 pool.end()。
+ *      反向复现钉死 SHA 135ec7c779c393f082006fd6ac1a9cd94ae10bf4，必须 EXIT 1。
+ *    P1/P2/P3/P4/P5/P7（真实 PG，max=1）：白名单句柄在反射、on 链、notice、end、
+ *      活句柄 on().release 上 fail-closed；Y 始终为本租户；池 1/1/0；end() 正常。
+ *      反向复现钉死 SHA 9faf8655291db3864fca28e92b956800ae77f0ff，必须 EXIT 1。
+ *  另：WORKER_ALERT 旧正则对现场崩溃日志假阴性；新正则命中，健康日志不误报。
+ *  pnpm pg-client-double-release:prove */
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const here = dirname(fileURLToPath(import.meta.url));
+const srcPath = join(here, '../src/checkpoint-principal.ts');
+const DOUBLE_RELEASE = 'Release called on client which has already been released to the pool.';
+/** 本 PR 之基线 main tip（含 #247，不含本修复）。合入后 origin/main 会漂，SHA 不漂。 */
+const BEFORE_SHA = '59baa20b231bd6d022cc6290c7803fc40b724208';
+/** 持有者 token 直接 return 造成池泄漏、E1/E2 跨租户共享的 head。 */
+const E12_BEFORE_SHA = '135ec7c779c393f082006fd6ac1a9cd94ae10bf4';
+/** G-3：Proxy 只拦 query/release/releaseAsync，on/descriptor/proto/end 可碰到原始 Client 的 head。 */
+const P_BEFORE_SHA = '9faf8655291db3864fca28e92b956800ae77f0ff';
+const STACK_N = 2000;
+
+/** 现场 worker 崩溃摘录（无密钥）。 */
+const CRASH_LOG = `(node:1310101) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+/workspace/mw-b3-sizing/node_modules/.pnpm/pg-pool@3.14.0_pg@8.22.0/node_modules/pg-pool/index.js:27
+  throw new Error('Release called on client which has already been released to the pool.')
+        ^
+
+Error: Release called on client which has already been released to the pool.
+    at throwOnDoubleRelease (/workspace/mw-b3-sizing/node_modules/.pnpm/pg-pool@3.14.0_pg@8.22.0/node_modules/pg-pool/index.js:27:9)
+    at Client.<anonymous> (/workspace/mw-b3-sizing/node_modules/.pnpm/pg-pool@3.14.0_pg@8.22.0/node_modules/pg-pool/index.js:374:9)
+    at file:///workspace/mw-b3-sizing/apps/worker/src/checkpoint-principal.ts:93:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+Node.js v24.22.1
+`;
+
+const HEALTHY_LOG = `rag cost governance: observe; model cost governance: observe
+interview dispatch budget: perOwner=1 globalInflight=16 (process-local)
+worker ready: event wakeup + 5000ms bounded reconciliation
+{"event":"reaper_takeover","kind":"report","job_ref":"requeued:1","prev_lease_expired":false}
+`;
+
+/** 旧 sizing 正则：对 already-released / Node 退出假阴性。 */
+export const WORKER_ALERT_RE_OLD = /checkpoint_connection_lost|checkpoint_privacy_fenced|Connection terminated|FATAL|Error: Connection terminated/;
+
+/** 新正则：保留旧族，并覆盖未捕获异常与 worker 进程退出横幅。 */
+export const WORKER_ALERT_RE = /checkpoint_connection_lost|checkpoint_privacy_fenced|Connection terminated|FATAL|already been released to the pool|unhandledRejection|uncaughtException|^Error: |Node\.js v\d/m;
+
+const ACCESS = { owner: 'owner-a', threadId: 'thread-a', fenceEpoch: 1 };
+
+type Mode = 'after' | 'before' | 'mut-guard' | 'mut-stack' | 'mut-order' | 'xp-after' | 'xp-mut-precedence' | 'xp-e12' | 'xp-e12-before' | 'xp-p137' | 'xp-p137-before';
+
+function makeFakeClient(opts: { releaseThrowsAlways?: boolean; overlap?: { current: number; max: number; hits: number }; delayMs?: number; allowReuse?: boolean }): {
+  query: (...args: unknown[]) => Promise<{ rows: unknown[]; rowCount: number }>;
+  release: (err?: unknown) => void;
+  releaseCount: number;
+} {
+  let releaseCount = 0;
+  let queryInFlight = 0;
+  const overlap = opts.overlap;
+  const delayMs = opts.delayMs ?? 15;
+  const client = {
+    releaseCount: 0,
+    async query(..._args: unknown[]) {
+      queryInFlight++;
+      if (overlap) {
+        overlap.current = queryInFlight;
+        if (queryInFlight > 1) overlap.hits++;
+        if (queryInFlight > overlap.max) overlap.max = queryInFlight;
+      }
+      if (delayMs > 0) await new Promise((r) => setTimeout(r, delayMs));
+      queryInFlight--;
+      return { rows: [{}], rowCount: 1 };
+    },
+    release(_err?: unknown) {
+      releaseCount++;
+      client.releaseCount = releaseCount;
+      if (opts.releaseThrowsAlways || (!opts.allowReuse && releaseCount > 1)) {
+        throw new Error(DOUBLE_RELEASE);
+      }
+    },
+  };
+  return client;
+}
+
+type LoadedPrincipal = {
+  connect(): Promise<{ query: (...args: unknown[]) => unknown; release: (err?: unknown) => void; releaseAsync?: () => Promise<void> }>;
+  query(...args: unknown[]): Promise<unknown>;
+};
+
+function poolLikePgReuse(client: { release: (err?: unknown) => void }): { connect: () => Promise<typeof client>; end: () => Promise<void> } {
+  const rawRelease = client.release.bind(client);
+  return {
+    async connect() {
+      let released = false;
+      client.release = (err?: unknown) => {
+        if (released) throw new Error(DOUBLE_RELEASE);
+        released = true;
+        rawRelease(err);
+      };
+      return client;
+    },
+    end: async () => undefined,
+  };
+}
+
+async function runScenario(mod: Record<string, unknown>): Promise<void> {
+  const boundCtor = mod['PrincipalBoundCheckpointPool'] as new (pool: unknown) => LoadedPrincipal;
+  const withAccess = mod['withCheckpointAccess'] as <T>(access: typeof ACCESS, fn: () => Promise<T>) => Promise<T>;
+
+  let fail = 0;
+  const A = (n: string, c: boolean, extra = '') => {
+    console.log(`${c ? 'PASS' : 'FAIL'}  ${n}${extra ? `  [${extra}]` : ''}`);
+    if (!c) fail++;
+  };
+
+  // A: raw release already throws (现场 catch 二次调用形)。双 release + 短查询。
+  const always = makeFakeClient({ releaseThrowsAlways: true });
+  const facadeA = new boundCtor({ connect: async () => always, end: async () => undefined });
+  // 不装 unhandledRejection handler：有 handler 会吞掉 Node 默认 throw，修前臂就假活。
+  // PostgresSaver finally 只调同步 void release()，不等 releaseAsync。修前 catch 二次
+  // originalRelease 会在此变成未捕获拒绝并杀死子进程。
+  await withAccess(ACCESS, async () => {
+    const c = await facadeA.connect();
+    const q = c.query('SELECT 1');
+    c.release();
+    try { c.release(); } catch { /* stale handle fail-closed */ }
+    await q;
+    await new Promise((r) => setTimeout(r, 40));
+  });
+  A('A-1 already-released 的 raw release 不杀死进程', true);
+
+  // B: 同 client 并发 query 必须串行，双 release 只落地一次 raw release。
+  const overlap = { current: 0, max: 0, hits: 0 };
+  const serialClient = makeFakeClient({ overlap });
+  const facadeB = new boundCtor({ connect: async () => serialClient, end: async () => undefined });
+  await withAccess(ACCESS, async () => {
+    const c = await facadeB.connect();
+    const q1 = c.query('SELECT pg_sleep(0.05)');
+    const q2 = c.query('SELECT 1');
+    await Promise.all([q1, q2]);
+    if (typeof c.releaseAsync === 'function') await c.releaseAsync();
+    else c.release();
+    try { c.release(); } catch { /* stale handle fail-closed */ }
+  });
+  A('B-1 同 client 查询串行（无重叠）', overlap.hits === 0 && overlap.max <= 1, `hits=${overlap.hits} max=${overlap.max}`);
+  A('B-2 raw release 至多一次', serialClient.releaseCount === 1, `count=${serialClient.releaseCount}`);
+
+  // C: 42501 checkpoint_privacy_fenced 仍从 query 路径 fail-closed 上抛，且 release 一次。
+  let releaseCountC = 0;
+  const fenced = {
+    async query(sql: string) {
+      if (/SET ROLE|set_config/i.test(sql)) return { rows: [{}], rowCount: 1 };
+      throw Object.assign(new Error('checkpoint_privacy_fenced'), { code: '42501', severity: 'ERROR' });
+    },
+    release() {
+      releaseCountC++;
+      if (releaseCountC > 1) throw new Error(DOUBLE_RELEASE);
+    },
+  };
+  const facadeC = new boundCtor({ connect: async () => fenced, end: async () => undefined });
+  let fenceErr: { code?: unknown; message?: unknown } | undefined;
+  await withAccess(ACCESS, async () => {
+    try {
+      await facadeC.query('INSERT INTO checkpoints VALUES (1)');
+    } catch (err) {
+      fenceErr = err as { code?: unknown; message?: unknown };
+    }
+  });
+  A('C-1 pool.query 上的 42501 原样上抛（fail-closed，不吞）', fenceErr?.code === '42501' && fenceErr?.message === 'checkpoint_privacy_fenced', `err=${fenceErr?.message}:${fenceErr?.code}`);
+  A('C-2 fenced 之后 raw release 恰好一次', releaseCountC === 1, `count=${releaseCountC}`);
+
+  // D: 同 client 反复 checkout（模拟 pg-pool 只重置 release）——包装层数必须恒定。
+  const reuse = makeFakeClient({ delayMs: 0, allowReuse: true });
+  const rawQuery = reuse.query.bind(reuse);
+  reuse.query = rawQuery;
+  const poolD = poolLikePgReuse(reuse);
+  const facadeD = new boundCtor(poolD);
+  const querySeen: Array<(...args: unknown[]) => unknown> = [];
+  await withAccess(ACCESS, async () => {
+    for (let i = 0; i < STACK_N; i++) {
+      const c = await facadeD.connect();
+      await c.query('SELECT 1');
+      if (typeof c.releaseAsync === 'function') await c.releaseAsync();
+      else c.release();
+      querySeen.push(reuse.query);
+    }
+  });
+  const unique = new Set(querySeen).size;
+  A(
+    'D-1 同 client 反复 checkout 后 query 包装函数恒等（层数恒定）',
+    querySeen.length === STACK_N && unique === 1 && querySeen[0] !== rawQuery,
+    `n=${querySeen.length} unique=${unique}`,
+  );
+
+  // E: 先 await cleanup（SET ROLE NONE），再 raw releaseOnce。
+  const order: string[] = [];
+  const orderClient = {
+    async query(sql: unknown) {
+      if (typeof sql === 'string' && /SET ROLE NONE/i.test(sql)) order.push('cleanup');
+      return { rows: [{}], rowCount: 1 };
+    },
+    release() {
+      order.push('release');
+    },
+  };
+  const facadeE = new boundCtor({ connect: async () => orderClient, end: async () => undefined });
+  await withAccess(ACCESS, async () => {
+    const c = await facadeE.connect();
+    await c.query('SELECT 1');
+    if (typeof c.releaseAsync === 'function') await c.releaseAsync();
+    else c.release();
+  });
+  const iCleanup = order.indexOf('cleanup');
+  const iRelease = order.indexOf('release');
+  A(
+    'E-1 先 await cleanup，再 releaseOnce',
+    iCleanup >= 0 && iRelease >= 0 && iCleanup < iRelease,
+    `order=${order.join(',')}`,
+  );
+
+  if (fail !== 0) {
+    console.log(`CHILD_FAIL ${fail}`);
+    process.exit(1);
+  }
+  console.log('CHILD_OK');
+}
+
+const UNFIXED_INSTALL = `function installReleaseCleanup(client: any): { releaseAsync: () => Promise<void> } {
+  const originalRelease = client.release.bind(client) as (err?: ReleaseArg) => void;
+  let releasePromise: Promise<void> | null = null;
+
+  const runRelease = (err?: ReleaseArg): Promise<void> => {
+    if (releasePromise) return releasePromise;
+    releasePromise = (async () => {
+      if (err) {
+        originalRelease(err);
+        return;
+      }
+      try {
+        await cleanupCheckpointPrincipalSession(client);
+        originalRelease();
+      } catch (resetErr) {
+        originalRelease(resetErr instanceof Error ? resetErr : true);
+      }
+    })();
+    return releasePromise;
+  };
+
+  client.release = (err?: ReleaseArg) => {
+    void runRelease(err);
+  };
+  (client as { releaseAsync?: () => Promise<void> }).releaseAsync = () => runRelease();
+  return client;
+}
+`;
+
+function stripGuards(src: string): string {
+  // 反证：在修后源上把 installReleaseCleanup 换回无幂等 guard / 无 .catch 的现场形。
+  const start = src.indexOf('function installReleaseCleanup(');
+  const end = src.indexOf('export class PrincipalBoundCheckpointPool');
+  if (start < 0 || end < 0 || end <= start) throw new Error('installReleaseCleanup block not found');
+  return src.slice(0, start) + UNFIXED_INSTALL + '\n' + src.slice(end);
+}
+
+function stripSerializeOnce(src: string): string {
+  const next = src.replace(/\n\s*if \(marked\[QUERY_SERIALIZED\]\) return; \/\/ SERIALIZE_ONCE_GUARD/g, '');
+  if (next === src) throw new Error('SERIALIZE_ONCE_GUARD not found');
+  return next;
+}
+
+
+function restoreAwaitPrecedence(src: string): string {
+  const from = `      const releasable = client as { releaseAsync?: () => Promise<void>; release: (err?: ReleaseArg) => void };
+      if (releasable.releaseAsync) {
+        await releasable.releaseAsync(); // RELEASE_ASYNC_ONLY
+      } else {
+        releasable.release();
+      }`;
+  const to = `      await (client as { releaseAsync?: () => Promise<void> }).releaseAsync?.()
+        ?? Promise.resolve(client.release()); // MUT_PRECEDENCE`;
+  if (!src.includes(from)) throw new Error('RELEASE_ASYNC_ONLY branch not found');
+  return src.replace(from, to);
+}
+
+const XP_ROUNDS = 60;
+const XP_CONCURRENCY = 3;
+const SESSION_SQL = `SELECT pg_backend_pid()::int AS pid,
+           current_user::text AS current_user,
+           session_user::text AS session_user,
+           nullif(current_setting('app.principal_user', true), '') AS principal,
+           nullif(current_setting('app.checkpoint_thread_id', true), '') AS "threadId",
+           nullif(current_setting('app.checkpoint_epoch', true), '') AS epoch`;
+
+type XpAccess = { owner: string; threadId: string; fenceEpoch: number };
+type XpSnap = { principal: string | null; threadId: string | null };
+
+function xpSnapOf(row: Record<string, unknown>): XpSnap {
+  const principal = row['principal'];
+  const threadId = row['threadId'];
+  return {
+    principal: principal == null || principal === '' ? null : String(principal),
+    threadId: threadId == null || threadId === '' ? null : String(threadId),
+  };
+}
+
+
+type PoolCounts = { totalCount: number; idleCount: number; waitingCount: number };
+
+function readPoolCounts(pool: { totalCount?: unknown; idleCount?: unknown; waitingCount?: unknown }): PoolCounts {
+  return {
+    totalCount: Number(pool.totalCount ?? 0),
+    idleCount: Number(pool.idleCount ?? 0),
+    waitingCount: Number(pool.waitingCount ?? 0),
+  };
+}
+
+function poolRecovered(counts: PoolCounts, max = 1): boolean {
+  return counts.waitingCount === 0 && counts.idleCount === counts.totalCount && counts.totalCount <= max;
+}
+
+async function waitPoolRecovered(pool: { totalCount?: unknown; idleCount?: unknown; waitingCount?: unknown }, ms = 2_000): Promise<PoolCounts> {
+  const deadline = Date.now() + ms;
+  let counts = readPoolCounts(pool);
+  while (Date.now() < deadline) {
+    counts = readPoolCounts(pool);
+    if (poolRecovered(counts)) return counts;
+    await new Promise((r) => setTimeout(r, 20));
+  }
+  return counts;
+}
+
+function formatCounts(counts: PoolCounts): string {
+  return `${counts.totalCount}/${counts.idleCount}/${counts.waitingCount}`;
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('xp2_op_timeout')), ms);
+    promise.then(
+      (value) => { clearTimeout(timer); resolve(value); },
+      (error) => { clearTimeout(timer); reject(error); },
+    );
+  });
+}
+
+async function runXp2(mod: Record<string, unknown>, mutPrecedence = false): Promise<void> {
+  if (process.env.E2E_ISOLATED !== '1') {
+    console.log('XP-2 require E2E_ISOLATED=1 (official isolated runner)');
+    process.exit(1);
+  }
+  const boundCtor = mod['PrincipalBoundCheckpointPool'] as new (pool: unknown) => {
+    connect(): Promise<{ query: (...args: unknown[]) => unknown; release: (err?: unknown) => void; releaseAsync?: () => Promise<void> }>;
+    query(...args: unknown[]): Promise<{ rows: Array<Record<string, unknown>> }>;
+    end(): Promise<void>;
+    readonly underlyingPool?: { end?: () => Promise<void> };
+  };
+  const withAccess = mod['withCheckpointAccess'] as <T>(access: XpAccess, fn: () => Promise<T>) => Promise<T>;
+  const db = await import('@meetwise/db');
+  const admin = db.createPool();
+  const role = `xp2_rt_${process.pid}`;
+  const password = 'xp2-pool-precedence-2026';
+  let mismatches = 0;
+  let fenced = 0;
+  let fenceMiss = 0;
+  let opErrors = 0;
+  const mismatchSamples: string[] = [];
+  try {
+    await db.assertIsolatedTestTarget(admin);
+    await db.provisionRuntimeLogin(admin, { roleName: role, password });
+    const port = process.env.PGPORT ?? '54329';
+    const connection = `postgresql://${encodeURIComponent(role)}:${encodeURIComponent(password)}@${process.env.PGHOST ?? '127.0.0.1'}:${port}/${encodeURIComponent(process.env.PGDATABASE ?? 'meetwise')}`;
+    process.env.PGPOOL_MAX = '1';
+    const url = new URL(connection);
+    const options = url.searchParams.get('options') ?? '';
+    if (!/(?:^|\s)-c\s+role=app_role(?:\s|$)/.test(options)) {
+      url.searchParams.set('options', `${options} -c role=app_role`.trim());
+    }
+    const pool = db.createPool({ connectionString: url.toString(), purpose: 'checkpoint' });
+    const bound = new boundCtor(pool);
+    const ownerA = `xp2-a-${process.pid}`;
+    const ownerB = `xp2-b-${process.pid}`;
+    const threadA = `xp2-thread-a-${process.pid}`;
+    const threadB = `xp2-thread-b-${process.pid}`;
+    await admin.query(
+      "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created'),($3,$4,'created')",
+      [threadA, ownerA, threadB, ownerB],
+    );
+    const runtime = db.createPool({ user: role, password, max: 1 });
+    let accessA: XpAccess;
+    let accessB: XpAccess;
+    try {
+      const enA = await db.asPrincipal(runtime, ownerA, (c) => db.enrollCheckpointThread(c, ownerA, threadA));
+      const enB = await db.asPrincipal(runtime, ownerB, (c) => db.enrollCheckpointThread(c, ownerB, threadB));
+      accessA = { owner: ownerA, threadId: enA.threadId, fenceEpoch: enA.fenceEpoch };
+      accessB = { owner: ownerB, threadId: enB.threadId, fenceEpoch: enB.fenceEpoch };
+    } finally {
+      await runtime.end();
+    }
+
+    const checkSnap = (tag: string, snap: XpSnap, access: XpAccess): void => {
+      if (snap.principal !== access.owner || snap.threadId !== access.threadId) {
+        mismatches += 1;
+        if (mismatchSamples.length < 6) mismatchSamples.push(`${tag} ${JSON.stringify(snap)} expected=${access.owner}/${access.threadId}`);
+      }
+    };
+
+    const oneOp = async (round: number, slot: number): Promise<void> => {
+      const access = (round + slot) % 2 === 0 ? accessA : accessB;
+      const other = access === accessA ? accessB : accessA;
+      const mode = slot % 3;
+      try {
+        await withAccess(access, async () => {
+          if (mode === 0) {
+            const result = await bound.query(SESSION_SQL);
+            checkSnap(`q:r${round}s${slot}`, xpSnapOf(result.rows[0] ?? {}), access);
+            return;
+          }
+          const client = await bound.connect();
+          try {
+            const raw = await client.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
+            checkSnap(`c:r${round}s${slot}`, xpSnapOf(raw.rows[0] ?? {}), access);
+            if (mode === 2) {
+              try {
+                await client.query(
+                  "INSERT INTO checkpoints(thread_id,checkpoint_ns,checkpoint_id,checkpoint,metadata) VALUES ($1,'','xp2-write','{}'::jsonb,'{}'::jsonb)",
+                  [other.threadId],
+                );
+                fenceMiss += 1;
+              } catch (error) {
+                const err = error as { code?: unknown; message?: unknown };
+                if (err.code === '42501' && String(err.message ?? '').includes('checkpoint_privacy_fenced')) fenced += 1;
+                else throw error;
+              }
+            }
+          } finally {
+            client.release();
+          }
+        });
+      } catch (error) {
+        opErrors += 1;
+        if (mismatchSamples.length < 6) {
+          const err = error as { code?: unknown; message?: unknown };
+          mismatchSamples.push(`err:r${round}s${slot} ${String(err.code ?? '')}:${String(err.message ?? error).slice(0, 80)}`);
+        }
+      }
+    };
+
+    const opTimeoutMs = mutPrecedence ? 2_000 : 15_000;
+    for (let round = 0; round < XP_ROUNDS; round++) {
+      await Promise.all(Array.from({ length: XP_CONCURRENCY }, (_, slot) =>
+        withTimeout(oneOp(round, slot), opTimeoutMs).catch((error) => {
+          opErrors += 1;
+          if (mismatchSamples.length < 6) mismatchSamples.push(`timeout:r${round}s${slot} ${String((error as Error).message ?? error).slice(0, 80)}`);
+        }),
+      ));
+      if (mutPrecedence && (mismatches > 0 || opErrors > 0)) break;
+    }
+
+    const counts = await waitPoolRecovered(pool);
+    let endOk = false;
+    try {
+      await withTimeout(bound.end(), 8_000);
+      endOk = true;
+    } catch (error) {
+      console.log(`XP2 end() failed: ${String((error as Error).message ?? error).slice(0, 120)}`);
+      try { await withTimeout(Promise.resolve(pool.end?.() as Promise<void>), 3_000); } catch { /* ignore */ }
+    }
+    console.log(`XP2 mismatches=${mismatches} fenced=${fenced} fenceMiss=${fenceMiss} opErrors=${opErrors} pool=${formatCounts(counts)} end=${endOk ? 'ok' : 'fail'} samples=${mismatchSamples.join(' | ')}`);
+    const ok = mismatches === 0 && fenceMiss === 0 && fenced > 0 && opErrors === 0 && poolRecovered(counts) && endOk;
+    if (ok) console.log('CHILD_OK');
+    else {
+      console.log('CHILD_FAIL XP-2');
+      process.exitCode = 1;
+    }
+  } finally {
+    await admin.query(`DROP ROLE IF EXISTS ${role}`).catch(() => undefined);
+    await admin.end().catch(() => undefined);
+  }
+}
+
+function swapCleanupOrder(src: string): string {
+  const from = `        await cleanupCheckpointPrincipalSession(client); // CLEANUP_BEFORE_RELEASE
+        releaseOnce(); // CLEANUP_BEFORE_RELEASE`;
+  const to = `        releaseOnce(); // MUT_ORDER_F
+        await cleanupCheckpointPrincipalSession(client); // MUT_ORDER_F`;
+  if (!src.includes(from)) throw new Error('CLEANUP_BEFORE_RELEASE sequence not found');
+  return src.replace(from, to);
+}
+
+
+async function setupXpBound(mod: Record<string, unknown>, suffix: string): Promise<{
+  bound: {
+    connect(): Promise<{ query: (...args: unknown[]) => unknown; release: (err?: unknown) => void; releaseAsync?: () => Promise<void> }>;
+    query(...args: unknown[]): Promise<{ rows: Array<Record<string, unknown>> }>;
+    end(): Promise<void>;
+  };
+  pool: { totalCount?: number; idleCount?: number; waitingCount?: number; end?: () => Promise<void> };
+  admin: { query: (sql: string, params?: unknown[]) => Promise<unknown>; end: () => Promise<void> };
+  role: string;
+  withAccess: <T>(access: XpAccess, fn: () => Promise<T>) => Promise<T>;
+  accessA: XpAccess;
+  accessB: XpAccess;
+}> {
+  const boundCtor = mod['PrincipalBoundCheckpointPool'] as new (pool: unknown) => {
+    connect(): Promise<{ query: (...args: unknown[]) => unknown; release: (err?: unknown) => void; releaseAsync?: () => Promise<void> }>;
+    query(...args: unknown[]): Promise<{ rows: Array<Record<string, unknown>> }>;
+    end(): Promise<void>;
+  };
+  const withAccess = mod['withCheckpointAccess'] as <T>(access: XpAccess, fn: () => Promise<T>) => Promise<T>;
+  const db = await import('@meetwise/db');
+  const admin = db.createPool();
+  const role = `${suffix}_rt_${process.pid}`;
+  const password = 'xp2-pool-precedence-2026';
+  await db.assertIsolatedTestTarget(admin);
+  await db.provisionRuntimeLogin(admin, { roleName: role, password });
+  const port = process.env.PGPORT ?? '54329';
+  const connection = `postgresql://${encodeURIComponent(role)}:${encodeURIComponent(password)}@${process.env.PGHOST ?? '127.0.0.1'}:${port}/${encodeURIComponent(process.env.PGDATABASE ?? 'meetwise')}`;
+  process.env.PGPOOL_MAX = '1';
+  const url = new URL(connection);
+  const options = url.searchParams.get('options') ?? '';
+  if (!/(?:^|\s)-c\s+role=app_role(?:\s|$)/.test(options)) {
+    url.searchParams.set('options', `${options} -c role=app_role`.trim());
+  }
+  const pool = db.createPool({ connectionString: url.toString(), purpose: 'checkpoint' });
+  const bound = new boundCtor(pool);
+  const ownerA = `${suffix}-a-${process.pid}`;
+  const ownerB = `${suffix}-b-${process.pid}`;
+  const threadA = `${suffix}-thread-a-${process.pid}`;
+  const threadB = `${suffix}-thread-b-${process.pid}`;
+  await admin.query(
+    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created'),($3,$4,'created')",
+    [threadA, ownerA, threadB, ownerB],
+  );
+  const runtime = db.createPool({ user: role, password, max: 1 });
+  let accessA: XpAccess;
+  let accessB: XpAccess;
+  try {
+    const enA = await db.asPrincipal(runtime, ownerA, (c) => db.enrollCheckpointThread(c, ownerA, threadA));
+    const enB = await db.asPrincipal(runtime, ownerB, (c) => db.enrollCheckpointThread(c, ownerB, threadB));
+    accessA = { owner: ownerA, threadId: enA.threadId, fenceEpoch: enA.fenceEpoch };
+    accessB = { owner: ownerB, threadId: enB.threadId, fenceEpoch: enB.fenceEpoch };
+  } finally {
+    await runtime.end();
+  }
+  return { bound, pool, admin, role, withAccess, accessA, accessB };
+}
+
+async function runE12(mod: Record<string, unknown>): Promise<void> {
+  if (process.env.E2E_ISOLATED !== '1') {
+    console.log('E12 require E2E_ISOLATED=1 (official isolated runner)');
+    process.exit(1);
+  }
+  const ctx = await setupXpBound(mod, 'e12');
+  const { bound, pool, admin, role, withAccess, accessA, accessB } = ctx;
+  const warns: string[] = [];
+  const origWarn = console.warn;
+  console.warn = ((...args: unknown[]) => {
+    warns.push(args.map((a) => typeof a === 'string' ? a : JSON.stringify(a)).join(' '));
+    origWarn.apply(console, args as never);
+  }) as typeof console.warn;
+  let mismatches = 0;
+  let staleRelease = 0;
+  let staleQuery = 0;
+  let staleWarn = 0;
+  const samples: string[] = [];
+  const check = (tag: string, snap: XpSnap, access: XpAccess): void => {
+    if (snap.principal !== access.owner || snap.threadId !== access.threadId) {
+      mismatches += 1;
+      if (samples.length < 8) samples.push(`${tag} ${JSON.stringify(snap)} expected=${access.owner}/${access.threadId}`);
+    }
+  };
+  let e1counts: PoolCounts = { totalCount: 0, idleCount: 0, waitingCount: 0 };
+  let e2counts: PoolCounts = { totalCount: 0, idleCount: 0, waitingCount: 0 };
+  try {
+    // E1: X releases, Y holds, leftover cX.release() must not steal Y.
+    const cX = await withAccess(accessA, () => bound.connect());
+    const x1 = await cX.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
+    check('e1-x', xpSnapOf(x1.rows[0] ?? {}), accessA);
+    if (typeof cX.releaseAsync === 'function') await cX.releaseAsync();
+    else cX.release();
+    const cY = await withAccess(accessB, () => bound.connect());
+    try {
+      cX.release();
+    } catch {
+      staleRelease += 1;
+    }
+    await new Promise((r) => setTimeout(r, 80));
+    try {
+      const y1 = await cY.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
+      check('e1-y', xpSnapOf(y1.rows[0] ?? {}), accessB);
+    } catch (error) {
+      mismatches += 1;
+      if (samples.length < 8) samples.push(`e1-y query ${String((error as Error).message ?? error).slice(0, 80)}`);
+    }
+    try {
+      await cX.query(SESSION_SQL);
+    } catch {
+      staleQuery += 1;
+    }
+    if (typeof cY.releaseAsync === 'function') await cY.releaseAsync();
+    else cY.release();
+    e1counts = await waitPoolRecovered(pool);
+    console.log(`E1 mismatches=${mismatches} staleRelease=${staleRelease} staleQuery=${staleQuery} pool=${formatCounts(e1counts)}`);
+
+    // E2: leftover release immediately after releaseAsync, while Y is waiting (max=1).
+    const cX2 = await withAccess(accessA, () => bound.connect());
+    await cX2.query(SESSION_SQL);
+    const pendingY = withAccess(accessB, () => bound.connect());
+    await Promise.resolve();
+    if (typeof cX2.releaseAsync === 'function') await cX2.releaseAsync();
+    else cX2.release();
+    try {
+      cX2.release();
+    } catch {
+      staleRelease += 1;
+    }
+    try {
+      const cY2 = await withTimeout(pendingY, 8_000);
+      const y2 = await cY2.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
+      check('e2-y', xpSnapOf(y2.rows[0] ?? {}), accessB);
+      if (typeof cY2.releaseAsync === 'function') await cY2.releaseAsync();
+      else cY2.release();
+    } catch (error) {
+      mismatches += 1;
+      if (samples.length < 8) samples.push(`e2-y ${String((error as Error).message ?? error).slice(0, 80)}`);
+    }
+    e2counts = await waitPoolRecovered(pool);
+    staleWarn = warns.filter((w) => w.includes('checkpoint_pg_stale_handle')).length;
+    console.log(`E2 mismatches=${mismatches} staleRelease=${staleRelease} staleWarn=${staleWarn} pool=${formatCounts(e2counts)} samples=${samples.join(' | ')}`);
+
+    let endOk = false;
+    try {
+      await withTimeout(bound.end(), 8_000);
+      endOk = true;
+    } catch (error) {
+      console.log(`E12 end() failed: ${String((error as Error).message ?? error).slice(0, 120)}`);
+      try { await withTimeout(Promise.resolve(pool.end?.() as Promise<void>), 3_000); } catch { /* ignore */ }
+    }
+    const recovered = poolRecovered(e1counts) && poolRecovered(e2counts);
+    const ok = mismatches === 0 && staleRelease >= 2 && staleQuery >= 1 && staleWarn >= 1 && recovered && endOk;
+    console.log(`E12 ok=${ok} recovered=${recovered} end=${endOk ? 'ok' : 'fail'} poolE1=${formatCounts(e1counts)} poolE2=${formatCounts(e2counts)}`);
+    if (ok) console.log('CHILD_OK');
+    else {
+      console.log('CHILD_FAIL E12');
+      process.exitCode = 1;
+    }
+  } catch (error) {
+    console.log(`E12 uncaught ${String((error as Error).message ?? error).slice(0, 160)}`);
+    console.log(`E12 ok=false recovered=false end=fail poolE1=${formatCounts(e1counts)} poolE2=${formatCounts(e2counts)} samples=${samples.join(' | ')}`);
+    console.log('CHILD_FAIL E12');
+    process.exitCode = 1;
+  } finally {
+    console.warn = origWarn;
+    await admin.query(`DROP ROLE IF EXISTS ${role}`).catch(() => undefined);
+    await admin.end().catch(() => undefined);
+  }
+}
+
+
+const SET_PRINCIPAL_SQL = "SELECT set_config('app.principal_user', $1, false) AS v";
+const NOTICE_SQL = "DO $$ BEGIN RAISE NOTICE 'secret-of-B'; END $$";
+
+function asRow(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' ? value as Record<string, unknown> : {};
+}
+
+async function runP137(mod: Record<string, unknown>): Promise<void> {
+  if (process.env.E2E_ISOLATED !== '1') {
+    console.log('P137 require E2E_ISOLATED=1 (official isolated runner)');
+    process.exit(1);
+  }
+  const ctx = await setupXpBound(mod, 'p137');
+  const { bound, pool, admin, role, withAccess, accessA, accessB } = ctx;
+  const results: string[] = [];
+  let mismatches = 0;
+  let failClosed = 0;
+  let noticeLeak = 0;
+  const samples: string[] = [];
+
+  const mark = (name: string, threw: boolean, snap: XpSnap, extra = ''): void => {
+    const yOk = snap.principal === accessB.owner && snap.threadId === accessB.threadId;
+    if (!yOk) {
+      mismatches += 1;
+      if (samples.length < 8) samples.push(`${name} ${JSON.stringify(snap)} expected=${accessB.owner}/${accessB.threadId}`);
+    }
+    if (threw) failClosed += 1;
+    results.push(`${name} threw=${threw} yOk=${yOk}${extra ? ` ${extra}` : ''}`);
+  };
+
+  let counts: PoolCounts = { totalCount: 0, idleCount: 0, waitingCount: 0 };
+  try {
+    // P1: prototype query.call on a released handle must not run on Y.
+    const cX1 = await withAccess(accessA, () => bound.connect());
+    await cX1.query(SESSION_SQL);
+    if (typeof cX1.releaseAsync === 'function') await cX1.releaseAsync();
+    else cX1.release();
+    const cY1 = await withAccess(accessB, () => bound.connect());
+    let p1threw = false;
+    try {
+      const proto = Object.getPrototypeOf(cX1) as { query?: (...args: unknown[]) => unknown } | null;
+      if (proto && typeof proto.query === 'function') {
+        await proto.query.call(cX1, SET_PRINCIPAL_SQL, [accessA.owner]);
+      } else {
+        p1threw = true;
+      }
+    } catch {
+      p1threw = true;
+    }
+    const y1 = await cY1.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
+    let protoLabel = 'unknown';
+    try {
+      const proto = Object.getPrototypeOf(cX1);
+      protoLabel = proto === null ? 'null' : typeof proto;
+    } catch {
+      protoLabel = 'throw';
+    }
+    mark('P1', p1threw, xpSnapOf(asRow(y1.rows[0])), `proto=${protoLabel}`);
+    if (typeof cY1.releaseAsync === 'function') await cY1.releaseAsync();
+    else cY1.release();
+
+    // P2: getOwnPropertyDescriptor(query).value must be the guarded handle fn or throw.
+    const cX2 = await withAccess(accessA, () => bound.connect());
+    await cX2.query(SESSION_SQL);
+    if (typeof cX2.releaseAsync === 'function') await cX2.releaseAsync();
+    else cX2.release();
+    const cY2 = await withAccess(accessB, () => bound.connect());
+    let p2threw = false;
+    try {
+      const desc = Reflect.getOwnPropertyDescriptor(cX2, 'query');
+      const fn = desc?.value as ((...args: unknown[]) => unknown) | undefined;
+      if (typeof fn === 'function') await fn(SET_PRINCIPAL_SQL, [accessA.owner]);
+      else p2threw = true;
+    } catch {
+      p2threw = true;
+    }
+    const y2 = await cY2.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
+    mark('P2', p2threw, xpSnapOf(asRow(y2.rows[0])));
+    if (typeof cY2.releaseAsync === 'function') await cY2.releaseAsync();
+    else cY2.release();
+
+    // P3: on() chain must not return the raw Client.
+    const cX3 = await withAccess(accessA, () => bound.connect());
+    await cX3.query(SESSION_SQL);
+    if (typeof cX3.releaseAsync === 'function') await cX3.releaseAsync();
+    else cX3.release();
+    const cY3 = await withAccess(accessB, () => bound.connect());
+    let p3threw = false;
+    try {
+      const chained = (cX3 as { on?: (event: string, fn: () => void) => { query?: (...args: unknown[]) => unknown } }).on?.('x', () => undefined);
+      if (chained && typeof chained.query === 'function') await chained.query(SET_PRINCIPAL_SQL, [accessA.owner]);
+      else p3threw = true;
+    } catch {
+      p3threw = true;
+    }
+    const y3 = await cY3.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
+    mark('P3', p3threw, xpSnapOf(asRow(y3.rows[0])));
+    if (typeof cY3.releaseAsync === 'function') await cY3.releaseAsync();
+    else cY3.release();
+
+    // P4: leftover notice listener must not see Y's NOTICE.
+    const notices: string[] = [];
+    const cX4 = await withAccess(accessA, () => bound.connect());
+    await cX4.query(SESSION_SQL);
+    let p4threw = false;
+    try {
+      (cX4 as { on?: (event: string, fn: (msg: { message?: string } | string) => void) => unknown }).on?.('notice', (msg) => {
+        const text = typeof msg === 'string' ? msg : String(msg?.message ?? msg);
+        notices.push(text);
+        if (text.includes('secret-of-B')) noticeLeak += 1;
+      });
+    } catch {
+      p4threw = true;
+    }
+    if (typeof cX4.releaseAsync === 'function') await cX4.releaseAsync();
+    else cX4.release();
+    const cY4 = await withAccess(accessB, () => bound.connect());
+    await cY4.query(NOTICE_SQL);
+    await new Promise((r) => setTimeout(r, 80));
+    const y4 = await cY4.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
+    mark('P4', p4threw || noticeLeak === 0, xpSnapOf(asRow(y4.rows[0])), `leak=${noticeLeak} notices=${notices.length}`);
+    if (!p4threw && noticeLeak === 0) failClosed += 1;
+    if (typeof cY4.releaseAsync === 'function') await cY4.releaseAsync();
+    else cY4.release();
+
+    // P5: leftover end() must not close Y.
+    const cX5 = await withAccess(accessA, () => bound.connect());
+    await cX5.query(SESSION_SQL);
+    if (typeof cX5.releaseAsync === 'function') await cX5.releaseAsync();
+    else cX5.release();
+    const cY5 = await withAccess(accessB, () => bound.connect());
+    let p5threw = false;
+    try {
+      const ender = cX5 as { end?: () => unknown };
+      if (typeof ender.end === 'function') await ender.end();
+      else p5threw = true;
+    } catch {
+      p5threw = true;
+    }
+    let y5ok = false;
+    let y5snap: XpSnap = { principal: null, threadId: null };
+    try {
+      const y5 = await cY5.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
+      y5snap = xpSnapOf(asRow(y5.rows[0]));
+      y5ok = true;
+    } catch (error) {
+      if (samples.length < 8) samples.push(`P5 y-query ${String((error as Error).message ?? error).slice(0, 80)}`);
+    }
+    mark('P5', p5threw && y5ok, y5snap);
+    if (typeof cY5.releaseAsync === 'function') await cY5.releaseAsync();
+    else cY5.release();
+
+    // P7: live handle on().release() must not skip cleanup (privileged session back to pool).
+    const cX7 = await withAccess(accessA, () => bound.connect());
+    await cX7.query(SESSION_SQL);
+    let p7threw = false;
+    let rawReleased = false;
+    try {
+      const chained = (cX7 as { on?: (event: string, fn: () => void) => { release?: (err?: unknown) => void } }).on?.('x', () => undefined);
+      if (chained && typeof chained.release === 'function') {
+        chained.release();
+        rawReleased = true;
+      } else {
+        p7threw = true;
+      }
+    } catch {
+      p7threw = true;
+    }
+    if (!rawReleased) {
+      if (typeof cX7.releaseAsync === 'function') await cX7.releaseAsync();
+      else cX7.release();
+    } else {
+      await new Promise((r) => setTimeout(r, 80));
+    }
+    const cY7 = await withAccess(accessB, () => bound.connect());
+    const y7 = await cY7.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
+    mark('P7', p7threw, xpSnapOf(asRow(y7.rows[0])), `rawReleased=${rawReleased}`);
+    if (typeof cY7.releaseAsync === 'function') await cY7.releaseAsync();
+    else cY7.release();
+
+    counts = await waitPoolRecovered(pool);
+    let endOk = false;
+    try {
+      await withTimeout(bound.end(), 8_000);
+      endOk = true;
+    } catch (error) {
+      console.log(`P137 end() failed: ${String((error as Error).message ?? error).slice(0, 120)}`);
+      try { await withTimeout(Promise.resolve(pool.end?.() as Promise<void>), 3_000); } catch { /* ignore */ }
+    }
+    const recovered = poolRecovered(counts);
+    // Six arms: P1 P2 P3 P4 P5 P7. failClosed is incremented by mark() when threw=true, plus P4 missing-on adjustment.
+    const ok = mismatches === 0 && noticeLeak === 0 && recovered && endOk && results.every((line) => line.includes('yOk=true') && line.includes('threw=true'));
+    console.log(`P137 ${results.join(' | ')}`);
+    console.log(`P137 mismatches=${mismatches} noticeLeak=${noticeLeak} failClosed=${failClosed} pool=${formatCounts(counts)} end=${endOk ? 'ok' : 'fail'} recovered=${recovered} samples=${samples.join(' | ')}`);
+    if (ok) console.log('CHILD_OK');
+    else {
+      console.log('CHILD_FAIL P137');
+      process.exitCode = 1;
+    }
+  } catch (error) {
+    console.log(`P137 uncaught ${String((error as Error).message ?? error).slice(0, 160)}`);
+    console.log(`P137 mismatches=${mismatches} noticeLeak=${noticeLeak} pool=${formatCounts(counts)} samples=${samples.join(' | ')}`);
+    console.log('CHILD_FAIL P137');
+    process.exitCode = 1;
+    try { await withTimeout(bound.end(), 8_000); } catch { /* ignore */ }
+  } finally {
+    await admin.query(`DROP ROLE IF EXISTS ${role}`).catch(() => undefined);
+    await admin.end().catch(() => undefined);
+  }
+}
+
+async function child(mode: Mode, moduleUrl: string): Promise<void> {
+  const mod = await import(moduleUrl);
+  if (mode === 'xp-after' || mode === 'xp-mut-precedence') await runXp2(mod, mode === 'xp-mut-precedence');
+  else if (mode === 'xp-e12' || mode === 'xp-e12-before') await runE12(mod);
+  else if (mode === 'xp-p137' || mode === 'xp-p137-before') await runP137(mod);
+  else await runScenario(mod);
+}
+
+function writePatchedModule(src: string): { dir: string; url: string } {
+  const dir = mkdtempSync(join(tmpdir(), 'mw-pg-release-'));
+  const file = join(dir, 'checkpoint-principal.ts');
+  writeFileSync(file, src);
+  return { dir, url: `file://${file}` };
+}
+
+async function parent(): Promise<void> {
+  let fail = 0;
+  const A = (n: string, c: boolean, extra = '') => {
+    console.log(`${c ? 'PASS' : 'FAIL'}  ${n}${extra ? `  [${extra}]` : ''}`);
+    if (!c) fail++;
+  };
+  const self = fileURLToPath(import.meta.url);
+  const runChild = (mode: Mode, moduleUrl: string, timeoutMs = 60_000) =>
+    spawnSync(process.execPath, [...process.execArgv, self, `--child=${mode}`, `--module=${moduleUrl}`], {
+      encoding: 'utf8',
+      timeout: timeoutMs,
+      env: (() => {
+        const env: NodeJS.ProcessEnv = { ...process.env };
+        env.NODE_OPTIONS = `${process.env.NODE_OPTIONS ?? ''} --unhandled-rejections=throw`.trim();
+        return env;
+      })(),
+    });
+
+  const after = runChild('after', `file://${srcPath}`);
+  process.stdout.write(after.stdout ?? '');
+  if (after.status !== 0) process.stderr.write((after.stderr ?? '').slice(0, 4000));
+  A('AFTER 子进程 EXIT 0（修后）', after.status === 0 && /CHILD_OK/.test(after.stdout ?? ''), `status=${after.status}`);
+
+  const beforeSrc = spawnSync('git', ['show', `${BEFORE_SHA}:apps/worker/src/checkpoint-principal.ts`], {
+    encoding: 'utf8',
+    cwd: join(here, '../../..'),
+  });
+  A(
+    `BEFORE 能读到固定 SHA ${BEFORE_SHA.slice(0, 9)} 源`,
+    beforeSrc.status === 0 && (beforeSrc.stdout ?? '').includes('installReleaseCleanup') && !(beforeSrc.stdout ?? '').includes('SERIALIZE_ONCE_GUARD'),
+    `status=${beforeSrc.status}`,
+  );
+  let beforeDir = '';
+  if (beforeSrc.status === 0) {
+    const written = writePatchedModule(beforeSrc.stdout ?? '');
+    beforeDir = written.dir;
+    const before = runChild('before', written.url);
+    A('BEFORE 子进程非零退出（修前复现）', before.status !== 0, `status=${before.status} signal=${before.signal}`);
+    A(
+      'BEFORE 崩溃文案=already been released（现场同族）',
+      /already been released to the pool/.test(`${before.stderr ?? ''}\n${before.stdout ?? ''}`),
+      (before.stderr ?? '').split('\n').find((l) => /already been released|Error:/.test(l)) ?? '',
+    );
+  }
+
+  const src = readFileSync(srcPath, 'utf8');
+  const mutSrc = stripGuards(src);
+  A('MUT-GUARD 变换真正去掉了 RELEASE_ONCE_GUARD', !mutSrc.includes('RELEASE_ONCE_GUARD') && /void runRelease\(err\);/.test(mutSrc));
+  const mutWritten = writePatchedModule(mutSrc);
+  const mut = runChild('mut-guard', mutWritten.url);
+  A('MUT-GUARD 去掉 guard 后子进程非零退出', mut.status !== 0, `status=${mut.status} signal=${mut.signal}`);
+  A(
+    'MUT-GUARD 崩溃文案=already been released',
+    /already been released to the pool/.test(`${mut.stderr ?? ''}\n${mut.stdout ?? ''}`),
+    (mut.stderr ?? '').split('\n').find((l) => /already been released|Error:/.test(l)) ?? '',
+  );
+
+  const stackSrc = stripSerializeOnce(src);
+  A('MUT-STACK 变换真正去掉了 SERIALIZE_ONCE_GUARD', !stackSrc.includes('SERIALIZE_ONCE_GUARD') && stackSrc.includes('serializeClientQueries'));
+  const stackWritten = writePatchedModule(stackSrc);
+  const mutStack = runChild('mut-stack', stackWritten.url);
+  A('MUT-STACK 去掉防叠加逻辑后子进程非零退出', mutStack.status !== 0, `status=${mutStack.status} signal=${mutStack.signal}`);
+  A(
+    'MUT-STACK 失败在叠加臂 D-1',
+    /FAIL {2}D-1 /.test(mutStack.stdout ?? ''),
+    (mutStack.stdout ?? '').split('\n').find((l) => /D-1/.test(l)) ?? (mutStack.stderr ?? '').slice(0, 200),
+  );
+
+  const orderSrc = swapCleanupOrder(src);
+  A('MUT-ORDER 变换把 cleanup 放到 releaseOnce 之后', orderSrc.includes('MUT_ORDER_F') && !orderSrc.includes('CLEANUP_BEFORE_RELEASE'));
+  const orderWritten = writePatchedModule(orderSrc);
+  const mutOrder = runChild('mut-order', orderWritten.url);
+  A('MUT-ORDER 先 releaseOnce 再 cleanup 后子进程非零退出', mutOrder.status !== 0, `status=${mutOrder.status} signal=${mutOrder.signal}`);
+  A(
+    'MUT-ORDER 失败在顺序臂 E-1',
+    /FAIL {2}E-1 /.test(mutOrder.stdout ?? ''),
+    (mutOrder.stdout ?? '').split('\n').find((l) => /E-1/.test(l)) ?? (mutOrder.stderr ?? '').slice(0, 200),
+  );
+
+  A('ALERT-OLD 对现场崩溃日志假阴性', !WORKER_ALERT_RE_OLD.test(CRASH_LOG));
+  A('ALERT-NEW 命中 already-released 与 Node 退出横幅', WORKER_ALERT_RE.test(CRASH_LOG));
+  A('ALERT-NEW 对健康 worker.log 不误报', !WORKER_ALERT_RE.test(HEALTHY_LOG));
+  A('S-1 源含 RELEASE_ONCE_GUARD', src.includes('RELEASE_ONCE_GUARD'));
+  A('S-2 源含 serializeClientQueries 与 SERIALIZE_ONCE_GUARD', src.includes('serializeClientQueries') && src.includes('SERIALIZE_ONCE_GUARD'));
+  A('S-3 fire-and-forget release 带 .catch', /void runRelease\(err\)\.catch\(/.test(src));
+  A('S-4 源钉死先 cleanup 再 releaseOnce', src.includes('CLEANUP_BEFORE_RELEASE'));
+  A('S-5 吞错路径有 warnReleasePath（无 SQL/principal）', src.includes('warnReleasePath') && !/warnReleasePath\([^)]*principal/i.test(src));
+  A('S-6 façade.query finally 显式分支（无 await/?? 优先级陷阱）', src.includes('RELEASE_ASYNC_ONLY') && !/await \(client as \{ releaseAsync\?:/.test(src));
+  A('S-7 connect 返回独立句柄（不把 release 包装挂到共享 Client）', src.includes('CHECKOUT_HANDLE') && !/client\.release = /.test(src) && src.includes('checkpoint_pg_stale_handle'));
+  A('S-8 句柄为白名单普通对象（不 Proxy 共享 Client，不暴露 on/end/connection）', src.includes('WHITELIST_HANDLE') && src.includes('Object.create(null)') && !/new Proxy\(client/.test(src));
+
+  if (process.env.E2E_ISOLATED !== '1') {
+    A('XP-2 须由官方 isolated runner 提供真实 PG（E2E_ISOLATED=1）', false, `E2E_ISOLATED=${process.env.E2E_ISOLATED ?? ''}`);
+  } else {
+    const xp = runChild('xp-after', `file://${srcPath}`, 180_000);
+    process.stdout.write(xp.stdout ?? '');
+    if (xp.status !== 0) process.stderr.write((xp.stderr ?? '').slice(0, 4000));
+    A('XP-2 真实 PG 并发 mismatches=0', xp.status === 0 && /CHILD_OK/.test(xp.stdout ?? '') && /XP2 mismatches=0 /.test(xp.stdout ?? ''), `status=${xp.status}`);
+
+    const precSrc = restoreAwaitPrecedence(src);
+    A('MUT-PRECEDENCE 变换恢复了无括号 await/??', precSrc.includes('MUT_PRECEDENCE') && !precSrc.includes('await releasable.releaseAsync(); // RELEASE_ASYNC_ONLY'));
+    const precWritten = writePatchedModule(precSrc);
+    const mutPrec = runChild('xp-mut-precedence', precWritten.url, 180_000);
+    process.stdout.write(mutPrec.stdout ?? '');
+    if (mutPrec.status !== 0) process.stderr.write((mutPrec.stderr ?? '').slice(0, 4000));
+    A('MUT-PRECEDENCE 恢复无括号写法后子进程非零退出', mutPrec.status !== 0, `status=${mutPrec.status} signal=${mutPrec.signal}`);
+    A(
+      'MUT-PRECEDENCE 失败在 XP-2 mismatches>0 或并发超时',
+      /XP2 mismatches=([1-9]\d*) /.test(mutPrec.stdout ?? '')
+        || (/XP2 mismatches=0 /.test(mutPrec.stdout ?? '') && /opErrors=([1-9]\d*)/.test(mutPrec.stdout ?? '') && !/CHILD_OK/.test(mutPrec.stdout ?? '')),
+      (mutPrec.stdout ?? '').split('\n').find((l) => /XP2 mismatches=/.test(l)) ?? (mutPrec.stderr ?? '').slice(0, 200),
+    );
+    rmSync(precWritten.dir, { recursive: true, force: true });
+
+    const e12 = runChild('xp-e12', `file://${srcPath}`, 180_000);
+    process.stdout.write(e12.stdout ?? '');
+    if (e12.status !== 0) process.stderr.write((e12.stderr ?? '').slice(0, 4000));
+    A(
+      'E1/E2 真实 PG 旧句柄不得跨租户且池计数恢复',
+      e12.status === 0 && /CHILD_OK/.test(e12.stdout ?? '') && /E12 ok=true /.test(e12.stdout ?? ''),
+      (e12.stdout ?? '').split('\n').find((l) => /E12 ok=/.test(l) || /E1 mismatches=/.test(l) || /E2 mismatches=/.test(l)) ?? `status=${e12.status}`,
+    );
+
+    const e12BeforeSrc = spawnSync('git', ['show', `${E12_BEFORE_SHA}:apps/worker/src/checkpoint-principal.ts`], {
+      encoding: 'utf8',
+      cwd: join(here, '../../..'),
+    });
+    A(
+      `E12-BEFORE 能读到固定 SHA ${E12_BEFORE_SHA.slice(0, 9)} 源`,
+      e12BeforeSrc.status === 0 && (e12BeforeSrc.stdout ?? '').includes('checkpoint_pg_release_holder_mismatch') && !(e12BeforeSrc.stdout ?? '').includes('CHECKOUT_HANDLE'),
+      `status=${e12BeforeSrc.status}`,
+    );
+    if (e12BeforeSrc.status === 0) {
+      const e12Written = writePatchedModule(e12BeforeSrc.stdout ?? '');
+      const e12Before = runChild('xp-e12-before', e12Written.url, 180_000);
+      process.stdout.write(e12Before.stdout ?? '');
+      if (e12Before.status !== 0) process.stderr.write((e12Before.stderr ?? '').slice(0, 4000));
+      A(
+        'E12-BEFORE 反向复现子进程非零退出',
+        e12Before.status !== 0 && /CHILD_FAIL E12/.test(e12Before.stdout ?? ''),
+        `status=${e12Before.status} signal=${e12Before.signal}`,
+      );
+      A(
+        'E12-BEFORE 失败在跨租户 mismatches 或旧句柄未 fail-closed',
+        /E1 mismatches=([1-9]\d*) /.test(e12Before.stdout ?? '')
+          || /E2 mismatches=([1-9]\d*) /.test(e12Before.stdout ?? '')
+          || (/staleRelease=0/.test(e12Before.stdout ?? '') && !/CHILD_OK/.test(e12Before.stdout ?? '')),
+        (e12Before.stdout ?? '').split('\n').find((l) => /E1 mismatches=/.test(l) || /E2 mismatches=/.test(l) || /E12 ok=/.test(l)) ?? (e12Before.stderr ?? '').slice(0, 200),
+      );
+      rmSync(e12Written.dir, { recursive: true, force: true });
+    }
+
+    const p137 = runChild('xp-p137', `file://${srcPath}`, 180_000);
+    process.stdout.write(p137.stdout ?? '');
+    if (p137.status !== 0) process.stderr.write((p137.stderr ?? '').slice(0, 4000));
+    A(
+      'P1-P5/P7 真实 PG 白名单句柄 fail-closed 且池计数恢复',
+      p137.status === 0 && /CHILD_OK/.test(p137.stdout ?? '') && /P137 mismatches=0 /.test(p137.stdout ?? '') && /pool=1\/1\/0/.test(p137.stdout ?? ''),
+      (p137.stdout ?? '').split('\n').find((l) => /P137 mismatches=/.test(l) || /P137 P1/.test(l)) ?? `status=${p137.status}`,
+    );
+
+    const pBeforeSrc = spawnSync('git', ['show', `${P_BEFORE_SHA}:apps/worker/src/checkpoint-principal.ts`], {
+      encoding: 'utf8',
+      cwd: join(here, '../../..'),
+    });
+    A(
+      `P-BEFORE 能读到固定 SHA ${P_BEFORE_SHA.slice(0, 9)} 源`,
+      pBeforeSrc.status === 0 && (pBeforeSrc.stdout ?? '').includes('return new Proxy(client') && !(pBeforeSrc.stdout ?? '').includes('WHITELIST_HANDLE'),
+      `status=${pBeforeSrc.status}`,
+    );
+    if (pBeforeSrc.status === 0) {
+      const pWritten = writePatchedModule(pBeforeSrc.stdout ?? '');
+      const pBefore = runChild('xp-p137-before', pWritten.url, 180_000);
+      process.stdout.write(pBefore.stdout ?? '');
+      if (pBefore.status !== 0) process.stderr.write((pBefore.stderr ?? '').slice(0, 4000));
+      A(
+        'P-BEFORE 反向复现子进程非零退出',
+        pBefore.status !== 0 && /CHILD_FAIL P137/.test(pBefore.stdout ?? ''),
+        `status=${pBefore.status} signal=${pBefore.signal}`,
+      );
+      A(
+        'P-BEFORE 失败在跨租户或未 fail-closed',
+        /P137 mismatches=([1-9]\d*) /.test(pBefore.stdout ?? '')
+          || /noticeLeak=([1-9]\d*)/.test(pBefore.stdout ?? '')
+          || (/yOk=false/.test(pBefore.stdout ?? '') && !/CHILD_OK/.test(pBefore.stdout ?? '')),
+        (pBefore.stdout ?? '').split('\n').find((l) => /P137 mismatches=/.test(l) || /P137 P1/.test(l)) ?? (pBefore.stderr ?? '').slice(0, 200),
+      );
+      rmSync(pWritten.dir, { recursive: true, force: true });
+    }
+  }
+
+  for (const dir of [beforeDir, mutWritten.dir, stackWritten.dir, orderWritten.dir]) {
+    if (dir) rmSync(dir, { recursive: true, force: true });
+  }
+  console.log(fail === 0 ? 'PG-CLIENT-DOUBLE-RELEASE PASS' : `PG-CLIENT-DOUBLE-RELEASE FAIL (${fail})`);
+  process.exit(fail === 0 ? 0 : 1);
+}
+
+const childArg = process.argv.find((a) => a.startsWith('--child='));
+const moduleArg = process.argv.find((a) => a.startsWith('--module='));
+if (childArg) await child(childArg.slice('--child='.length) as Mode, (moduleArg ?? '').slice('--module='.length));
+else await parent();
