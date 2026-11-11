@@ -35,7 +35,9 @@ import { ingestResume } from '@meetwise/domain';
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
 import { drainInterviewJobOnce, type ConsumerDeps } from '../../worker/src/interview-consumer.ts';
 const langgraphMod = createRequire(new URL('../../worker/package.json', import.meta.url))('@langchain/langgraph') as Record<string, new () => object>;
-const graphCheckpointer = langgraphMod['MemorySaver'];
+const loadedGraphSaver = langgraphMod['MemorySaver'];
+if (typeof loadedGraphSaver !== 'function') throw new Error('langgraph_memory_saver_missing');
+const graphSaverCtor: new () => object = loadedGraphSaver;
 
 const CMD = 'pnpm skip-as-clarify:http:prove';
 const RESUME_TEXT = '工作经历\n后端工程师\n负责订单系统限流改造，使用 Redis 计数器和滑动窗口保护下游。\n技能\nRedis、限流、分布式锁';
@@ -72,6 +74,11 @@ type IssuedRow = {
   status: string;
 };
 
+const asRecord = (value: unknown): Record<string, unknown> => (
+  value !== null && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {}
+);
 const sha256 = (s: string) => createHash('sha256').update(s, 'utf8').digest('hex');
 const turnBody = (id: Qid, answer: string) => ({
   ...id,
@@ -111,7 +118,7 @@ const model: ModelClient = { complete: (r, a) => scripted.complete(r, a) };
 function consumerDeps(pool: DbPool): ConsumerDeps {
   return {
     pool,
-    cp: new graphCheckpointer() as ConsumerDeps['cp'],
+    cp: new graphSaverCtor() as ConsumerDeps['cp'],
     model,
     leaseOwner: `skip-clarify-w-${process.pid}`,
     adaptive: {
@@ -159,7 +166,7 @@ async function main(): Promise<void> {
       headers: body === undefined ? headers : { ...headers, ['content-type']: 'application/json' },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
-    return { status: res.status, body: await res.json().catch(() => ({})) };
+    return { status: res.status, body: asRecord(await res.json().catch(() => ({}))) };
   };
   const hdr = (owner: string): Record<string, string> => ({ ['x-user-id']: owner });
 
