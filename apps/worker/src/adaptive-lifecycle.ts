@@ -15,7 +15,7 @@ import {
 import { Command, type LangGraphRunnableConfig } from '@langchain/langgraph';
 import { buildAdaptiveInterviewGraph, type PendingQuestion } from '@meetwise/ai-graphs';
 import { getMetrics, METRIC, type ModelClient, type GraphObserver, type ModelCostPolicy } from '@meetwise/ai-runtime';
-import { admitInterviewResume, assertInterviewAnswerContentAcceptable, type QuestionGenerationProvenance, type ScoredRef, type SourceDoc, type CompetencySpec, type ResearchBoundaryDecision, type ScoredCriterionDisposition } from '@meetwise/domain';
+import { admitInterviewResume, assertInterviewAnswerContentAcceptable, QUESTION_DUPLICATE_FALLBACKS, type QuestionDuplicateFallback, type QuestionGenerationProvenance, type ScoredRef, type SourceDoc, type CompetencySpec, type ResearchBoundaryDecision, type ScoredCriterionDisposition } from '@meetwise/domain';
 import { buildAdaptiveDeps, buildResumeFactPool, planCompetencies, selectPlannerFacts } from './adaptive-interview-service.ts';
 import { writeScoreCardAfterProjectionFenceTolerant } from './score-writer.ts';
 import { recordAskedQuestions } from './memory-service.ts';
@@ -50,6 +50,18 @@ const pendingQuestion = (snap: any): PendingQuestion | undefined => {
   if (snap.values?.concluded === true || generationFailureOf(snap)) return undefined;
   return snap.values?.pending ?? snap.tasks?.[0]?.interrupts?.[0]?.value;
 };
+
+/**
+ * G2：把 duplicateFallback 投影到 question_ready。优先读 pending（新世代写入），
+ * 旧 checkpoint 仅记在 generationProvenance 时回退读 snap。非法值丢弃，避免把未知串写入事件。
+ * undefined 经 JSON.stringify 缺字段，旧消费者零破坏。
+ */
+function projectedDuplicateFallback(p: PendingQuestion, snap?: any): QuestionDuplicateFallback | undefined {
+  const raw = p.duplicateFallback ?? (snap?.values?.generationProvenance as QuestionGenerationProvenance | undefined)?.duplicateFallback;
+  return (QUESTION_DUPLICATE_FALLBACKS as readonly string[]).includes(raw as string)
+    ? raw as QuestionDuplicateFallback
+    : undefined;
+}
 
 /** AG-15 卡死检测（§1.2 语义定稿·纯函数零 IO）：done→'END'；pending→'interrupt:<next[0]>'；
  *  其余（next 非空∧无 interrupt∧非 failure）→裸节点名=卡死形状。failure 臂 lastError 带 generation_* reason。 */
@@ -309,7 +321,7 @@ async function observeGraphRunPosition(d: AdaptiveLifecycleDeps, snap: unknown):
 }
 
 /** pending question 先入 question ledger，再发具有相同 identity 的 SSE 业务事件。 */
-async function persistAndEmitQuestion(d: AdaptiveLifecycleDeps, p: PendingQuestion): Promise<void> {
+async function persistAndEmitQuestion(d: AdaptiveLifecycleDeps, p: PendingQuestion, snap?: any): Promise<void> {
   await asPrincipal(d.pool, d.owner, async (c) => {
     await requireCurrentFence(c, d);
     await persistInterviewQuestion(c, d.owner, d.interviewId, {
@@ -333,6 +345,8 @@ async function persistAndEmitQuestion(d: AdaptiveLifecycleDeps, p: PendingQuesti
       // billing P1（BILL1-TOPIC-FIELDS 修法⑥）：话题维度 additive 可选字段（沿 plannedTurns 同形制 A；
       // 旧 checkpoint 缺省 undefined，JSON 序列化即缺字段，消费者必须降级）。
       topicId: p.topicId, askMode: p.askMode, clarifyCause: p.clarifyCause,
+      // G2：判重降级标记投影到 question_ready（additive 可选；正常出题/旧流缺字段）。
+      duplicateFallback: projectedDuplicateFallback(p, snap),
     }, `question_ready:${p.questionId}`);
   });
 }
@@ -411,7 +425,7 @@ async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string
     await deleteCommittedTerminalCheckpoints(d);
     return { unavailable };
   }
-  await persistAndEmitQuestion(d, pending);
+  await persistAndEmitQuestion(d, pending, snap);
   return { question: pending.question, questionId: pending.questionId, stateVersion: pending.stateVersion };
 }
 
@@ -560,6 +574,8 @@ async function submitAdaptiveAnswerImpl(
         questionId: next.questionId, stateVersion: next.stateVersion, turn: next.turn,
         question: next.question, competency: next.competency, qkind: next.kind,
         plannedTurns: next.plannedTurns,
+        // G2：answer/unscored 臂同面投影降级标记（additive 可选）。
+        duplicateFallback: projectedDuplicateFallback(next, snap),
       }, `question_ready:${next.questionId}`);
       return;
     }
@@ -587,6 +603,8 @@ async function submitAdaptiveAnswerImpl(
       question: next.question, competency: next.competency, qkind: next.kind,
       // #256 形制 A：answer 臂同面（next=pendingQuestion(snap)，发射作用域直读·R2 勘误路径）。
       plannedTurns: next.plannedTurns,
+      // G2：answer 臂同面投影降级标记（additive 可选；正常出题/旧流缺字段）。
+      duplicateFallback: projectedDuplicateFallback(next, snap),
     }, `question_ready:${next.questionId}`);
   });
 
