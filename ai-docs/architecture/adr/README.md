@@ -21,7 +21,7 @@ related:
 ---
 
 ### ADR-0001 技术栈 · accepted
-**背景**：纯 AI 驱动的可恢复长会话面试系统。**决定**：Next.js App Router(web) + NestJS(api) + LangGraphJS(worker) + Postgres(+pgvector) + Redis + S3/MinIO。**被否**：Nuxt/Vue（前端定 Next）；纯 serverless（长会话+队列不适）。**后果**：单语言 TS 全栈，monorepo。
+**背景**：纯 AI 驱动的可恢复长会话面试系统。**决定**：Next.js App Router(web) + NestJS(api) + LangGraphJS(worker) + Postgres(+pgvector) + Redis/Tair + S3/MinIO。Redis/Tair 用于限流、短期缓存与锁，不是耐久任务队列（队列见 ADR-0023）。**被否**：Nuxt/Vue（前端定 Next）；纯 serverless（长会话+队列不适）。**后果**：单语言 TS 全栈，monorepo。
 
 ### ADR-0002 ORM = Prisma · accepted
 **背景**：需迁移 + 约束 + 类型安全。**决定**：Prisma。**被否**：Drizzle（生态/迁移成熟度权衡后否）；裸 SQL（失类型安全）。**后果**：迁移用 Prisma Migrate；RLS 用 client extension 注入 `SET LOCAL`。
@@ -35,8 +35,8 @@ related:
 ### ADR-0005 模型 = 境内厂商 · accepted
 **背景**：PIPL，简历/PII 不出境。**决定**：境内厂商模型；embedding 与生成都受 `agent-runtime` 区域门约束。**被否**：境外模型（合规不可）。**后果**：模型 catalog 带 `region` 字段，PII 命中 `oversea` 即 fail-closed。
 
-### ADR-0006 不上 Vercel · accepted
-**背景**：长会话 + 自建队列 + 境内合规。**决定**：不上 Vercel；队列用 Redis 上的 BullMQ/pg-boss。**被否**：Vercel（serverless 长会话/队列/出境不适）。**后果**：自管部署（见 ADR-0011）。
+### ADR-0006 不上 Vercel · accepted（队列选型已被 ADR-0023 取代）
+**背景**：长会话 + 自建队列 + 境内合规。**决定**：不上 Vercel，自管部署（见 ADR-0011）。**被否**：Vercel（serverless 长会话/队列/出境不适）。**后果**：部署形态不变。原「队列用 Redis 上的 BullMQ/pg-boss」已 **superseded**，不再作为队列事实，见 ADR-0023。
 
 ### ADR-0007 多租户隔离 = Postgres RLS（基线） · accepted
 **背景**：B/C 两产品线物理隔离生死线。**决定**：RLS + principal 绑定 fail-closed 为统一基线（见 `rls-isolation.md`）。**被否**：纯应用层 where（易漏、不 fail-closed）。**后果**：B 端高敏是否再上 schema-per-tenant/独立库 = 待定（proposed，单列后续 ADR）。
@@ -79,6 +79,12 @@ related:
 
 ### ADR-0022 应用版本与发布机制 · accepted
 **背景**：全包 version=0.0.0、无 tag/CHANGELOG/发布脚本、探针不报版本，无法钉/校验/回滚部署。**决定**：锁定式 monorepo 单一 semver（根 `package.json`）+ `scripts/release.mjs`（bump→CHANGELOG→tag）+ 运行时 `/meta`（读部署注入 `APP_VERSION`，当前管线未接线）+ CI 一致性门（tag↔版本一致 + CHANGELOG 段 + docs:check/arch）。**被否**：Changesets 独立发版、运行时读文件取版本、脚本自动 push。**后果**：可复现发布、`curl /meta` 锚点就位（注入管线接线后返回真实版本）、回滚有锚点。**详见 [`adr/0022-app-versioning-release.md`](./0022-app-versioning-release.md)。**
+
+### ADR-0023 耐久任务队列 = Postgres 表 + SKIP LOCKED，唤醒用 LISTEN/NOTIFY · accepted
+**背景**：ADR-0006 曾写「队列用 Redis 上的 BullMQ/pg-boss」。仓库现状不是这条路径：`bullmq` / `@nestjs/bullmq` / `pg-boss` 不在依赖声明里，也没有运行时 import；任务落在 Postgres 队列表（如 `interview_job`、`quiz_job`、`diagnosis_job` 及报告队列表），领取用 `FOR UPDATE SKIP LOCKED`，提交后发固定 `wake` 的 `LISTEN/NOTIFY`，worker 专用会话只合并唤醒现有领取循环，通知不含业务数据；各 loop 仍以约 5 秒为上限做恢复扫描。Redis/Tair 仍用于限流、短期缓存与锁（及 RAG 热缓存），不是耐久队列真相。Redis Streams 唤醒只是特性旗 `MEETWISE_WAKEUP_REDIS_STREAMS`（默认关）下的附加原型，不是生产切流，也不等于用户硬否 Redis。
+**决定**：耐久任务队列的事实源是 Postgres 队列表 + 租约 / `SKIP LOCKED`；生产唤醒偏好继续 Postgres `LISTEN/NOTIFY`（与交付 ADR [`adr-postgres-retained.md`](../../delivery/adr-postgres-retained.md) 一致）。BullMQ / pg-boss 不再作为队列选型。
+**被否**：以 Redis 上的 BullMQ 或 pg-boss 作为耐久队列真相；把 `LISTEN/NOTIFY` 或 Redis 锁当成队列本身；把本地接线称为 HA / 发布证据。
+**后果**：上云选型时，队列容量与正确性首先看 Postgres（表、触发器、RLS、租约），不因本条去买队列专用 Redis；Redis/Tair 规格仍按缓存/限流/锁评估。真实云上的事务、触发器、RLS、多副本与故障恢复验收尚未完成，`releaseEvidence=false`，≠HA，≠生产已上线。详见 [`current-runtime-truth.md`](../current-runtime-truth.md)、[`worker-event-driven-dispatch.md`](../../requirements/use-cases/worker-event-driven-dispatch.md)。
 
 ---
 

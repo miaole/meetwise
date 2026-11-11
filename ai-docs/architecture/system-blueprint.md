@@ -27,7 +27,8 @@ tags:
 | AI 编排 | LangGraphJS | 状态机、持久化、streaming、interrupt、恢复能力契合模拟面试 |
 | 数据库 | Postgres | 支付、权益、状态机、审计和报表更适合关系模型 |
 | 向量 | pgvector | 简历片段、岗位画像、题库和推荐可复用 Postgres |
-| 缓存/队列 | Redis | 限流、短期缓存、任务状态、BullMQ/Graph job |
+| 缓存 | Redis/Tair | 限流、短期缓存与锁；不是耐久任务队列。云 Redis 真实 E2E 未完成。 |
+| 任务队列 | Postgres 表 + `SKIP LOCKED`；唤醒用 `LISTEN/NOTIFY` | 耐久事实在队列表与租约（ADR-0023）。通知不是队列本身。本地接线 ≠ HA / 发布证据。 |
 | 对象存储 | S3/MinIO | 简历文件、导出报告、语音文件 |
 | 契约 | 共享 zod4 schema + zod-openapi | 防止前后端接口漂移 |
 | 测试 | 隔离 prove + HTTP E2E（fetch/SSE，`pnpm e2e:isolated`）+ 浏览器 Playwright（`e2e:ui:isolated`）+ golden-tasks 登记 | 分层见 `testing/strategy/test-strategy.md`；live E2E 不在 per-push |

@@ -79,7 +79,7 @@ related:
 | **【新增】** `@nest-lab/throttler-storage-redis` | **限流的 Redis storage**——默认内存计数多实例失效，AI 前闸必须跨实例 |
 | `@nestjs/schedule` | 定时任务（语料生命周期/对账/清理） |
 | `@nestjs/terminus` | 健康检查（DB/Redis/S3 探针） |
-| `@nestjs/bullmq` / `bullmq` | ~~队列模块+核心~~ **未采用**（#28 勘误 2026-10-12：原草稿候选；实落地队列=PG 表+`FOR UPDATE SKIP LOCKED`（`packages/db/src/jobs/*`），BullMQ 全仓零码在库） |
+| `@nestjs/bullmq` / `bullmq` | ~~队列模块+核心~~ **未采用**（#28 勘误 2026-10-12：原草稿候选；实落地队列=PG 表+`FOR UPDATE SKIP LOCKED`（`packages/db/src/interview/interview-jobs.ts`、`packages/db/src/jobs/*`、`packages/db/src/report/report.ts`），BullMQ 全仓零码在库；队列选型见 ADR-0023） |
 | `@nestjs/event-emitter` | 应用内领域事件（状态机转移广播、解耦 observability） |
 | `zod` / `nestjs-zod` | 共享 zod4 契约校验：薄 `ZodValidationPipe`（Body/Query）+ Nest 异常/swagger 集成 |
 | `zod-openapi` | 由共享 zod4 schema 生成 OpenAPI（取代 @ts-rest/open-api，见 ADR-0004） |
@@ -130,7 +130,7 @@ related:
 | `@langchain/openai` | OpenAI 兼容客户端（境内模型多兼容此协议，统一适配、便于多模型路由/降级） |
 | **【改】** `@langchain/textsplitters` | 文本切分（RAG），替代顶层 `langchain` meta 包，避免拖入整坨传递依赖 |
 | `langfuse` / `langfuse-langchain` | 追踪 SDK + Graph 回调自动埋点（trace/prompt 版本/score 落 `ai_invocation_traces`） |
-| `bullmq` / `ioredis` | 消费 api 投递的任务队列 + Redis 连接/锁 |
+| `pg` + Redis 客户端 | 从 Postgres 队列表领取任务（`SKIP LOCKED` + `LISTEN/NOTIFY`，ADR-0023 / #28 残行补勘）；Redis 用于缓存/锁/可选唤醒原型（默认关），不是 BullMQ。 |
 | `pg` | Postgres 驱动（checkpointer + 业务读写） |
 | `@prisma/client` | 业务事实写回业务表（图状态≠业务真相） |
 | `zod` / `zod-to-json-schema` | 结构化输出 schema（第一道校验）+ 喂模型 JSON Schema |
@@ -335,7 +335,7 @@ related:
 
 ## 关键选型分叉（最终定论，逐条进 ADR）
 
-1. **队列 → PG 表队列（`FOR UPDATE SKIP LOCKED`）+ Outbox 实落地**。#28 勘误 2026-10-12：本节旧定论「BullMQ + Outbox（不换 pg-boss）」系草稿期选型叙事——实落地改为 PG 表队列（BullMQ 零码在库，见 packages/db/src/jobs/*）；旧叙事的诚实警示仍成立且已兑现：outbox 需要真实 relay/poller（`commerce_outbox` + `settleOutbox` + commerce-reconciler 30s 一拍），不是免费的。pg-boss 事务内入队的旧降级叙事仅作历史记录保留。
+1. **队列 → PG 表队列（`FOR UPDATE SKIP LOCKED`）+ Outbox 实落地**。#28 勘误 2026-10-12：本节旧定论「BullMQ + Outbox（不换 pg-boss）」系草稿期选型叙事——实落地改为 PG 表队列（BullMQ 零码在库，见 `packages/db/src/interview/interview-jobs.ts`、`packages/db/src/jobs/*`、`packages/db/src/report/report.ts`；选型见 ADR-0023）；旧叙事的诚实警示仍成立且已兑现：outbox 需要真实 relay/poller（`commerce_outbox` + `settleOutbox` + commerce-reconciler 30s 一拍），不是免费的。pg-boss 事务内入队的旧降级叙事仅作历史记录保留。
 
 2. **测试 → 全仓 Vitest**，保留「api 单独退 Jest」逃生口写进 ADR。**前置必装 `vite-tsconfig-paths`**（已补进 api/worker/ai-graphs devDeps）。
 
