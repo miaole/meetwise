@@ -137,7 +137,11 @@ must(/targets:\s*\n\s*- api:8787/.test(prometheus) && /targets:\s*\n\s*- worker:
   'Prometheus 必须通过 compose 服务名抓 api:8787 与 worker:9091');
 must(!/host\.docker\.internal/.test(prometheusWithoutComments), '生产 Prometheus 不得依赖 host.docker.internal');
 const migrations = readdirSync('packages/db/migrations').filter((f) => f.endsWith('.sql')).sort();
-must(migrations.length >= 30 && (migrations[0] === '0001_baseline.sql' || migrations[0] === '0000_admin_provision_primitives.sql'), `版本化 migrations 按序齐全(现 ${migrations.length} 个,0000 原语/0001 起)`);
+must(migrations.length >= 30 && migrations[0] === '0001_baseline.sql', `版本化 migrations 按序齐全(现 ${migrations.length} 个,必须 0001_baseline 起)`);
+// G1：新迁移只能追加到链尾。排在 0001_baseline 之前的文件会让所有已部署账本不再是清单前缀，
+// 旧库升级时 runner 报 migration_ledger_not_contiguous_prefix（曾发生：0000_admin_provision_primitives）。
+const beforeBaseline = migrations.filter((f) => Buffer.compare(Buffer.from(f), Buffer.from('0001_baseline.sql')) < 0);
+must(beforeBaseline.length === 0, `迁移不得排在 0001_baseline 之前(会破坏旧库升级前缀):${beforeBaseline.join(',')}`);
 const proofInMigrations = migrations.filter((f) => /\\(set|pset)\b/.test(rf(`packages/db/migrations/${f}`, 'utf8')));
 must(proofInMigrations.length === 0, `migration 目录混入 psql 证明文件:${proofInMigrations.join(',')}`);
 

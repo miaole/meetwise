@@ -63,6 +63,14 @@ async function main() {
   if (failures) throw new Error('privacy_pause_upgrade_manifest_invalid');
 
   await runMigrations(admin, legacy);
+  // G1：provision 原语在链尾 0230（不在 ≤0075 legacy 前缀里）。legacy 阶段要调用
+  // provision*Login，这里按需直接加载原语体（不写账本）；后面全链 runMigrations 时
+  // 0230 以 CREATE OR REPLACE 幂等落账，账本仍是清单的连续前缀。
+  const provisionPrimitives = migrations.find((migration) => migration.version === '0230_admin_provision_primitives');
+  A('legacy fixture excludes the tail-positioned 0230 provision primitives, which load on demand',
+    provisionPrimitives !== undefined && !legacy.some((migration) => migration.version === provisionPrimitives.version));
+  if (!provisionPrimitives) throw new Error('privacy_pause_upgrade_provision_primitives_missing');
+  await admin.query(provisionPrimitives.sql);
   await provisionRuntimeLogin(admin, { roleName: runtimeRole, password: runtimePassword });
   await provisionPrivacyWorkerLogin(admin, { roleName: workerRole, password: workerPassword });
   const runtime = createPool({ user: runtimeRole, password: runtimePassword });
