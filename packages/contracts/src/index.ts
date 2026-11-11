@@ -63,6 +63,14 @@ export const TurnDto = z.object({
 }).strict();
 export type TurnDto = z.infer<typeof TurnDto>;
 /**
+ * G2：question_ready 的 additive 可选审计字段。判重耗尽降级出面时携带
+ * `cross_session_repeat`（跨场重复的已过本场闸模型题）或 `approved_template`（模板兜底）；
+ * 正常出题与旧流缺字段，消费者必须降级。与 domain QUESTION_DUPLICATE_FALLBACKS 同值。
+ */
+export const QUESTION_DUPLICATE_FALLBACKS = ['cross_session_repeat', 'approved_template'] as const;
+export const QuestionDuplicateFallback = z.enum(QUESTION_DUPLICATE_FALLBACKS);
+export type QuestionDuplicateFallback = z.infer<typeof QuestionDuplicateFallback>;
+/**
  * 面试视图(GET /interview 列表项与 GET /interview/:id)。
  * 进度四字段是题目账本只读投影，不是 ScoreCard：
  * issued_turns = status<>'cancelled'；answered_turns = status='answered'；
