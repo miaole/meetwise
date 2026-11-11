@@ -103,3 +103,31 @@ export async function purgeInterviewProjectionTarget(
     throw Object.assign(new Error('interview_projection_purge_invalid'), { code: 'interview_projection_purge_invalid' });
   return { targetId: row.target_id, deletedCount, requestStatus: row.request_status };
 }
+
+/**
+ * 0232 B1 · 投影 target 的已消费授权 jti 只读 feed（0141 同形）。返回 null = 无已消费、未过期、
+ * subject/epoch/digest 全一致的 0091 快照 → 调用方必须跳过（无授权不删）。claim 仍由 0091 冻结
+ * privacy_authorization_claim_target 十项复核裁定，本 feed 不是授权裁定者。
+ */
+export async function resolveInterviewProjectionTargetConsumedJti(c: Client, targetId: string): Promise<string | null> {
+  const r = await c.query<{ jti: string | null }>(
+    'SELECT interview_projection_target_consumed_jti($1::uuid) AS jti', [targetId],
+  );
+  const jti = r.rows[0]?.jti;
+  return typeof jti === 'string' && jti.length > 0 ? jti : null;
+}
+
+/**
+ * 0232 A2 · 已围栏面试的 interview_job 残留明文物理删除（privacy_worker_executor 专用）。
+ * 只删「存在活 fence 的面试」上 payload 非空的行；租约未过期的 running 行不动。返回删除行数
+ * （只计数，不回传 id/owner/内容）。
+ */
+export async function purgeFencedInterviewJobResidue(c: Client, maxItems = 64): Promise<number> {
+  const r = await c.query<{ n: string | number }>(
+    'SELECT privacy_purge_fenced_interview_job_residue($1) AS n', [maxItems],
+  );
+  const n = Number(r.rows[0]?.n);
+  if (!Number.isSafeInteger(n) || n < 0)
+    throw Object.assign(new Error('interview_job_residue_purge_invalid'), { code: 'interview_job_residue_purge_invalid' });
+  return n;
+}

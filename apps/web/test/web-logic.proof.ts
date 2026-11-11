@@ -1555,6 +1555,38 @@ async function main() {
     const legacyView = reduceInterview([legacyQ]);
     A('旧流缺 plannedTurns → schema 零破坏+投影 undefined（显示面降级）',
       legacyView.phase === 'question' && legacyView.plannedTurns === undefined);
+    // G2：question_ready.duplicateFallback 投影到视图；旧流缺字段零破坏；不进提交令牌。
+    const fbQ = toBusinessEvent({ event: 'question_ready', id: 5, data: JSON.stringify({ question: '跨场重复题', questionId: 'q-v2-t0-c0', stateVersion: 2, turn: 0, duplicateFallback: 'cross_session_repeat' }) })!;
+    const fbView = reduceInterview([fbQ]);
+    A('G2 question_ready.duplicateFallback=cross_session_repeat → 视图投影且不进 QuestionIdentity',
+      fbView.duplicateFallback === 'cross_session_repeat'
+      && fbView.questionIdentity?.questionId === 'q-v2-t0-c0'
+      && !('duplicateFallback' in (fbView.questionIdentity ?? {})));
+    const fbNext = applyEvent(fbView, toBusinessEvent({ event: 'question_ready', id: 6, data: JSON.stringify({ question: '正常新题', questionId: 'q-v3-t1-c0', stateVersion: 3, turn: 1 }) })!);
+    A('G2 下一题缺 duplicateFallback → 覆盖为 undefined（不残留上一题旧值）',
+      fbNext.duplicateFallback === undefined && fbNext.questionIdentity?.questionId === 'q-v3-t1-c0');
+    A('G2 旧流缺 duplicateFallback → schema 零破坏+投影 undefined',
+      legacyView.duplicateFallback === undefined);
+    const fbTpl = toBusinessEvent({ event: 'question_ready', id: 7, data: JSON.stringify({ question: '模板兜底题', questionId: 'q-v4-t2-c0', stateVersion: 4, turn: 2, duplicateFallback: 'approved_template' }) })!;
+    const fbTplView = reduceInterview([fbTpl]);
+    A('G2 已知值 approved_template → 保留该字段且整帧可解析',
+      fbTpl?.event === 'question_ready' && fbTplView.duplicateFallback === 'approved_template' && fbTplView.questionIdentity?.questionId === 'q-v4-t2-c0');
+    const fbUnknown = toBusinessEvent({ event: 'question_ready', id: 8, data: JSON.stringify({ question: '坏标记仍出面', questionId: 'q-v5-t3-c0', stateVersion: 5, turn: 3, duplicateFallback: 'invented' }) });
+    A('G2 未知 duplicateFallback 值 → 只丢该字段、整帧仍解析（题面保留，不把未知串写进视图）',
+      fbUnknown?.event === 'question_ready'
+      && fbUnknown.data.question === '坏标记仍出面'
+      && fbUnknown.data.questionId === 'q-v5-t3-c0'
+      && fbUnknown.data.duplicateFallback === undefined
+      && reduceInterview([fbUnknown]).duplicateFallback === undefined
+      && reduceInterview([fbUnknown]).questionIdentity?.questionId === 'q-v5-t3-c0');
+    // 同帧 qkind：未知题型同样只丢字段、不丢整帧（与 QuestionKind 顶部注释一致）。
+    const qkindUnknown = toBusinessEvent({ event: 'question_ready', id: 9, data: JSON.stringify({ question: '新题型题', questionId: 'q-v6-t4-c0', stateVersion: 6, turn: 4, qkind: 'invented_kind' }) });
+    A('question_ready 未知 qkind → 只丢该字段、整帧仍解析',
+      qkindUnknown?.event === 'question_ready'
+      && qkindUnknown.data.question === '新题型题'
+      && qkindUnknown.data.questionId === 'q-v6-t4-c0'
+      && qkindUnknown.data.qkind === undefined
+      && reduceInterview([qkindUnknown]).turns[0]?.qkind === undefined);
   }
 
   section('G4 #59 提交失败分码映射：turnSubmitFeedback 纯函数输出断言（形制 A·mock res 仅输入叙述）+ 组件源码静态接线（read-file 四件）');

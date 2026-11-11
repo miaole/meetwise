@@ -45,6 +45,7 @@ const rejected = async (fn: () => Promise<unknown>): Promise<string | null> => {
 };
 
 async function seedResumeInterview(ownerId: string, interviewId: string, text: string, withStart = true): Promise<void> {
+  if (withStart) await ensureQueueRoom(ownerId);
   await asPrincipal(admin, ownerId, async (c) => {
     const upload = await createResumeWithBlob(c, ownerId, text);
     await transitionResume(c, ownerId, upload.resumeId, 'uploaded', 'ingesting');
@@ -73,11 +74,13 @@ const submit = (ownerId: string, interviewId: string, questionId: string, key: s
     interviewId, questionId, stateVersion: 1, clientSubmissionKey: key, answer, privacyEpoch: 1,
   }));
 
-const enqueueAnswer = (ownerId: string, interviewId: string, questionId: string, seq: number, answer = 'legacy-plaintext') =>
-  asPrincipal(admin, ownerId, (c) => enqueueInterviewJob(c, ownerId, interviewId, 'answer', {
+const enqueueAnswer = async (ownerId: string, interviewId: string, questionId: string, seq: number, answer = 'legacy-plaintext') => {
+  await ensureQueueRoom(ownerId);
+  return asPrincipal(admin, ownerId, (c) => enqueueInterviewJob(c, ownerId, interviewId, 'answer', {
     questionId, stateVersion: 1, turn: seq - 1, answerId: '11111111-1111-4111-8111-111111111111',
     answerHash: 'a'.repeat(64), answer,
   }, seq));
+};
 
 const countJobs = (interviewId: string, questionId?: string) => admin.query<{ n: number }>(
   questionId
@@ -103,6 +106,25 @@ const countArtifacts = (interviewId: string, questionId?: string) => admin.query
     : 'SELECT count(*)::int AS n FROM interview_answer_artifact WHERE interview_id=$1',
   questionId ? [interviewId, questionId] : [interviewId],
 ).then((r) => r.rows[0]!.n);
+
+/** Per-owner queued cap is 3 (MAX_INTERVIEW_PER_OWNER_QUEUED, interview-jobs.ts).
+ *  This proof leaves setup jobs in the table for fence assertions but does not
+ *  need them to stay `queued`. Drain before hitting the cap, same shape as
+ *  requeue-backoff / authz5a2 fixture fixes. Payload / identity stay intact. */
+const QUEUED_CAP = 3;
+const queuedDepth = (ownerId: string) => admin.query<{ n: number }>(
+  "SELECT count(*)::int AS n FROM interview_job WHERE owner_user_id=$1 AND status='queued'",
+  [ownerId],
+).then((r) => r.rows[0]!.n);
+
+const releaseQueued = (ownerId: string) => asPrincipal(admin, ownerId, (c) => c.query(
+  "UPDATE interview_job SET status='done', lease_owner=NULL WHERE owner_user_id=$1 AND status='queued'",
+  [ownerId],
+));
+
+const ensureQueueRoom = async (ownerId: string): Promise<void> => {
+  if (await queuedDepth(ownerId) >= QUEUED_CAP) await releaseQueued(ownerId);
+};
 
 async function main() {
   await assertIsolatedTestTarget(admin);
@@ -161,6 +183,7 @@ async function main() {
   const ivNoAnswerKey = `dw-noref-${process.pid}`;
   await seedResumeInterview(owner, ivNoAnswerKey, `经历：双写围栏 noref ${process.pid}`);
   await submit(owner, ivNoAnswerKey, 'q-noref', 'sub-noref');
+  await ensureQueueRoom(owner);
   const refOnlyJob = await asPrincipal(admin, owner, (c) => enqueueInterviewJob(c, owner, ivNoAnswerKey, 'answer', {
     questionId: 'q-noref', stateVersion: 1, turn: 0, requestId: 'no-body',
   }, 1));
@@ -170,6 +193,7 @@ async function main() {
 
   const ivPad = `dw-pad-${process.pid}`;
   await seedResumeInterview(owner, ivPad, `经历：双写围栏 pad ${process.pid}`);
+  await ensureQueueRoom(owner);
   await asPrincipal(admin, owner, (c) => enqueueInterviewJob(c, owner, ivPad, 'answer', {
     questionId: ' q-pad ', stateVersion: '01', turn: 0, answer: 'padded-identity',
   }, 1));
@@ -196,6 +220,7 @@ async function main() {
 
   const ivUnkeyed = `dw-unkeyed-${process.pid}`;
   await seedResumeInterview(owner, ivUnkeyed, `经历：双写围栏 unkeyed ${process.pid}`);
+  await ensureQueueRoom(owner);
   await asPrincipal(admin, owner, (c) => enqueueInterviewJob(c, owner, ivUnkeyed, 'answer', {
     answer: '无身份明文',
   }, 1));
@@ -205,6 +230,7 @@ async function main() {
 
   const ivNoSv = `dw-nosv-${process.pid}`;
   await seedResumeInterview(owner, ivNoSv, `经历：双写围栏 nosv ${process.pid}`);
+  await ensureQueueRoom(owner);
   await asPrincipal(admin, owner, (c) => enqueueInterviewJob(c, owner, ivNoSv, 'answer', {
     questionId: 'q-nosv', answer: '缺 version 明文',
   }, 1));
@@ -214,6 +240,7 @@ async function main() {
 
   const ivStartAns = `dw-startans-${process.pid}`;
   await seedResumeInterview(owner, ivStartAns, `经历：双写围栏 startans ${process.pid}`, false);
+  await ensureQueueRoom(owner);
   await asPrincipal(admin, owner, (c) => enqueueInterviewJob(c, owner, ivStartAns, 'start', {
     questionId: 'q-start', stateVersion: 1, answer: 'start-body', requestId: `start-${ivStartAns}`,
   }, 0));
@@ -224,6 +251,7 @@ async function main() {
   const ivStartFence = `dw-startf-${process.pid}`;
   await seedResumeInterview(owner, ivStartFence, `经历：双写围栏 startf ${process.pid}`, false);
   await submit(owner, ivStartFence, 'q-startf', 'sub-startf');
+  await ensureQueueRoom(owner);
   A('TC-M1 artifact 已在时 start 带 answer 被拒',
     (await rejected(() => asPrincipal(admin, owner, (c) => enqueueInterviewJob(c, owner, ivStartFence, 'start', {
       questionId: 'q-startf', stateVersion: 1, answer: 'start-after-ledger', requestId: `start-${ivStartFence}`,
@@ -233,10 +261,12 @@ async function main() {
   const ivEmpty = `dw-empty-${process.pid}`;
   await seedResumeInterview(owner, ivEmpty, `经历：双写围栏 empty ${process.pid}`);
   await submit(owner, ivEmpty, 'q-empty', 'sub-empty');
+  await ensureQueueRoom(owner);
   A('TC-M1 空串 answer 键仍算明文，被拒',
     (await rejected(() => asPrincipal(admin, owner, (c) => enqueueInterviewJob(c, owner, ivEmpty, 'answer', {
       questionId: 'q-empty', stateVersion: 1, answer: '',
     }, 1)))) === INTERVIEW_ANSWER_LEGACY_PLAINTEXT_FENCED);
+  await ensureQueueRoom(owner);
   A('TC-M1 JSON null answer 键仍算明文，被拒',
     (await rejected(() => asPrincipal(admin, owner, (c) => enqueueInterviewJob(c, owner, ivEmpty, 'answer', {
       questionId: 'q-empty', stateVersion: 1, answer: null,
@@ -300,6 +330,7 @@ async function main() {
   const ivAddKey = `dw-addkey-${process.pid}`;
   await seedResumeInterview(owner, ivAddKey, `经历：双写围栏 addkey ${process.pid}`);
   await submit(owner, ivAddKey, 'q-add', 'sub-add');
+  await ensureQueueRoom(owner);
   const bareJob = await asPrincipal(admin, owner, (c) => enqueueInterviewJob(c, owner, ivAddKey, 'answer', {
     questionId: 'q-add', stateVersion: 1, requestId: 'later-body',
   }, 1));
@@ -339,6 +370,7 @@ async function main() {
   /* ── 高并发：完整身份 + 残缺身份，明文与 artifact 不同时 >0 ── */
   const ivRace = `dw-race-${process.pid}`;
   await seedResumeInterview(owner, ivRace, `经历：双写围栏 race ${process.pid}`);
+  await ensureQueueRoom(owner);
   const race = await Promise.all(Array.from({ length: 20 }, (_, i) => {
     if (i % 2 === 0) {
       return enqueueAnswer(owner, ivRace, 'q-race', i + 1, `plain-${i}`).then(() => 'job' as const, () => 'rejected' as const);
@@ -354,6 +386,7 @@ async function main() {
 
   const ivRaceU = `dw-raceu-${process.pid}`;
   await seedResumeInterview(owner, ivRaceU, `经历：双写围栏 raceu ${process.pid}`);
+  await ensureQueueRoom(owner);
   const raceU = await Promise.all(Array.from({ length: 20 }, (_, i) => {
     if (i % 2 === 0) {
       return asPrincipal(admin, owner, (c) => enqueueInterviewJob(c, owner, ivRaceU, 'answer', {
@@ -369,6 +402,7 @@ async function main() {
 
   const ivRaceS = `dw-races-${process.pid}`;
   await seedResumeInterview(owner, ivRaceS, `经历：双写围栏 races ${process.pid}`);
+  await ensureQueueRoom(owner);
   const raceS = await Promise.all(Array.from({ length: 20 }, (_, i) => {
     if (i % 2 === 0) {
       return asPrincipal(admin, owner, (c) => enqueueInterviewJob(c, owner, ivRaceS, 'answer', {
