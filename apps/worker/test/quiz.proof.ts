@@ -9,7 +9,7 @@ import {
   assertIsolatedTestTarget, createPool, asPrincipal, reserveEntitlement, availableUnits,
   createResumeWithBlob, completeIngestion, transitionResume, enqueueQuizJob,
 } from '@meetwise/db';
-import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
+import { scriptedModelClient } from '@meetwise/ai-runtime';
 import { ingestResume, groundedByFacts } from '@meetwise/domain';
 import { quizDispatchTick, type QuizConsumerDeps } from '../src/quiz-consumer.ts';
 

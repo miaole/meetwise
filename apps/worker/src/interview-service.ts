@@ -3,8 +3,8 @@
  * 模型客户端由**配置注入**(生产默认 openAICompatibleClient 真模型;测试注入 scriptedModelClient;未配置则降级)。
  * 模型输出 schema 是契约,业务校验是第二道闸——双校验、幂等 trace、旁路不可绕,全在 invoke 里。
  */
-import { z } from 'zod';
 import { createHash } from 'node:crypto';
+import { z } from 'zod';
 import { asErr, SCORING_SEED_CRITERION_ID, type DbPool } from '@meetwise/db';
 import { invoke, getPrompt, promptedModel, openAICompatibleClient, failoverModel, isTextBackupEnabled, type ModelClient, type ModelCostPolicy } from '@meetwise/ai-runtime';
 import { aggregateScores, CRISIS_DISPOSITION_REASON, computeDeterministicTotal, scoreDispositionFromCodeUnitSpan, groundedByFacts, matchesCrisisTrigger, type ScoredCriterionDisposition } from '@meetwise/domain';

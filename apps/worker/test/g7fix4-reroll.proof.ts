@@ -7,6 +7,7 @@
 import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
 import { MemorySaver } from '@langchain/langgraph';
+import { z } from 'zod';
 import {
   createPool, asPrincipal, assertIsolatedTestTarget, runMigrations, loadMigrations,
   createJob, classifyJobRoute, inviteCandidate, startApplicationInterview, reserveEntitlement,
@@ -18,7 +19,6 @@ import { normalizeQuestion } from '@meetwise/db';
 import { buildAdaptiveDeps, pickDuplicateFallback, duplicateFallbackTemplate } from '../src/adaptive-interview-service.ts';
 import { recordAskedQuestions } from '../src/memory-service.ts';
 import { startAdaptiveInterview, type AdaptiveLifecycleDeps } from '../src/adaptive-lifecycle.ts';
-import { z } from 'zod';
 
 // Test-only HMAC key for createJob/classifyJobRoute(bound 面前置;同 adaptive-lifecycle.proof 先例,非生产)。
 process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'g7fix4-reroll-job-route-input-hmac-proof-key-not-production';

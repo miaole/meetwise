@@ -14,7 +14,7 @@
  *   (no PG required — honesty + r1 contract 旁证; harness does not require :raw)
  */
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {

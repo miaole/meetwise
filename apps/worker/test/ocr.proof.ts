@@ -4,11 +4,11 @@
  * 覆盖 UC-RES-003 验收 ④成功confirmed ⑤幂等 ⑥下游门 ⑦不冒充 ⑧PII不入trace，及失败 released。
  *   pnpm ocr:prove   (需 pnpm db:up)
  */
+import { createHash } from 'node:crypto';
 import {
   assertIsolatedTestTarget, createPool, asPrincipal, reserveEntitlement, availableUnits,
   persistResumeOcrArtifact, decryptResumeOcrArtifact, deleteResumeOcrArtifact,
 } from '@meetwise/db';
-import { createHash } from 'node:crypto';
 import { visionOcr, scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
 import { ingestResume } from '@meetwise/domain';
 

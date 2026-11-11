@@ -14,7 +14,7 @@
 import {
   assertIsolatedTestTarget, createPool, asPrincipal, reserveEntitlement, confirmConsumption, availableUnits,
   claimNextInterviewJob, renewInterviewJobLease, sweepStuckInterviewJobs, requeueInterviewJob, MAX_INTERVIEW_JOB_ATTEMPTS,
-  sweepStuckQuizJobs, MAX_QUIZ_JOB_ATTEMPTS,
+  MAX_QUIZ_JOB_ATTEMPTS,
   createResumeWithBlob, completeIngestion, transitionResume, enqueueInterviewJob, enqueueQuizJob,
 } from '@meetwise/db';
 import { ingestResume } from '@meetwise/domain';

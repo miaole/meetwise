@@ -77,7 +77,7 @@ export function startWorkerJobWakeupListener(
       retryTimer = undefined;
       void establish();
     }, delay);
-    (retryTimer as any).unref?.();
+    (retryTimer as { unref?: () => void }).unref?.();
   };
 
   const disconnect = (client: PoolClient, error?: Error) => {

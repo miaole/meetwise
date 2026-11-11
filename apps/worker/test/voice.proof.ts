@@ -9,9 +9,9 @@
  * AG-32 守卫不绕面与生产接线形由 voice-adaptive.proof 在全量真迁移链（loadMigrations+runMigrations）
  * 的隔离 PG 世界承载——本门（runner voice:prove）绿不得读成产品世界证据。
  */
+import { Command } from '@langchain/langgraph';
 import { buildMockInterviewGraph } from '@meetwise/ai-graphs';
 import { fakeAsr, fakeTts } from '@meetwise/ai-runtime/test-support';   // #74: fake 族经 test-support 子路径
-import { Command } from '@langchain/langgraph';
 import { createCheckpointer } from '../src/main.ts';
 import { previewVoiceAnswerTurn } from '../src/interview-voice.ts';
 

@@ -18,6 +18,7 @@ import {
   qbankEvidenceForRefs, qbankQuestionResultsForHits, listScorableScoreCards, renderPoolErrorsTotalLines, type GatewayCostBudgetSnapshot, type QbankServingScopeInput,
 } from '@meetwise/db';
 import { configureG7RuntimeInjection, createLangfuseV5Runtime, isG7FreetierReproveEnabled, resolveLangfuseConnection, resolveModelDeadlineConfig, resolveDashscopeNativeConfig, setTracer, dashscopeEmbedder, cachingEmbedder, inMemoryEmbeddingStore, getMetrics, registerBaselineMetrics, METRIC, type Embedder, type ModelClient } from '@meetwise/ai-runtime';
+import { ingestQbank, ingestQuestionBankArtifacts } from '@meetwise/db';
 import { assertLegacyInterviewGraphDisabled } from './production-config.ts';
 import { runDrainLoop, drainWithDeadline, wireSignalShutdown, type NamedStop } from './drain-loop.ts';
 import { startWorkerJobWakeupListener } from './job-wakeup-listener.ts';
@@ -46,7 +47,6 @@ import {
   FREE_TEXT_ALLOWLISTED_SCOPE_FUNNEL_WIRED,
   runFreeTextAllowlistedScopeFunnel,
 } from './free-text-route-funnel.ts';
-import { ingestQbank, ingestQuestionBankArtifacts } from '@meetwise/db';
 import { QBANK_ARTIFACTS, QBANK_SEED } from './qbank-seed.ts';
 import { ensureActiveQbankGeneration, qbankEmbeddingRecipe } from './qbank-generation.ts';
 import { resolveQbankEmbeddingComputeSeams } from './qbank-embedding-compute-seams.ts';
