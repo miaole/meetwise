@@ -751,7 +751,14 @@ async function runP137(mod: Record<string, unknown>): Promise<void> {
       p1threw = true;
     }
     const y1 = await cY1.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
-    mark('P1', p1threw, xpSnapOf(asRow(y1.rows[0])), `proto=${Object.getPrototypeOf(cX1) === null ? 'null' : typeof Object.getPrototypeOf(cX1)}`);
+    let protoLabel = 'unknown';
+    try {
+      const proto = Object.getPrototypeOf(cX1);
+      protoLabel = proto === null ? 'null' : typeof proto;
+    } catch {
+      protoLabel = 'throw';
+    }
+    mark('P1', p1threw, xpSnapOf(asRow(y1.rows[0])), `proto=${protoLabel}`);
     if (typeof cY1.releaseAsync === 'function') await cY1.releaseAsync();
     else cY1.release();
 
@@ -898,6 +905,7 @@ async function runP137(mod: Record<string, unknown>): Promise<void> {
     console.log(`P137 mismatches=${mismatches} noticeLeak=${noticeLeak} pool=${formatCounts(counts)} samples=${samples.join(' | ')}`);
     console.log('CHILD_FAIL P137');
     process.exitCode = 1;
+    try { await withTimeout(bound.end(), 8_000); } catch { /* ignore */ }
   } finally {
     await admin.query(`DROP ROLE IF EXISTS ${role}`).catch(() => undefined);
     await admin.end().catch(() => undefined);
