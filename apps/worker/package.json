@@ -41,6 +41,7 @@
     "prove:uc012-nhp-neg": "tsx test/uc-e2e-012-nhp-neg.proof.ts",
     "prove:uc012-nhp-bound": "tsx test/uc-e2e-012-nhp-bound.proof.ts",
     "prove:uc012-nhp-adv": "tsx test/uc-e2e-012-nhp-adv.proof.ts",
+    "prove:int18-payload-strip": "tsx test/int18-payload-plaintext-strip.proof.ts",
     "prove:model-invocation-reconcile": "tsx test/model-invocation-reconcile.proof.ts",
     "prove:trace-recon": "tsx test/trace-recon.proof.ts",
     "prove:usage-calibration-bleed": "tsx test/usage-calibration-bleed.proof.ts",
