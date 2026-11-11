@@ -87,23 +87,59 @@ async function cleanupCheckpointPrincipalSession(
 
 type ReleaseArg = Error | boolean | undefined;
 
+const DOUBLE_RELEASE_RE = /already been released to the pool/i;
+
+/**
+ * Serialize queries on one PoolClient.  pg@8 allows overlapping client.query()
+ * (deprecation warning) but the second query corrupts the session; cleanup's
+ * SET ROLE NONE then races the in-flight saver query, and the release catch
+ * path can call the raw pg-pool release twice (unhandledRejection → exit).
+ */
+type ClientQueryFn = (...args: unknown[]) => unknown;
+function serializeClientQueries(client: { query: ClientQueryFn }): void {
+  const originalQuery: ClientQueryFn = client.query.bind(client);
+  let tail: Promise<void> = Promise.resolve();
+  client.query = (...args: unknown[]) => {
+    const started = tail.then(() => originalQuery(...args), () => originalQuery(...args));
+    tail = started.then(() => undefined, () => undefined);
+    return started;
+  };
+}
+
 function installReleaseCleanup(client: any): { releaseAsync: () => Promise<void> } {
   const originalRelease = client.release.bind(client) as (err?: ReleaseArg) => void;
   let releasePromise: Promise<void> | null = null;
+  let originalReleased = false; // RELEASE_ONCE_GUARD
+
+  serializeClientQueries(client);
+
+  const releaseOnce = (err?: ReleaseArg): void => {
+    if (originalReleased) return; // RELEASE_ONCE_GUARD
+    originalReleased = true;
+    try {
+      originalRelease(err);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (DOUBLE_RELEASE_RE.test(message)) return; // RELEASE_ONCE_GUARD
+      throw error;
+    }
+  };
 
   const runRelease = (err?: ReleaseArg): Promise<void> => {
     if (releasePromise) return releasePromise;
     releasePromise = (async () => {
       if (err) {
-        originalRelease(err);
+        releaseOnce(err);
         return;
       }
       try {
         await cleanupCheckpointPrincipalSession(client);
-        originalRelease();
+        releaseOnce();
       } catch (resetErr) {
         // Destroy: never return a still-privileged connection to the pool.
-        originalRelease(resetErr instanceof Error ? resetErr : true);
+        // releaseOnce is idempotent — a racing first release must not throw here
+        // (the uncaught throw at this line was the inflight=16 worker crash).
+        releaseOnce(resetErr instanceof Error ? resetErr : true);
       }
     })();
     return releasePromise;
@@ -113,7 +149,9 @@ function installReleaseCleanup(client: any): { releaseAsync: () => Promise<void>
   // Keep the client checked out until async cleanup finishes, then call the
   // original release — that is the pool-return gate.
   client.release = (err?: ReleaseArg) => {
-    void runRelease(err);
+    // Swallow rejection: fire-and-forget must never become unhandledRejection.
+    // Fence / privacy errors still propagate through query() callers.
+    void runRelease(err).catch(() => undefined);
   };
 
   return { releaseAsync: () => runRelease() };
