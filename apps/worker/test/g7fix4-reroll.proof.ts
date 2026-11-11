@@ -1,11 +1,13 @@
 /** G7FIX-4R 判重后果语义刀 prove(蓝本 ai-docs/delivery/harness/g7fix4-reroll.md §4 六键):
  *  判重命中 → 有界换题(上限 MAX_DUPLICATE_REROLL=2,必换键+revision `:r{k}`)→ 新题成功;
- *  耗尽仍 unavailableGeneration('duplicate_question') 判死面形状回归;fail-closed 三面零位移;
- *  DB/registry 契约负证(同 revision 异键判死·新 revision 形过 registry);判死事件键面回归。
+ *  耗尽仍返回 duplicate_question 失败形(形状回归),G2 起随附降级候选;fail-closed 三面零位移;
+ *  DB/registry 契约负证(同 revision 异键判死·新 revision 形过 registry);
+ *  G2(FIX-G2-dup-question-fallback)§4.5:lifecycle 全链判重耗尽 → 先换 competency → 全耗尽降级出题,不整场判死。
  *  全离线 scripted-model + fixture-PG,零真实模型外呼(est live=0)。 pnpm prove:g7fix4-reroll */
 import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
 import { MemorySaver } from '@langchain/langgraph';
+import { z } from 'zod';
 import {
   createPool, asPrincipal, assertIsolatedTestTarget, runMigrations, loadMigrations,
   createJob, classifyJobRoute, inviteCandidate, startApplicationInterview, reserveEntitlement,
@@ -14,10 +16,9 @@ import {
 import { invoke, promptedModel, resolveModelOperation, registryLogicalNodeKeyDigest, MODEL_OPERATION_REGISTRY_VERSION, scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
 import { isQuestionGenerationFailure, normalizeQuestionGenerationResult, type QuestionGenerationResult } from '@meetwise/domain';
 import { normalizeQuestion } from '@meetwise/db';
-import { buildAdaptiveDeps } from '../src/adaptive-interview-service.ts';
+import { buildAdaptiveDeps, pickDuplicateFallback, duplicateFallbackTemplate } from '../src/adaptive-interview-service.ts';
 import { recordAskedQuestions } from '../src/memory-service.ts';
 import { startAdaptiveInterview, type AdaptiveLifecycleDeps } from '../src/adaptive-lifecycle.ts';
-import { z } from 'zod';
 
 // Test-only HMAC key for createJob/classifyJobRoute(bound 面前置;同 adaptive-lifecycle.proof 先例,非生产)。
 process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'g7fix4-reroll-job-route-input-hmac-proof-key-not-production';
@@ -153,6 +154,45 @@ async function main() {
   A('上限内调用总数===3(含初诊,无循环放大)', alwaysS1.calls() === 3);
   A('errorCode 保持 duplicate_question(generationFailureOf reason 前置=generation_duplicate_question)',
     isQuestionGenerationFailure(exhausted) && exhausted.provenance.errorCode === 'duplicate_question');
+  A('G2 耗尽失败形随附降级候选:跨场重复题 S1·origin=model·cross_session_repeat·键=最后 roll :r2·零额外调用',
+    isQuestionGenerationFailure(exhausted) && !!exhausted.duplicateFallback
+    && normalizeQuestion(exhausted.duplicateFallback.question) === normalizeQuestion(S1)
+    && exhausted.duplicateFallback.provenance.origin === 'model'
+    && exhausted.duplicateFallback.provenance.duplicateFallback === 'cross_session_repeat'
+    && exhausted.duplicateFallback.provenance.idempotencyKey === `${threads.exhaust}:ask:t0:r2`
+    && exhausted.duplicateFallback.provenance.reroll === 2
+    && alwaysS1.calls() === 3);
+
+  console.log('\n──── §4.2b G2 降级候选挑选(纯函数·零 IO):模型候选 > 模板 > null ────');
+  const fbProv = { operationId: 'interview.question-generation.v1', idempotencyKey: 'k:r2', reroll: 2 };
+  const fbTemplate = duplicateFallbackTemplate('并发');
+  const pickModel = pickDuplicateFallback({
+    candidates: [{ q: S1, refs: [], key: 'k:0' }, { q: S2, refs: [], key: 'k:r1' }],
+    knownRefs: [], accept: () => true, template: fbTemplate, provenance: fbProv,
+  });
+  A('有可用模型候选 → 取最近一次 roll(S2·键 k:r1)·cross_session_repeat',
+    pickModel?.question === S2 && pickModel.provenance.idempotencyKey === 'k:r1'
+    && pickModel.provenance.origin === 'model' && pickModel.provenance.duplicateFallback === 'cross_session_repeat');
+  const pickSkipInSession = pickDuplicateFallback({
+    candidates: [{ q: S1, refs: [], key: 'k:0' }, { q: S2, refs: [], key: 'k:r1' }],
+    knownRefs: [], accept: (q) => q !== S2, template: fbTemplate, provenance: fbProv,
+  });
+  A('本场闸拒的候选跳过(当场不重复)→ 回落更早的合格候选 S1', pickSkipInSession?.question === S1
+    && pickSkipInSession.provenance.idempotencyKey === 'k:0');
+  const pickBadRef = pickDuplicateFallback({
+    candidates: [{ q: S1, refs: ['qbank:unknown'], key: 'k:0' }],
+    knownRefs: ['qbank:known'], accept: () => true, template: fbTemplate, provenance: fbProv,
+  });
+  A('引文不在本 turn 已知集的候选不采用 → 模板兜底(approved_template·sources 空·键=耗尽键)',
+    pickBadRef?.question === fbTemplate && pickBadRef.sources.length === 0
+    && pickBadRef.provenance.origin === 'approved_template'
+    && pickBadRef.provenance.duplicateFallback === 'approved_template'
+    && pickBadRef.provenance.idempotencyKey === 'k:r2');
+  const pickNone = pickDuplicateFallback({
+    candidates: [{ q: S1, refs: [], key: 'k:0' }],
+    knownRefs: [], accept: () => false, template: fbTemplate, provenance: fbProv,
+  });
+  A('模型候选与模板都过不了本场闸 → null(图节点 failClosed 原样)', pickNone === null);
 
   console.log('\n──── §4.3 fail-closed 保留:三面零位移 ────');
   const memoryModel = countingAskModel([S2]);
@@ -212,7 +252,7 @@ async function main() {
     baseRes.ok && rerollRes.ok && baseRes.logicalNodeKey !== rerollRes.logicalNodeKey
     && rerollRes.logicalNodeKey === `${MODEL_OPERATION_REGISTRY_VERSION}:interview.question-generation.v1:${threads.main}:ask:t0:r1`);
 
-  console.log('\n──── §4.5 事件面回归:判死事件键仍 assessment_unavailable:generation_duplicate_question ────');
+  console.log('\n──── §4.5 G2 lifecycle 全链:判重耗尽 → 换 competency → 全耗尽降级出题(不整场判死) ────');
   const recruiter = `rr-rec-${nonce}`;
   const resumeId = randomUUID();
   await seedEpisode(owners.bound, S1);
@@ -248,35 +288,31 @@ async function main() {
     localRetrieve: async () => [], webExplore: async () => [],
   };
   const boundStart = await startAdaptiveInterview(boundDeps, '后端工程师', []);
-  A('lifecycle 判死面:start 返回 unavailable 且 reason=generation_duplicate_question(generationFailureOf 映射不变)',
-    !!boundStart.unavailable && boundStart.unavailable.reason === 'generation_duplicate_question');
-  A('终态 provenance 自带耗尽轨迹:reroll===2 且 errorCode=duplicate_question',
-    boundStart.unavailable?.provenance.reroll === 2 && boundStart.unavailable?.provenance.errorCode === 'duplicate_question');
-  A('上限内调用总数===3(lifecycle 全链)', boundAsks === 3);
+  A('G2 lifecycle:start 不再 unavailable,降级出题=跨场重复题 S1(当场首问不重复)',
+    !boundStart.unavailable && typeof boundStart.question === 'string'
+    && normalizeQuestion(boundStart.question) === normalizeQuestion(S1));
+  A('G2 先换序后降级:3 个 competency × (初诊+2 roll)=9 次 interviewer.ask(换序帽 2·有界零放大)', boundAsks === 9);
   const boundEvents = await asPrincipal(pool, owners.bound, (c) => c.query(
     "SELECT kind, event_key, payload FROM interview_event WHERE stream_key=$1 AND kind IN ('assessment_unavailable','interview_unavailable','question_ready') ORDER BY seq", [boundIid]));
-  const terminalEvent = boundEvents.rows.find((r: any) => r.kind === 'assessment_unavailable');
-  A('判死事件键恰一且仍 assessment_unavailable:generation_duplicate_question(consumer 键族零碰撞)',
-    boundEvents.rows.length === 1 && !!terminalEvent
-    && terminalEvent.event_key === 'assessment_unavailable:generation_duplicate_question'
-    && terminalEvent.payload?.reason === 'generation_duplicate_question');
-  A('事件 payload provenance 自带 reroll 轨迹(lifecycle 投影零改自带)',
-    terminalEvent?.payload?.provenance?.reroll === 2 && terminalEvent?.payload?.provenance?.origin === 'unavailable');
+  A('G2 事件面:恰一条 question_ready·零 assessment_unavailable/interview_unavailable',
+    boundEvents.rows.length === 1 && boundEvents.rows[0]?.kind === 'question_ready'
+    && normalizeQuestion(String(boundEvents.rows[0]?.payload?.question ?? '')) === normalizeQuestion(S1));
+  A('G2 事件面:question_ready 投影 duplicateFallback=cross_session_repeat（运营可见·旧流缺字段）',
+    boundEvents.rows[0]?.payload?.duplicateFallback === 'cross_session_repeat');
   const boundState = (await pool.query(
     `SELECT i.status AS interview_status, ec.status AS consumption_status
        FROM interview i LEFT JOIN entitlement_consumption ec ON ec.owner_user_id=i.owner_user_id AND ec.idempotency_key=i.id
       WHERE i.id=$1`, [boundIid])).rows[0];
-  A('判死面形状回归:interview=failed 且预留释放', boundState?.interview_status === 'failed' && boundState?.consumption_status === 'released');
+  A('G2 计费语义不变:interview 未判 failed·预留保持 reserved(未释放也未提前 confirmed)',
+    boundState?.interview_status !== 'failed' && boundState?.consumption_status === 'reserved');
   const rerollRows = await asPrincipal(pool, owners.bound, (c) => c.query(
     'SELECT idempotency_key FROM ai_model_invocation WHERE owner_user_id=$1 AND idempotency_key LIKE $2 ORDER BY idempotency_key',
     [owners.bound, `${boundIid}:ask:t0:%`]));
-  A('lifecycle 全链 re-roll 键账::0 → :r1 → :r2 恰三笔',
-    rerollRows.rows.length === 3
-    && rerollRows.rows.some((r: any) => r.idempotency_key === `${boundIid}:ask:t0:0`)
-    && rerollRows.rows.some((r: any) => r.idempotency_key === `${boundIid}:ask:t0:r1`)
-    && rerollRows.rows.some((r: any) => r.idempotency_key === `${boundIid}:ask:t0:r2`));
+  const expectedKeys = [`${boundIid}:ask:t0:0`, ...Array.from({ length: 8 }, (_, i) => `${boundIid}:ask:t0:r${i + 1}`)];
+  A('G2 幂等键账:`:0` → `:r1..:r8` 单调零复用恰九笔(降级零额外调用·零新键)',
+    rerollRows.rows.length === 9 && expectedKeys.every((k) => rerollRows.rows.some((r: any) => r.idempotency_key === k)));
 
-  console.log(`\n${fail === 0 ? '✓ G7FIX-4R §4 六键全绿:有界换题(命中→:r{k}→新题)+耗尽判死不变+fail-closed 零位移+契约负证+事件键回归' : '✗ ' + fail + ' 失败'}`);
+  console.log(`\n${fail === 0 ? '✓ G7FIX-4R §4 全绿:有界换题(命中→:r{k}→新题)+耗尽失败形不变+G2 降级候选+fail-closed 零位移+契约负证+G2 lifecycle 降级' : '✗ ' + fail + ' 失败'}`);
   await pool.end(); process.exit(fail ? 1 : 0);
 }
 

@@ -39,8 +39,8 @@
 process.env.RESUME_ENC_KEY = 'uc012-nhp-fault-resume-enc-key';
 process.env.RESUME_HASH_SECRET = 'uc012-nhp-fault-resume-hash-secret';
 process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'uc012-nhp-fault-job-route-input-hmac-proof-key-not-production-01';
-import { MemorySaver } from '@langchain/langgraph';
 import { randomUUID } from 'node:crypto';
+import { MemorySaver } from '@langchain/langgraph';
 import {
   createPool, asPrincipal, provisionRuntimeLogin, reserveEntitlement, availableUnits,
   createResumeWithBlob, completeIngestion, transitionResume, enqueueInterviewJob, getReport,
@@ -48,7 +48,7 @@ import {
   bindApplicationRoute, snapshotInterviewRoute, assertIsolatedTestTarget,
 } from '@meetwise/db';
 import { ingestResume } from '@meetwise/domain';
-import { scriptedModelClient, type ModelClient, type ModelResult } from '@meetwise/ai-runtime';
+import { type ModelClient, type ModelResult } from '@meetwise/ai-runtime';
 import { drainInterviewJobOnce, type ConsumerDeps } from '../src/interview-consumer.ts';
 
 let failures = 0;

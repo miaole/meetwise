@@ -33,7 +33,6 @@ import { fileURLToPath } from 'node:url';
 import {
   asPrincipal, assertIsolatedTestTarget, createPool, createResumeWithBlob, transitionResume,
   completeIngestion, listLedger,
-  type DbPool,
 } from '@meetwise/db';
 import { ingestResume } from '@meetwise/domain';
 import { CommerceService } from '../../../apps/api/src/modules/commerce/commerce.service.ts';

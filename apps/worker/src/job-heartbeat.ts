@@ -15,7 +15,7 @@ export function startHeartbeat(renew: () => Promise<boolean>, intervalMs = 30_00
     catch { /* 续租瞬时失败当无事,下一拍再试;真过期由 reaper 兜底 */ }
   };
   const timer = setInterval(() => { inflight = tick(); }, intervalMs);
-  (timer as any).unref?.();   // 不阻止进程退出
+  (timer as { unref?: () => void }).unref?.();   // 不阻止进程退出
   return {
     async stop() { stopped = true; clearInterval(timer); await inflight.catch(() => {}); },
   };

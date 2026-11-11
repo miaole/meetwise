@@ -162,7 +162,6 @@ export function assessR4FunnelProductCloseFlipEligibility(): {
     | 'would_invent_coveredCount';
 } {
   const coveredCount = readMatrixCoveredCount();
-  const coveredCountHonestZero = coveredCount === 0;
   const funnelAllCovered = funnel02Through08AllCovered();
   const funnelGapsRemain = !funnelAllCovered;
   if (coveredCount === null) {

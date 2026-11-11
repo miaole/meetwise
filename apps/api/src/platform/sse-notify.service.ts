@@ -9,8 +9,8 @@ import { createPool, type Client, type DbPool } from '@meetwise/db';
  *
  * 通道健康双条件(协调方约束①,任一失败即降级):
  *   1. LISTEN 连接在位(专用池 max:1,断连按指数退避重连);
- *   2. establish 期恰一次 pg_trigger SELECT 实证 0143 trigger 在场
- *      (每连接建立时一次,非每 SSE、非周期)。
+ *   2. establish 期 + 周期探针 pg_trigger SELECT 实证 0143 trigger 在场且已启用
+ *      (tgenabled IN ('O','A')；缺席或 tgenabled='D'/'R' 均 trigger_missing)。
  * 降级可观测(协调方约束②):每次降级转变打一行结构化日志
  *   `SSE_NOTIFY_DEGRADED reason=listen_down|trigger_missing ...`
  * pump 侧降级即回落 legacy 2s 轮询(fail-open 回旧行为,不变慢不变错之外
@@ -29,6 +29,14 @@ export const SSE_NOTIFY_CHANNEL = 'interview_event_ch';
 export const SSE_NOTIFY_TRIGGER_NAME = 'interview_event_sse_notify';
 
 /**
+ * 0143 trigger 健康实证（establish 与周期性探针共用；HealthService readiness 同句）。
+ * to_regclass 避免表缺失时 ::regclass 抛错被误归 listen_down；tgenabled IN ('O','A')
+ * 把禁用态（'D'）和仅 replica 态（'R'，主库不会触发）一律判为 trigger_missing。
+ */
+export const SSE_NOTIFY_TRIGGER_HEALTH_SQL =
+  "SELECT 1 FROM pg_catalog.pg_trigger WHERE tgname = $1 AND tgrelid = to_regclass('public.interview_event') AND NOT tgisinternal AND tgenabled IN ('O', 'A') LIMIT 1";
+
+/**
  * TOKSTREAM S4b：token delta 专用 NOTIFY 通道（worker token-stream.ts 同名常量）。
  * 纯 NOTIFY 通道零表零触发器（worker `SELECT pg_notify` 直发）=**零迁移**根据；同专用连接
  * 第二 LISTEN 命令（A11 单例纪律零破·禁每 SSE 一连接）。
@@ -41,8 +49,12 @@ export interface SseTokenFrame {
   streamKey: string;
   attemptKey: string;
   seq: number;
-  text: string;
+  /** token_delta 正文；N-13 withdrawn 帧可缺席。 */
+  text?: string;
   coalesced?: boolean;
+  /** N-13：本 attempt 预览作废。api→browser 映射为 event: token_withdraw（无 id）。 */
+  withdrawn?: boolean;
+  reason?: string;
 }
 
 export type SseTokenSubscriber = (frame: SseTokenFrame) => void;
@@ -328,13 +340,17 @@ export class SseNotifyService {
     try { parsed = JSON.parse(payload); } catch { return; }
     const f = parsed as Partial<SseTokenFrame> | null;
     if (!f || typeof f !== 'object') return;
+    const withdrawn = f.withdrawn === true;
     if (f.v !== 1 || typeof f.streamKey !== 'string' || !f.streamKey
       || typeof f.attemptKey !== 'string' || !f.attemptKey
-      || typeof f.text !== 'string'
+      || (!withdrawn && typeof f.text !== 'string')
       || typeof f.seq !== 'number' || !Number.isSafeInteger(f.seq) || f.seq < 1) return;
     const frame: SseTokenFrame = {
-      v: 1, streamKey: f.streamKey, attemptKey: f.attemptKey, seq: f.seq, text: f.text,
+      v: 1, streamKey: f.streamKey, attemptKey: f.attemptKey, seq: f.seq,
+      ...(typeof f.text === 'string' ? { text: f.text } : {}),
       ...(f.coalesced === true ? { coalesced: true as const } : {}),
+      ...(withdrawn ? { withdrawn: true as const } : {}),
+      ...(typeof f.reason === 'string' && f.reason ? { reason: f.reason } : {}),
     };
     const set = this.tokenRouter.get(f.streamKey);
     if (!set) return;
@@ -387,6 +403,14 @@ export class SseNotifyService {
     if (!client || this.stopped) return;
     try {
       await this.probeWithTimeout(client);
+      if (this.active !== client || this.stopped) return;
+      // 周期复检 0143 trigger：DISABLE/DROP 发生在 establish 之后时，不能等 LISTEN 断连才发现。
+      const trig = await client.query(SSE_NOTIFY_TRIGGER_HEALTH_SQL, [SSE_NOTIFY_TRIGGER_NAME]);
+      if (this.active !== client || this.stopped) return;
+      if (trig.rowCount !== 1) {
+        this.loseClient('trigger_missing');
+        return;
+      }
     } catch {
       if (this.active === client && !this.stopped) this.loseClient('listen_down');
       return;   // 失败拍:loseClient 已解挂,周期链断;重连 establish 成功重挂
@@ -441,6 +465,8 @@ export class SseNotifyService {
       client.on('notification', this.onNotification as never);
       client.on('error', this.onClientError as never);
       client.on('end', this.onClientEnd as never);
+      // 便于 ops/prove 定位专用 LISTEN 连接（不泄漏业务数据）。测试缝 connectOverride 同样可设。
+      await client.query("SELECT set_config('application_name', 'meetwise-sse-listen', false)");
       await client.query(`LISTEN ${SSE_NOTIFY_CHANNEL}`);
       // TOKSTREAM S4b：同连接第二 LISTEN（零新连接零迁移·A11 单例纪律零破）。token 通道=有损
       // best-effort（§C-3 不补发）——其失败只降级 token 臂（结构化日志一次），绝不拖垮权威事件
@@ -458,10 +484,7 @@ export class SseNotifyService {
       await client.query(`LISTEN ${PRINCIPAL_EVICT_CHANNEL}`);
       // 约束①条件2:establish 期恰一次 trigger 实证(每连接一次;缺席即降级并退避
       // 重连——迁移后发版的自愈路径:下次 establish 重新实证)。
-      const trig = await client.query(
-        'SELECT 1 FROM pg_trigger WHERE tgname = $1 AND tgrelid = $2::regclass LIMIT 1',
-        [SSE_NOTIFY_TRIGGER_NAME, 'interview_event'],
-      );
+      const trig = await client.query(SSE_NOTIFY_TRIGGER_HEALTH_SQL, [SSE_NOTIFY_TRIGGER_NAME]);
       if (this.stopped || this.active !== client) return;
       if (trig.rowCount !== 1) {
         this.loseClient('trigger_missing');

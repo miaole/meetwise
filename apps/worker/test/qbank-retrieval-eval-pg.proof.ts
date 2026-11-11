@@ -32,8 +32,8 @@
 import { assertIsolatedTestTarget, asPrincipal, createPool, hybridQbankSearch, qbankQuestionResultsForHits, type QbankHybridHit } from '@meetwise/db';
 import { dashscopeEmbedder, evalRecall, type Embedder } from '@meetwise/ai-runtime';
 import { fakeEmbedder } from '@meetwise/ai-runtime/test-support';   // #74: fake 族经 test-support 子路径
-import { QBANK_ARTIFACTS } from '../src/qbank-seed.ts';
 import { ingestQuestionBankArtifacts } from '@meetwise/db';
+import { QBANK_ARTIFACTS } from '../src/qbank-seed.ts';
 import { ensureActiveQbankGeneration } from '../src/qbank-generation.ts';
 import { QBANK_RETRIEVAL_RELEASE, validateQbankRetrievalRelease } from '../smoke/qbank-retrieval-release.ts';
 

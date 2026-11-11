@@ -97,7 +97,7 @@ export function runDrainLoop(tick: () => Promise<void>, intervalMs = 5000, opts?
       resolve();
     };
     const timer = setTimeout(finish, intervalMs);
-    (timer as any).unref?.();
+    (timer as { unref?: () => void }).unref?.();
     settleWait = finish;
     // A wake/stop might land between the caller's condition and this handler
     // installation.  Consume it without waiting for the fallback interval.

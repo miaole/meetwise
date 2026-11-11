@@ -15,6 +15,7 @@
  *   ⑤ 旧行兼容臂：存量行（无新列值）topic_id/ask_mode/clarify_cause IS NULL=不按话题计费语义保留。
  */
 import { randomUUID } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { MemorySaver } from '@langchain/langgraph';
 import {
   answerHash, asPrincipal, assertIsolatedTestTarget, claimInterviewAnswer, claimModelInvocation,
@@ -23,7 +24,6 @@ import {
   supplyCandidateProfileRoute, transitionResume,
 } from '@meetwise/db';
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
-import { createHash } from 'node:crypto';
 import { ingestResume } from '@meetwise/domain';
 import { interviewDispatchTick, type ConsumerDeps } from '../src/interview-consumer.ts';
 import { usageCauseForInvokeError } from '../src/adaptive-interview-service.ts';

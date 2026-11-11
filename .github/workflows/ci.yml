@@ -21,19 +21,30 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"
         # 命中任何密钥 → 非零退出 → 阻断
+      # FIX-G3 / #178 残留：全仓合并冲突标记扫描（git 跟踪文件；排除二进制与 vendor 类目录）。
+      # 先跑种植 proof（三种标记必中、二进制/vendor/近似串不中、非 git 目录退出 2），再扫本仓；任一非零即阻断。
+      # 放在 secrets-scan（已是必过检查）里，纯新增 step，不动 verify 的既有顺序。
+      - name: 合并冲突标记全仓扫描（<<<<<<< / ======= / >>>>>>> 整行；排除二进制与 vendor）
+        run: |
+          node scripts/conflict-marker-scan.proof.mjs
+          node scripts/conflict-marker-scan.mjs
 
+  # 轻量 verify（2026-11-11 用户决定「CI 轻量，重要的校验、核心够用就行」）：
+  # PR / main push 只跑 install · docs:check · arch · typecheck · lint · 核心 DB 门 · 无库单元 prove。
+  # 原 verify 105 步逐条分类见 ai-docs/architecture/devops/ci-cd.md §8（保留 / nightly / 本地手跑），无一静默删除；
+  # 移出的 prove 脚本全部保留在仓库，本地一条命令复跑：`pnpm db:up && pnpm verify:local`。
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
     env:
       DATABASE_URL: postgresql://meetwise:meetwise_dev_password@localhost:54329/meetwise
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        # DBACL2-CI-SHALLOW-FIX：全历史=冻结锚 diff 门前置（db-acl2 P4-1 BASE_SHA 95911975
-        # 仅经 origin/line/db-pgp-acl 可达·depth 1 缺对象=git exit 128 机械红·PR #109 step 40）
+        # 全历史：迁移编号唯一性门要读父提交的迁移目录（浅克隆 = migration_parent_unreadable 机械红）。
         with:
-          fetch-depth: 0          # 全历史，否则只扫到 HEAD
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
         # 版本读 package.json packageManager(pnpm@10.18.0)：catalog 需 pnpm≥9.5，不能再钉 9
@@ -45,52 +56,24 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # 文档门禁：必需文件 + 关键术语
+      # 文档门禁：必需文件 + 关键术语 + ci-cd.md §8.2 步骤台账一致性门（含 env / if / continue-on-error / 非 pnpm 命令，ci.yml / nightly-ciw2 / verify:local 三处双向对账）
       - run: pnpm docs:check
 
-      # E2E 目录契约：helpers / 场景 / run-e2e*。静态、无 Key、不是 live E2E。
-      # check=布局；prove=5 命名守卫；layout:prove=种植违规。三者不可对调。
-      - name: E2E directory contract (not live E2E)
+      # PR243 复审补回（2026-11-11 用户拍板「PR 上加约 8 秒静态检查」）：E2E 静态守卫 12 条 + 隐私删除预览 503 无库 pin 2 条。
+      # 全部无库、秒级（本地实测合计约 10s），防假绿：fake-service 旗标 / secret 脱敏扫描 / parity / 出站清单 / 公开预览写门。
+      - name: E2E 静态守卫 + 隐私删除预览 503 无库 pin（无库，秒级，非 live E2E、非发布证据）
         run: |
           pnpm e2e-platform:check
           pnpm e2e-platform:prove
           pnpm e2e-platform:layout:prove
-
-      # 静态守卫：live E2E 禁止假服务开关；证据/日志 helper 密钥扫描失败即关，且不回显命中值。
-      - name: E2E static guards (fake-service flags + secret-redaction scan)
-        run: |
           pnpm e2e-static-guards:check
           pnpm e2e-static-guards:prove
-
-      # UI runner 构建复用判定：完整决策表，并把 runner 判定段跑在假 .next 与替身 build 上。无库、不起浏览器。
-      - name: UI runner 构建复用守卫（无库，不是 live E2E）
-        run: pnpm e2e-ui-stale-build-guard:prove
-
-      # e2e/ 与约定关键 prove 的用例数/断言身份；删除或削弱 expect 失败。不是发布证据。
-      - name: E2E 用例与断言 parity（静态，非发布证据）
-        run: |
           pnpm e2e-parity:check
           pnpm e2e-parity:prove
-
-      # 预览删除路径源码 pin（无库）：目录/契约/公开 503。不替代隔离库证明。
-      - name: 隐私删除预览路径（域/契约 pin，非发布证据）
-        run: |
           pnpm privacy-erasure-preview:domain:prove
           pnpm privacy-erasure-preview:contract:prove
-
-      # 公开首页、预览说明与招聘边界：仅检查已审计的文案契约，不证明运行或发布状态。
-      - name: 公开文案边界（不替代发布证据）
-        run: pnpm -C apps/web prove:public-copy
-
-      # 只盘点当前直接模型出站；不发送请求、不读取密钥，也不证明云端网络隔离。
-      - name: 模型供应商出站静态清单（observe-only，非发布证据）
-        run: |
           pnpm provider-egress:inventory
           pnpm provider-egress:prove
-
-      # 盘点并围栏公开预览可写的面试/评分面；本地 ingress + service proof，不是 ECS/发布证据。
-      - name: 公开预览写门禁清单与围栏（非发布证据）
-        run: |
           pnpm public-preview-write:inventory
           pnpm public-preview-write:prove
           pnpm public-preview-write-gate:prove
@@ -115,50 +98,24 @@ jobs:
       - name: lint gate (turbo lint · #96 LINT S3-S5 lit)
         run: pnpm turbo lint
 
-      # 面试公平轮转合同（无库）：owner 量子、失败关闭预算、retry/idle、切片隔离。
-      # 远程 PostgreSQL 证明不在 per-push CI（需 E2E_CLOUD_ISOLATED=1；不得改起本地 Docker）。
-      - name: interview dispatch fairness (no database)
-        run: pnpm interview-dispatch:unit:prove
-      - name: interview dispatch wrapper gate (no database, not remote SQL)
-        run: pnpm interview-dispatch:gate:prove
-
-      # 押题/诊断双连接恰一领（无库）：拒绝本地 Docker / loopback。
-      # 隔离 PostgreSQL 证明不在 per-push CI（需 E2E_CLOUD_ISOLATED=1；releaseEvidence=false）。
-      - name: quiz/diagnosis dual-claim fail-closed (no database)
-        run: pnpm quiz-dual-claim:unit:prove
-
-      # 押题/诊断/报告当前仍按 owner 抽干（无库）：证明顺序是 A,A,A,B，不是面试轮转。
-      - name: quiz/diagnosis/report sequential drain order (no database)
-        run: pnpm owner-drain-order:unit:prove
-
-      # SSE Last-Event-ID 失败关闭（无库）：押题/诊断不得把非法游标降级为全量重放。
-      - name: SSE last-event-id fail-closed parser (no database)
-        run: pnpm last-event-id:unit:prove
-
-      # HC-GAP-009 静态门（无库）：legacy invoke 无 operation 不得进入 0120 租约。
-      # 隔离 PG 证明 `pnpm model-slot-bypass:prove` 不在 per-push。
-      - name: Model slot legacy bypass static guard (no database)
-        run: pnpm model-slot-bypass:static:prove
-
-      # SSE 共享 sse:principal 槽（无库 hijack + counting asPrincipal stub）：5 条 200，第 6 条 429；
-      # holders 一个周期 stub 恰 +5，被拒连接不入 2s 环。不是隔离库 / 不是跨副本。
-      - name: SSE shared principal slot 5+1 429 (no database)
-        run: pnpm sse-slot:prove
-
-      - name: Web preview gate behavioral proof (real NextRequest, not string match)
-        run: pnpm -C apps/web prove:middleware
-
-      # PR/main 都从同一受信源码上下文构建两份最终镜像；不登录、不推送。
-      # 这可以在撤销线上入口之前捕获 Dockerfile、standalone 与 workspace 打包错误。
-      - name: Full-stack container build gate (no push)
+      # 无库单元 prove（与原 verify 同序，位于 db:up 之前）。sse-slot:prove 已自封闭（PR243 小门B）：
+      # apps/api `prove:sse-slot` 以 `env -u DATABASE_URL -u PG*` 启动，SSE notify 单例不建 LISTEN 池，
+      # db:up 前后结果一致；带库环境直跑 node 会被 proof 内 hermetic 断言判红（不再靠步骤顺序兜底）。
+      - name: 无库单元 prove（dispatch / dual-claim / drain / Last-Event-ID / model-slot / SSE 槽 / Web 预览门）
         run: |
-          commit="$(git rev-parse HEAD)"
-          tree="$(git rev-parse HEAD^{tree})"
-          docker build --build-arg "VCS_REF=$commit" --build-arg "SOURCE_TREE=$tree" -f Dockerfile -t meetwise-backend:ci .
-          docker build --build-arg "VCS_REF=$commit" --build-arg "SOURCE_TREE=$tree" -f apps/web/Dockerfile -t meetwise-web:ci .
+          pnpm interview-dispatch:unit:prove
+          pnpm interview-dispatch:gate:prove
+          pnpm quiz-dual-claim:unit:prove
+          pnpm owner-drain-order:unit:prove
+          pnpm last-event-id:unit:prove
+          pnpm model-slot-bypass:static:prove
+          pnpm sse-slot:prove
+          pnpm -C apps/web prove:middleware
 
+      # 核心 DB 门（四原语 CAS / 幂等 / RLS 越权=0 / 事件 seq + 迁移编号唯一 + 迁移运行器）。
       # 起 Postgres（复用 dev compose，与本地同一映射端口）
       - run: pnpm db:up
+
       - name: wait for postgres
         run: |
           for i in $(seq 1 30); do
@@ -170,204 +127,39 @@ jobs:
       # 可复跑验证 gate（红即阻断合并）
       - name: 四原语（CAS / 幂等 / RLS 越权=0 / 事件 seq）
         run: pnpm db:prove
+
       - name: 迁移编号唯一性门（数值前缀·#140 修法②·豁免登记面·MIG-RUNNER 裁决项③ 本刀落码·CI-WIRING 只登记接线）
         run: node scripts/check-migration-version-uniqueness.mjs
+
       - name: 版本化迁移运行器（只跑待应用·幂等·事务·漂移检测·advisory锁）
         run: pnpm migrate:prove
-      # #175 drift 门恢复（CI-WIRING 裁②=径1·scripts/schema-drift-check.mjs 对账 sql/ 镜像 25 文件：
-      # 临时库 A 全迁移建 vs B 全镜像建，逐列+UNIQUE/PK 约束单向 diff（sql⊆mig）·dbhy1 退役残面经脚本内豁免登记面放行·未登记漂移=红）
-      - name: schema 漂移门（迁移路径 vs sql/ 真相 逐列+约束比对;防"改 sql/ 忘写迁移"致 fresh deploy 缺表/列/约束）
-        run: pnpm drift:prove
-      - name: B端历史快照迁移回归（stale binding + deferred FK pending events）
-        run: pnpm neg:bend
-      # #114 负路径六步纳 per-push（七面红面清偿后一次纳·裁⑦）：本地实跑全绿（auth 90/commerce 90/resume 91/
-      # interview 102/input 135/uc033 51·无 key 隔离库·与 api:validate 同 runner 形）——负例门=合并闸语义，
-      # 不作 nightly 软化；红面清偿=断言零改夹具补单（0172/0173 挑选单随链+deactivate 密码复核随形+
-      # 0123 列面/0058 assert 函数/0093 契约面负测镜像），产品码零触。
-      - name: 负路径·认证/会话域（停用后令牌即时失效/再登录拒/防枚举）
-        run: pnpm neg:auth
-      - name: 负路径·commerce 域（额度/订单/回调负路径）
-        run: pnpm neg:commerce
-      - name: 负路径·resume/隐私域（越权/围栏/擦除负路径）
-        run: pnpm neg:resume
-      - name: 负路径·interview 域（终态/跨用户/abandon 幂等）
-        run: pnpm neg:interview
-      - name: 负路径·输入对抗域（注入/穿越/超长/unicode 不 5xx）
-        run: pnpm neg:input
-      - name: uc033 跨用户授权负路径（报告/面试/学习全臂）
-        run: pnpm uc033:cross-user-authz:prove
-      - name: DBHY-1 卫生刀 prove（死表退役+sql/ 兼容镜像退役残面门+fresh deploy 重建+qbank 分区释放例程）
-        run: pnpm dbhy1:prove
-      # DBACL2-CI-WIRE 接线（dbhy1 邻位·isolated-runner 一次性本地 PG·fail-loud 红即阻断）。
-      # pgp_sym_encrypt EXECUTE 补授门（38 断言·本地实测 warm 9.6-11.6s·基线红已由 DB-ACL-RESIDUAL nail 翻绿）
-      - name: DB ACL pgp_sym_encrypt 补授门（两段式迁移重放+42501 负门+过度授权负门·隔离一次性 PG）
-        run: pnpm db-acl2:prove
-      - name: 跨供应商 failover（primary 故障秒切 backup·内容拒不换供应商·全挂交降级）
-        run: pnpm failover:prove
-      - name: commerce saga（共享池 reserve/confirm/release · FIFO · 按比例 · 并发不超卖 · 对账 · 零额度丢失）
-        run: pnpm commerce:prove
-      - name: 简历摄取（原文加密落库 · 结构化 profile 永不含明文PII · 注入拦截 · 状态机 · 去重 · RLS）
-        run: pnpm resume:prove
-      - name: 报告子图舱壁（失败隔离:报告失败不碰 interview · 独立重试 · 并发不双跑 · report_ready）
-        run: pnpm report:prove
-      - name: 押题进程接线（v61 typed resume 引用 · 接地 · 失败退款 · SSE 终态）
-        run: pnpm quiz:prove
-      - name: 孤儿任务收割（心跳 vs 收割 · 失败退款 · 已结算不倒退）
-        run: pnpm reaper:prove
-      - name: 模型调用逻辑节点派发配额（同 key 并发唯一 executor · 冻结头只配精确 reservation · trigger 形状门拒绝旁路）
-        run: pnpm model-op00:prove
-      - name: 面试进程接线（api 入队 → worker 消费循环 → 生命周期 → 报告）
-        run: pnpm adaptive:prove
-      - name: INT-LEVEL 控制信号（weak/thrashing → decideNext，杀开关先赢）
-        run: pnpm adaptive-signals:prove
-      - name: INT-LEVEL 控制信号图 hook（concludeReason provenance；杀开关先赢）
-        run: pnpm adaptive-signals-graph:prove
-      - name: SIGNAL-SSE 预览投影（early_weak/thrashing → session_concluded，不发明分）
-        run: pnpm signal-sse:prove
-      - name: SIGNAL-SSE 契约（strict 拒 score/band，不进 OpenAPI）
-        run: pnpm signal-sse-contract:prove
-      - name: SIGNAL-SSE worker 接线（假 append，无 DB）
-        run: pnpm signal-sse-worker:prove
-      - name: agent 接地题（检索素材出题 + 版权照搬门）
-        run: pnpm grounded:prove
-      - name: agent CRAG（检索质量分级 + 纠偏 / 外呼降级）
-        run: pnpm crag:prove
-      - name: agent 工具（注册 + 延迟加载）
-        run: pnpm tools:prove
-      - name: agent 出题自审（critique → 重生成）
-        run: pnpm critique:prove
-      - name: agent 自适应图（决策表 / 中断 + 重启续会话）
-        run: pnpm adaptive-graph:prove
-      - name: agent 自适应全流程（fake deps 图执行）
-        run: pnpm adaptive-flow:prove
-      - name: agent 自适应生命周期（结算 / 收尾 / 跨会话判重）
-        run: pnpm adaptive-life:prove
-      - name: agent 消费循环（claim / 租约 / reaper 收割孤儿）
-        run: pnpm adaptive-consumer:prove
-      - name: checkpoint 低权 RLS 与撤销写栅栏
-        run: pnpm checkpoint-role:prove
-      - name: 隐私删除安全暂停（app_role 无破坏性入口）
-        run: |
-          pnpm privacy-erasure:prove
-          pnpm privacy-erasure:http:prove
-          pnpm privacy-erasure-preview:prove
-          pnpm privacy-erasure:pause-upgrade:prove
-      - name: 评分旁路停用（真实 HTTP + 当前迁移组合根零副作用）
-        run: pnpm scor-00:http:prove
-      # G1 SCORE-S3 #42：TS↔SQL 评分状态机/总分公式对拍进 per-push（isolated-runner 一次性本地 PG·沿 scor-00 先例）+#43 0158 INSERT 守门正负测。
-      - name: 评分状态机/公式 TS↔SQL 对拍 + INSERT 初始态守门
-        run: pnpm scor-parity:prove
-      # CI-WIRING3 五门接线（scor-parity 邻位·isolated-runner 一次性本地 PG·fail-loud 红即阻断）。
-      # 裁位亲证 @79382f4d：四门本地实跑绿入 per-push；ha6:prove 基线红（50 PASS/26 FAIL·锚漂+治理门漂）
-      # 不接线——归属 line/ha6-repin 重钉着陆后另批。
-      # 评分/报告 P0 完整性（23 断言·本地实测 10.9s·总分确定性聚合+模型越权防护）
-      - name: 评分/报告 P0 完整性（隔离一次性 PG·总分聚合不可被模型越权改写）
-        run: pnpm scoring-integrity:prove
-      # 流式 token 进度接线（20 断言·本地实测 17.5s·ci-wiring2 时代基线红已由在链后刀清偿）
-      - name: 流式 token 进度接线（generation_started 先于业务结果落表+payload 白名单围栏）
-        run: pnpm tokenstream:prove
-      # 长上下文真实 v64 链路（29 断言·本地实测 冷 8.0s/热 25.9s 双口径·预算内裁 per-push 非 nightly-ciw2·合并闸语义）
-      - name: 长上下文真实 v64 队列/图/报告链路（大答案截断+载荷净化+额度精确）
-        run: pnpm stress:prove
-      # UC003 i18n locale 结构断言（七查·本地实测 2.9s·raw 口径；UI 件需 chromium+Key+生产构建不在 per-push）
-      - name: UC003 i18n locale 结构断言（S1-S6+G3' 七查·raw 隔离口径）
-        run: pnpm uc003:i18n-locale:prove
-      - name: agent 模型可观测（token / 延迟 / 成本落库）
-        run: |
-          pnpm metrics:prove
-          pnpm model-output-limit:prove
-          pnpm dashscope-native-config:prove
-          pnpm voice-operation-policy:prove
-          pnpm voice-stream-asr-honesty:prove
-          pnpm interview-voice-seams:prove
-          pnpm ocr-operation-policy:prove
-      - name: agent 语音自适应（modality-agnostic ≡ 文本路径）
-        run: pnpm voice-adaptive:prove
-      - name: agent 题库 generation（完整迁移 / 不可变 recipe / 完整工件 / 撤销）
-        run: pnpm rag-generation:prove
-      - name: agent 题库历史完整性升级（0068数据平面归零 → 0069隔离 → 0070–0072低权限 RLS）
-        run: pnpm qbank-integrity-upgrade:prove
-      - name: agent 题库控制面最小权限（伪造 GUC 仍拒绝 / 独立 executor）
-        run: pnpm qbank-control-role:prove
-      - name: 通用 RAG 控制连接启动门（独立低权身份 / definer-RLS 漂移 fail-closed）
-        run: pnpm rag-control-runtime:prove
-      - name: 通用 RAG 控制面目录/ACL 与动态向量 policy 门
-        run: pnpm rag-control-role:prove
-      - name: 通用 RAG 0032 前缀升级隔离门
-        run: pnpm rag-control-upgrade:prove
-      - name: 通用 RAG 版本、request 围栏与 rebuild lease 门
-        run: pnpm rag-corpus-version:prove
-      - name: 通用 RAG 派发/对账状态机门
-        run: pnpm rag-control-dispatch:prove
-      - name: 迁移 CLI 的 DATABASE_URL 低权账号 post-flight 门
-        run: pnpm migrate-cli:prove
-      - name: agent 题库摄取管线（类型感知 / 嵌入 / 召回门）
-        run: pnpm qbank-pipeline:prove
-      - name: agent Web 探索（SSRF 安全:私网/allowlist/超时/降级）
-        run: pnpm web-explore:prove
-      - name: agent 优雅降级（出题失败→兜底题不崩面试）
-        run: pnpm adaptive-degrade:prove
-      - name: 自适应面试端到端（真图多轮 + 结算 + 报告舱壁）
-        run: pnpm interview:prove
-      - name: worker 优雅排空（SIGTERM 等在飞 job 跑完再退,滚动部署零丢失）
-        run: pnpm drain:prove
-      - name: worker 事件唤醒（LISTEN 生命周期 + 合并 wake 本地合同）
-        run: pnpm worker-wakeup:prove
-      - name: 检索/召回引擎（度量数学 + dense/BM25/RRF 排序 + 金标端到端;真召回率见 benchmark:eval）
-        run: pnpm retrieval:prove
-      - name: 评分官质量度量数学（stddev n-1/tie-corrected Spearman·Kendall/ICC/成对序·退化用例;真评分官质量见 nightly scoring-eval）
-        run: pnpm scoring-eval:prove
-      - name: B端反题库窃取/反注入（题库不进候选面·确定性抽样·结构化输出兜底·上下文最小化）
-        run: pnpm security:prove
-      - name: 鉴权（scrypt 密码哈希 + HMAC 令牌,常量时间校验）
-        run: pnpm auth:prove
-      - name: 生产向量库（pgvector HNSW · ANN对齐暴力余弦 · 索引真用 · RLS隔离 · 隐私不存原文）
-        run: pnpm vectorstore:prove
-      - name: 记忆模块 lean（跨会话精确判重 + 历史弱项只读投影 + RLS 不串户 + 隐私:题面非答案/PII）
-        run: pnpm memory:prove
-      - name: 部署编排校验（compose.prod 结构合法 · 6 服务 · healthcheck · 依赖顺序）
-        run: pnpm deploy:check
-      - name: 语音面试 modality-agnostic（同一图经 ASR/TTS 推进 ≡ 文本路径）
-        run: pnpm voice:prove
-      - name: TTS 响应 URL 下载安全（SSRF / DNS 固定 / 截止时间 / MIME / 体积）
-        run: pnpm -C packages/ai-runtime prove:voice-reliability
-      - name: 非流式语音取消链路（代理 / API / 适配器）
-        run: |
-          pnpm -C apps/web prove:speak-proxy
-          pnpm -C apps/web prove:transcribe-proxy
-          pnpm -C apps/api prove:voice-timeout
-          pnpm -C apps/api prove:voice-cancel-http
-      - name: 流式语音 fake-seam 合同（不是产品流式 ASR / E2E）
-        run: pnpm vstream:prove
-      - name: 运行内核（db 四原语 + ai-runtime invoke 双校验·重试·幂等 / 状态机 / 租约 / 可恢复 / 幻觉拦截）
-        run: pnpm runtime:isolated:prove
-      - name: 真 LangGraph 图（ai-graphs 纯图 + worker PostgresSaver：interrupt + 重启续会话）
-        run: pnpm graph:prove
-      - name: 请求路径 + SSE（principal 注入 / RLS fail-closed / 幂等 / Last-Event-ID 重放）
-        run: pnpm api:validate
-      - name: 契约 must-smoke（NestJS×SWC×类型DI + @meetwise/contracts zod4 校验）
-        run: pnpm api:smoke
-      - name: 前端承重逻辑（SSE 业务事件解码 · 契约客户端校验 · report_unavailable 优雅降级不转圈）
-        run: pnpm web:prove
-      - name: 端到端 简历→押题（S2 摄取清洗 + S4 押题图 + factuality 歪曲门）
-        run: pnpm pipeline:prove
-      - name: OCR 简历图片视觉转写（关口双校验 + 按次计费 reserve/confirm/release + PII不入trace + 下游注入门）
-        run: pnpm ocr:prove
 
-      # 全栈跨进程 HTTP E2E（e2e/full.e2e.ts fetch/SSE，不是 Playwright）不在 per-push：
-      # run-e2e.mjs 要求 E2E_ISOLATED=1 + MODEL_API_KEY，缺 Key 必须非零退出。
-      # 禁止 skip-if-absent。nightly.yml 当前也没有跑 e2e:isolated / e2e:ui:isolated。
-      # 本地有 Key 时用 `pnpm regression --live`；浏览器层另需 web production build。
+      # 单元 prove（图 / 信号 / 检索 / 评分数学 / 鉴权 / 契约 / 前端逻辑；原 verify 中位于 db:up 之后，保持原序）。
+      - name: 单元 prove（图 / 信号 / 检索 / 评分数学 / 鉴权 / 契约 / 前端逻辑）
+        run: |
+          pnpm failover:prove
+          pnpm adaptive-signals:prove
+          pnpm adaptive-signals-graph:prove
+          pnpm signal-sse:prove
+          pnpm signal-sse-contract:prove
+          pnpm signal-sse-worker:prove
+          pnpm grounded:prove
+          pnpm crag:prove
+          pnpm tools:prove
+          pnpm critique:prove
+          pnpm adaptive-graph:prove
+          pnpm web-explore:prove
+          pnpm retrieval:prove
+          pnpm scoring-eval:prove
+          pnpm security:prove
+          pnpm auth:prove
+          pnpm vstream:prove
+          pnpm api:smoke
+          pnpm web:prove
+          pnpm pipeline:prove
 
-      # ── CI-WIRING 纪律注记（批5 第三刀）────────────────────────────────────────────
-      # 本文件对基线「只增不减」：既有步骤零改语义/零删除/零重排；断言只增不减，新增门一律 fail-loud。
-      # 本刀实际接线归属：#96 typecheck 门（零错域先点亮·五 strict 债包 Non-claims 归清债刀）+
-      # #175 drift 门（sql 镜像对账 25 文件·退役残面豁免登记）。#114 neg:*+uc033 六步经本地实跑核：
-      # neg:commerce/resume/interview/uc033 绿、neg:auth 3/81 与 neg:input 3/135 基线既有确定性红——
-      # 停止条件上报未接线（零落码），归后刀红面清偿后纳。
-      # MIG-RUNNER 裁③迁移唯一性步归属留名：line/mig-runner 刀（scripts/check-migration-version-uniqueness.mjs
-      # 接线步）——本刀零触该步（该步在本刀基线 ci.yml 297 行尚未并入·见 line/mig-runner @30084d98 299 行形）。
-      # CI-WIRING3 接线归属登记：四门（scoring-integrity/tokenstream/stress/uc003:i18n-locale）per-push。
-      # ha6:prove 亲证基线红（50 PASS/26 FAIL）不接线·归属 line/ha6-repin 重钉后另批
-      # （接线前置=届时 tip 本地 ha6:prove 绿）；UI 件（chromium+MODEL_API_KEY+生产构建三缺）
-      # 与 nightly.yml/nightly-ciw2.yml 与 lint 注释面（归 ci-red-clear）本刀零触。
+      # 全栈跨进程 HTTP E2E 不进 CI（用户决定：不配 MODEL_API_KEY），本地手跑 `pnpm e2e:isolated`。
+      # nightly（nightly-ciw2.yml）只放少量关键无 key 隔离 prove：容器构建 / compose 校验 / 旧库升级 / schema 漂移 /
+      # 跨用户授权 / commerce saga / 隐私删除暂停 / 评分完整性 / 面试端到端 / 请求路径+SSE。
+      # 以及 PR243 复审补入的权限/RLS、迁移升级、运行内核、认证/隐私负路径、转写隐私 sink 两条。
+      # 其余 prove 移出 CI，本地 `pnpm db:up && pnpm verify:local`（与原 verify 同序；单条 && 链，首错即停）。

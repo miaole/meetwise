@@ -4,9 +4,9 @@
  * 三事务式:claim 提交 → 生命周期(模型在各自短事务,经 invoke) → markDone。同面试保序、租约崩溃可重领。
  */
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, requeueInterviewJob, withInterviewGraphFence, renewInterviewGraphFence, appendEvent, decryptActiveResumeBlob, enrollCheckpointThread, failInterviewAndRelease, markApplicationAssessmentUnavailable, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, purgeStaleInterviewJobPayloads, getInterviewRouteSnapshot, getInterviewRouteSnapshotForAdaptiveRole, getJobPlannerInputForInterview, deriveQbankOwnerScope, DEFAULT_LEASE_SECONDS, INTERVIEW_RESUME_REFERENCE_VERSION, MAX_INTERVIEW_JOB_ATTEMPTS, errCode, asErr, type DbPool, type InterviewGraphFence, type QbankServingScopeInput } from '@meetwise/db';
-import { getMetrics, METRIC, type ModelClient, type GraphObserver, type ModelCostPolicy } from '@meetwise/ai-runtime';
 import type { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
+import { asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, requeueInterviewJob, withInterviewGraphFence, renewInterviewGraphFence, appendEvent, decryptActiveResumeBlob, enrollCheckpointThread, failInterviewAndRelease, markApplicationAssessmentUnavailable, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, purgeStaleInterviewJobPayloads, getInterviewRouteSnapshotForAdaptiveRole, getJobPlannerInputForInterview, deriveQbankOwnerScope, DEFAULT_LEASE_SECONDS, INTERVIEW_RESUME_REFERENCE_VERSION, MAX_INTERVIEW_JOB_ATTEMPTS, errCode, asErr, type DbPool, type InterviewGraphFence, type QbankServingScopeInput } from '@meetwise/db';
+import { getMetrics, METRIC, type ModelClient, type GraphObserver, type ModelCostPolicy } from '@meetwise/ai-runtime';
 import { admitInterviewResume, degradedRetrieval, type ScoredRef, type SourceDoc } from '@meetwise/domain';
 import { startAdaptiveInterview, submitAdaptiveAnswer } from './adaptive-lifecycle.ts';
 import { isTechRoleFailClosedEnabled, resolveAdaptiveInterviewRole } from './adaptive-role-resolve.ts';
@@ -261,6 +261,10 @@ async function failClaimedInterviewJob(
  *     `ai_model_release_refused_claim_scoped`·0130 expired-claimed 重领=到点真重试），service 抛带 code
  *     异常中止节点→本白名单 requeue+退避。确定性配置拒绝（operation_unknown/blocked/project_missing/
  *     disabled、model_failover_cost_policy_mismatch）**不在族内**→ 既有确定性终态零放宽。
+ *  6. WORKER-INFLIGHT-CRASH-01（2026-11-11·「只增」新增）：`checkpoint_connection_lost`——checkpoint 写缝
+ *     pg 连接族无 code 错（Connection terminated/Query read timeout/pool connect timeout）经
+ *     FenceCheckpointSaver 收容折算的码；requeue 后由 pg-pool 新建连接=重连重试。42501
+ *     checkpoint_privacy_fenced **不在族内**（线程撤销/世代过期=确定性终态零放宽）。
  * 命中 → requeue（退避+上限闸见 requeueOrTerminalizeExhausted）；不命中 → :508 确定性终态现状零变零放宽。
  * 分类通道=errCode（errors 单一探测：AppError.code ∪ 结构 .code——PG SQLSTATE/标签形原生过面）。
  */
@@ -268,6 +272,7 @@ export const TRANSIENT_INTERVIEW_JOB_ERROR_CODES: ReadonlySet<string> = new Set(
   'graph_fence_lost', '57014', '57P01', '57P02', '57P03', 'ECONNRESET', 'EPIPE', 'ETIMEDOUT',
   'model_circuit_open', 'model_circuit_half_open', 'model_concurrency_exhausted',
   'cost_budget_exhausted', 'model_admission_timeout', 'model_admission_failed',
+  'checkpoint_connection_lost',
 ]);
 /** 纯函数·确定性·prove 直行使（沿 parseFocusPayload 形制）。 */
 export function isTransientInterviewJobError(code: string | undefined): boolean {

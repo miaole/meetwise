@@ -6,7 +6,7 @@
 import { z } from 'zod';
 import { asPrincipal, normalizeQuestion, recordUsage, SHADOW_METER_VERSION, type DbPool, type QuestionUsageLedgerEntry } from '@meetwise/db';
 import { invoke, promptedModel, getPrompt, renderSessionSummarySection, isAdmissionRefusalRetryable, recordRagRetrievalAction, type ModelClient, type GraphObserver, type ModelCostPolicy } from '@meetwise/ai-runtime';
-import { CRISIS_DISPOSITION_REASON, cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, refsGroundedInFacts, toCompetencySpecs, isNonAnswer, stripScoringManipulation, approvedTemplateGeneration, classifyQuestionGenerationError, critiqueQuestion, modelGeneration, unavailableGeneration, resolveCitedSources, QUESTION_GENERATION_REROLL_FAMILY, CANDIDATE_PROFILE_SIGNALS, type CragVerdict, type QuestionGenerationResult, type QuestionKind, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec } from '@meetwise/domain';
+import { CRISIS_DISPOSITION_REASON, cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, refsGroundedInFacts, toCompetencySpecs, isNonAnswer, stripScoringManipulation, approvedTemplateGeneration, classifyQuestionGenerationError, critiqueQuestion, modelGeneration, unavailableGeneration, resolveCitedSources, QUESTION_GENERATION_REROLL_FAMILY, CANDIDATE_PROFILE_SIGNALS, duplicateExhaustedGeneration, type QuestionDuplicateFallbackCandidate, type CragVerdict, type QuestionGenerationResult, type QuestionKind, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec } from '@meetwise/domain';
 import type { AdaptiveDeps, SessionSummary } from '@meetwise/ai-graphs';
 import { CRAG_QUERY_TARGET_ROLE_MAX_CHARS, CRAG_QUERY_TECH_STACK_MAX_CHARS } from './qbank-track-local-retrieve.ts';
 import { sessionSurvivesAskBudget } from './ask-context-budget.ts';
@@ -21,13 +21,59 @@ function nativeRetrievalFailureToken(reason: string): string | null {
   return match ? match[0] : null;
 }
 
+/**
+ * G2(FIX-G2-dup-question-fallback):判重耗尽降级候选挑选(纯函数·零 IO·零模型)。
+ * 优先级:① 本 turn 已生成、过本场 critique(含本场 asked 判重)与引文闸、只与历史场次重复的模型题
+ * (取最近一次 roll)→ `cross_session_repeat`;② 都不过 → 固定模板(与 grounded 无事实无授权版逐字同文)
+ * 过本场 critique → `approved_template`;③ 仍不过 → null(图节点 failClosed 原样)。
+ */
+export function pickDuplicateFallback(input: {
+  candidates: readonly { q: string; refs: readonly string[]; key: string }[];
+  knownRefs: readonly string[];
+  accept: (q: string) => boolean;
+  template: string;
+  provenance: { operationId: string; idempotencyKey: string; reroll: number };
+}): QuestionDuplicateFallbackCandidate | null {
+  for (let i = input.candidates.length - 1; i >= 0; i -= 1) {
+    const candidate = input.candidates[i]!;
+    if (!input.accept(candidate.q)) continue;
+    const cited = resolveCitedSources(input.knownRefs, candidate.refs);
+    if (!cited.ok) continue;
+    return {
+      question: candidate.q,
+      sources: cited.sources,
+      provenance: {
+        origin: 'model', operationId: input.provenance.operationId, idempotencyKey: candidate.key,
+        reroll: input.provenance.reroll, duplicateFallback: 'cross_session_repeat',
+      },
+    };
+  }
+  if (input.accept(input.template)) {
+    return {
+      question: input.template,
+      sources: [],
+      provenance: {
+        origin: 'approved_template', operationId: input.provenance.operationId,
+        idempotencyKey: input.provenance.idempotencyKey, reroll: input.provenance.reroll,
+        duplicateFallback: 'approved_template',
+      },
+    };
+  }
+  return null;
+}
+
+/** G2:判重降级模板——与 grounded 无事实回退的无授权版逐字同文(不声称简历事实)。 */
+export function duplicateFallbackTemplate(competency: string): string {
+  return `请结合你的实际经验，说明在「${competency}」方面你会如何做关键取舍，并如何验证结果。`;
+}
+
 const AskSchema = z.object({ q: z.string().min(1).max(2000), refs: z.array(z.string()) });   // q 封顶:模型出的题理应短;超长=异常输出,schema 闸拦下重试(也防评估侧截断吃掉答案)
 
 const QUESTION_OPERATION_ID = 'interview.question-generation.v1' as const;
 /**
  * G7FIX-4R 有界换题上限:判重命中后每 turn 最多重掷 2 次(单 turn 生成调用总数 ≤3 含初诊)。
- * per-turn 计数、跨 turn 不累计、无循环放大;耗尽仍 unavailableGeneration('duplicate_question') 原样判死,
- * fail-closed 只从「首撞即死」收窄为「撞满上限才死」,零验证放宽。
+ * per-turn 计数、跨 turn 不累计、无循环放大;耗尽仍返回 duplicate_question 失败形(形状不变),
+ * G2 起随附降级候选:图节点先换 competency,无序可换才采用(跨场重复、当场不重复/模板兜底),不整场判死。
  */
 const MAX_DUPLICATE_REROLL = 2;
 /**
@@ -562,11 +608,14 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
           pushDelta(_text: string) {},
           endUsage(_usage) {},
           abortReason(_reason: string) {},
+          withdrawRejected(_reason: string) {},
         };
         const progress: GenerationProgressRun = { stage(_name: string) {} };
         return body(sink, progress);
       };
       return withDeficitOut(await runWithoutProgress(async (tokenSink, run) => {
+      // N-13：业务闸/判重/批判拒绝本 attempt 预览题面时申报撤回。flag 关时该方法为零操作。
+      const rejectPreview = (reason: string): void => { tokenSink.withdrawRejected(reason); };
       // 题型决定接地(H2 #79 扩面):fundamental/scenario 用 CRAG 检索真题素材;grounded 走简历选定
       // 事实(上方早退),behavioral 考行为面经、与技术题库语料错配——检索白名单 EXEC 裁决=fundamental
       // +scenario,behavioral 纳入与否留后刀如实登记(非「漏接」)。
@@ -684,6 +733,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       if ('error' in out && kind === 'grounded' && out.error === GROUNDED_REFS_GATE_ERROR) {
         let exhausted = true;
         for (let refsRetry = 1; refsRetry <= MAX_GROUNDED_REFS_RETRY; refsRetry += 1) {
+          rejectPreview(GROUNDED_REFS_GATE_ERROR);
           const retryKey = `${d.threadId}:ask:t${turn}:gr${refsRetry}`;
           idempotencyKey = retryKey;
           const retry = await generate(retryKey, retryKey);
@@ -691,6 +741,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
           if (!('error' in retry) || retry.error !== GROUNDED_REFS_GATE_ERROR) { exhausted = false; break; }
         }
         if (exhausted) {
+          rejectPreview(GROUNDED_REFS_GATE_ERROR);
           return approvedTemplateGeneration(
             `请结合你简历中一段与「${competency}」相关的真实经历，说明你的做法、关键取舍和验证结果。`,
             // S2-B3:回退轨迹可审计——provenance 携带耗尽时所在的最后一个独立重试键(:gr{k})。
@@ -716,6 +767,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
             && QUESTION_GENERATION_REROLL_FAMILY.includes(classifyQuestionGenerationError(out.error))
           : !seamCritique(out.value.q).ok;
         if (!rerollable || familyRolls >= MAX_ERROR_REROLL) break;
+        rejectPreview('error' in out ? out.error : 'question_critique_failed');
         familyRolls += 1;
         rollSeq += 1;
         const rollKey = `${d.threadId}:ask:t${turn}:r${rollSeq}`;
@@ -725,6 +777,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       if ('error' in out) {
         // Missing keys, timeouts and malformed/schema failures must not become
         // a canned interview stem.  Structured error + provenance only.
+        rejectPreview(out.error);
         return unavailableGeneration(classifyQuestionGenerationError(out.error), {
           operationId: QUESTION_OPERATION_ID,
           idempotencyKey,
@@ -736,6 +789,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
         // AG-F(刀F)裁决⑤a:critique 复检族预算耗尽仍拒 → business_invalid 判死形——与图节点既有
         // critique 拒绝 provenance 同形(origin/errorCode/invokeError),generationFailureOf reason
         // 映射不变;图节点 critique 终闸保留零触(直接 deps 注入面/纵深防御)。
+        rejectPreview('question_critique_failed');
         return unavailableGeneration('business_invalid', {
           operationId: QUESTION_OPERATION_ID,
           idempotencyKey,
@@ -753,24 +807,32 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       try {
         duplicate = await wasAsked(d.pool, d.owner, out.value.q);
       } catch {
+        rejectPreview('duplicate_check_failed');
         return unavailableGeneration('generation_unavailable', {
           operationId: QUESTION_OPERATION_ID, idempotencyKey, invokeError: 'duplicate_check_failed',
         });
       }
+      // G2(FIX-G2-dup-question-fallback):判重命中的候选题面留作降级素材(只存本闭包局部,不进图 state)。
+      // 初诊候选此处已过 seamCritique(上方族 re-roll 环出口),引文在降级挑选时再核。
+      const duplicateCandidates: { q: string; refs: string[]; key: string }[] = [];
+      if (duplicate) duplicateCandidates.push({ q: out.value.q, refs: out.value.refs, key: idempotencyKey });
       let rerolls = 0;
       while (duplicate && rerolls < MAX_DUPLICATE_REROLL) {
+        rejectPreview('duplicate_question');
         rerolls += 1;
         rollSeq += 1;                                                                      // AG-F:统一 `:r{k}` 计数(四类族/判重共键空间·fresh-turn 纯判重路径键形零变)
         idempotencyKey = `${d.threadId}:ask:t${turn}:r${rollSeq}`;
         const replacement = await generate(idempotencyKey, idempotencyKey);
         if ('error' in replacement) {
           // re-roll 途中 provider/schema/business 失败 → 既有分类判死原样,不借 re-roll 放宽。
+          rejectPreview(replacement.error);
           return unavailableGeneration(classifyQuestionGenerationError(replacement.error), {
             operationId: QUESTION_OPERATION_ID, idempotencyKey, invokeError: replacement.error, reroll: rerolls,
           });
         }
         const replacementCited = resolveCitedSources(knownRefs, replacement.value.refs);
         if (!replacementCited.ok) {
+          rejectPreview(`business:${replacementCited.reason}`);
           return unavailableGeneration(classifyQuestionGenerationError(`business:${replacementCited.reason}`), {
             operationId: QUESTION_OPERATION_ID, idempotencyKey, invokeError: `business:${replacementCited.reason}`, reroll: rerolls,
           });
@@ -778,16 +840,35 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
         try {
           duplicate = await wasAsked(d.pool, d.owner, replacement.value.q);
         } catch {
+          rejectPreview('duplicate_check_failed');
           return unavailableGeneration('generation_unavailable', {
             operationId: QUESTION_OPERATION_ID, idempotencyKey, invokeError: 'duplicate_check_failed', reroll: rerolls,
           });
         }
         if (!duplicate) out = replacement;                                               // 上限内得到非重复替代题:换题成功
+        else duplicateCandidates.push({ q: replacement.value.q, refs: replacement.value.refs, key: idempotencyKey });
       }
-      if (duplicate)
-        return unavailableGeneration('duplicate_question', { operationId: QUESTION_OPERATION_ID, idempotencyKey, reroll: familyRolls + rerolls });
+      if (duplicate) {
+        // G2:失败形(error/provenance)与旧 unavailableGeneration('duplicate_question') 逐字节同形——
+        // 图节点先按此换下一 competency 重试;仅当无序可换/换序帽满时才采用随附的降级候选,
+        // 不再整场判死。降级零额外模型调用、零新幂等键(键沿用候选自己的 `:0`/`:r{k}`)。
+        // N-13：最后一帧是被判重的预览题面；降级候选/模板将由权威 question_ready 覆盖，先撤回预览。
+        rejectPreview('duplicate_question');
+        const reroll = familyRolls + rerolls;
+        return duplicateExhaustedGeneration(
+          { operationId: QUESTION_OPERATION_ID, idempotencyKey, reroll },
+          pickDuplicateFallback({
+            candidates: duplicateCandidates,
+            knownRefs,
+            accept: (q) => seamCritique(q).ok,
+            template: duplicateFallbackTemplate(competency),
+            provenance: { operationId: QUESTION_OPERATION_ID, idempotencyKey, reroll },
+          }),
+        );
+      }
       const cited = resolveCitedSources(knownRefs, out.value.refs);
       if (!cited.ok) {
+        rejectPreview(`business:${cited.reason}`);
         return unavailableGeneration(classifyQuestionGenerationError(`business:${cited.reason}`), {
           operationId: QUESTION_OPERATION_ID, idempotencyKey, invokeError: `business:${cited.reason}`,
         });

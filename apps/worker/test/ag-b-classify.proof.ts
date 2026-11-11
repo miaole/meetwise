@@ -19,7 +19,7 @@
 import http from 'node:http';
 import { z } from 'zod';
 import { asPrincipal, assertIsolatedTestTarget, createPool, listUsageCalibrationPairs } from '@meetwise/db';
-import { invoke, modelFor, openAICompatibleClient, type ModelCostPolicy, type ModelResult } from '@meetwise/ai-runtime';
+import { invoke, modelFor, openAICompatibleClient, type ModelCostPolicy } from '@meetwise/ai-runtime';
 
 // 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
 const MEETWISE_TEST_FIXTURE_1 = 'test';

@@ -205,10 +205,12 @@ export {
   QUESTION_GENERATION_ERROR_CODES, QUESTION_GENERATION_ORIGINS, QUESTION_GENERATION_REROLL_FAMILY,
   classifyQuestionGenerationError, unavailableGeneration, approvedTemplateGeneration, modelGeneration,
   normalizeQuestionGenerationResult, isQuestionGenerationFailure, resolveCitedSources,
+  QUESTION_GENERATION_COMPETENCY_SWITCH_FAMILY, QUESTION_DUPLICATE_FALLBACKS,
+  duplicateExhaustedGeneration, acceptDuplicateFallback,
 } from './question-generation.ts';
 export type {
   QuestionGenerationErrorCode, QuestionGenerationOrigin, QuestionGenerationProvenance, QuestionGenerationResult,
-  CitedSourcesResolution,
+  CitedSourcesResolution, QuestionDuplicateFallback, QuestionDuplicateFallbackCandidate,
 } from './question-generation.ts';
 // 简历多格式提取 + 清洗(PDF/Word/图片→文本)
 export { extractResumeText, cleanResumeText, detectResumeFormat, looksLikeEncryptedPdf, type ResumeFileFormat } from './resume-extract.ts';
@@ -257,8 +259,9 @@ export {
   CANDIDATE_ROUTE_ALLOCATION_BPS, CANDIDATE_ROUTE_LEAF_RE,
   CANDIDATE_PROFILE_SIGNALS, CANDIDATE_ROUTE_LEAF_PROFESSION_TOKENS,
   canonicalCandidateProfileDigest, candidateRouteDecisionHash, classifyCandidateProfileByRule,
+  CANDIDATE_ROUTE_TARGET_ROLE_POLICY_SUFFIX, arbitrateCandidateRouteWithTargetRole,
 } from './candidate-profile-route.ts';
-export type { CandidateProfileRouteRuleResult, CandidateProfileRouteDegradedFrom } from './candidate-profile-route.ts';
+export type { CandidateProfileRouteRuleResult, CandidateProfileRouteDegradedFrom, CandidateRouteArbitration } from './candidate-profile-route.ts';
 
 // 评分确定性聚合（SCOR-02）纯域原语：确定性总分公式 + span/digest 文本级复验 + C 端 ScoreCard 评估消费面。
 // #52 v6（S2）起：模型直出 criterionId+quote+disposition，quote→span/digest 派生单源

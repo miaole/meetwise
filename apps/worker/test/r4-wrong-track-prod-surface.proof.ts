@@ -21,7 +21,7 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createMetrics, setMetrics, getMetrics, METRIC, registerBaselineMetrics } from '@meetwise/ai-runtime';
+import { createMetrics, setMetrics, getMetrics, registerBaselineMetrics } from '@meetwise/ai-runtime';
 import { R4_WRONG_TRACK_RECHECK_REASONS, degradedRetrieval } from '@meetwise/domain';
 import {
   classifyTrackLocalOutcome,

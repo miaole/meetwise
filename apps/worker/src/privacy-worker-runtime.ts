@@ -2,6 +2,7 @@ import {
   assertPrivacyWorkerExecutorIdentity,
   createPool,
 } from '@meetwise/db';
+import { isProductionEnvironment } from './rag-redis-cache.ts';
 
 type PrivacyWorkerPool = ReturnType<typeof createPool>;
 
@@ -18,16 +19,25 @@ const productionDeps: PrivacyWorkerStartupDeps = {
 
 /**
  * Open the optional physical-erasure worker connection only after proving it
- * is the dedicated, least-privilege executor.  A missing URL leaves the
- * emergency-paused eraser disabled; a supplied but mis-mounted URL fails the
- * whole worker startup rather than retaining a raw-ledger-capable pool.
+ * is the dedicated, least-privilege executor.  A supplied but mis-mounted URL
+ * fails the whole worker startup rather than retaining a raw-ledger-capable
+ * pool.  In production a missing URL also fails startup (fail-closed): the
+ * default production compose must mount PRIVACY_WORKER_DATABASE_URL, and a
+ * silently disabled eraser would leave authorized deletions unprocessed.
+ * Non-production still leaves the emergency-paused eraser disabled so local
+ * work can start without the dedicated login.
  */
 export async function initializePrivacyWorkerStartup(
-  env: { PRIVACY_WORKER_DATABASE_URL?: string } = process.env,
+  env: NodeJS.ProcessEnv = process.env,
   deps: PrivacyWorkerStartupDeps = productionDeps,
 ): Promise<PrivacyWorkerPool | undefined> {
   const connectionString = env.PRIVACY_WORKER_DATABASE_URL?.trim();
-  if (!connectionString) return undefined;
+  if (!connectionString) {
+    if (isProductionEnvironment(env)) {
+      throw new Error('privacy_worker_database_url_missing');
+    }
+    return undefined;
+  }
 
   const pool = deps.createPool({ connectionString, purpose: 'privacy-worker' });
   try {

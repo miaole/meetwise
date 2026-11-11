@@ -143,6 +143,7 @@ export {
   enqueueInterviewJob, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, failQueuedInterviewJobsOnAbandon, enumerateOwnersWithJobs,
   renewInterviewJobLease, sweepStuckInterviewJobs, requeueInterviewJob, MAX_INTERVIEW_JOB_ATTEMPTS, INTERVIEW_RESUME_REFERENCE_VERSION,
   DEFAULT_INTERVIEW_PER_OWNER_INFLIGHT, purgeStaleInterviewJobPayloads, INTERVIEW_STUCK_PAYLOAD_TTL_SECONDS,
+  stripConsumedInterviewAnswerPlaintext,
 } from './interview/interview-jobs.ts';
 export type { JobKind, ClaimedInterviewJob, ClaimedInterviewJobRequestId, ClaimedInterviewAnswerPayload, InterviewClaimBudget } from './interview/interview-jobs.ts';
 
@@ -160,7 +161,7 @@ export { readGraphRunObservation, recordGraphRunObservation, graphRunPositionIsS
 
 // server-issued question / answer identity ledger (stale resume 与双标签页的图外 fencing)
 export {
-  answerHash, persistInterviewQuestion, claimInterviewAnswer, verifyInterviewAnswerClaim,
+  answerHash, persistInterviewQuestion, claimInterviewAnswer, verifyInterviewAnswerClaim, isInterviewAnswerApplied,
   markInterviewAnswerApplied, cancelOpenInterviewQuestion,
   asrOutcomeForStoredTranscript, rememberIssuedQuestionTranscript, loadTranscribedAnswerJobPayload,
   issuedAsrTraceKey, TEXT_ONLY_ASR_OUTCOME,
@@ -263,10 +264,10 @@ export type {
 } from './model-op/usage-calibration.ts';
 
 // MODEL-OP-02 共享 provider 准入/费用账本/断路器/并发 数据访问（SECURITY DEFINER 过程真相）。
-export { acquireModelAdmission, recordModelAdmission } from './model-op/model-operation-admission.ts';
+export { acquireModelAdmission, recordModelAdmission, peekModelAdmissionBreaker } from './model-op/model-operation-admission.ts';
 export type {
   ModelAdmissionPartition, ModelAdmissionDecision, ModelBreakerOutcome, ModelFeeStatus,
-  ModelAdmissionAcquireInput, ModelAdmissionAcquireResult, ModelAdmissionRecordInput,
+  ModelAdmissionAcquireInput, ModelAdmissionAcquireResult, ModelAdmissionRecordInput, ModelAdmissionBreakerPeek,
 } from './model-op/model-operation-admission.ts';
 
 // 在线 Judge 控制面：只处理 HMAC 引用和状态机；不持有用户正文或模型 payload。
@@ -377,6 +378,7 @@ export type {
 // 答案事实根之外的剩余 sink（INT-TRANSCRIPT-01）：event + report 的删除 resolver/purge
 export {
   beginInterviewProjectionErasure, listClaimableInterviewProjectionTargets, purgeInterviewProjectionTarget,
+  resolveInterviewProjectionTargetConsumedJti, purgeFencedInterviewJobResidue,
 } from './transcript/int-transcript-projection.ts';
 export type {
   InterviewProjectionErasureTarget, InterviewProjectionErasureRequest,
