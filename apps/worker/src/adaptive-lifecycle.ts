@@ -19,6 +19,7 @@ import { buildAdaptiveDeps, buildResumeFactPool, planCompetencies, selectPlanner
 import { writeScoreCardAfterProjectionFenceTolerant } from './score-writer.ts';
 import { recordAskedQuestions } from './memory-service.ts';
 import { emitSignalConcludeEvent } from './signal-conclude-event.ts';
+import { invokeWithCheckpointContainment } from './checkpoint-fence.ts';
 
 export type InterviewGenerationUnavailable = {
   reason: string;
@@ -391,9 +392,9 @@ async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string
   let snap = await g.getState(cfg);
   if (!pendingQuestion(snap)) {
     if ((snap.next?.length ?? 0) > 0) {
-      await g.invoke(null, cfg);
+      await invokeWithCheckpointContainment(d.cp, (signal) => g.invoke(null, signal ? { ...cfg, signal } : cfg));
     } else {
-      await g.invoke({}, cfg);
+      await invokeWithCheckpointContainment(d.cp, (signal) => g.invoke({}, signal ? { ...cfg, signal } : cfg));
     }
     snap = await g.getState(cfg);
     await observeGraphRunPosition(d, snap);
@@ -477,10 +478,10 @@ async function submitAdaptiveAnswerImpl(
       throw Object.assign(new Error('stale_question'), { code: 'stale_question' });
     const claimed = await asPrincipal(d.pool, d.owner, (c) => verifyInterviewAnswerClaim(c, d.owner, d.interviewId, input));
     if (!claimed) throw Object.assign(new Error('answer_identity_not_claimed'), { code: 'answer_identity_not_claimed' });
-    await g.invoke(new Command({ resume: { answerId: input.answerId } }), cfg);
+    await invokeWithCheckpointContainment(d.cp, (signal) => g.invoke(new Command({ resume: { answerId: input.answerId } }), signal ? { ...cfg, signal } : cfg));
     snap = await g.getState(cfg);
   } else if ((before.next?.length ?? 0) > 0 && pendingQuestion(before) === undefined) {
-    await g.invoke(null, cfg);
+    await invokeWithCheckpointContainment(d.cp, (signal) => g.invoke(null, signal ? { ...cfg, signal } : cfg));
     snap = await g.getState(cfg);
   }
   await observeGraphRunPosition(d, snap);
