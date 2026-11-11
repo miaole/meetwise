@@ -170,3 +170,53 @@ export function classifyCandidateProfileByRule(raw: string): CandidateProfileRou
     return { decided: true, leafTrackId: 'backend/general', allocationBps: CANDIDATE_ROUTE_ALLOCATION_BPS, degraded: true, degradedFrom: 'no_signal_hit' };
   return { decided: true, leafTrackId: 'backend/general', allocationBps: CANDIDATE_ROUTE_ALLOCATION_BPS, degraded: true, degradedFrom: 'ambiguous_language_evidence' };
 }
+
+/**
+ * G6 N-17（重构审查 P2-5）：用户填写的目标岗位（begin `target-role` 头归一化后的 targetRole）参与路由裁决。
+ * 修前 targetRole 只写进 start job payload（planner 岗位行），不参与 candidate route 裁决——简历歧义/零命中
+ * 时仍降级 `backend/general`，用户明确说「Java 后端」也拿不到 java 叶题库。
+ *
+ * 裁决（纯数据面·0 次模型外发·同输入同决策 C-HA-2，输入 = 简历原文 + targetRole）：
+ *  - 简历 rule 非降级 decided（唯一叶 / general+唯一 specific）→ 简历证据胜，targetRole 不改叶（零翻现状）；
+ *  - 简历 rule 降级（≥2 specific 歧义 / 零命中）且 targetRole 经同一词典 rule 非降级命中 specific 叶
+ *    （≠ backend/general）→ 取 targetRole 叶（用户明示意图做裁决），targetRoleApplied=true；
+ *  - targetRole 缺省/空白/自身降级/只命中 general → 原降级结果逐字节不变；
+ *  - profile_empty（简历空）→ 原样未决（409 profile_unavailable 防御面保留，targetRole 不替代简历）。
+ * 采纳 targetRole 时：policyVersion 追加 `+target-role:v1` 后缀、inputDigest 改为「简历+targetRole」
+ * canonical digest——决策行身份可区分、可审计对账；未采纳时 policyVersion/digest 与修前逐字节一致。
+ * targetRole 原文同简历原文：仅在内存匹配，派生输出只有 leaf + sha256 digest，绝不落库/落 trace。
+ */
+export const CANDIDATE_ROUTE_TARGET_ROLE_POLICY_SUFFIX = '+target-role:v1';
+
+export type CandidateRouteArbitration =
+  | { decided: true; leafTrackId: TaxonomyLeaf; allocationBps: typeof CANDIDATE_ROUTE_ALLOCATION_BPS;
+      targetRoleApplied: boolean; resumeDegradedFrom?: CandidateProfileRouteDegradedFrom;
+      policyVersion: string; inputDigest: string }
+  | { decided: false; reason: 'profile_empty' };
+
+function canonicalCandidateProfileTargetRoleDigest(raw: string, targetRole: string): string {
+  return createHash('sha256').update(JSON.stringify({
+    v: `candidate-semantic:v1${CANDIDATE_ROUTE_TARGET_ROLE_POLICY_SUFFIX}`, text: normalize(raw), targetRole: normalize(targetRole),
+  })).digest('hex');
+}
+
+export function arbitrateCandidateRouteWithTargetRole(raw: string, targetRole?: string): CandidateRouteArbitration {
+  const resumeRule = classifyCandidateProfileByRule(raw ?? '');
+  if (!resumeRule.decided) return resumeRule;
+  const baseline: CandidateRouteArbitration = {
+    decided: true, leafTrackId: resumeRule.leafTrackId, allocationBps: resumeRule.allocationBps,
+    targetRoleApplied: false, ...(resumeRule.degraded ? { resumeDegradedFrom: resumeRule.degradedFrom } : {}),
+    policyVersion: CANDIDATE_ROUTE_POLICY_VERSION, inputDigest: canonicalCandidateProfileDigest(raw ?? ''),
+  };
+  if (!resumeRule.degraded) return baseline;
+  const role = normalize(targetRole ?? '');
+  if (!role) return baseline;
+  const roleRule = classifyCandidateProfileByRule(role);
+  if (!roleRule.decided || roleRule.degraded || roleRule.leafTrackId === 'backend/general') return baseline;
+  return {
+    decided: true, leafTrackId: roleRule.leafTrackId, allocationBps: roleRule.allocationBps,
+    targetRoleApplied: true, resumeDegradedFrom: resumeRule.degradedFrom,
+    policyVersion: `${CANDIDATE_ROUTE_POLICY_VERSION}${CANDIDATE_ROUTE_TARGET_ROLE_POLICY_SUFFIX}`,
+    inputDigest: canonicalCandidateProfileTargetRoleDigest(raw ?? '', role),
+  };
+}

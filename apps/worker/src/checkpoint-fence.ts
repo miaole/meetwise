@@ -20,6 +20,19 @@
  * packages/db/src 零改、checkpointer 零替换的边界内不可再收窄（每 takeover 至多在飞
  * ~5 个 superstep 拍的暴露窗）。如实声明不声称闭合。
  *
+ * 【WORKER-INFLIGHT-CRASH-01·2026-11-11】写失败收容（runContained 作用域内）：LangGraph 1.4.7
+ * PregelLoop._trackCheckpointerPromise 把 put/putWrites 的 promise 包成 `tracked` 放进 Set，只在
+ * _streamIterator 的 finally 里 Promise.all——写失败到 finally 之间（节点还在等模型/DB）`tracked`
+ * 无 handler=unhandledRejection=Node 默认整进程退出（2c4g sizing globalInflight=16：42501
+ * checkpoint_privacy_fenced / pg `Connection terminated` 两例真崩）。收容形：作用域内首个写失败
+ * 被锁存（latch）+ abort 本次 invoke 的 signal，返回给 LangGraph 的 promise 一律 resolve（不再有
+ * 可外溢的 rejected promise）；锁存后写缝零续写（fail-closed：不落任何后续 checkpoint），读缝
+ * getTuple/list 直接抛锁存错；runContained 结束时原样抛锁存错（码不改→consumer 既有分类器：
+ * 42501 确定性终态、graph_fence_lost/连接族 transient requeue）。pg 连接族无 code 的错
+ * （Connection terminated/Query read timeout/pool connect timeout）折算为
+ * `checkpoint_connection_lost`（cause 保原错）——下一次 claim 由 pg-pool 新建连接=重连。
+ * 作用域外（直调 put/putWrites）语义零变：原样上抛。
+ *
  * 透传=全接口显式枚举（getTuple/list 直通·put/putWrites 拦截件·deleteThread 直通·serde 经
  * super 构造委托·setup/end 有则绑内层无则零触）——沿 PrincipalBoundCheckpointPool「Pool 兼容
  * façade」同族先例形。住地 worker src：图包纯拓扑纪律（模型/checkpointer 经注入）零触。
@@ -39,10 +52,35 @@ type Writes = Parameters<BaseCheckpointSaver<number>['putWrites']>[1];
 type NewVersions = Parameters<BaseCheckpointSaver<number>['put']>[3];
 type PutResult = ReturnType<BaseCheckpointSaver<number>['put']>;
 
+/** pg@8.22 / pg-pool@3.14 连接层失败的无 code 消息（逐字），折算为可重试码。 */
+const PG_CONNECTION_LOSS_MESSAGES: ReadonlySet<string> = new Set([
+  'Connection terminated',
+  'Connection terminated unexpectedly',
+  'Query read timeout',
+  'timeout exceeded when trying to connect',
+]);
+export const CHECKPOINT_CONNECTION_LOST = 'checkpoint_connection_lost';
+
+/** 有字符串 code 的错原样返回；无 code 的 pg 连接族错折算为 checkpoint_connection_lost（cause 保原错）。 */
+export function normalizeCheckpointWriteError(error: unknown): unknown {
+  const e = error as { code?: unknown; message?: unknown } | null | undefined;
+  if (e && typeof e.code === 'string' && e.code.length > 0) return error;
+  if (e && typeof e.message === 'string' && PG_CONNECTION_LOSS_MESSAGES.has(e.message))
+    return Object.assign(new Error(CHECKPOINT_CONNECTION_LOST, { cause: error }), { code: CHECKPOINT_CONNECTION_LOST });
+  return error;
+}
+
 export class FenceCheckpointSaver extends BaseCheckpointSaver<number> {
   private readonly inner: BaseCheckpointSaver<number>;
   private readonly pool: DbPool;
   private readonly fence: InterviewGraphFence;
+  /** runContained 嵌套深度（>0=写失败收容生效）。 */
+  private containDepth = 0;
+  /** 首个被收容的写失败（job 级锁存·一旦置位永不清）。 */
+  private latched: { error: unknown } | undefined;
+  private abortCurrent: AbortController | undefined;
+  /** 内层真写调用计数（proof 断言锁存后零续写）。 */
+  innerWriteAttempts = 0;
 
   constructor(inner: BaseCheckpointSaver<number>, pool: DbPool, fence: InterviewGraphFence) {
     super();
@@ -65,25 +103,83 @@ export class FenceCheckpointSaver extends BaseCheckpointSaver<number> {
     if (!alive) throw Object.assign(new Error('graph_fence_lost'), { code: 'graph_fence_lost' });
   }
 
+  private currentLatch(): { error: unknown } | undefined {
+    return this.latched;
+  }
+
+  /** 已锁存的写失败（无则 undefined）。 */
+  get writeFailure(): unknown {
+    return this.latched?.error;
+  }
+
+  /**
+   * 写失败收容作用域：run 收到本次 invoke 专用 AbortSignal（写失败即 abort，图尽早停）。
+   * 结束时若已锁存写失败 → 抛锁存错（优先于 run 自身的 AbortError/成功返回）；否则原样返回/上抛。
+   */
+  async runContained<T>(run: (signal: AbortSignal) => Promise<T>): Promise<T> {
+    if (this.latched) throw this.latched.error;
+    const controller = new AbortController();
+    const previous = this.abortCurrent;
+    this.abortCurrent = controller;
+    this.containDepth++;
+    try {
+      const out = await run(controller.signal);
+      const after = this.currentLatch();   // run 期间写缝可能已锁存（方法读避开 TS 窄化）
+      if (after) throw after.error;
+      return out;
+    } catch (error) {
+      const after = this.currentLatch();
+      if (after) throw after.error;
+      throw error;
+    } finally {
+      this.containDepth--;
+      this.abortCurrent = previous;
+    }
+  }
+
+  /** 写缝统一入口：作用域内失败→锁存+abort+返回 fallback（resolve）；作用域外原样上抛。 */
+  private async guardedWrite<T>(write: () => Promise<T>, fallback: T): Promise<T> {
+    if (this.latched) {
+      if (this.containDepth > 0) return fallback;   // 锁存后零续写（fail-closed）
+      throw this.latched.error;
+    }
+    try {
+      await this.assertWriteFence();
+      this.innerWriteAttempts++;
+      return await write();
+    } catch (raw) {
+      if (this.containDepth === 0) throw raw;
+      const error = normalizeCheckpointWriteError(raw);
+      this.latched ??= { error };
+      try { this.abortCurrent?.abort(this.latched.error); } catch { /* abort 监听器异常不得外溢 */ }
+      return fallback;
+    }
+  }
+
   override async getTuple(config: LangGraphRunnableConfig): Promise<CheckpointTuple | undefined> {
+    if (this.latched) throw this.latched.error;
     return this.inner.getTuple(config);
   }
 
   /** 实名 list（AsyncGenerator 直通·读缝零触：本红面是写覆盖，读缝拦截不闭合本面）。 */
   override async *list(config: LangGraphRunnableConfig, options?: ListOptions): AsyncGenerator<CheckpointTuple> {
+    if (this.latched) throw this.latched.error;
     yield* this.inner.list(config, options);
   }
 
   override async put(config: LangGraphRunnableConfig, checkpoint: Checkpoint, metadata: CheckpointMetadata, newVersions: NewVersions): PutResult {
-    await this.assertWriteFence();
-    // 围栏通过后才盖当前图版本。调用方字段保留；只交给这一次新写入，不回写旧行。
-    const stamped = Object.assign({}, metadata, { ['graph_version']: 'adaptive-interview/v1' }) as CheckpointMetadata;
-    return this.inner.put(config, checkpoint, stamped, newVersions);
+    // 收容 fallback=与 PostgresSaver/MemorySaver put 返回同形的 nextConfig（LangGraph loop 不消费该返回值）。
+    const configurable = (config.configurable ?? {}) as Record<string, unknown>;
+    const fallback = { configurable: { ['thread_id']: configurable['thread_id'], ['checkpoint_ns']: configurable['checkpoint_ns'] ?? '', ['checkpoint_id']: checkpoint.id } } as Awaited<PutResult>;
+    return this.guardedWrite(() => {
+      // 围栏通过后才盖当前图版本。调用方字段保留；只交给这一次新写入，不回写旧行。
+      const stamped = Object.assign({}, metadata, { ['graph_version']: 'adaptive-interview/v1' }) as CheckpointMetadata;
+      return this.inner.put(config, checkpoint, stamped, newVersions);
+    }, fallback);
   }
 
   override async putWrites(config: LangGraphRunnableConfig, writes: Writes, taskId: string): Promise<void> {
-    await this.assertWriteFence();
-    return this.inner.putWrites(config, writes, taskId);
+    return this.guardedWrite(() => this.inner.putWrites(config, writes, taskId), undefined);
   }
 
   override async deleteThread(threadId: string): Promise<void> {
@@ -101,4 +197,9 @@ export class FenceCheckpointSaver extends BaseCheckpointSaver<number> {
     const inner = this.inner as { end?: () => Promise<void> };
     if (typeof inner.end === 'function') await inner.end.call(this.inner);
   }
+}
+
+/** adaptive-lifecycle 的 invoke 缝：FenceCheckpointSaver 走收容作用域；其余 saver（测试 MemorySaver 直注）零变。 */
+export function invokeWithCheckpointContainment<T>(cp: unknown, run: (signal?: AbortSignal) => Promise<T>): Promise<T> {
+  return cp instanceof FenceCheckpointSaver ? cp.runContained(run) : run(undefined);
 }

@@ -6,12 +6,15 @@
  * unknown and reconciliation decides the next action.
  */
 import type { ModelClient } from './model-client.ts';
-import type { ModelResult } from './invoke.ts';
+import type { ModelPrepareRoute, ModelResult } from './invoke.ts';
 
 export function failoverModel(clients: ModelClient[]): ModelClient {
   const chain = clients.filter(Boolean);
-  const prepare = async (req: Parameters<ModelClient['complete']>[0], attempt: number, signal?: AbortSignal) => {
+  const prepare = async (req: Parameters<ModelClient['complete']>[0], attempt: number, signal?: AbortSignal, route?: ModelPrepareRoute) => {
     let last = 'model_endpoint_unavailable';
+    // G5 N-14：invoke 在 claim 前按预绑定对表 + 断路器只读探查给出要避开的端点（providerAccount=
+    // 冻结 profile id）。命中的成员视同 pre-dispatch 不可用，继续选下一个；不带 route 时行为原值。
+    const avoid = route?.avoidAdmissionEndpoints ?? [];
     for (const client of chain) {
       try {
         // TOKSTREAM S4b（R1b① 层3 结构性非流式落点·注记零路由）：本 prepare 缺省 execute 臂仅
@@ -30,7 +33,10 @@ export function failoverModel(clients: ModelClient[]): ModelClient {
             cost: client.costPolicy,
             admissionEndpoint: undefined,
           };
-        if (plan.ready === true) return plan;
+        if (plan.ready === true) {
+          if (plan.admissionEndpoint && avoid.includes(plan.admissionEndpoint.providerAccount)) continue;
+          return plan;
+        }
         last = plan.error;
       } catch {
         // prepare 是纯预派发(契约要求不发网络请求),抛异常不会产生计费歧义,视同 not-ready 继续降级到 backup——

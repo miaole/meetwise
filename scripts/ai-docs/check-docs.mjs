@@ -395,7 +395,7 @@ const runtimeTruthAssertions = [
     truthTerm: "interview-dispatch:gate:prove",
   },
   {
-    source: ".github/workflows/ci.yml",
+    source: "package.json",
     sourceTerm: "pnpm quiz:prove",
     truthTerm: "33867570523",
   },
@@ -548,6 +548,804 @@ for (const file of questionBanksWithSpeakableAnswerGate) {
 }
 
 checkRejectedCurrentNarratives();
+// PR243 小门A：CI 步骤台账一致性门（ai-docs/architecture/devops/ci-cd.md §8.2 / §8.2.1）。
+// 三处执行面 = ci.yml（全部 job）/ nightly-ciw2.yml / package.json `verify:local`（按 && 拆分）；双向对账：
+//   ① 执行面里每条受跟踪命令都必须在台账里；
+//   ② 台账每条命令必须恰在其「去向」声明的执行面出现，且不得出现在未声明的执行面（基础设施命令除外）。
+// 去向词：「保留」→ ci；「仅 nightly」→ nightly；其余含「nightly」→ nightly + verify:local；「本地手跑」→ verify:local。
+// 盲区补强（PR243 复审非阻塞 1/2）：
+//   - 行首 `VAR=val` / `env VAR=val`、step 级 `env:`、以及 run 块里的 `export VAR=val` / `unset` / `>> $GITHUB_ENV` 纳入比对；
+//   - ci/nightly 中非 `!cancelled()` 的 `if:`，或出现 `continue-on-error` 且值不是字面 false / `${{ false }}`，须在台账对应行用反引号显式标记（`if: <expr>` 归一后全等；job 级还须 `job: <id>`），否则报错；
+//   - 非 pnpm 开头的受跟踪命令（bash / sh / npx / tsx / npm / yarn / cd … / env … / node scripts/ / docker build）也须登记；
+//   - 能简单检测到的弱化（run 首行 exit 0、set +e、step/job/workflow 的 `shell:` 覆盖）须登记；其余 shell 语义（trap / heredoc / if-then 等）是门的边界，见 ci-cd.md §8.2。
+//   - `run: >` 折叠标量按 YAML 语义拼成一行再比对。
+const CI_LEDGER_DOC = "ai-docs/architecture/devops/ci-cd.md";
+const CI_LEDGER_INFRA = new Set(["pnpm install --frozen-lockfile", "pnpm db:up"]);
+const TRACKED_COMMAND = /^(pnpm |node scripts\/|docker build|bash |sh |npx |tsx |npm |yarn |cd |env |\/bin\/bash |\/bin\/sh )/;
+
+function unquoteYamlScalar(raw) {
+  const v = String(raw).trim().replace(/\s+#.*$/, "").trim();
+  if ((v.startsWith("'") && v.endsWith("'") && v.length >= 2) || (v.startsWith('"') && v.endsWith('"') && v.length >= 2)) {
+    return v.slice(1, -1);
+  }
+  return v;
+}
+
+function parseEnvPrefix(raw) {
+  let cmd = raw.trim().replace(/\s+/g, " ");
+  const env = {};
+  // `env FOO=1 BAR=2 pnpm …`（env 内建、无 flag）。带 -u/-i/-- 的保持原样，由 isTrackedCommand 当整串登记。
+  if (/^env [A-Z][A-Z0-9_]*=/.test(cmd)) cmd = cmd.slice(4);
+  while (/^[A-Z][A-Z0-9_]*=\S+ /.test(cmd)) {
+    const m = /^([A-Z][A-Z0-9_]*)=(\S+) /.exec(cmd);
+    env[m[1]] = unquoteYamlScalar(m[2]);
+    cmd = cmd.slice(m[0].length);
+  }
+  return { env, cmd };
+}
+
+function formatWithEnv(env, cmd) {
+  const keys = Object.keys(env).sort();
+  if (keys.length === 0) return cmd;
+  return `${keys.map((k) => `${k}=${env[k]}`).join(" ")} ${cmd}`;
+}
+
+function normalizeCoreCommand(cmd) {
+  if (/^docker build\b/.test(cmd)) return "docker build";
+  return cmd;
+}
+
+function isTrackedCommand(cmd) {
+  return TRACKED_COMMAND.test(cmd);
+}
+
+function commandIdentity(raw, stepEnv = {}) {
+  const { env: lineEnv, cmd } = parseEnvPrefix(raw);
+  const core = normalizeCoreCommand(cmd);
+  if (!isTrackedCommand(core)) return null;
+  return formatWithEnv({ ...stepEnv, ...lineEnv }, core);
+}
+
+
+function lineIndent(line) {
+  return line.length - line.trimStart().length;
+}
+function isIgnorable(line) {
+  return line.trim() === "" || /^\s*#/.test(line);
+}
+function collectBlock(lines, startIndex, keyIndent) {
+  const body = [];
+  let i = startIndex;
+  for (; i < lines.length; i++) {
+    const line = lines[i];
+    if (line.trim() === "") continue;
+    if (lineIndent(line) <= keyIndent) break;
+    body.push(line);
+  }
+  return { body, next: i };
+}
+function applyScalar(lines, i, rest, keyIndent) {
+  const trimmed = rest.trim();
+  const isLiteral = trimmed === "|" || trimmed === "|-" || trimmed === "|+";
+  const isFolded = trimmed === ">" || trimmed === ">-" || trimmed === ">+";
+  if (isLiteral || isFolded) {
+    const { body, next } = collectBlock(lines, i + 1, keyIndent);
+    if (isFolded) {
+      const joined = body.map((l) => l.trim()).filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+      return { values: joined ? [joined] : [], next };
+    }
+    return { values: body.map((l) => l.trim()), next };
+  }
+  return { values: trimmed ? [trimmed] : [], next: i + 1 };
+}
+function parseYamlMap(lines, startIndex, mapIndent) {
+  const map = {};
+  let i = startIndex;
+  for (; i < lines.length; i++) {
+    const line = lines[i];
+    if (isIgnorable(line)) continue;
+    const indent = lineIndent(line);
+    if (indent < mapIndent) break;
+    if (indent > mapIndent) continue;
+    const m = /^\s*([^:#\s][^:]*)\s*:\s*(.*)$/.exec(line);
+    if (!m) break;
+    map[m[1].trim()] = unquoteYamlScalar(m[2]);
+  }
+  return { map, next: i };
+}
+
+function isAllowedCancelledIf(value) {
+  const norm = String(value ?? "").replace(/\$\{\{|\}\}/g, "").replace(/\s+/g, "");
+  return norm === "!cancelled()";
+}
+
+function normalizeGuardExpr(value) {
+  return String(value ?? "").replace(/\$\{\{|\}\}/g, "").replace(/\s+/g, "");
+}
+
+function isLiteralFalse(value) {
+  return normalizeGuardExpr(unquoteYamlScalar(value ?? "")).toLowerCase() === "false";
+}
+
+/** 出现 continue-on-error 键且值不是字面 false / ${{ false }} 即须登记（含 ${{ true }} / ${{ 1 }}）。 */
+function requiresContinueOnErrorRegistration(value) {
+  if (value === undefined) return false;
+  return !isLiteralFalse(value);
+}
+
+
+function parseDefaultsShell(lines, start, minIndent) {
+  let i = start;
+  let shell;
+  for (; i < lines.length; i++) {
+    if (isIgnorable(lines[i])) continue;
+    if (lineIndent(lines[i]) < minIndent) break;
+    const m = /^\s*shell:\s*(.*)$/.exec(lines[i]);
+    if (m) shell = unquoteYamlScalar(m[1]);
+  }
+  return { shell, next: i };
+}
+
+function parseWorkflowDefaultsShell(text) {
+  const lines = text.split(/\r?\n/);
+  for (let i = 0; i < lines.length; i++) {
+    if (/^defaults:\s*$/.test(lines[i])) {
+      const { shell } = parseDefaultsShell(lines, i + 1, 2);
+      return shell;
+    }
+    if (/^jobs:\s*$/.test(lines[i])) break;
+  }
+  return undefined;
+}
+
+function parseWorkflowDocument(text) {
+  const lines = text.split(/\r?\n/);
+  const defaultsShell = parseWorkflowDefaultsShell(text);
+  const jobs = [];
+  const steps = [];
+  let i = 0;
+  while (i < lines.length) {
+    const jobsHeading = /^( *)jobs:\s*$/.exec(lines[i]);
+    if (!jobsHeading) { i++; continue; }
+    const jobsIndent = jobsHeading[1].length;
+    const jobIndent = jobsIndent + 2;
+    const jobKeyIndent = jobIndent + 2;
+    const itemIndent = jobKeyIndent + 2;
+    i++;
+    while (i < lines.length) {
+      if (isIgnorable(lines[i])) { i++; continue; }
+      const indent = lineIndent(lines[i]);
+      if (indent <= jobsIndent) break;
+      const jobHead = new RegExp(`^ {${jobIndent}}([^\\s:][^:]*):\\s*$`).exec(lines[i]);
+      if (!jobHead) { i++; continue; }
+      const job = { id: jobHead[1], if: undefined, continueOnError: undefined, shell: undefined };
+      i++;
+      while (i < lines.length) {
+        if (isIgnorable(lines[i])) { i++; continue; }
+        const ji = lineIndent(lines[i]);
+        if (ji <= jobIndent) break;
+        const stepsHead = new RegExp(`^ {${jobKeyIndent}}steps:\\s*$`).exec(lines[i]);
+        if (stepsHead) {
+          i++;
+          const inheritedShell = job.shell ?? defaultsShell;
+          while (i < lines.length) {
+            if (isIgnorable(lines[i])) { i++; continue; }
+            const si = lineIndent(lines[i]);
+            if (si <= jobKeyIndent) break;
+            const item = new RegExp(`^ {${itemIndent}}-\\s+(.*)$`).exec(lines[i]);
+            if (!item) { i++; continue; }
+            const step = { name: "", if: undefined, continueOnError: undefined, env: {}, runLines: [], uses: "", shell: undefined, jobId: job.id, inheritedShell };
+            const loadKey = (raw, keyLine, keyIndent) => {
+              const km = /^([A-Za-z0-9_-]+)\s*:\s*(.*)$/.exec(raw);
+              if (!km) return keyLine + 1;
+              const key = km[1];
+              const rest = km[2];
+              if (key === "name") {
+                const { values, next } = applyScalar(lines, keyLine, rest, keyIndent);
+                step.name = values.join(" ").trim();
+                return next;
+              }
+              if (key === "uses") {
+                step.uses = unquoteYamlScalar(rest);
+                return keyLine + 1;
+              }
+              if (key === "if") {
+                const { values, next } = applyScalar(lines, keyLine, rest, keyIndent);
+                step.if = values.map(unquoteYamlScalar).join(" ");
+                return next;
+              }
+              if (key === "continue-on-error") {
+                step.continueOnError = unquoteYamlScalar(rest);
+                return keyLine + 1;
+              }
+              if (key === "shell") {
+                step.shell = unquoteYamlScalar(rest);
+                return keyLine + 1;
+              }
+              if (key === "env") {
+                const { map, next } = parseYamlMap(lines, keyLine + 1, keyIndent + 2);
+                step.env = map;
+                return next;
+              }
+              if (key === "run") {
+                const { values, next } = applyScalar(lines, keyLine, rest, keyIndent);
+                step.runLines.push(...values);
+                return next;
+              }
+              if (key === "with") {
+                const { next } = parseYamlMap(lines, keyLine + 1, keyIndent + 2);
+                return next;
+              }
+              return keyLine + 1;
+            };
+            i = loadKey(item[1], i, itemIndent + 2);
+            while (i < lines.length) {
+              if (isIgnorable(lines[i])) { i++; continue; }
+              const ki = lineIndent(lines[i]);
+              if (ki <= itemIndent) break;
+              const keyLine = new RegExp(`^ {${itemIndent + 2}}([A-Za-z0-9_-]+\\s*:.*)$`).exec(lines[i]);
+              if (keyLine) i = loadKey(keyLine[1], i, itemIndent + 2);
+              else i++;
+            }
+            steps.push(step);
+          }
+          continue;
+        }
+        const jobKey = new RegExp(`^ {${jobKeyIndent}}([A-Za-z0-9_-]+)\\s*:\\s*(.*)$`).exec(lines[i]);
+        if (jobKey) {
+          if (jobKey[1] === "if") job.if = unquoteYamlScalar(jobKey[2]);
+          if (jobKey[1] === "continue-on-error") job.continueOnError = unquoteYamlScalar(jobKey[2]);
+          if (jobKey[1] === "defaults") {
+            const { shell, next } = parseDefaultsShell(lines, i + 1, jobKeyIndent + 2);
+            job.shell = shell;
+            i = next;
+            continue;
+          }
+        }
+        i++;
+      }
+      jobs.push(job);
+    }
+  }
+  return { jobs, steps, defaultsShell };
+}
+
+
+function applyInlineExports(line, env) {
+  let rest = line.trim();
+  while (true) {
+    const exp = /^export\s+([A-Z][A-Z0-9_]*)=(\S+)(?:\s*;\s*|\s+&&\s+|\s*$)/.exec(rest);
+    if (!exp) break;
+    env[exp[1]] = unquoteYamlScalar(exp[2]);
+    rest = rest.slice(exp[0].length).trim();
+    if (!rest) return { env, rest: "" };
+  }
+  const uns = /^unset\s+([A-Z][A-Z0-9_]*)(?:\s*;\s*|\s+&&\s+|\s*$)/.exec(rest);
+  if (uns) {
+    delete env[uns[1]];
+    rest = rest.slice(uns[0].length).trim();
+  }
+  const ge = /^(?:echo|printf)\s+([A-Z][A-Z0-9_]*)=(\S+)\s*>>\s*"?\$\{?GITHUB_ENV\}?"?\s*$/.exec(rest);
+  if (ge) {
+    env[ge[1]] = unquoteYamlScalar(ge[2]);
+    rest = "";
+  }
+  return { env, rest };
+}
+
+function stepCommandIdentities(step) {
+  const env = { ...step.env };
+  const out = [];
+  for (const line of step.runLines) {
+    const { rest } = applyInlineExports(line, env);
+    if (!rest) continue;
+    const id = commandIdentity(rest, env);
+    if (id) out.push(id);
+  }
+  return out;
+}
+
+function workflowTrackedCommands(text) {
+  const { steps } = parseWorkflowDocument(text);
+  return steps.flatMap(stepCommandIdentities);
+}
+
+function extractLedgerMarkers(raw) {
+  const markers = { ifs: [], continueOnError: false, jobs: [], setPlusE: false, exitZero: false, shell: false };
+  for (const m of String(raw ?? "").matchAll(/`([^`]+)`/g)) {
+    const inner = m[1].trim();
+    const combo = /^job:\s*(\S+)\s+if:\s*(.+)$/i.exec(inner);
+    if (combo) {
+      markers.jobs.push(combo[1]);
+      markers.ifs.push(normalizeGuardExpr(combo[2]));
+      continue;
+    }
+    const ifm = /^if:\s*(.+)$/i.exec(inner);
+    if (ifm) markers.ifs.push(normalizeGuardExpr(ifm[1]));
+    if (/^continue-on-error\b/i.test(inner)) markers.continueOnError = true;
+    const jobm = /^job:\s*(\S+)$/i.exec(inner) || /^job\s+(\S+)$/i.exec(inner);
+    if (jobm) markers.jobs.push(jobm[1]);
+    if (/^set\s+\+e$/i.test(inner)) markers.setPlusE = true;
+    if (/^exit\s+0$/i.test(inner)) markers.exitZero = true;
+    if (/^shell:\s*/i.test(inner) || inner === "shell:") markers.shell = true;
+  }
+  return markers;
+}
+
+function rowRegistersIf(row, ifValue, jobId) {
+  const markers = extractLedgerMarkers(row.raw);
+  if (!markers.ifs.includes(normalizeGuardExpr(ifValue))) return false;
+  if (jobId) return markers.jobs.includes(jobId);
+  return markers.jobs.length === 0;
+}
+
+function rowRegistersContinueOnError(row, jobId) {
+  const markers = extractLedgerMarkers(row.raw);
+  if (!markers.continueOnError) return false;
+  if (jobId) return markers.jobs.includes(jobId);
+  return markers.jobs.length === 0;
+}
+
+function rowRegistersSemantic(row, kind, jobId) {
+  const markers = extractLedgerMarkers(row.raw);
+  const hit = kind === "set +e" ? markers.setPlusE : kind === "exit 0" ? markers.exitZero : kind === "shell" ? markers.shell : false;
+  if (!hit) return false;
+  if (jobId) return markers.jobs.includes(jobId);
+  return markers.jobs.length === 0;
+}
+
+function firstSignificantRunLine(step) {
+  for (const line of step.runLines) {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith("#")) return trimmed;
+  }
+  return "";
+}
+
+function stepSemanticIssues(step) {
+  const issues = [];
+  const shell = step.shell ?? step.inheritedShell;
+  if (shell !== undefined) issues.push({ kind: "shell", detail: shell });
+  const first = firstSignificantRunLine(step);
+  if (/^exit(\s+0)?(\s|;|$)/.test(first)) issues.push({ kind: "exit 0", detail: first });
+  if (step.runLines.some((l) => /^set\s+\+e\b/.test(l.trim()))) issues.push({ kind: "set +e", detail: "set +e" });
+  return issues;
+}
+
+function checkCiStepLedger(input = {}) {
+  const problems = [];
+  const read = (rel) => (existsSync(join(root, rel)) ? readFileSync(join(root, rel), "utf8") : undefined);
+  const doc = input.doc ?? read(CI_LEDGER_DOC);
+  const ciText = input.ciText ?? read(".github/workflows/ci.yml");
+  const nightlyText = input.nightlyText ?? read(".github/workflows/nightly-ciw2.yml");
+  const pkgText = input.pkgText ?? read("package.json");
+  if (!doc || !ciText || !nightlyText || !pkgText) return ["ci step ledger: missing ci-cd.md / ci.yml / nightly-ciw2.yml / package.json"];
+  const start = doc.indexOf("### 8.2");
+  const end = doc.indexOf("### 8.3", start + 1);
+  if (start < 0 || end < 0) return [`ci step ledger: ${CI_LEDGER_DOC} must contain §8.2 and §8.3 headings`];
+  const ledger = new Map();
+  const ledgerRows = [];
+  for (const line of doc.slice(start, end).split("\n")) {
+    if (!line.startsWith("|")) continue;
+    const cells = line.split("|").slice(1, -1).map((c) => c.trim());
+    if (cells.length < 4 || cells[0] === "#" || /^-+$/.test(cells[0])) continue;
+    const [id, , cmdCell, destCell] = cells;
+    let dest;
+    if (destCell.includes("保留")) dest = ["ci"];
+    else if (destCell.includes("仅 nightly")) dest = ["nightly"];
+    else if (destCell.includes("nightly")) dest = ["nightly", "local"];
+    else if (destCell.includes("本地手跑")) dest = ["local"];
+    else { problems.push(`ci step ledger: row ${id} has unknown destination ${JSON.stringify(destCell)}`); continue; }
+    const row = { id, dest, raw: line };
+    ledgerRows.push(row);
+    for (const m of cmdCell.matchAll(/`([^`]+)`/g)) {
+      const cmd = commandIdentity(m[1], {});
+      if (!cmd) continue;
+      if (ledger.has(cmd)) problems.push(`ci step ledger: command ${JSON.stringify(cmd)} listed twice (rows ${ledger.get(cmd).id} and ${id})`);
+      ledger.set(cmd, row);
+    }
+  }
+  if (ledger.size === 0) return [`ci step ledger: no commands parsed from ${CI_LEDGER_DOC} §8.2`];
+  const verifyLocal = JSON.parse(pkgText).scripts?.["verify:local"] ?? "";
+  const surfaces = {
+    ci: new Set(workflowTrackedCommands(ciText)),
+    nightly: new Set(workflowTrackedCommands(nightlyText)),
+    local: new Set(verifyLocal.split("&&").map((part) => commandIdentity(part, {})).filter(Boolean)),
+  };
+  const surfaceName = { ci: ".github/workflows/ci.yml", nightly: ".github/workflows/nightly-ciw2.yml", local: "package.json verify:local" };
+  for (const [surface, cmds] of Object.entries(surfaces)) {
+    for (const cmd of cmds) {
+      if (!ledger.has(cmd)) problems.push(`ci step ledger: ${surfaceName[surface]} runs ${JSON.stringify(cmd)} but ${CI_LEDGER_DOC} §8.2 has no row for it`);
+    }
+  }
+  for (const [cmd, { id, dest }] of ledger) {
+    for (const surface of Object.keys(surfaces)) {
+      const present = surfaces[surface].has(cmd);
+      if (dest.includes(surface) && !present) problems.push(`ci step ledger: row ${id} ${JSON.stringify(cmd)} declared in ${surfaceName[surface]} but missing there`);
+      if (!dest.includes(surface) && present && !CI_LEDGER_INFRA.has(cmd)) problems.push(`ci step ledger: row ${id} ${JSON.stringify(cmd)} also runs in ${surfaceName[surface]} but ledger destination excludes it`);
+    }
+  }
+
+  const checkWorkflowGuards = (text, surfaceLabel) => {
+    const { jobs, steps, defaultsShell } = parseWorkflowDocument(text);
+    for (const job of jobs) {
+      if (job.if !== undefined && !isAllowedCancelledIf(job.if)) {
+        const registered = ledgerRows.some((row) => rowRegistersIf(row, job.if, job.id));
+        if (!registered) problems.push(`ci step ledger: ${surfaceLabel} job ${JSON.stringify(job.id)} has if: ${JSON.stringify(job.if)} which is not !cancelled() and is not registered in ${CI_LEDGER_DOC} §8.2`);
+      }
+      if (requiresContinueOnErrorRegistration(job.continueOnError)) {
+        const registered = ledgerRows.some((row) => rowRegistersContinueOnError(row, job.id));
+        if (!registered) problems.push(`ci step ledger: ${surfaceLabel} job ${JSON.stringify(job.id)} has continue-on-error: ${JSON.stringify(job.continueOnError)} which is not registered in ${CI_LEDGER_DOC} §8.2`);
+      }
+      if (job.shell !== undefined) {
+        const registered = ledgerRows.some((row) => rowRegistersSemantic(row, "shell", job.id));
+        if (!registered) problems.push(`ci step ledger: ${surfaceLabel} job ${JSON.stringify(job.id)} has shell: ${JSON.stringify(job.shell)} which is not registered in ${CI_LEDGER_DOC} §8.2`);
+      }
+    }
+    if (defaultsShell !== undefined) {
+      const registered = ledgerRows.some((row) => rowRegistersSemantic(row, "shell"));
+      if (!registered) problems.push(`ci step ledger: ${surfaceLabel} workflow defaults.run.shell: ${JSON.stringify(defaultsShell)} which is not registered in ${CI_LEDGER_DOC} §8.2`);
+    }
+    for (const step of steps) {
+      const label = step.name || step.uses || step.runLines[0] || "(unnamed step)";
+      const associated = stepCommandIdentities(step).map((cmd) => ledger.get(cmd)).filter(Boolean);
+      if (step.if !== undefined && !isAllowedCancelledIf(step.if)) {
+        const registered = associated.some((row) => rowRegistersIf(row, step.if)) || (associated.length === 0 && ledgerRows.some((row) => rowRegistersIf(row, step.if)));
+        if (!registered) problems.push(`ci step ledger: ${surfaceLabel} step ${JSON.stringify(label)} has if: ${JSON.stringify(step.if)} which is not !cancelled() and is not registered in ${CI_LEDGER_DOC} §8.2`);
+      }
+      if (requiresContinueOnErrorRegistration(step.continueOnError)) {
+        const registered = associated.some((row) => rowRegistersContinueOnError(row)) || (associated.length === 0 && ledgerRows.some((row) => rowRegistersContinueOnError(row)));
+        if (!registered) problems.push(`ci step ledger: ${surfaceLabel} step ${JSON.stringify(label)} has continue-on-error: ${JSON.stringify(step.continueOnError)} which is not registered in ${CI_LEDGER_DOC} §8.2`);
+      }
+      for (const issue of stepSemanticIssues(step)) {
+        const registered = associated.some((row) => rowRegistersSemantic(row, issue.kind)) || (associated.length === 0 && ledgerRows.some((row) => rowRegistersSemantic(row, issue.kind)));
+        if (!registered) problems.push(`ci step ledger: ${surfaceLabel} step ${JSON.stringify(label)} has ${issue.kind}${issue.detail && issue.kind === "shell" ? `: ${JSON.stringify(issue.detail)}` : ""} which is not registered in ${CI_LEDGER_DOC} §8.2`);
+      }
+    }
+  };
+  checkWorkflowGuards(ciText, ".github/workflows/ci.yml");
+  checkWorkflowGuards(nightlyText, ".github/workflows/nightly-ciw2.yml");
+  return problems;
+}
+
+
+function ledgerFixture() {
+  const doc = [
+    "### 8.2 原 verify",
+    "",
+    "| # | 原步骤 | 命令 | 去向 |",
+    "|---|---|---|---|",
+    "| 1 | docs | `pnpm docs:check` | 保留（PR/main） |",
+    "| 2 | upgrade | `MIGRATE_UPGRADE_REQUIRE_GIT_ARM=1 pnpm migrate-upgrade:prove` | 移到 nightly（nightly-ciw2 · verify:local 亦含） |",
+    "| 41 | acl | `pnpm db-acl2:prove` ; `pnpm checkpoint-role:prove` | 移到 nightly（nightly-ciw2 · 42501 负门 · verify:local 亦含） |",
+    "",
+    "### 8.3 nightly",
+    "",
+  ].join("\n");
+  const ciText = [
+    "name: ci",
+    "jobs:",
+    "  verify:",
+    "    steps:",
+    "      - run: pnpm docs:check",
+    "",
+  ].join("\n");
+  const nightlyText = [
+    "name: nightly-ciw2",
+    "jobs:",
+    "  prove-placement:",
+    "    steps:",
+    "      - name: upgrade",
+    "        env:",
+    "          MIGRATE_UPGRADE_REQUIRE_GIT_ARM: '1'",
+    "        run: pnpm migrate-upgrade:prove",
+    "      - name: 权限 / RLS",
+    "        run: |",
+    "          pnpm db-acl2:prove",
+    "          pnpm checkpoint-role:prove",
+    "",
+  ].join("\n");
+  const pkgText = JSON.stringify({
+    scripts: {
+      "verify:local": "MIGRATE_UPGRADE_REQUIRE_GIT_ARM=1 pnpm migrate-upgrade:prove && pnpm db-acl2:prove && pnpm checkpoint-role:prove",
+    },
+  });
+  return { doc, ciText, nightlyText, pkgText };
+}
+
+function assertLedgerGateBlindspots() {
+  const problems = [];
+  const expectFail = (name, input, needle) => {
+    const found = checkCiStepLedger(input);
+    if (found.length === 0) {
+      problems.push(`ci step ledger counterexample ${name}: expected EXIT1-class problems, got none`);
+      return;
+    }
+    if (needle && !found.some((p) => p.includes(needle))) {
+      problems.push(`ci step ledger counterexample ${name}: expected a problem containing ${JSON.stringify(needle)}, got: ${found.join(" | ")}`);
+    }
+  };
+  const expectPass = (name, input) => {
+    const found = checkCiStepLedger(input);
+    if (found.length > 0) problems.push(`ci step ledger counterexample ${name}: expected clean, got: ${found.join(" | ")}`);
+  };
+
+  const base = ledgerFixture();
+  expectPass("baseline", base);
+
+  expectFail("F9-strip-local-env-prefix", {
+    ...base,
+    pkgText: JSON.stringify({ scripts: { "verify:local": "pnpm migrate-upgrade:prove && pnpm db-acl2:prove && pnpm checkpoint-role:prove" } }),
+  }, "MIGRATE_UPGRADE_REQUIRE_GIT_ARM=1 pnpm migrate-upgrade:prove");
+
+  expectFail("F9b-step-env-value-0", {
+    ...base,
+    nightlyText: base.nightlyText.replace("MIGRATE_UPGRADE_REQUIRE_GIT_ARM: '1'", "MIGRATE_UPGRADE_REQUIRE_GIT_ARM: '0'"),
+  }, "MIGRATE_UPGRADE_REQUIRE_GIT_ARM=0");
+
+  expectFail("F9g-export-overrides-env", {
+    ...base,
+    nightlyText: [
+      "name: nightly-ciw2",
+      "jobs:",
+      "  prove-placement:",
+      "    steps:",
+      "      - name: upgrade",
+      "        env:",
+      "          MIGRATE_UPGRADE_REQUIRE_GIT_ARM: '1'",
+      "        run: |",
+      "          export MIGRATE_UPGRADE_REQUIRE_GIT_ARM=0",
+      "          pnpm migrate-upgrade:prove",
+      "      - name: 权限 / RLS",
+      "        run: |",
+      "          pnpm db-acl2:prove",
+      "          pnpm checkpoint-role:prove",
+      "",
+    ].join("\n"),
+  }, "MIGRATE_UPGRADE_REQUIRE_GIT_ARM=0");
+
+  expectFail("F11-if-false", {
+    ...base,
+    ciText: [
+      "name: ci",
+      "jobs:",
+      "  verify:",
+      "    steps:",
+      "      - name: docs",
+      "        if: false",
+      "        run: pnpm docs:check",
+      "",
+    ].join("\n"),
+  }, 'if: "false"');
+
+  expectFail("F11g-multiline-step-if-0", {
+    ...base,
+    nightlyText: base.nightlyText.replace("      - name: 权限 / RLS\n        run: |", "      - name: 权限 / RLS\n        if: 0\n        run: |"),
+  }, 'if: "0"');
+
+  expectFail("F11j-nightly-job-if-0", {
+    ...base,
+    nightlyText: base.nightlyText.replace("  prove-placement:\n    steps:", "  prove-placement:\n    if: 0\n    steps:"),
+  }, 'job "prove-placement" has if: "0"');
+
+  expectFail("F12-continue-on-error-true", {
+    ...base,
+    ciText: [
+      "name: ci",
+      "jobs:",
+      "  verify:",
+      "    steps:",
+      "      - name: docs",
+      "        continue-on-error: true",
+      "        run: pnpm docs:check",
+      "",
+    ].join("\n"),
+  }, "continue-on-error");
+
+  expectFail("F12c-continue-on-error-expr-true", {
+    ...base,
+    nightlyText: base.nightlyText.replace("      - name: upgrade\n        env:", "      - name: upgrade\n        continue-on-error: ${{ true }}\n        env:"),
+  }, "continue-on-error");
+
+  expectFail("F12d-job-continue-on-error-expr-true", {
+    ...base,
+    nightlyText: base.nightlyText.replace("  prove-placement:\n    steps:", "  prove-placement:\n    continue-on-error: ${{ true }}\n    steps:"),
+  }, 'job "prove-placement" has continue-on-error');
+
+  expectFail("F12f-continue-on-error-expr-1", {
+    ...base,
+    ciText: [
+      "name: ci",
+      "jobs:",
+      "  verify:",
+      "    steps:",
+      "      - name: docs",
+      "        continue-on-error: ${{ 1 }}",
+      "        run: pnpm docs:check",
+      "",
+    ].join("\n"),
+  }, "continue-on-error");
+
+  expectFail("F13-env-FOO-pnpm-unregistered", {
+    ...base,
+    ciText: base.ciText + "      - run: env FOO=1 pnpm foo:prove\n",
+  }, "FOO=1 pnpm foo:prove");
+
+  expectFail("F14-bash-unregistered", {
+    ...base,
+    ciText: base.ciText + "      - run: bash scripts/foo.sh\n",
+  }, "bash scripts/foo.sh");
+
+  expectFail("F14b-npx-unregistered", {
+    ...base,
+    ciText: base.ciText + "      - run: npx tsx scripts/foo.ts\n",
+  }, "npx tsx scripts/foo.ts");
+
+  expectFail("F15-cd-and-pnpm-unregistered", {
+    ...base,
+    ciText: base.ciText + "      - run: cd apps/api && pnpm prove:foo\n",
+  }, "cd apps/api && pnpm prove:foo");
+
+  expectFail("F15d-folded-run-extra-args", {
+    ...base,
+    ciText: [
+      "name: ci",
+      "jobs:",
+      "  verify:",
+      "    steps:",
+      "      - run: >",
+      "          pnpm docs:check",
+      "          --strict",
+      "",
+    ].join("\n"),
+  }, "pnpm docs:check --strict");
+
+  expectFail("N1-leading-exit-0", {
+    ...base,
+    ciText: [
+      "name: ci",
+      "jobs:",
+      "  verify:",
+      "    steps:",
+      "      - name: docs",
+      "        run: |",
+      "          exit 0",
+      "          pnpm docs:check",
+      "",
+    ].join("\n"),
+  }, "exit 0");
+
+  expectFail("N2-set-plus-e", {
+    ...base,
+    ciText: [
+      "name: ci",
+      "jobs:",
+      "  verify:",
+      "    steps:",
+      "      - name: docs",
+      "        run: |",
+      "          set +e",
+      "          pnpm docs:check",
+      "          echo done",
+      "",
+    ].join("\n"),
+  }, "set +e");
+
+  expectFail("N8-shell-override", {
+    ...base,
+    nightlyText: base.nightlyText.replace("      - name: 权限 / RLS\n        run: |", "      - name: 权限 / RLS\n        shell: bash {0}\n        run: |"),
+  }, "shell:");
+
+  expectPass("allowed-if-cancelled", {
+    ...base,
+    nightlyText: [
+      "name: nightly-ciw2",
+      "jobs:",
+      "  prove-placement:",
+      "    steps:",
+      "      - name: upgrade",
+      "        if: ${{ !cancelled() }}",
+      "        env:",
+      "          MIGRATE_UPGRADE_REQUIRE_GIT_ARM: '1'",
+      "        run: pnpm migrate-upgrade:prove",
+      "      - name: 权限 / RLS",
+      "        run: |",
+      "          pnpm db-acl2:prove",
+      "          pnpm checkpoint-role:prove",
+      "",
+    ].join("\n"),
+  });
+
+  expectPass("registered-if-false", {
+    ...base,
+    doc: base.doc.replace("| 1 | docs | `pnpm docs:check` | 保留（PR/main） |", "| 1 | docs | `pnpm docs:check` | 保留（PR/main · 登记 `if: false`） |"),
+    ciText: [
+      "name: ci",
+      "jobs:",
+      "  verify:",
+      "    steps:",
+      "      - name: docs",
+      "        if: false",
+      "        run: pnpm docs:check",
+      "",
+    ].join("\n"),
+  });
+
+  expectPass("registered-continue-on-error", {
+    ...base,
+    doc: base.doc.replace("| 1 | docs | `pnpm docs:check` | 保留（PR/main） |", "| 1 | docs | `pnpm docs:check` | 保留（PR/main · 登记 `continue-on-error`） |"),
+    ciText: [
+      "name: ci",
+      "jobs:",
+      "  verify:",
+      "    steps:",
+      "      - name: docs",
+      "        continue-on-error: true",
+      "        run: pnpm docs:check",
+      "",
+    ].join("\n"),
+  });
+
+  expectPass("registered-job-if-0", {
+    ...base,
+    doc: base.doc.replace(
+      "| 2 | upgrade | `MIGRATE_UPGRADE_REQUIRE_GIT_ARM=1 pnpm migrate-upgrade:prove` | 移到 nightly（nightly-ciw2 · verify:local 亦含） |",
+      "| 2 | upgrade | `MIGRATE_UPGRADE_REQUIRE_GIT_ARM=1 pnpm migrate-upgrade:prove` | 移到 nightly（nightly-ciw2 · verify:local 亦含 · 登记 `job: prove-placement` `if: 0`） |",
+    ),
+    nightlyText: base.nightlyText.replace("  prove-placement:\n    steps:", "  prove-placement:\n    if: 0\n    steps:"),
+  });
+
+  expectFail("job-if-0-without-job-id-marker", {
+    ...base,
+    doc: base.doc.replace(
+      "| 2 | upgrade | `MIGRATE_UPGRADE_REQUIRE_GIT_ARM=1 pnpm migrate-upgrade:prove` | 移到 nightly（nightly-ciw2 · verify:local 亦含） |",
+      "| 2 | upgrade | `MIGRATE_UPGRADE_REQUIRE_GIT_ARM=1 pnpm migrate-upgrade:prove` | 移到 nightly（nightly-ciw2 · verify:local 亦含 · 登记 `if: 0`） |",
+    ),
+    nightlyText: base.nightlyText.replace("  prove-placement:\n    steps:", "  prove-placement:\n    if: 0\n    steps:"),
+  }, 'job "prove-placement" has if: "0"');
+
+  expectPass("literal-false-continue-on-error-ok", {
+    ...base,
+    ciText: [
+      "name: ci",
+      "jobs:",
+      "  verify:",
+      "    steps:",
+      "      - name: docs",
+      "        continue-on-error: false",
+      "        run: pnpm docs:check",
+      "",
+    ].join("\n"),
+  });
+
+  return problems;
+}
+
+const LEDGER_BLINDSPOT_CASES = [
+  "F9-strip-local-env-prefix", "F9b-step-env-value-0", "F9g-export-overrides-env",
+  "F11-if-false", "F11g-multiline-step-if-0", "F11j-nightly-job-if-0",
+  "F12-continue-on-error-true", "F12c-continue-on-error-expr-true", "F12d-job-continue-on-error-expr-true", "F12f-continue-on-error-expr-1",
+  "F13-env-FOO-pnpm-unregistered", "F14-bash-unregistered", "F14b-npx-unregistered", "F15-cd-and-pnpm-unregistered", "F15d-folded-run-extra-args",
+  "N1-leading-exit-0", "N2-set-plus-e", "N8-shell-override",
+];
+
+function assertBlindspotHarnessWired() {
+  const problems = [];
+  const self = readFileSync(new URL(import.meta.url).pathname, "utf8");
+  // 必须是 runCiStepLedgerGate 里的展开调用，不能靠源码其它地方（含本函数报错文案）的同名子串蒙混。
+  const wired = /function\s+runCiStepLedgerGate\s*\(\s*\)\s*\{[^}]*\.\.\.checkCiStepLedger\s*\(\s*\)\s*,\s*\.\.\.assertLedgerGateBlindspots\s*\(\s*\)\s*,\s*\.\.\.assertBlindspotHarnessWired\s*\(\s*\)/.test(self);
+  if (!wired) problems.push("ci step ledger: in-gate counterexample harness is not wired inside runCiStepLedgerGate");
+  for (const name of LEDGER_BLINDSPOT_CASES) {
+    if (!self.includes(`"${name}"`)) problems.push(`ci step ledger: in-gate counterexample ${name} is missing from the harness`);
+  }
+  return problems;
+}
+
+function runCiStepLedgerGate() {
+  return [...checkCiStepLedger(), ...assertLedgerGateBlindspots(), ...assertBlindspotHarnessWired()];
+}
+
+for (const problem of runCiStepLedgerGate()) errors.push(problem);
 
 const publicTextPolicy = scanPublicTextPolicy({ repoRoot: root });
 for (const policyError of publicTextPolicy.errors) errors.push(`public_text_policy:${policyError}`);

@@ -13,7 +13,7 @@
  *   2) 静态断言已闭合三风险面（A1 算术/A2 config 锚传播/A4 负断言）；
  *   3) est live=0 全保。
  *
- * A1 预算算术：PGPOOL_MAX 单值解析 + principal.ts:946 单源 + 恰两处显式 max:1 +
+ * A1 预算算术：PGPOOL_MAX 单值解析 + principal.ts 单源（内容锚·行号非门） + 恰两处显式 max:1 +
  *   6P+4 公式双断言（P=12→76·余 21·≤97）+ [10,15] 端点数字 + 越界 FAIL=漂移门。
  * A2 锚传播：compose.prod+ha 双文件全 `:?` 必填变量动态枚举 stub（ha-2 B8 口径，
  *   实测 85 distinct + MEETWISE_HA_WEB_B_HOST_PORT 显式旋钮 = 86 stub）→ config EXIT=0，
@@ -63,7 +63,6 @@ function pass(msg) { lines.push(`PASS  ${msg}`); }
 function fail(msg) { lines.push(`FAIL  ${msg}`); exitCode = 1; }
 function check(ok, okMsg, failMsg) { if (ok) pass(okMsg); else fail(failMsg); }
 function readRepoText(p) { return readFileSync(join(root, p), 'utf8'); }
-function lineAt(text, n) { return (text.split('\n')[n - 1] ?? ''); }
 
 // ── 滚动注册帧（HA6-REPIN REQUEST sanctioned 2026-10-14·append-only）──
 // 再注册唯一通道=REQUEST 补审（授权越触后更新 blob+追加登记行·Ban 静默改 blob）。
@@ -71,8 +70,8 @@ const ROLLING_REGISTRY = [
   { file: 'scripts/ha/probe.multi.mjs', blob: 'b91917e8ede075e08b080f7a9ae76933cfe36dcd',
     registered: '8ae2a93e', note: 'HA6-REPIN 初注册（fail-closed 面整文件·旧 8ba93f0b 零 diff 态顺承）' },
   { file: 'package.json', kind: 'scripts-set',
-    digest: '2413a56e01392022ed76ec991e2031732f5ea757', registered: '96f8e0d79',
-    note: 'rev2 R5 基线 scripts 键值集 digest（计算式唯此一条：git show <tip>:package.json | jq -cS \'.scripts\' | git hash-object --stdin·8ae2a93e 与 rev2 起草树亲证恒等·Node JSON.stringify 键排序形=96e70b39e30b781c3d9065c071613c9630d4729d 与本值字节不同形已证·rev2 复审 P2 实测勘正原示例 3ef5dc2f 不可复现废·Ban 另造等价形替算）·2026-10-26 L-04 补审重注册（micro-batch2-REQUEST §1.B·EXEC tip 复算）：8ae2a93e→8f2fdb83c scripts 纯增 45 键（653→698·0 删）·additive 演进漏补审承登·旧值 106e457929a535e9b87d303b94d7487adbbca054 退役留痕·2026-11-06 L-04 二次补审重注册（small-fixes-1105-REQUEST §1·工作树双读臂复核时发现 main 届漂：HEAD=工作树=d7540d569 恒等≠登记 cc72940df·注册 tip af55b8b 复算）：8f2fdb83c→af55b8b scripts 纯增 63 键（698→761·0 删·key-level diff 亲证）·2026-10-26 后诸刀 additive 演进漏补审承登·旧值 cc72940dfce57af2c9b379896a3a286797d5198f@8f2fdb83c 退役留痕·2026-11-06 勘误（xs-2 报告 P2-c·键=值对拍补登）：上注「纯增 63 键（698→761·0 删）」系键名层面——digest 钉键值对，8f2fdb83c→af55b8b 区间另有既有键值改 1 笔=root `lint` 帽 5274→5410，全部步进落在 main 侧 base 92a82a944 之前（届值逐笔：8f2fdb83c=5274→5284 caf1bef08 放宽告警配额登记→5296 9c4784bc5 EXEC 落卷→5358 16fd29bae 并线配额收敛→5379 5a560411a 并线→5383 128a35e9b 并线配额收敛→5389 967df9728 uc15f EXEC LINT-SANCTION→5408 6fe89f3f9 uc50 并线 LINT-SANCTION 双帽恰等→5410 70597801c uc3m EXEC 常设预授权恰等步进；sanction 承登三卷在案=uc3m-REQUEST §lint 预算段/卷尾+quizdx-REQUEST §0.0.3.0 基线重 pin+regw-REQUEST EXEC rebase 复跑注「root 帽 main 侧 5408→5410 与本刀零涉」）·本批 92a82a944..af55b8b 零触 root package.json（git log 亲证空集）·该笔值改随 63 键净增一并入账非静默放宽·「纯增 0 删」措辞自本勘误起按「键名纯增 63·键值改 1」口径读·2026-11-06 EXEC 并线三补审重注册（small-fixes-1105-REQUEST EXEC·rebase 并线 origin/main d549a497b=#212 期发现 main 届漂：#211 ONLINE-PAY EXEC `e4ab3b4cb` 对 root package.json .scripts additive 纯增 1 键 `online-pay:s1:prove`·本支零触 root package.json git log 亲证）：af55b8b→96f8e0d79 scripts 键名纯增 1（761→762·0 删·0 值改·key-level diff 亲证恰此一笔）·HEAD=工作树=2413a56e 恒等亲证·注册 tip 96f8e0d79 复算（本 EXEC 刀零触 root package.json·值随终 tip 恒等）·旧值 d7540d5694cdddf7b954be7666f3aab02b59dc9a@af55b8b 退役留痕·沿 L-04 二次补审同构先例形' },
+    digest: '693dd08fd0fd144522ad4fa117a409f2d8c389f4', registered: 'c94c4a3d6',
+    note: 'rev2 R5 基线 scripts 键值集 digest（计算式唯此一条：git show <tip>:package.json | jq -cS \'.scripts\' | git hash-object --stdin·8ae2a93e 与 rev2 起草树亲证恒等·Node JSON.stringify 键排序形=96e70b39e30b781c3d9065c071613c9630d4729d 与本值字节不同形已证·rev2 复审 P2 实测勘正原示例 3ef5dc2f 不可复现废·Ban 另造等价形替算）·2026-10-26 L-04 补审重注册（micro-batch2-REQUEST §1.B·EXEC tip 复算）：8ae2a93e→8f2fdb83c scripts 纯增 45 键（653→698·0 删）·additive 演进漏补审承登·旧值 106e457929a535e9b87d303b94d7487adbbca054 退役留痕·2026-11-06 L-04 二次补审重注册（small-fixes-1105-REQUEST §1·工作树双读臂复核时发现 main 届漂：HEAD=工作树=d7540d569 恒等≠登记 cc72940df·注册 tip af55b8b 复算）：8f2fdb83c→af55b8b scripts 纯增 63 键（698→761·0 删·key-level diff 亲证）·2026-10-26 后诸刀 additive 演进漏补审承登·旧值 cc72940dfce57af2c9b379896a3a286797d5198f@8f2fdb83c 退役留痕·2026-11-06 勘误（xs-2 报告 P2-c·键=值对拍补登）：上注「纯增 63 键（698→761·0 删）」系键名层面——digest 钉键值对，8f2fdb83c→af55b8b 区间另有既有键值改 1 笔=root `lint` 帽 5274→5410，全部步进落在 main 侧 base 92a82a944 之前（届值逐笔：8f2fdb83c=5274→5284 caf1bef08 放宽告警配额登记→5296 9c4784bc5 EXEC 落卷→5358 16fd29bae 并线配额收敛→5379 5a560411a 并线→5383 128a35e9b 并线配额收敛→5389 967df9728 uc15f EXEC LINT-SANCTION→5408 6fe89f3f9 uc50 并线 LINT-SANCTION 双帽恰等→5410 70597801c uc3m EXEC 常设预授权恰等步进；sanction 承登三卷在案=uc3m-REQUEST §lint 预算段/卷尾+quizdx-REQUEST §0.0.3.0 基线重 pin+regw-REQUEST EXEC rebase 复跑注「root 帽 main 侧 5408→5410 与本刀零涉」）·本批 92a82a944..af55b8b 零触 root package.json（git log 亲证空集）·该笔值改随 63 键净增一并入账非静默放宽·「纯增 0 删」措辞自本勘误起按「键名纯增 63·键值改 1」口径读·2026-11-06 EXEC 并线三补审重注册（small-fixes-1105-REQUEST EXEC·rebase 并线 origin/main d549a497b=#212 期发现 main 届漂：#211 ONLINE-PAY EXEC `e4ab3b4cb` 对 root package.json .scripts additive 纯增 1 键 `online-pay:s1:prove`·本支零触 root package.json git log 亲证）：af55b8b→96f8e0d79 scripts 键名纯增 1（761→762·0 删·0 值改·key-level diff 亲证恰此一笔）·HEAD=工作树=2413a56e 恒等亲证·注册 tip 96f8e0d79 复算（本 EXEC 刀零触 root package.json·值随终 tip 恒等）·旧值 d7540d5694cdddf7b954be7666f3aab02b59dc9a@af55b8b 退役留痕·沿 L-04 二次补审同构先例形·2026-11-11 三次补审重注册（ha6:prove main 存量三红修复刀·本刀零触 root package.json·注册 tip c94c4a3d6 复算公式 git show <tip>:package.json | jq -cS \'.scripts\' | git hash-object --stdin）：2413a56e@96f8e0d79/e4ab3b4cb（762 键）→693dd08f@c94c4a3d6（771 键）·键名纯增 9（762→771·0 删·key-level diff 亲证）=apih:cost-rl:prove（07bccd8a2）+conflict-markers:check/prove（b947f7299 FIX-G3）+e2e-ui-stale-build-guard:prove（1f7f7f9b6）+migrate-upgrade:prove/raw（49165f42e G1）+tenant-rls-isolation:prove/raw（51f94c700）+uc031-032:structure:prove（9cd789ee3）·键值改 2 笔=root `lint` 帽 5410→5425（5c803621a R2 e2e testHttp 重构 warning 计入 sanctioned）+`voice-adaptive:prove` 由 `pnpm -C apps/worker prove:voice-adaptive` 改配 `node scripts/run-e2e-isolated.mjs voice-adaptive:prove:raw`（dd766036e 隔离跑器·与邻近 DB 证明同形制）·HEAD=工作树=693dd08fd0fd144522ad4fa117a409f2d8c389f4 恒等亲证·旧值 2413a56e01392022ed76ec991e2031732f5ea757@96f8e0d79/e4ab3b4cb 退役留痕·沿 L-04 / 2026-11-06 二次补审同构先例形（Ban 静默改账·再注册通道=本刀补审 append）' },
 ];
 const SCRIPTS_MUST_EXIST = ['ha6:prove', 'migrate:prove', 'docs:check', 'drift:prove'];
 const SCRIPTS_MUST_NOT_EXIST = ['breaker:prove', 'prove:breaker']; // 724d61b5 AG24 sanctioned 双删·防复活（rev2 R3-P2 补第二键）
@@ -117,12 +116,15 @@ check(Number.isInteger(P), `PGPOOL_MAX parses as integer (got ${pgpoolLines[0]})
 check(P >= PGPOOL_MIN && P <= PGPOOL_MAX_BOUND, `P=${P} within dual-review window [${PGPOOL_MIN},${PGPOOL_MAX_BOUND}]`,
   `P=${P} out of [${PGPOOL_MIN},${PGPOOL_MAX_BOUND}] — 修法漂移，回 REQUEST 补审（越界漂移门）`);
 
-// 单源锚 principal.ts:946
+// 单源锚：内容正则+count 门（HA6-REPIN ① 行号降非门读数）。
+// 原 :946 行号钉随主线演进位移（现树 :779）·表达式字节未变·A5 同形内容门仍在。
 const principal = readRepoText('packages/db/src/principal.ts');
-const l946 = lineAt(principal, 946);
-check(/max: Number\(o\.max \?\? process\.env\.PGPOOL_MAX \?\? 20\)/.test(l946),
-  'principal.ts:946 single-source pool max expression pinned',
-  'principal.ts:946 pool max single-source expression drifted');
+const a1SingleSourceHits = principal.split('\n')
+  .map((l, i) => ({ l, n: i + 1 }))
+  .filter(({ l }) => /max: Number\(o\.max \?\? process\.env\.PGPOOL_MAX \?\? 20\)/.test(l));
+check(a1SingleSourceHits.length === 1,
+  `principal.ts single-source pool max expression pinned (hit-line :${a1SingleSourceHits[0]?.n ?? '?'})`,
+  'principal.ts pool max single-source expression drifted');
 
 // 显式 max:1 生产池恰两处（sse-listen / job-wakeup）——内容集合门（HA6-REPIN 内容化·命中行号只作非门读数）
 const maxOneHits = [];
