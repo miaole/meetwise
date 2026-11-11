@@ -48,7 +48,7 @@ import {
   parseE2EFailureLine,
   tagE2EFailure,
 } from '../e2e/helpers/failure-class.mjs';
-import { captureBounded, appendStderrTail, commandLabel, disposableDockerRmArgs, writeFailureStderrTail, installDisposableContainerSignalCleanup } from './bounded-command.mjs';
+import { captureBounded, appendStderrTail, commandLabel, disposableDockerRmArgs, writeFailureStderrTail, installDisposableContainerSignalCleanup, registerFailureRedactionSecrets } from './bounded-command.mjs';
 import { assertNoFakeServiceFlags } from './e2e-fake-service-flags.mjs';
 import { writeLocalE2EReceipt, writeLocalIsolatedReceipt } from './local-e2e-receipt.mjs';
 import { withheldOutputSummary } from './withheld-output.mjs';
@@ -4109,6 +4109,7 @@ for (const key of [
 for (const key of Object.keys(inheritedEnv)) if (key.startsWith('LANGFUSE_')) delete inheritedEnv[key];
 if (LIVE_E2E_TARGETS.has(target)) assertNoFakeServiceFlags(inheritedEnv);
 const targetToken = randomUUID();
+registerFailureRedactionSecrets(['meetwise_dev_password', targetToken]);
 const baseEnv = {
   ...inheritedEnv,
   E2E_ISOLATED: '1',

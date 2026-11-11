@@ -4,7 +4,7 @@
   "scope": "e2e/ test+assertion parity plus agreed critical prove scripts",
   "floors": {
     "testCount": 53,
-    "assertionCount": 528
+    "assertionCount": 544
   },
   "files": {
     "e2e/full.e2e.ts": {
@@ -2338,7 +2338,7 @@
     },
     "scripts/bounded-command.proof.mjs": {
       "testCount": 1,
-      "assertionCount": 64,
+      "assertionCount": 80,
       "tests": [
         {
           "kind": "implicit-suite",
@@ -2666,6 +2666,86 @@
           "kind": "assert.ok",
           "label": "signal fixture must mount a volume",
           "conditionDigest": "sha256:b6c13e023892fa44f2d92112373f58f508c24146847d43d3dda9653d9d97f305"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "${item.id} Error must omit plaintext",
+          "conditionDigest": "sha256:8e32b7663638d66a86178e00a8ad71aaadb43804ab7222d5744a3e9e4824f2b7"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "${item.id} label must not echo --eval source",
+          "conditionDigest": "sha256:d3fb008432d7ababfb5aafca785a35fe479cb58a788784b5829e87bba029706d"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "${item.id} must not leak plaintext",
+          "conditionDigest": "sha256:df768976c1197cb9d6a5cba6b2c15aba4a40d958fe80c510fb726f882b14358d"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "adversarial matrix must be 28/28 clean",
+          "conditionDigest": "sha256:5b21c4b43f7a8a07a461c6c9b12c08b4f400ac23179410551562709a42475ca6"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "adversarial matrix must stay at the reviewed 28 items",
+          "conditionDigest": "sha256:dc77a5bba5c090b40471f0ba9e51ee6be236ee1f2fc1f4a992c73825a0275c8e"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "all 28 matrix items must run",
+          "conditionDigest": "sha256:2bf0695a4507ac85083ec0a491d32c42279ae9039a3c9c75a8293fa24b878641"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "empty-user postgres URL must redact",
+          "conditionDigest": "sha256:eafdd44685b25306be34f0e71b3adf8958557c2c346b3d7cf318d90c99de008b"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "matrix Error.message stays a fixed code",
+          "conditionDigest": "sha256:ad932cb73e3831354c6072a32b91f1adeedb4e01a2731e76f9550c24757484d3"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "matrix failure stays BoundedCommandError",
+          "conditionDigest": "sha256:60e6ff92cf328b146faadbd7ba181e7fb1a0e0a102ac3e57b97035b08ad8e629"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "ordinary password wording must not be over-redacted",
+          "conditionDigest": "sha256:3dee0554373f812acdd4e13bc65ad5c52fd67b93f0bcdca59689032ab4929be0"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "ordinary timing logs must be preserved",
+          "conditionDigest": "sha256:5c66dcd99bb5ac99283b94d4d6f2da4ba0da1a70ee3664458be0e29dcf6a72c4"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "passwordPolicy JSON key must not match password",
+          "conditionDigest": "sha256:6d9e52d5fa7d5630d6c260bfb0ce61edd3883fe133fe861ad0e7603c378df9b7"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "PWD= working directory must not be treated as a secret",
+          "conditionDigest": "sha256:7439f2a6d5086badd6cf78c650aec39673d8e2c07fb5c08e2afd0cef7725715c"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "removing ${spec.rule} must leak ${id}",
+          "conditionDigest": "sha256:5d2c148aa15d172e4ca278d894854a7617945977317c6fc01e1df81719892b41"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "unkeyed non-secret base64 must not be blanket-redacted",
+          "conditionDigest": "sha256:acd54ddc0a28abc318836fee898ac21bcfc214fbc333837a83858cb55992b45e"
+        },
+        {
+          "kind": "assert.ok",
+          "label": "removing ${spec.rule} must make its matrix items leak",
+          "conditionDigest": "sha256:9991c6dff105bb406929cd39757feb725366a8cf36b90783e9e427111326fd95"
         }
       ]
     },

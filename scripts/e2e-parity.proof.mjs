@@ -89,11 +89,11 @@ const checks = {
     assert.equal(result.stats.releaseEvidence, false);
     assert.equal(result.stats.fileCount, 7);
     assert.equal(result.stats.testCount, 39);
-    assert.equal(result.stats.assertionCount, 480);
+    assert.equal(result.stats.assertionCount, 496);
     assert.equal(result.stats.floors.testCount, 53);
-    assert.equal(result.stats.floors.assertionCount, 528);
+    assert.equal(result.stats.floors.assertionCount, 544);
     assert.equal(result.stats.effectiveFloors.testCount, 39);
-    assert.equal(result.stats.effectiveFloors.assertionCount, 480);
+    assert.equal(result.stats.effectiveFloors.assertionCount, 496);
     assert.equal(result.stats.allowlistCount, 10);
   },
 

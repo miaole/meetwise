@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { captureBounded, BoundedCommandError, appendStderrTail, writeFailureStderrTail, disposableDockerRmArgs, PROTECTED_NAMED_VOLUME_COMPOSE, commandLabel, redactFailureText } from './bounded-command.mjs';
+import { captureBounded, BoundedCommandError, appendStderrTail, writeFailureStderrTail, disposableDockerRmArgs, PROTECTED_NAMED_VOLUME_COMPOSE, commandLabel, redactFailureText, registerFailureRedactionSecrets } from './bounded-command.mjs';
 
 const minimalEnv = { PATH: process.env.PATH ?? '', LANG: 'C', LC_ALL: 'C', TZ: 'UTC' };
 
@@ -149,6 +149,185 @@ assert.match(secretPrinted, /postgres:\/\/u:\*\*\*@h\/db/, 'URL userinfo keeps t
 assert.equal(/Bearer\s+eyJ/i.test(secretPrinted), false, 'Bearer value must not appear');
 assert.match(secretPrinted, /\[REDACTED\]/, 'Bearer/Authorization material is replaced');
 console.log('PASS  失败 stderr 尾部脱敏：连接串、sk- 密钥、Bearer、e2e_run_token 均不出现，标签不含 argv');
+
+
+const FAKE = 'FAKE_SECRET_mw250';
+function fakeSecret(suffix) {
+  return `${FAKE}_${suffix}`;
+}
+
+function findLeaks(text, needles) {
+  return needles.filter((needle) => needle && String(text).includes(needle));
+}
+
+async function captureRedacted(payload, { extraArgs = [], redaction } = {}) {
+  const chunks = [];
+  const sink = { write(chunk) { chunks.push(String(chunk)); return true; } };
+  const evalSrc = `process.stderr.write(${JSON.stringify(payload)}); process.exit(2)`;
+  let errorText = '';
+  try {
+    await captureBounded(process.execPath, ['--eval', evalSrc, ...extraArgs], {
+      cwd: process.cwd(), env: minimalEnv, timeoutMs: 2_000, stderrSink: sink, redaction,
+    });
+  } catch (error) {
+    errorText = String(error);
+    assert.equal(error instanceof BoundedCommandError, true, 'matrix failure stays BoundedCommandError');
+    assert.equal(error.message, 'bounded_command_exit_nonzero', 'matrix Error.message stays a fixed code');
+  }
+  return { printed: chunks.join(''), errorText, evalSrc };
+}
+
+function matrixCases() {
+  const pgp = fakeSecret('pgp');
+  const urlPw = fakeSecret('url');
+  const redisPw = fakeSecret('redis');
+  const jpw = fakeSecret('json');
+  const jtok = fakeSecret('tok');
+  const rawB64 = fakeSecret('b64');
+  const b64 = Buffer.from(rawB64, 'utf8').toString('base64');
+  const urlText = `postgres://u:${urlPw}@h/db`;
+  const b64Url = Buffer.from(urlText, 'utf8').toString('base64');
+  const encUrl = encodeURIComponent(`postgres://meetwise:${urlPw}@127.0.0.1/meetwise`);
+  return [
+    { id: 'B-PGPASSWORD', kind: 'capture', payload: `PGPASSWORD=${pgp}\n`, needles: [pgp] },
+    { id: 'B-pgpassword-lower', kind: 'capture', payload: `pgpassword=${pgp}low\n`, needles: [`${pgp}low`] },
+    { id: 'B-PgPassword-mixed', kind: 'capture', payload: `PgPassword=${pgp}mix\n`, needles: [`${pgp}mix`] },
+    { id: 'B-POSTGRES_PASSWORD', kind: 'capture', payload: `POSTGRES_PASSWORD=${pgp}pg\n`, needles: [`${pgp}pg`] },
+    { id: 'B-postgres-url', kind: 'capture', payload: `postgres://meetwise:${urlPw}@127.0.0.1:5432/meetwise\n`, needles: [urlPw] },
+    { id: 'B-postgresql-url', kind: 'capture', payload: `postgresql://meetwise:${urlPw}2@db.example/meetwise\n`, needles: [`${urlPw}2`] },
+    { id: 'B-redis-colon-url', kind: 'capture', payload: `redis://:${redisPw}@127.0.0.1:6379/0\n`, needles: [redisPw] },
+    { id: 'B-redis-colon-url-direct', kind: 'redact', payload: `redis://:${redisPw}@127.0.0.1:6379/0`, needles: [redisPw] },
+    { id: 'B-json-password', kind: 'capture', payload: `${JSON.stringify({ password: jpw })}\n`, needles: [jpw] },
+    { id: 'B-json-token', kind: 'capture', payload: `${JSON.stringify({ token: jtok })}\n`, needles: [jtok] },
+    { id: 'B-json-password-spaced', kind: 'capture', payload: `{ "password": "${jpw}sp" }\n`, needles: [`${jpw}sp`] },
+    { id: 'B-json-passwd', kind: 'capture', payload: `${JSON.stringify({ passwd: fakeSecret('passwd') })}\n`, needles: [fakeSecret('passwd')] },
+    { id: 'B-json-pwd', kind: 'capture', payload: `${JSON.stringify({ pwd: fakeSecret('pwd') })}\n`, needles: [fakeSecret('pwd')] },
+    { id: 'B-base64-raw', kind: 'capture', payload: `payload=${b64}\n`, needles: [rawB64, b64] },
+    { id: 'B-base64-of-url', kind: 'capture', payload: `${b64Url}\n`, needles: [urlPw, b64Url] },
+    { id: 'B-urlencoded-full-url', kind: 'capture', payload: `redirect=${encUrl}\n`, needles: [urlPw, encUrl] },
+    { id: 'B-urlencoded-password-in-url', kind: 'capture', payload: `postgres://meetwise:${encodeURIComponent(urlPw)}@127.0.0.1/db\n`, needles: [urlPw, encodeURIComponent(urlPw)] },
+    { id: 'B-assignment-newline', kind: 'capture', payload: `PGPASSWORD=\n${pgp}nl\n`, needles: [`${pgp}nl`] },
+    { id: 'B-url-password-newline', kind: 'capture', payload: `postgres://meetwise:\n${urlPw}nl@127.0.0.1/db\n`, needles: [`${urlPw}nl`] },
+    { id: 'B-chunked-assignment', kind: 'chunked', needles: [fakeSecret('chunk')] },
+    { id: 'B-tail-window-end-still-keyed', kind: 'window-keyed', needles: [fakeSecret('trunc')] },
+    { id: 'B-tail-window-orphan-value', kind: 'window-orphan', needles: [fakeSecret('orphan')] },
+    { id: 'B-label-docker-e', kind: 'label-docker', needles: [fakeSecret('argv'), 'POSTGRES_PASSWORD'] },
+    { id: 'B-label-eval', kind: 'label-eval', needles: [fakeSecret('eval'), 'PGPASSWORD', '--eval'] },
+    { id: 'B-docker-run-argv-sink', kind: 'docker-sink', needles: [fakeSecret('argv2'), `POSTGRES_PASSWORD=${fakeSecret('argv2')}`] },
+    { id: 'B-DB_PASS', kind: 'capture', payload: `DB_PASS=${fakeSecret('dbpass')}\n`, needles: [fakeSecret('dbpass')] },
+    { id: 'B-MYSQL_PWD', kind: 'capture', payload: `MYSQL_PWD=${fakeSecret('mysql')}\n`, needles: [fakeSecret('mysql')] },
+    { id: 'B-AWS_SECRET_ACCESS_KEY', kind: 'capture', payload: `AWS_SECRET_ACCESS_KEY=${fakeSecret('awskey')}\n`, needles: [fakeSecret('awskey')] },
+  ];
+}
+
+function allMatrixSecrets(cases) {
+  return [...new Set(cases.flatMap((item) => item.needles).filter((needle) => String(needle).startsWith(FAKE)))];
+}
+
+async function evaluateMatrixItem(item, redaction) {
+  if (item.kind === 'redact') {
+    return redactFailureText(item.payload, redaction);
+  }
+  if (item.kind === 'chunked') {
+    const secret = item.needles[0];
+    let tail = appendStderrTail('', Buffer.from('PGPASSWORD='), 8 * 1024, redaction);
+    tail = appendStderrTail(tail, Buffer.from(`${secret}\n`), 8 * 1024, redaction);
+    const chunks = [];
+    writeFailureStderrTail(tail, { exitCode: 2, command: 'node', redaction }, { write(chunk) { chunks.push(String(chunk)); return true; } });
+    return chunks.join('');
+  }
+  if (item.kind === 'window-keyed' || item.kind === 'window-orphan') {
+    const secret = item.needles[0];
+    const payload = item.kind === 'window-keyed'
+      ? `${'X'.repeat(9000)}PGPASSWORD=${secret}\n`
+      : `${'Z'.repeat((8 * 1024) - 10)}PGPASSWORD=${secret}`;
+    const tail = appendStderrTail('', Buffer.from(payload), 8 * 1024, redaction);
+    const chunks = [];
+    writeFailureStderrTail(tail, { exitCode: 2, command: 'node', redaction }, { write(chunk) { chunks.push(String(chunk)); return true; } });
+    return chunks.join('');
+  }
+  if (item.kind === 'label-docker') {
+    return commandLabel('/usr/bin/docker', ['run', '--rm', '-e', `POSTGRES_PASSWORD=${fakeSecret('argv')}`, 'pgvector/pgvector:pg16']);
+  }
+  if (item.kind === 'label-eval') {
+    return commandLabel('/usr/local/bin/node', ['--eval', `process.env.PGPASSWORD='${fakeSecret('eval')}'`]);
+  }
+  if (item.kind === 'docker-sink') {
+    const chunks = [];
+    const sink = { write(chunk) { chunks.push(String(chunk)); return true; } };
+    try {
+      await captureBounded('docker', ['run', '--rm', '-e', `POSTGRES_PASSWORD=${fakeSecret('argv2')}`, 'mwha250-nonexistent.invalid/none:tag'], {
+        cwd: process.cwd(), env: minimalEnv, timeoutMs: 8_000, stderrSink: sink, redaction,
+      });
+    } catch {
+      // expected: the image does not exist
+    }
+    return chunks.join('');
+  }
+  const captured = await captureRedacted(item.payload, { redaction });
+  assert.equal(captured.printed.includes(captured.evalSrc), false, `${item.id} label must not echo --eval source`);
+  assert.equal(findLeaks(captured.errorText, item.needles).length, 0, `${item.id} Error must omit plaintext`);
+  return captured.printed;
+}
+
+const matrix = matrixCases();
+assert.equal(matrix.length, 28, 'adversarial matrix must stay at the reviewed 28 items');
+const previousSecrets = registerFailureRedactionSecrets(allMatrixSecrets(matrix));
+const matrixResults = [];
+try {
+  for (const item of matrix) {
+    const printed = await evaluateMatrixItem(item, { knownSecrets: allMatrixSecrets(matrix) });
+    const leaked = findLeaks(printed, item.needles);
+    matrixResults.push({ id: item.id, leaked });
+    assert.equal(leaked.length, 0, `${item.id} must not leak plaintext`);
+  }
+} finally {
+  registerFailureRedactionSecrets(previousSecrets);
+}
+assert.equal(matrixResults.length, 28, 'all 28 matrix items must run');
+assert.equal(matrixResults.every((item) => item.leaked.length === 0), true, 'adversarial matrix must be 28/28 clean');
+const postgresColon = fakeSecret('pgcolon');
+assert.equal(findLeaks(redactFailureText(`postgres://:${postgresColon}@127.0.0.1:5432/db`, { knownSecrets: [] }), [postgresColon]).length, 0, 'empty-user postgres URL must redact');
+console.log('PASS  对抗矩阵 28/28 不漏：JSON 字段、空用户名 URL、短键名、整段 URL 编码、跨行切断、已知密钥 base64 均已脱敏');
+
+const ordinaryLog = 'INFO job completed in 12ms; retry queue depth=3';
+assert.equal(redactFailureText(ordinaryLog, { knownSecrets: [] }), ordinaryLog, 'ordinary timing logs must be preserved');
+const workingDirLog = 'current working directory PWD=/workspace/meetwise-proof';
+assert.equal(redactFailureText(workingDirLog, { knownSecrets: [] }), workingDirLog, 'PWD= working directory must not be treated as a secret');
+const passwordSentence = 'User asked about their password reset email';
+assert.equal(redactFailureText(passwordSentence, { knownSecrets: [] }), passwordSentence, 'ordinary password wording must not be over-redacted');
+const passwordPolicy = '{"passwordPolicy":"strict","status":"ok"}';
+assert.equal(redactFailureText(passwordPolicy, { knownSecrets: [] }), passwordPolicy, 'passwordPolicy JSON key must not match password');
+const benignB64 = Buffer.from('ordinary log line about interview scoring').toString('base64');
+const benignPayload = `payload=${benignB64}`;
+assert.equal(redactFailureText(benignPayload, { knownSecrets: [] }).includes(benignB64), true, 'unkeyed non-secret base64 must not be blanket-redacted');
+console.log('PASS  否定臂：普通日志、PWD=、password 叙述和无键名非密钥 base64 不被误杀');
+
+const mutationSpecs = [
+  { rule: 'jsonField', ids: ['B-json-password', 'B-json-token', 'B-json-password-spaced', 'B-json-passwd', 'B-json-pwd'] },
+  { rule: 'emptyUsername', ids: ['B-redis-colon-url', 'B-redis-colon-url-direct'] },
+  { rule: 'shortAssignmentKeys', ids: ['B-DB_PASS', 'B-MYSQL_PWD'] },
+  { rule: 'encodedUrl', ids: ['B-urlencoded-full-url'] },
+  { rule: 'multilineUserinfo', ids: ['B-url-password-newline'] },
+  { rule: 'knownValue', ids: ['B-base64-raw'] },
+];
+for (const spec of mutationSpecs) {
+  const redaction = {
+    knownSecrets: spec.rule === 'knownValue' ? allMatrixSecrets(matrix) : [],
+    rules: { [spec.rule]: false },
+  };
+  const leakedIds = [];
+  for (const item of matrix.filter((entry) => spec.ids.includes(entry.id))) {
+    const printed = await evaluateMatrixItem(item, redaction);
+    if (findLeaks(printed, item.needles).length > 0) leakedIds.push(item.id);
+  }
+  assert.ok(leakedIds.length > 0, `removing ${spec.rule} must make its matrix items leak`);
+  for (const id of spec.ids) {
+    assert.equal(leakedIds.includes(id), true, `removing ${spec.rule} must leak ${id}`);
+  }
+}
+console.log('PASS  反证：去掉任一新规则后，对应矩阵项会漏出明文');
+
 
 function volumeNamesMountedOn(containerName) {
   const inspected = spawnSync('docker', [
