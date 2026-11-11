@@ -222,7 +222,10 @@ function endpoint(cfg: { baseUrl?: string; apiKey?: string; model?: string; cost
  *  MODEL-OP-02 边界（诚实声明）：端点级「熔断打开 → 切 backup」的降级信号已随 per-adapter circuitBreaker
  *  移除——共享断路器现在住在 invoke() 的操作级（decision 非 admitted 直接返回 model_circuit_open /
  *  model_circuit_half_open / model_concurrency_exhausted 等确定性拒绝，不再触发本链 prepare 的降级）。
- *  端点级（per-provider）failover 与「单一网关统一路由」一并延后到 MODEL-OP-04。 */
+ *  端点级（per-provider）failover 与「单一网关统一路由」一并延后到 MODEL-OP-04。
+ *  G5 N-14 更新：七个 text op（预绑定对表 preboundCostFailoverProfiles）已由 invoke() 在 durable claim
+ *  之前接线——主端点分区断路器挡路（0231 只读探查）即经本链 prepare 的 route 提示改选备端点；
+ *  同键已有行按其端点粘住。claim 之后换端点仍是 model_failover_cost_policy_mismatch（零改）。 */
 function withFailover(model?: string, costs: { primary?: ModelCostPolicy; backup?: ModelCostPolicy } = {}, backupModel?: string): ModelClient {
   const primary = endpoint(model ? { model, costPolicy: costs.primary } : { costPolicy: costs.primary });
   // L3 fix: 这里过去直接读 process.env.MODEL_BACKUP_API_KEY 而不 trim，而 isTextBackupEnabled（同仓库

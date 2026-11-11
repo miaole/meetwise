@@ -1,5 +1,6 @@
 /** Database target parser proof: no hidden local defaults or URL/component split-brain. */
 import { createPool, rebindDatabaseLogin, resolveDatabaseConnectionString } from '../src/index.ts';
+import * as principalSrc from '../src/principal.ts';
 
 // 测试夹具凭据一律环境变量派生（门禁约束：测试不落凭据字面量；默认值=原夹具值，运行时语义不变，除非显式注入 env）。
 const MEETWISE_TEST_FIXTURE_1 = 'rag-control-proof-password';
@@ -27,6 +28,25 @@ function errorCode(fn: () => unknown): string | undefined {
   try { fn(); return undefined; }
   catch (error) { return String((error as Error).message); }
 }
+
+const revokeGrantee = (principalSrc as { assertMwAdminRevokeExecAllGrantee?: (roleName: string) => string }).assertMwAdminRevokeExecAllGrantee;
+const revokeGranteeError = (roleName: string): string | undefined => {
+  if (typeof revokeGrantee !== 'function') return undefined;
+  try { revokeGrantee(roleName); return undefined; }
+  catch (error) { return String((error as Error).message); }
+};
+const INJECTION_ROLE = 'app_role; GRANT postgres TO victim; --';
+A('revoke_exec_all grantee 助手已导出（修前缺席则红）', typeof revokeGrantee === 'function');
+A('revoke_exec_all grantee 拒绝注入角色名',
+  (revokeGranteeError(INJECTION_ROLE) ?? '').startsWith('mw_admin_revoke_exec_all_grantee_not_allowlisted:'));
+A('revoke_exec_all grantee 拒绝大写合法角色名 AppRole（RUNTIME_ROLE_NAME 仅小写；0229 FROM %s 未引号，大写不能安全传入）',
+  (revokeGranteeError('AppRole') ?? '').startsWith('mw_admin_revoke_exec_all_grantee_not_allowlisted:'));
+A('revoke_exec_all grantee 放行 PUBLIC', typeof revokeGrantee === 'function' && revokeGrantee('PUBLIC') === 'PUBLIC');
+A('revoke_exec_all grantee 放行 app_role', typeof revokeGrantee === 'function' && revokeGrantee('app_role') === 'app_role');
+A('revoke_exec_all grantee 拒绝空串与分号片段',
+  (revokeGranteeError('') ?? '').startsWith('mw_admin_revoke_exec_all_grantee_not_allowlisted:')
+  && (revokeGranteeError('app_role;') ?? '').startsWith('mw_admin_revoke_exec_all_grantee_not_allowlisted:'));
+
 
 try {
   reset();
