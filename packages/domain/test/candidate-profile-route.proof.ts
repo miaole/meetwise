@@ -6,6 +6,8 @@ import {
   CANDIDATE_ROUTE_POLICY_VERSION, CANDIDATE_ROUTE_TAXONOMY_VERSION, CANDIDATE_ROUTE_ALLOCATION_BPS,
   candidateRouteDecisionHash, classifyCandidateProfileByRule,
 } from '../src/index.ts';
+/** N17 视图(宽松读形:修前导出缺失时 proof 仍可加载并如实 FAIL)。 */
+type ArbView = { decided: boolean; leafTrackId?: string; targetRoleApplied?: boolean; resumeDegradedFrom?: string; policyVersion: string; inputDigest: string; reason?: string };
 
 let fail = 0;
 let total = 0;
@@ -158,6 +160,47 @@ A('v4-e 语言叶优先序零翻：general+唯一语言叶 → 仍直取语言�
 const v4f = classifyCandidateProfileByRule('自动化测试');
 A('v4-f v3 g6 形零翻：裸「自动化测试」单独在场（唯一命中）→ 仍 decided qa（单叶臂=强证据）',
   v4f.decided === true && v4f.leafTrackId === 'qa/quality_engineering' && v4f.degraded === false);
+
+/* ── 6. G6 N-17 targetRole 参与裁决（重构审查 P2-5·修前 targetRole 只写 payload 不参与裁决）──────── */
+{
+  const dm = await import('../src/index.ts') as Record<string, unknown>;
+  const arb = dm.arbitrateCandidateRouteWithTargetRole as undefined | ((raw: string, role?: string) => ArbView);
+  A('N17-0 domain 导出 arbitrateCandidateRouteWithTargetRole（修前缺失=targetRole 无裁决入口）', typeof arb === 'function');
+  if (typeof arb === 'function') {
+    const AMBIG = 'Java Spring 微服务开发；Python Django 数据平台'; // ≥2 specific → 简历降级 general
+    const NOSIG = '负责团队管理与项目沟通';                         // 零命中 → 简历降级 general
+    const PLAIN = 'Java Spring Boot，Redis，MySQL';                   // 非降级 → backend/java
+    const base = classifyCandidateProfileByRule(AMBIG);
+    A('N17-a 前提：歧义简历单独 rule = general 降级（ambiguous_language_evidence）',
+      base.decided && base.leafTrackId === 'backend/general' && base.degraded === true);
+    const r1 = arb(AMBIG, 'Java 后端工程师');
+    A('N17-b 歧义简历 + targetRole「Java 后端工程师」→ backend/java（targetRole 做裁决·targetRoleApplied）',
+      r1.decided && r1.leafTrackId === 'backend/java' && r1.targetRoleApplied === true && r1.resumeDegradedFrom === 'ambiguous_language_evidence');
+    A('N17-c 采纳时 policyVersion 追加 +target-role:v1 后缀（≤64 字符 0142 CHECK）且 digest ≠ 纯简历 digest',
+      r1.policyVersion === `${CANDIDATE_ROUTE_POLICY_VERSION}+target-role:v1` && r1.policyVersion.length <= 64
+      && r1.inputDigest !== arb(AMBIG).inputDigest && /^[0-9a-f]{64}$/.test(r1.inputDigest));
+    const r2 = arb(NOSIG, '前端开发工程师');
+    A('N17-d 零命中简历 + targetRole「前端开发工程师」→ frontend/web', r2.decided && r2.leafTrackId === 'frontend/web' && r2.targetRoleApplied === true);
+    const r3 = arb(PLAIN, 'Python 工程师');
+    A('N17-e 简历非降级（java）+ 冲突 targetRole → 简历证据胜，零翻现状 policy/digest',
+      r3.decided && r3.leafTrackId === 'backend/java' && r3.targetRoleApplied === false
+      && r3.policyVersion === CANDIDATE_ROUTE_POLICY_VERSION && r3.inputDigest === arb(PLAIN).inputDigest);
+    const r4 = arb(AMBIG);
+    const r5 = arb(AMBIG, '   ');
+    const r6 = arb(AMBIG, '后端开发');       // targetRole 只命中 general → 不改
+    const r7 = arb(AMBIG, '产品经理');       // targetRole 零命中 → 不改
+    const r8 = arb(AMBIG, 'Java/Python 工程师'); // targetRole 自身歧义 → 不改
+    A('N17-f 缺省/空白/仅 general/零命中/自身歧义 targetRole → 原降级 general，policy/digest 与修前逐字节一致',
+      [r4, r5, r6, r7, r8].every((r) => r.decided && r.leafTrackId === 'backend/general' && r.targetRoleApplied === false
+        && r.policyVersion === CANDIDATE_ROUTE_POLICY_VERSION && r.inputDigest === r4.inputDigest));
+    const r9 = arb('', 'Java 后端工程师');
+    A('N17-g 空简历 + targetRole → 仍 profile_empty 未决（409 profile_unavailable 防御面保留·targetRole 不替代简历）',
+      r9.decided === false && r9.reason === 'profile_empty');
+    const r10 = arb(AMBIG, '自动化测试');    // qa 弱证据单独 → 单叶臂=强证据（同词典同闸）
+    const r11 = arb(AMBIG, 'Java 后端工程师');
+    A('N17-h 确定性：同输入同决策（leaf/policy/digest 全等）', JSON.stringify(r11) === JSON.stringify(r1) && r10.decided === true);
+  }
+}
 
 console.log(`\n${fail === 0 ? `✓ #133 ROUTE-DICT 词典 v3 + v4 #270 更强证据闸 + 409 退役降级臂全部通过（fixture ${files.length} 份 · 断言 ${total} 项）` : '✗ ' + fail + ' 失败'}`);
 process.exit(fail === 0 ? 0 : 1);

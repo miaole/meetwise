@@ -143,6 +143,7 @@ export {
   enqueueInterviewJob, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, failQueuedInterviewJobsOnAbandon, enumerateOwnersWithJobs,
   renewInterviewJobLease, sweepStuckInterviewJobs, requeueInterviewJob, MAX_INTERVIEW_JOB_ATTEMPTS, INTERVIEW_RESUME_REFERENCE_VERSION,
   DEFAULT_INTERVIEW_PER_OWNER_INFLIGHT, purgeStaleInterviewJobPayloads, INTERVIEW_STUCK_PAYLOAD_TTL_SECONDS,
+  stripConsumedInterviewAnswerPlaintext,
 } from './interview/interview-jobs.ts';
 export type { JobKind, ClaimedInterviewJob, ClaimedInterviewJobRequestId, ClaimedInterviewAnswerPayload, InterviewClaimBudget } from './interview/interview-jobs.ts';
 
@@ -160,7 +161,7 @@ export { readGraphRunObservation, recordGraphRunObservation, graphRunPositionIsS
 
 // server-issued question / answer identity ledger (stale resume 与双标签页的图外 fencing)
 export {
-  answerHash, persistInterviewQuestion, claimInterviewAnswer, verifyInterviewAnswerClaim,
+  answerHash, persistInterviewQuestion, claimInterviewAnswer, verifyInterviewAnswerClaim, isInterviewAnswerApplied,
   markInterviewAnswerApplied, cancelOpenInterviewQuestion,
   asrOutcomeForStoredTranscript, rememberIssuedQuestionTranscript, loadTranscribedAnswerJobPayload,
   issuedAsrTraceKey, TEXT_ONLY_ASR_OUTCOME,
