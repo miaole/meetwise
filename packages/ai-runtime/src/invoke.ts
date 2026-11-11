@@ -910,6 +910,10 @@ async function invokeClaimPhase<T>(args: InvokeClaimArgs<T>): Promise<InvokePhas
         args.setSpanCostModel?.(plan.cost?.model);
         continue;
       }
+      // 粘性重试已选定对侧端点，但该端点的校准派发预算拒绝。应回传预算错误，
+      // 而不是触发这次单次粘性尝试的原 digest 墙（idempotency_key_payload_mismatch）。
+      span(0, 'deterministic_refusal', 0);
+      return { terminal: true, outcome: { error: budget.error } };
     }
     if (claim.action === 'failed' || claim.action === 'unknown') { span(0, 'deterministic_refusal', 0); return { terminal: true, outcome: { error: claim.error } }; }
     if (Date.now() >= deadline) { span(0, 'exhausted', 0); return { terminal: true, outcome: { error: 'model_invocation_wait_timeout' } }; }

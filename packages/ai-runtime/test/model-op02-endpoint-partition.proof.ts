@@ -11,12 +11,14 @@
  * invoke 在 claim 前改选预绑定备端点并真派发；断路器闭合 → 主端点原值；同键已有备端点 claim
  * 行 → 粘住备端点（不撞 payload_mismatch）；无备用 → model_circuit_open 原值；0231 只读探查
  * 零写、app_role 可执行/PUBLIC 不可执行。修前（无接线）承重臂 EXIT 1，修后 EXIT 0。
+ * N14-6（#255 follow-up）：粘性重试时对侧校准预算失败须报 model_context_budget_exceeded
+ * （修前误报 idempotency_key_payload_mismatch；修前 EXIT 1 / 修后 EXIT 0 / 反证去掉预算回传 EXIT 1）。
  *
  * 运行方式：pnpm model-op02-endpoint-partition:prove（scripts/run-e2e-isolated.mjs
  * 一次性 pgvector 容器 + 全量迁移）。不 require 任何真实 provider；确定性 stub/seam。
  */
 import { z } from 'zod';
-import { asPrincipal, assertIsolatedTestTarget, createPool, peekModelAdmissionBreaker } from '@meetwise/db';
+import { asPrincipal, assertIsolatedTestTarget, createPool, insertUsageCalibrationFactor, peekModelAdmissionBreaker } from '@meetwise/db';
 import {
   invoke, resolveModelAdmissionPartition, failoverModel, modelFor,
   type Model, type ModelClient, type ModelCostPolicy,
@@ -319,6 +321,61 @@ async function proveN14FailoverWiring() {
     peek === 'available' && after?.phase === 'open' && after?.probeToken === null
       && acl?.app === true && acl?.pub === false);
   await setBreaker('deepseek-cn-public', 'closed');
+
+  // N14-6（#255 follow-up）：粘性重试时对侧校准预算失败，须回传 model_context_budget_exceeded，
+  // 而不是原 digest 墙 idempotency_key_payload_mismatch。首轮无因子（fail-closed 放过）切备后
+  // 双侧挡路释放 claim；随后只给备模型写入击穿因子，两侧恢复后同键重试：主侧无因子通过预算门，
+  // 撞墙后粘回备端点，备侧精化估算击穿 maxInputTokens。
+  const SERVICE_BUDGET = 'n14-sticky-budget';
+  const ESTIMATE = 800; // policy.maxInputTokens=1000；factor=2 → refined=1600 击穿
+  const scriptedEst = (side: 'primary' | 'backup', profile: 'deepseek-cn-public' | 'dashscope-cn-beijing', model: string): ModelClient => {
+    const cost = policyFor(model);
+    const complete: ModelClient['complete'] = async () => {
+      calls[side]++;
+      return { ok: true as const, raw: { answer: side }, usage: { inputTokens: 100, outputTokens: 200 } };
+    };
+    return {
+      complete,
+      prepare: (req, attempt, signal) => ({
+        ready: true as const, execute: (s2?: AbortSignal) => complete(req, attempt, s2 ?? signal), cost,
+        admissionEndpoint: { providerAccount: profile, region: 'cn' },
+        estimateInputTokens: ESTIMATE,
+      }),
+    };
+  };
+  const chainEst = () => modelFor(
+    failoverModel([scriptedEst('primary', 'deepseek-cn-public', MODEL_P), scriptedEst('backup', 'dashscope-cn-beijing', MODEL_B)]),
+    { service: SERVICE_BUDGET, system: 's', userData: 'u' },
+  );
+  const runEst = (key: string) => invoke({
+    idempotencyKey: key, operation: { id: OP, businessRevision: key },
+    schema: ANSWER_SCHEMA, businessValidate: () => null, model: chainEst(),
+    service: SERVICE_BUDGET,
+  }, pool, OWNER);
+  await setBreaker('deepseek-cn-public', 'open');
+  await setBreaker('dashscope-cn-beijing', 'open');
+  const k6 = `n14:sticky-budget-${suffix}`;
+  const r6a = await runEst(k6);
+  const claim6a = await claimModel(k6);
+  const inserted = await asPrincipal(pool, OWNER, (c) => insertUsageCalibrationFactor(c, {
+    owner: OWNER, service: SERVICE_BUDGET, model: MODEL_B, estimator: 'utf8-bytes-v1',
+    factorVersion: `utf8-bytes-v1.calibration-v1.${'a'.repeat(64)}`,
+    factor: 2, rawMaxRatio: 2, safetyMargin: 0, observationCount: 1, hasUnderEstimate: false,
+  }));
+  if (!inserted) throw new Error('n14-6 calibration factor insert failed');
+  await setBreaker('deepseek-cn-public', 'closed');
+  await setBreaker('dashscope-cn-beijing', 'closed');
+  const before6 = { ...calls };
+  const r6b = await runEst(k6);
+  const claim6b = await claimModel(k6);
+  A('N14-6 粘性重试对侧校准预算失败 → model_context_budget_exceeded（非 idempotency_key_payload_mismatch；零外呼；claim 仍为已释放零预约）',
+    'error' in r6a && r6a.error === 'model_circuit_open' && claim6a?.status === 'claimed' && !claim6a?.model
+      && 'error' in r6b && r6b.error === 'model_context_budget_exceeded'
+      && calls.primary === before6.primary && calls.backup === before6.backup
+      && claim6b?.status === 'claimed' && !claim6b?.model);
+  if (!('error' in r6b) || r6b.error !== 'model_context_budget_exceeded') {
+    console.log(`      N14-6 实际返回: a=${JSON.stringify(r6a)} b=${JSON.stringify(r6b)}`);
+  }
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });
