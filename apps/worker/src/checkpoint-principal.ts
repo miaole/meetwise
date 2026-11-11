@@ -119,7 +119,8 @@ const SQLSTATE_RE = /^[0-9A-Z]{5}$/;
 type ReleaseWarnEvent =
   | 'checkpoint_pg_double_release'
   | 'checkpoint_pg_release_unhandled'
-  | 'checkpoint_pg_release_holder_mismatch';
+  | 'checkpoint_pg_release_holder_mismatch'
+  | 'checkpoint_pg_stale_handle';
 
 function warnReleasePath(event: ReleaseWarnEvent, error?: unknown): void {
   let code: string = event;
@@ -135,32 +136,41 @@ function isDoubleRelease(error: unknown): boolean {
   return DOUBLE_RELEASE_RE.test(message);
 }
 
-const CHECKOUT_HOLDER = Symbol.for('meetwise.checkpointCheckoutHolder');
-type HolderMarked = { [CHECKOUT_HOLDER]?: object };
+function staleHandleError(): Error {
+  warnReleasePath('checkpoint_pg_stale_handle');
+  return Object.assign(new Error('checkpoint_pg_stale_handle'), { code: 'checkpoint_pg_stale_handle' });
+}
 
-function installReleaseCleanup(client: any): { releaseAsync: () => Promise<void> } {
-  const holder = {};
-  (client as HolderMarked)[CHECKOUT_HOLDER] = holder;
+/**
+ * Each checkout returns a dedicated handle (a proxy), not the shared pg Client.
+ * query / release / releaseAsync live only on that handle. After the handle is
+ * returned to the pool, a later release or query on it warns and throws; it
+ * cannot look up the live client.release property and so cannot release the
+ * next holder. The raw once-fn is closed over at checkout, immediately after
+ * acquire and before any await.
+ *
+ * A leftover release on a previous shared-wrapper path used to return early
+ * when the holder token did not match, leaving the client checked out forever
+ * (pool counts stuck, checkout timeout). That path is gone: stale handles do
+ * not touch the live checkout, and the live handle still returns or destroys
+ * the client so idle/total/waiting can recover.
+ */
+function installReleaseCleanup(client: any): any {
+  serializeClientQueries(client);
+
   const originalRelease = client.release.bind(client) as (err?: ReleaseArg) => void;
   let releasePromise: Promise<void> | null = null;
   let originalReleased = false; // RELEASE_ONCE_GUARD
-
-  serializeClientQueries(client);
+  let handleOpen = true;
 
   const releaseOnce = (err?: ReleaseArg): void => {
-    if ((client as HolderMarked)[CHECKOUT_HOLDER] !== holder) {
-      warnReleasePath('checkpoint_pg_release_holder_mismatch');
-      return;
-    }
     if (originalReleased) return; // RELEASE_ONCE_GUARD
     originalReleased = true;
     try {
       originalRelease(err);
     } catch (error) {
       if (isDoubleRelease(error)) {
-        // Fail-closed: this checkout's once-fn was already consumed (often a
-        // cross-holder leftover release). Do not pretend the client is ours to
-        // hand on, and do not swallow into a successful runRelease.
+        // Fail-closed: this checkout once-fn was already consumed.
         warnReleasePath('checkpoint_pg_double_release', error);
         throw error;
       }
@@ -181,18 +191,24 @@ function installReleaseCleanup(client: any): { releaseAsync: () => Promise<void>
       } catch (resetErr) {
         if (isDoubleRelease(resetErr)) throw resetErr;
         // Destroy: never return a still-privileged connection to the pool.
-        // releaseOnce is idempotent — a racing first release must not throw here
-        // (the uncaught throw at this line was the inflight=16 worker crash).
         releaseOnce(resetErr instanceof Error ? resetErr : true);
       }
     })();
     return releasePromise;
   };
 
+  const releaseAsync = (err?: ReleaseArg): Promise<void> => {
+    if (!handleOpen) throw staleHandleError();
+    handleOpen = false;
+    return runRelease(err);
+  };
+
   // pg.PoolClient.release is sync void; callers (PostgresSaver) do not await.
   // Keep the client checked out until async cleanup finishes, then call the
-  // original release — that is the pool-return gate.
-  client.release = (err?: ReleaseArg) => {
+  // closed-over original release — that is the pool-return gate.
+  const release = (err?: ReleaseArg): void => {
+    if (!handleOpen) throw staleHandleError();
+    handleOpen = false;
     // Swallow rejection: fire-and-forget must never become unhandledRejection.
     // Fence / privacy errors still propagate through query() callers.
     void runRelease(err).catch((error) => {
@@ -200,7 +216,20 @@ function installReleaseCleanup(client: any): { releaseAsync: () => Promise<void>
     });
   };
 
-  return { releaseAsync: () => runRelease() };
+  const query: ClientQueryFn = (...args: unknown[]) => {
+    if (!handleOpen) throw staleHandleError();
+    return client.query(...args);
+  };
+
+  return new Proxy(client, {
+    get(target: any, prop: string | symbol) {
+      if (prop === 'release') return release;
+      if (prop === 'releaseAsync') return releaseAsync;
+      if (prop === 'query') return query;
+      const val = target[prop];
+      return typeof val === 'function' ? val.bind(target) : val;
+    },
+  });
 }
 
 /**
@@ -222,24 +251,24 @@ export class PrincipalBoundCheckpointPool {
 
   async connect(): Promise<any> {
     const client = await this.pool.connect();
-    // Wrap release synchronously after acquire and before any await, so a
-    // leftover client.release() cannot hit the raw pg-pool once-fn for the next holder.
-    const { releaseAsync } = installReleaseCleanup(client);
-    (client as { releaseAsync?: () => Promise<void> }).releaseAsync = releaseAsync;
+    // CHECKOUT_HANDLE: return a per-checkout handle. Do not assign release or
+    // query wrappers onto the shared pg Client, so a leftover release on an
+    // old handle cannot hit the next holder once-fn or wrapper.
+    const handle = installReleaseCleanup(client);
     try {
       const access = requireAccess();
       // Session-scoped (not LOCAL): required for PostgresSaver autocommit reads.
-      await client.query('SET ROLE app_role');
-      await client.query(
+      await handle.query('SET ROLE app_role');
+      await handle.query(
         `SELECT set_config('app.principal_user', $1, false),
                 set_config('app.checkpoint_thread_id', $2, false),
                 set_config('app.checkpoint_epoch', $3, false)`,
         [access.owner, access.threadId, String(access.fenceEpoch)],
       );
-      return client;
+      return handle;
     } catch (error) {
       // connect() failed after wrap — destroy rather than return a half-bound client.
-      client.release(true);
+      handle.release(true);
       throw error;
     }
   }

@@ -37,6 +37,9 @@
  *      混合 facade.query / connect 读 / 42501 写，connect 路径 release 不 await。
  *      每次读到的 principal/thread 必须属于本租户，mismatches=0。
  *    MUT-PRECEDENCE（恢复无括号 await releaseAsync?.() ?? client.release()）：XP-2 必须 EXIT 1。
+ *    E1/E2（真实 PG，max=1）：旧句柄在新持有者期间再 release，不得让 Y 读到 A 的 principal；
+ *      必须 warn + 抛错；pool total/idle/waiting 恢复后正常 pool.end()。
+ *      反向复现钉死 SHA 135ec7c779c393f082006fd6ac1a9cd94ae10bf4，必须 EXIT 1。
  *  另：WORKER_ALERT 旧正则对现场崩溃日志假阴性；新正则命中，健康日志不误报。
  *  pnpm pg-client-double-release:prove */
 import { spawnSync } from 'node:child_process';
@@ -50,6 +53,8 @@ const srcPath = join(here, '../src/checkpoint-principal.ts');
 const DOUBLE_RELEASE = 'Release called on client which has already been released to the pool.';
 /** 本 PR 之基线 main tip（含 #247，不含本修复）。合入后 origin/main 会漂，SHA 不漂。 */
 const BEFORE_SHA = '59baa20b231bd6d022cc6290c7803fc40b724208';
+/** 持有者 token 直接 return 造成池泄漏、E1/E2 跨租户共享的 head。 */
+const E12_BEFORE_SHA = '135ec7c779c393f082006fd6ac1a9cd94ae10bf4';
 const STACK_N = 2000;
 
 /** 现场 worker 崩溃摘录（无密钥）。 */
@@ -81,7 +86,7 @@ export const WORKER_ALERT_RE = /checkpoint_connection_lost|checkpoint_privacy_fe
 
 const ACCESS = { owner: 'owner-a', threadId: 'thread-a', fenceEpoch: 1 };
 
-type Mode = 'after' | 'before' | 'mut-guard' | 'mut-stack' | 'mut-order' | 'xp-after' | 'xp-mut-precedence';
+type Mode = 'after' | 'before' | 'mut-guard' | 'mut-stack' | 'mut-order' | 'xp-after' | 'xp-mut-precedence' | 'xp-e12' | 'xp-e12-before';
 
 function makeFakeClient(opts: { releaseThrowsAlways?: boolean; overlap?: { current: number; max: number; hits: number }; delayMs?: number; allowReuse?: boolean }): {
   query: (...args: unknown[]) => Promise<{ rows: unknown[]; rowCount: number }>;
@@ -157,7 +162,7 @@ async function runScenario(mod: Record<string, unknown>): Promise<void> {
     const c = await facadeA.connect();
     const q = c.query('SELECT 1');
     c.release();
-    c.release();
+    try { c.release(); } catch { /* stale handle fail-closed */ }
     await q;
     await new Promise((r) => setTimeout(r, 40));
   });
@@ -172,7 +177,7 @@ async function runScenario(mod: Record<string, unknown>): Promise<void> {
     const q1 = c.query('SELECT pg_sleep(0.05)');
     const q2 = c.query('SELECT 1');
     c.release();
-    c.release();
+    try { c.release(); } catch { /* stale handle fail-closed */ }
     await Promise.all([q1, q2]);
     if (typeof c.releaseAsync === 'function') await c.releaseAsync();
   });
@@ -216,7 +221,7 @@ async function runScenario(mod: Record<string, unknown>): Promise<void> {
       await c.query('SELECT 1');
       if (typeof c.releaseAsync === 'function') await c.releaseAsync();
       else c.release();
-      querySeen.push(c.query);
+      querySeen.push(reuse.query);
     }
   });
   const unique = new Set(querySeen).size;
@@ -283,8 +288,8 @@ const UNFIXED_INSTALL = `function installReleaseCleanup(client: any): { releaseA
   client.release = (err?: ReleaseArg) => {
     void runRelease(err);
   };
-
-  return { releaseAsync: () => runRelease() };
+  (client as { releaseAsync?: () => Promise<void> }).releaseAsync = () => runRelease();
+  return client;
 }
 `;
 
@@ -335,6 +340,24 @@ function xpSnapOf(row: { principal?: unknown; thread_id?: unknown }): XpSnap {
   };
 }
 
+
+type PoolCounts = { totalCount: number; idleCount: number; waitingCount: number };
+
+function readPoolCounts(pool: { totalCount?: unknown; idleCount?: unknown; waitingCount?: unknown }): PoolCounts {
+  return {
+    totalCount: Number(pool.totalCount ?? 0),
+    idleCount: Number(pool.idleCount ?? 0),
+    waitingCount: Number(pool.waitingCount ?? 0),
+  };
+}
+
+function poolRecovered(counts: PoolCounts, max = 1): boolean {
+  return counts.waitingCount === 0 && counts.idleCount === counts.totalCount && counts.totalCount <= max;
+}
+
+function formatCounts(counts: PoolCounts): string {
+  return `${counts.totalCount}/${counts.idleCount}/${counts.waitingCount}`;
+}
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return new Promise<T>((resolve, reject) => {
@@ -459,15 +482,22 @@ async function runXp2(mod: Record<string, unknown>, mutPrecedence = false): Prom
       if (mutPrecedence && (mismatches > 0 || opErrors > 0)) break;
     }
 
-    console.log(`XP2 mismatches=${mismatches} fenced=${fenced} fenceMiss=${fenceMiss} opErrors=${opErrors} samples=${mismatchSamples.join(' | ')}`);
-    const ok = mismatches === 0 && fenceMiss === 0 && fenced > 0 && opErrors === 0;
+    const counts = readPoolCounts(pool);
+    let endOk = false;
+    try {
+      await withTimeout(bound.end(), 8_000);
+      endOk = true;
+    } catch (error) {
+      console.log(`XP2 end() failed: ${String((error as Error).message ?? error).slice(0, 120)}`);
+      try { await withTimeout(Promise.resolve(pool.end?.() as Promise<void>), 3_000); } catch { /* ignore */ }
+    }
+    console.log(`XP2 mismatches=${mismatches} fenced=${fenced} fenceMiss=${fenceMiss} opErrors=${opErrors} pool=${formatCounts(counts)} end=${endOk ? 'ok' : 'fail'} samples=${mismatchSamples.join(' | ')}`);
+    const ok = mismatches === 0 && fenceMiss === 0 && fenced > 0 && opErrors === 0 && poolRecovered(counts) && endOk;
     if (ok) console.log('CHILD_OK');
     else {
       console.log('CHILD_FAIL XP-2');
-      // Do not await pool.end(): a poisoned max=1 pool can hang here.
-      process.exit(1);
+      process.exitCode = 1;
     }
-    try { await bound.end(); } catch { /* ignore */ }
   } finally {
     await admin.query(`DROP ROLE IF EXISTS ${role}`).catch(() => undefined);
     await admin.end().catch(() => undefined);
@@ -483,9 +513,161 @@ function swapCleanupOrder(src: string): string {
   return src.replace(from, to);
 }
 
+
+async function setupXpBound(mod: Record<string, unknown>, suffix: string): Promise<{
+  bound: {
+    connect(): Promise<{ query: (...args: unknown[]) => unknown; release: (err?: unknown) => void; releaseAsync?: () => Promise<void> }>;
+    query(...args: unknown[]): Promise<{ rows: Array<Record<string, unknown>> }>;
+    end(): Promise<void>;
+  };
+  pool: { totalCount?: number; idleCount?: number; waitingCount?: number; end?: () => Promise<void> };
+  admin: { query: (sql: string, params?: unknown[]) => Promise<unknown>; end: () => Promise<void> };
+  role: string;
+  withAccess: <T>(access: XpAccess, fn: () => Promise<T>) => Promise<T>;
+  accessA: XpAccess;
+  accessB: XpAccess;
+}> {
+  const boundCtor = mod['PrincipalBoundCheckpointPool'] as new (pool: unknown) => {
+    connect(): Promise<{ query: (...args: unknown[]) => unknown; release: (err?: unknown) => void; releaseAsync?: () => Promise<void> }>;
+    query(...args: unknown[]): Promise<{ rows: Array<Record<string, unknown>> }>;
+    end(): Promise<void>;
+  };
+  const withAccess = mod['withCheckpointAccess'] as <T>(access: XpAccess, fn: () => Promise<T>) => Promise<T>;
+  const db = await import('@meetwise/db');
+  const admin = db.createPool();
+  const role = `${suffix}_rt_${process.pid}`;
+  const password = 'xp2-pool-precedence-2026';
+  await db.assertIsolatedTestTarget(admin);
+  await db.provisionRuntimeLogin(admin, { roleName: role, password });
+  const port = process.env.PGPORT ?? '54329';
+  const connection = `postgresql://${encodeURIComponent(role)}:${encodeURIComponent(password)}@${process.env.PGHOST ?? '127.0.0.1'}:${port}/${encodeURIComponent(process.env.PGDATABASE ?? 'meetwise')}`;
+  process.env.PGPOOL_MAX = '1';
+  const url = new URL(connection);
+  const options = url.searchParams.get('options') ?? '';
+  if (!/(?:^|\s)-c\s+role=app_role(?:\s|$)/.test(options)) {
+    url.searchParams.set('options', `${options} -c role=app_role`.trim());
+  }
+  const pool = db.createPool({ connectionString: url.toString(), purpose: 'checkpoint' });
+  const bound = new boundCtor(pool);
+  const ownerA = `${suffix}-a-${process.pid}`;
+  const ownerB = `${suffix}-b-${process.pid}`;
+  const threadA = `${suffix}-thread-a-${process.pid}`;
+  const threadB = `${suffix}-thread-b-${process.pid}`;
+  await admin.query(
+    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created'),($3,$4,'created')",
+    [threadA, ownerA, threadB, ownerB],
+  );
+  const runtime = db.createPool({ user: role, password, max: 1 });
+  let accessA: XpAccess;
+  let accessB: XpAccess;
+  try {
+    const enA = await db.asPrincipal(runtime, ownerA, (c) => db.enrollCheckpointThread(c, ownerA, threadA));
+    const enB = await db.asPrincipal(runtime, ownerB, (c) => db.enrollCheckpointThread(c, ownerB, threadB));
+    accessA = { owner: ownerA, threadId: enA.threadId, fenceEpoch: enA.fenceEpoch };
+    accessB = { owner: ownerB, threadId: enB.threadId, fenceEpoch: enB.fenceEpoch };
+  } finally {
+    await runtime.end();
+  }
+  return { bound, pool, admin, role, withAccess, accessA, accessB };
+}
+
+async function runE12(mod: Record<string, unknown>): Promise<void> {
+  if (process.env.E2E_ISOLATED !== '1') {
+    console.log('E12 require E2E_ISOLATED=1 (official isolated runner)');
+    process.exit(1);
+  }
+  const ctx = await setupXpBound(mod, 'e12');
+  const { bound, pool, admin, role, withAccess, accessA, accessB } = ctx;
+  const warns: string[] = [];
+  const origWarn = console.warn;
+  console.warn = ((...args: unknown[]) => {
+    warns.push(args.map((a) => typeof a === 'string' ? a : JSON.stringify(a)).join(' '));
+    origWarn.apply(console, args as never);
+  }) as typeof console.warn;
+  let mismatches = 0;
+  let staleRelease = 0;
+  let staleQuery = 0;
+  let staleWarn = 0;
+  const samples: string[] = [];
+  const check = (tag: string, snap: XpSnap, access: XpAccess): void => {
+    if (snap.principal !== access.owner || snap.threadId !== access.threadId) {
+      mismatches += 1;
+      if (samples.length < 8) samples.push(`${tag} ${JSON.stringify(snap)} expected=${access.owner}/${access.threadId}`);
+    }
+  };
+  try {
+    // E1: X releases, Y holds, leftover cX.release() must not steal Y.
+    const cX = await withAccess(accessA, () => bound.connect());
+    const x1 = await cX.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
+    check('e1-x', xpSnapOf(x1.rows[0] ?? {}), accessA);
+    if (typeof cX.releaseAsync === 'function') await cX.releaseAsync();
+    else cX.release();
+    const cY = await withAccess(accessB, () => bound.connect());
+    try {
+      cX.release();
+    } catch {
+      staleRelease += 1;
+    }
+    const y1 = await cY.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
+    check('e1-y', xpSnapOf(y1.rows[0] ?? {}), accessB);
+    try {
+      await cX.query(SESSION_SQL);
+    } catch {
+      staleQuery += 1;
+    }
+    if (typeof cY.releaseAsync === 'function') await cY.releaseAsync();
+    else cY.release();
+    const e1counts = readPoolCounts(pool);
+    console.log(`E1 mismatches=${mismatches} staleRelease=${staleRelease} staleQuery=${staleQuery} pool=${formatCounts(e1counts)}`);
+
+    // E2: leftover release immediately after releaseAsync, while Y is waiting (max=1).
+    const cX2 = await withAccess(accessA, () => bound.connect());
+    await cX2.query(SESSION_SQL);
+    const pendingY = withAccess(accessB, () => bound.connect());
+    await Promise.resolve();
+    if (typeof cX2.releaseAsync === 'function') await cX2.releaseAsync();
+    else cX2.release();
+    try {
+      cX2.release();
+    } catch {
+      staleRelease += 1;
+    }
+    const cY2 = await withTimeout(pendingY, 8_000);
+    const y2 = await cY2.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
+    check('e2-y', xpSnapOf(y2.rows[0] ?? {}), accessB);
+    if (typeof cY2.releaseAsync === 'function') await cY2.releaseAsync();
+    else cY2.release();
+    const e2counts = readPoolCounts(pool);
+    staleWarn = warns.filter((w) => w.includes('checkpoint_pg_stale_handle')).length;
+    console.log(`E2 mismatches=${mismatches} staleRelease=${staleRelease} staleWarn=${staleWarn} pool=${formatCounts(e2counts)} samples=${samples.join(' | ')}`);
+
+    let endOk = false;
+    try {
+      await withTimeout(bound.end(), 8_000);
+      endOk = true;
+    } catch (error) {
+      console.log(`E12 end() failed: ${String((error as Error).message ?? error).slice(0, 120)}`);
+      try { await withTimeout(Promise.resolve(pool.end?.() as Promise<void>), 3_000); } catch { /* ignore */ }
+    }
+    const recovered = poolRecovered(e1counts) && poolRecovered(e2counts);
+    const ok = mismatches === 0 && staleRelease >= 2 && staleQuery >= 1 && staleWarn >= 1 && recovered && endOk;
+    console.log(`E12 ok=${ok} recovered=${recovered} end=${endOk ? 'ok' : 'fail'} poolE1=${formatCounts(e1counts)} poolE2=${formatCounts(e2counts)}`);
+    if (ok) console.log('CHILD_OK');
+    else {
+      console.log('CHILD_FAIL E12');
+      process.exitCode = 1;
+    }
+  } finally {
+    console.warn = origWarn;
+    await admin.query(`DROP ROLE IF EXISTS ${role}`).catch(() => undefined);
+    await admin.end().catch(() => undefined);
+  }
+}
+
 async function child(mode: Mode, moduleUrl: string): Promise<void> {
   const mod = await import(moduleUrl);
   if (mode === 'xp-after' || mode === 'xp-mut-precedence') await runXp2(mod, mode === 'xp-mut-precedence');
+  else if (mode === 'xp-e12' || mode === 'xp-e12-before') await runE12(mod);
   else await runScenario(mod);
 }
 
@@ -584,6 +766,7 @@ async function parent(): Promise<void> {
   A('S-4 源钉死先 cleanup 再 releaseOnce', src.includes('CLEANUP_BEFORE_RELEASE'));
   A('S-5 吞错路径有 warnReleasePath（无 SQL/principal）', src.includes('warnReleasePath') && !/warnReleasePath\([^)]*principal/i.test(src));
   A('S-6 façade.query finally 显式分支（无 await/?? 优先级陷阱）', src.includes('RELEASE_ASYNC_ONLY') && !/await \(client as \{ releaseAsync\?:/.test(src));
+  A('S-7 connect 返回独立句柄（不把 release 包装挂到共享 Client）', src.includes('CHECKOUT_HANDLE') && !/client\.release = /.test(src) && src.includes('checkpoint_pg_stale_handle'));
 
   if (process.env.E2E_ISOLATED !== '1') {
     A('XP-2 须由官方 isolated runner 提供真实 PG（E2E_ISOLATED=1）', false, `E2E_ISOLATED=${process.env.E2E_ISOLATED ?? ''}`);
@@ -607,6 +790,44 @@ async function parent(): Promise<void> {
       (mutPrec.stdout ?? '').split('\n').find((l) => /XP2 mismatches=/.test(l)) ?? (mutPrec.stderr ?? '').slice(0, 200),
     );
     rmSync(precWritten.dir, { recursive: true, force: true });
+
+    const e12 = runChild('xp-e12', `file://${srcPath}`, 180_000);
+    process.stdout.write(e12.stdout ?? '');
+    if (e12.status !== 0) process.stderr.write((e12.stderr ?? '').slice(0, 4000));
+    A(
+      'E1/E2 真实 PG 旧句柄不得跨租户且池计数恢复',
+      e12.status === 0 && /CHILD_OK/.test(e12.stdout ?? '') && /E12 ok=true /.test(e12.stdout ?? ''),
+      (e12.stdout ?? '').split('\n').find((l) => /E12 ok=/.test(l) || /E1 mismatches=/.test(l) || /E2 mismatches=/.test(l)) ?? `status=${e12.status}`,
+    );
+
+    const e12BeforeSrc = spawnSync('git', ['show', `${E12_BEFORE_SHA}:apps/worker/src/checkpoint-principal.ts`], {
+      encoding: 'utf8',
+      cwd: join(here, '../../..'),
+    });
+    A(
+      `E12-BEFORE 能读到固定 SHA ${E12_BEFORE_SHA.slice(0, 9)} 源`,
+      e12BeforeSrc.status === 0 && (e12BeforeSrc.stdout ?? '').includes('checkpoint_pg_release_holder_mismatch') && !(e12BeforeSrc.stdout ?? '').includes('CHECKOUT_HANDLE'),
+      `status=${e12BeforeSrc.status}`,
+    );
+    if (e12BeforeSrc.status === 0) {
+      const e12Written = writePatchedModule(e12BeforeSrc.stdout ?? '');
+      const e12Before = runChild('xp-e12-before', e12Written.url, 180_000);
+      process.stdout.write(e12Before.stdout ?? '');
+      if (e12Before.status !== 0) process.stderr.write((e12Before.stderr ?? '').slice(0, 4000));
+      A(
+        'E12-BEFORE 反向复现子进程非零退出',
+        e12Before.status !== 0 && /CHILD_FAIL E12/.test(e12Before.stdout ?? ''),
+        `status=${e12Before.status} signal=${e12Before.signal}`,
+      );
+      A(
+        'E12-BEFORE 失败在跨租户 mismatches 或旧句柄未 fail-closed',
+        /E1 mismatches=([1-9]\d*) /.test(e12Before.stdout ?? '')
+          || /E2 mismatches=([1-9]\d*) /.test(e12Before.stdout ?? '')
+          || (/staleRelease=0/.test(e12Before.stdout ?? '') && !/CHILD_OK/.test(e12Before.stdout ?? '')),
+        (e12Before.stdout ?? '').split('\n').find((l) => /E1 mismatches=/.test(l) || /E2 mismatches=/.test(l) || /E12 ok=/.test(l)) ?? (e12Before.stderr ?? '').slice(0, 200),
+      );
+      rmSync(e12Written.dir, { recursive: true, force: true });
+    }
   }
 
   for (const dir of [beforeDir, mutWritten.dir, stackWritten.dir, orderWritten.dir]) {
