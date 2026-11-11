@@ -75,16 +75,16 @@ related:
 | `@nestjs/platform-fastify` | HTTP 适配（Fastify；**见决策⑤：must-smoke #2 已验 zod4 校验×Fastify 通过**） |
 | `@nestjs/config` | 配置加载（env schema 校验） |
 | `@nestjs/swagger` | OpenAPI 文档（对外/调试） |
-| `@nestjs/throttler` | 限流（防刷、AI 调用前闸） |
-| **【新增】** `@nest-lab/throttler-storage-redis` | **限流的 Redis storage**——默认内存计数多实例失效，AI 前闸必须跨实例 |
+| `@nestjs/throttler` | **未安装、未引用**。历史规划项。现行限流是 `apps/api/src/platform/rate-limit.service.ts`：全局/IP 桶落 PG `platform_rl_bucket`，并发槽落 `platform_slot_lease`，per-principal 桶在进程内（0189 网关函数）；Redis 限流未接线。 |
+| **【新增】** `@nest-lab/throttler-storage-redis` | **未安装、未引用**。不是限流存储；见上一行。 |
 | `@nestjs/schedule` | 定时任务（语料生命周期/对账/清理） |
 | `@nestjs/terminus` | 健康检查（DB/Redis/S3 探针） |
-| `@nestjs/bullmq` / `bullmq` | ~~队列模块+核心~~ **未采用**（#28 勘误 2026-10-12：原草稿候选；实落地队列=PG 表+`FOR UPDATE SKIP LOCKED`（`packages/db/src/jobs/*`），BullMQ 全仓零码在库） |
+| `@nestjs/bullmq` / `bullmq` | ~~队列模块+核心~~ **未采用**（#28 勘误 2026-10-12：原草稿候选；实落地队列=PG 表+`FOR UPDATE SKIP LOCKED`（`packages/db/src/interview/interview-jobs.ts`、`packages/db/src/jobs/*`、`packages/db/src/report/report.ts`），BullMQ 全仓零码在库；队列选型见 ADR-0023） |
 | `@nestjs/event-emitter` | 应用内领域事件（状态机转移广播、解耦 observability） |
 | `zod` / `nestjs-zod` | 共享 zod4 契约校验：薄 `ZodValidationPipe`（Body/Query）+ Nest 异常/swagger 集成 |
 | `zod-openapi` | 由共享 zod4 schema 生成 OpenAPI（取代 @ts-rest/open-api，见 ADR-0004） |
 | `@prisma/client` | DB 客户端（引用 db 包生成物） |
-| `ioredis` | Redis（缓存/限流/分布式锁/job wakeup 监听/auth state-nonce/幂等存储——**无 BullMQ 连接**，任务队列走 PG 表，#28 勘误 2026-10-12） |
+| `ioredis` | **未安装、未引用**。api 无 Redis 客户端。worker 声明的是 `redis` 包，用于 RAG 热缓存、嵌入计算缓存与单飞锁，以及默认关闭的 Streams 唤醒原型；不承担限流、auth nonce 或幂等存储（限流落 PG 共享桶表，幂等落业务表如 `entitlement_consumption`）。 |
 | `nestjs-i18n` | 后端 i18n（错误/邮件/通知中英） |
 | `nestjs-pino` / `pino` / `pino-http` | 结构化日志（脱敏，绝不打全文简历/PII） |
 | `@opentelemetry/api` / `@opentelemetry/sdk-node` / `@opentelemetry/auto-instrumentations-node` / `@opentelemetry/exporter-trace-otlp-http` | Trace 自动埋点 + OTLP 上报（接 Langfuse/Collector） |
@@ -100,7 +100,7 @@ related:
 
 > 内部：`@meetwise/contracts`、`@meetwise/db`、`@meetwise/domain`、`@meetwise/config`（`workspace:*`）
 > **【删】** `helmet`（Express 版，与 `@fastify/helmet` 冗余）、`cookie`（裸包，`@fastify/cookie` 已覆盖）、`class-validator`/`class-transformer`（走 nestjs-zod 全链路；仅某三方 Nest 模块强依赖时再按需补）、`dayjs`（统一 `date-fns`）。
-> **【职责·无新包】**（1）**幂等层**：支付/下单端点用 Redis 幂等键（ULID）拦重复请求，覆盖「重复请求/失败退款」测试硬要求；（2）**auth 防回放**：微信扫码 state/nonce 存 Redis + auth 端点单独限流；（3）`prisma` CLI 归 `packages/db`，api 容器若需 `migrate deploy` 才单独留一份 dep（不三处悬空）。
+> **【职责·无新包】**（1）**幂等层**：支付/下单端点用 Postgres 幂等键约束拦重复请求（如 `entitlement_consumption(owner_user_id, idempotency_key)`，不走 Redis）；（2）**限流**：`RateLimitService` 落 PG 共享桶表，api 无 Redis 客户端，Redis 不存 auth nonce / 幂等键；（3）`prisma` CLI 归 `packages/db`，api 容器若需 `migrate deploy` 才单独留一份 dep（不三处悬空）。
 
 ### devDependencies
 | 包 | 用途 |
@@ -130,7 +130,7 @@ related:
 | `@langchain/openai` | OpenAI 兼容客户端（境内模型多兼容此协议，统一适配、便于多模型路由/降级） |
 | **【改】** `@langchain/textsplitters` | 文本切分（RAG），替代顶层 `langchain` meta 包，避免拖入整坨传递依赖 |
 | `langfuse` / `langfuse-langchain` | 追踪 SDK + Graph 回调自动埋点（trace/prompt 版本/score 落 `ai_invocation_traces`） |
-| `bullmq` / `ioredis` | 消费 api 投递的任务队列 + Redis 连接/锁 |
+| `pg` + Redis 客户端 | 从 Postgres 队列表领取任务（`SKIP LOCKED` + `LISTEN/NOTIFY`，ADR-0023 / #28 残行补勘）；Redis 用于缓存/锁/可选唤醒原型（默认关），不是 BullMQ。 |
 | `pg` | Postgres 驱动（checkpointer + 业务读写） |
 | `@prisma/client` | 业务事实写回业务表（图状态≠业务真相） |
 | `zod` / `zod-to-json-schema` | 结构化输出 schema（第一道校验）+ 喂模型 JSON Schema |
@@ -335,13 +335,13 @@ related:
 
 ## 关键选型分叉（最终定论，逐条进 ADR）
 
-1. **队列 → PG 表队列（`FOR UPDATE SKIP LOCKED`）+ Outbox 实落地**。#28 勘误 2026-10-12：本节旧定论「BullMQ + Outbox（不换 pg-boss）」系草稿期选型叙事——实落地改为 PG 表队列（BullMQ 零码在库，见 packages/db/src/jobs/*）；旧叙事的诚实警示仍成立且已兑现：outbox 需要真实 relay/poller（`commerce_outbox` + `settleOutbox` + commerce-reconciler 30s 一拍），不是免费的。pg-boss 事务内入队的旧降级叙事仅作历史记录保留。
+1. **队列 → PG 表队列（`FOR UPDATE SKIP LOCKED`）+ Outbox 实落地**。#28 勘误 2026-10-12：本节旧定论「BullMQ + Outbox（不换 pg-boss）」系草稿期选型叙事——实落地改为 PG 表队列（BullMQ 零码在库，见 `packages/db/src/interview/interview-jobs.ts`、`packages/db/src/jobs/*`、`packages/db/src/report/report.ts`；选型见 ADR-0023）；旧叙事的诚实警示仍成立且已兑现：outbox 需要真实 relay/poller（`commerce_outbox` + `settleOutbox` + commerce-reconciler 30s 一拍），不是免费的。pg-boss 事务内入队的旧降级叙事仅作历史记录保留。
 
 2. **测试 → 全仓 Vitest**，保留「api 单独退 Jest」逃生口写进 ADR。**前置必装 `vite-tsconfig-paths`**（已补进 api/worker/ai-graphs devDeps）。
 
 3. **样式 → Tailwind v4 + `tw-animate-css`**。锁版本前确认 shadcn 当前发布线已支持 v4（2025 起已支持）；否则回退 v3 + 传统 config。
 
-4. **Auth → 自建微信扫码 + jose**。**自建即自担三件事，已登记为职责**：(a) `@fastify/csrf-protection` CSRF 防护；(b) Redis 存 state/nonce 防回放；(c) auth 端点单独限流。不引重型 IAM；B 端若要 SSO/SAML 再独立部署 Authentik/Keycloak（不进 npm 依赖）。
+4. **Auth → 自建微信扫码 + jose**。**自建即自担三件事，已登记为职责**：(a) `@fastify/csrf-protection` CSRF 防护；(b) 防回放不走 Redis（api 无 Redis 客户端，不存 state/nonce）；(c) 端点限流走 `RateLimitService` / PG 共享桶表，Redis 限流未接线。不引重型 IAM；B 端若要 SSO/SAML 再独立部署 Authentik/Keycloak（不进 npm 依赖）。
 
 5. **HTTP 适配 → Fastify（原清单最大隐藏风险，已消解）**。原风险来自 `@ts-rest/nest` 偏 Express；**ADR-0004 弃用 ts-rest 后该风险消失**。must-smoke #2 已实测 **NestJS×SWC×Fastify×类型DI + 薄 `ZodValidationPipe`(zod4) 校验 3/3 通过**（见 `api:smoke`），不再依赖任何 ts-rest×Fastify 协同。demo 量级 Fastify 吞吐优势用不上，真实收益是 SSE/schema 故事 + 类型 DI。
 
@@ -353,4 +353,4 @@ related:
 
 **另两条进 ADR 的工程决断（评审补强）：**
 - **PDF 摄取**：`pdf-parse` 长期失修易崩，简历摄取是核心金路径，**已改 `unpdf`**（备选 `pdf2json`），不留单点。
-- **幂等机制**：`nanoid`/`ulid` 只生成键，**幂等不是有包就有机制**——支付/下单端点必须落 Redis 幂等层（已登记为 api 职责），直接覆盖「重复请求/失败退款」测试硬要求；幂等键/订单号用 **ULID**（有序、索引局部性好），分享码留 `nanoid`。
+- **幂等机制**：`nanoid`/`ulid` 只生成键，**幂等不是有包就有机制**——支付/下单端点的幂等落 Postgres 约束（如 `entitlement_consumption(owner_user_id, idempotency_key)`），不走 Redis；幂等键/订单号用 **ULID**（有序、索引局部性好），分享码留 `nanoid`。

@@ -80,7 +80,7 @@ testkit:   test-only，对业务包仅 import type
 | ui | module | esm-only + `./styles.css` | **react/react-dom 走 peerDependencies(>=19)** |
 | observability | module | esm-only | dep: pino, @opentelemetry/* |
 | api | module | 无 exports；`build: nest build -b swc` | dep: @nestjs/*, @fastify/*, reflect-metadata, rxjs + workspace 内部包 |
-| worker | module | 无 exports；prod swc 编译出 dist | dep: @langchain/*, bullmq, ioredis, pg + 内部包 |
+| worker | module | 无 exports；prod swc 编译出 dist | dep: @langchain/*, pg, redis（缓存/锁，非队列）+ 内部包；耐久队列是 Postgres 表（ADR-0023），不是 bullmq |
 | web | — | Next 自管 | dep: next, react + 内部包 |
 | testkit | module | test-only，私有，无运行期产物 | devDep workspace:*；业务包仅 type |
 
@@ -168,7 +168,7 @@ pnpm -C apps/web dev
 
 **关键配置纪律：**
 - **eslint flat**：`base+node+react` 三层；`no-restricted-properties process.env`（仅放行各 app 单一 env loader）；`import/order`+`no-relative-packages`+禁深导入；**配 `eslint-import-resolver-typescript`**(否则边界规则静默 no-op)；server 包关 `consistent-type-imports`；`no-restricted-imports` 配置文件 glob 豁免。`import/no-cycle` **砍**（与 cruiser 重叠）。
-- **dependency-cruiser**（根级，`tsPreCompilationDeps:true` 看穿 import type）：`no-circular`、`pkg-no-import-app`、`no-cross-app`、`ai-graphs-no-io`(含 `node_modules/@langchain/(openai|anthropic|community)` + pg/bullmq/ioredis/aws-sdk/checkpoint-postgres/`^packages/db`)、`domain-poor`(排除 `.test/.spec`/config)、`web-no-server`、`db-only-server`、testkit `import type`-only。`controllers-dont-orchestrate` 等命名规则**待 api 文件结构落地再加**。
+- **dependency-cruiser**（根级，`tsPreCompilationDeps:true` 看穿 import type）：`no-circular`、`pkg-no-import-app`、`no-cross-app`、`ai-graphs-no-io`（禁止图包直接碰 IO / 队列 / 数据面客户端；规则以 `.dependency-cruiser.cjs` 为准，bullmq 不是现行依赖）、`domain-poor`(排除 `.test/.spec`/config)、`web-no-server`、`db-only-server`、testkit `import type`-only。`controllers-dont-orchestrate` 等命名规则**待 api 文件结构落地再加**。
 - **env**：每 app 各自 `.env`/`.env.example`(仅 committed example)；`@meetwise/config/env` 只导出 zod 片段(不读 process.env)；api=`@nestjs/config`+zod validate(fail-fast 只打 key 名)，web=`@t3-oss/env-nextjs`(server/client 隔离 + `server-only`，**锁版前验 t3-env×zod4**)，worker=**惰性 `getEnv()`(无顶层 process.exit)** + 显式 `import 'dotenv/config'`/`--env-file`。turbo `envMode:strict`。
 - **密钥**：gitleaks 一处收口(pre-commit `--staged` + CI 全历史) + `.gitleaks.toml` allowlist 放行 `*.env.example` 占位；砍 secretlint 双引擎。
 
