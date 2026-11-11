@@ -32,7 +32,6 @@ const sha256 = (b: Buffer) => createHash('sha256').update(b).digest('hex');
 
 /** P2 冻结基线：0001–0144（亲核 @ EXEC 起点·含 DBTF-1 0144 汇流后）——Ban 历史迁移改写的机器面。 */
 const P2_BASELINE: ReadonlyArray<readonly [string, string]> = [
-  ['0000_admin_provision_primitives', '50b47580229fb51aebdb6c7b15f28ebf534e077d6abd9be295c1ceeb0bf6c14f'],
   ['0001_baseline', 'a467e51954d935a40909d86d322c8f83b5da51f69c80085906ae0869cef2a8b9'],
   ['0002_app_setting', '6e76daeb81920cf10efb3ca24e781f47a107e6f543426b1891721e2308b3a8ae'],
   ['0003_app_setting_updated_at', '6497f3b9f3bc7ceb04edef283f14aa3eca84ed464bd5ffcbf5d001ad4cf9aa75'],

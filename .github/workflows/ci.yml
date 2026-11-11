@@ -183,6 +183,11 @@ jobs:
         run: node scripts/check-migration-version-uniqueness.mjs
       - name: 版本化迁移运行器（只跑待应用·幂等·事务·漂移检测·advisory锁）
         run: pnpm migrate:prove
+      # G1（审查 P0-1）：上一版库升级到当前清单（#234 / #235 / #236 账本 + git 上一版 main）·隔离一次性 PG。
+      - name: 旧库升级到当前清单（上一版 main 账本 → tip·防链首插号致 migration_ledger_not_contiguous_prefix）
+        env:
+          MIGRATE_UPGRADE_REQUIRE_GIT_ARM: '1'
+        run: pnpm migrate-upgrade:prove
       # #175 drift 门恢复（CI-WIRING 裁②=径1·scripts/schema-drift-check.mjs 对账 sql/ 镜像 25 文件：
       # 临时库 A 全迁移建 vs B 全镜像建，逐列+UNIQUE/PK 约束单向 diff（sql⊆mig）·dbhy1 退役残面经脚本内豁免登记面放行·未登记漂移=红）
       - name: schema 漂移门（迁移路径 vs sql/ 真相 逐列+约束比对;防"改 sql/ 忘写迁移"致 fresh deploy 缺表/列/约束）

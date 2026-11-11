@@ -30,6 +30,7 @@
     "prove:authz5a2-stale-payload-ttl": "tsx test/authz5a2-stale-payload-ttl.proof.ts",
     "prove:level-policy": "tsx test/level-policy-version.proof.ts",
     "prove:migrate-cli": "tsx test/migrate-cli.proof.ts",
+    "prove:migrate-upgrade": "tsx test/migrate-upgrade-previous.proof.ts",
     "prove:qbank-control-role": "tsx test/qbank-control-role.proof.ts",
     "prove:qbank-handoff-closure": "tsx test/qbank-handoff-closure.proof.ts",
     "prove:qbank-source": "tsx test/qbank-control-role.proof.ts",
