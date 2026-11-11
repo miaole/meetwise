@@ -355,6 +355,53 @@ async function main() {
     await notify.stop();
   }
 
+  // ===== N-13 token_withdraw：同通道解析+无 id emit；缺 text 的非撤回帧仍丢 =====
+  {
+    const pumpSrc = readFileSync(fileURLToPath(new URL('../src/platform/sse-pump.ts', import.meta.url)), 'utf8');
+    // P3-a：不得只靠「子串 includes 模板」——前缀 id: 行仍能让旧断言 PASS。改为提取
+    // safeWrite 模板本身，断言其内容恰好是无 id 的 token_withdraw 帧（与运行时 !w.includes('id:') 同强度）。
+    const withdrawEmit = 'safeWrite(`event: token_withdraw\\ndata: ${payload}\\n\\n`)';
+    const emitAt = pumpSrc.indexOf(withdrawEmit);
+    const tmplMatch = emitAt >= 0 ? pumpSrc.slice(emitAt).match(/safeWrite\(`([^`]+)`\)/) : null;
+    const withdrawTmpl = tmplMatch?.[1] ?? '';
+    A('契约面：token_withdraw emit 无 id 帧（模板本身不含 id:，防前缀绕过）',
+      emitAt >= 0
+      && withdrawTmpl === 'event: token_withdraw\\ndata: ${payload}\\n\\n'
+      && !withdrawTmpl.includes('id:'),
+      { emitAt, withdrawTmpl });
+
+    let client: Client | undefined;
+    const notify = new SseNotifyService({ connect: async () => { client = fakePgClient(); return client; }, log: () => {}, random: () => 0 });
+    const sink = fakeSink();
+    const finished = startPump(sink, {
+      streamKey: 'CUR', notify, client: client as unknown as EventEmitter,
+      fallbackMsHealthy: 30_000,
+    });
+    await Promise.race([notify.whenHealthy(), sleep(3000)]); await sleep(80);
+    const before = sink.writes.length;
+    client!.emit('notification', { channel: SSE_TOKEN_CHANNEL, payload: JSON.stringify({
+      v: 1, streamKey: 'CUR', attemptKey: 'ak', seq: 3, withdrawn: true, reason: 'business_invalid',
+    }) });
+    A('N-13 withdrawn 帧 emit 为 token_withdraw、无 id、携带 attemptKey/seq/reason',
+      await until(() => sink.writes.length > before, 2000)
+      && sink.writes.slice(before).some((w) => w.startsWith('event: token_withdraw\ndata: '))
+      && sink.writes.slice(before).every((w) => !w.includes('id:'))
+      && sink.writes.slice(before).some((w) => w.includes('"attemptKey":"ak"') && w.includes('"seq":3') && w.includes('"reason":"business_invalid"')),
+      { tail: sink.writes.slice(before).join('|').slice(0, 300) });
+
+    const mid = sink.writes.length;
+    client!.emit('notification', { channel: SSE_TOKEN_CHANNEL, payload: JSON.stringify({
+      v: 1, streamKey: 'CUR', attemptKey: 'ak', seq: 4,
+    }) });
+    await sleep(80);
+    A('N-13 反证：缺 text 且非 withdrawn 的帧仍丢（形状门未放松）',
+      sink.writes.length === mid, { extra: sink.writes.slice(mid) });
+
+    sink.reqRaw.emit('close');
+    await Promise.race([finished, sleep(1500)]);
+    await notify.stop();
+  }
+
   console.log(failures ? `\n✗ ${failures} 项失败` : '\n✓ TOKSTREAM S4b api delta 臂矩阵全部通过（零 DB 零模型外呼·actualSpendCny=null）');
   process.exit(failures ? 1 : 0);
 }

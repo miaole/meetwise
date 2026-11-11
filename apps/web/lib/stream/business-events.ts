@@ -90,6 +90,17 @@ export const BusinessEvent = z.discriminatedUnion('event', [
       coalesced: z.boolean().optional(),      // L1 合帧标记(帧≠供应商 chunk 边界)
     }).loose(),                               // .loose() 容演进字段(沿 generation_* 成员惯例)
   }),
+  // N-13：token_withdraw=传输态作废帧（非持久 kind·无 interview_event 行·一律不带 id，光标防毒同 token_delta）。
+  // 旧前端 unknown kind → null 丢弃，缓冲等到权威终态覆盖=向后兼容。decodeSSE/toBusinessEvent 零改。
+  z.object({
+    event: z.literal('token_withdraw'),
+    id: z.number().int().optional(),
+    data: z.object({
+      attemptKey: z.string(),
+      seq: z.number().int().positive(),
+      reason: z.string().optional(),
+    }).loose(),
+  }),
   z.object({ event: z.literal('error'), id: z.number().int(), data: z.record(z.string(), z.unknown()) }),
 ]);
 export type BusinessEvent = z.infer<typeof BusinessEvent>;
@@ -111,7 +122,14 @@ export function decodeSSE(buffer: string): { frames: SSEFrame[]; rest: string; s
     const f: SSEFrame = { data: '' };
     for (const line of block.split(/\r\n|\r|\n/)) {
       if (line.startsWith(':')) continue;               // 注释/心跳行,spec 要求忽略
-      if (line.startsWith('id:')) f.id = Number(line.slice(3).trim());
+      // 空 id: 不得写成 0（Number('')===0）：否则 token_withdraw 会被驱动水位滤网（ev.id<=highestId）丢掉（P3-b）。
+      if (line.startsWith('id:')) {
+        const rawId = line.slice(3).trim();
+        if (rawId !== '') {
+          const parsedId = Number(rawId);
+          if (Number.isFinite(parsedId)) f.id = parsedId;
+        }
+      }
       else if (line.startsWith('event:')) f.event = line.slice(6).trim();
       else if (line.startsWith('data:')) dataLines.push(line.slice(5).replace(/^ /, '')); // spec:只去一个前导空格
     }

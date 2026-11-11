@@ -49,8 +49,12 @@ export interface SseTokenFrame {
   streamKey: string;
   attemptKey: string;
   seq: number;
-  text: string;
+  /** token_delta 正文；N-13 withdrawn 帧可缺席。 */
+  text?: string;
   coalesced?: boolean;
+  /** N-13：本 attempt 预览作废。api→browser 映射为 event: token_withdraw（无 id）。 */
+  withdrawn?: boolean;
+  reason?: string;
 }
 
 export type SseTokenSubscriber = (frame: SseTokenFrame) => void;
@@ -336,13 +340,17 @@ export class SseNotifyService {
     try { parsed = JSON.parse(payload); } catch { return; }
     const f = parsed as Partial<SseTokenFrame> | null;
     if (!f || typeof f !== 'object') return;
+    const withdrawn = f.withdrawn === true;
     if (f.v !== 1 || typeof f.streamKey !== 'string' || !f.streamKey
       || typeof f.attemptKey !== 'string' || !f.attemptKey
-      || typeof f.text !== 'string'
+      || (!withdrawn && typeof f.text !== 'string')
       || typeof f.seq !== 'number' || !Number.isSafeInteger(f.seq) || f.seq < 1) return;
     const frame: SseTokenFrame = {
-      v: 1, streamKey: f.streamKey, attemptKey: f.attemptKey, seq: f.seq, text: f.text,
+      v: 1, streamKey: f.streamKey, attemptKey: f.attemptKey, seq: f.seq,
+      ...(typeof f.text === 'string' ? { text: f.text } : {}),
       ...(f.coalesced === true ? { coalesced: true as const } : {}),
+      ...(withdrawn ? { withdrawn: true as const } : {}),
+      ...(typeof f.reason === 'string' && f.reason ? { reason: f.reason } : {}),
     };
     const set = this.tokenRouter.get(f.streamKey);
     if (!set) return;

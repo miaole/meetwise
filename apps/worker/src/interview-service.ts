@@ -262,7 +262,11 @@ export function quizGenerator(pool: DbPool, owner: string, resumeFacts: string[]
         ...(tokenSink ? { onModelDelta: (d: { text: string }) => tokenSink.pushDelta(d.text) } : {}),
       }, pool, owner);
       tokenSink?.endUsage(undefined);   // ⑦对账遥测（InvokeOutcome 零 usage 出参=只记 Σdelta 半·关口零改不扩出参）
-      if ('error' in out) throw new Error('quiz:' + out.error);
+      if ('error' in out) {
+        // N-13：业务闸拒绝已外发的 quiz 预览；flag 关时 withdrawRejected 为零操作。
+        tokenSink?.withdrawRejected(out.error);
+        throw new Error('quiz:' + out.error);
+      }
       return out.value.items;
     };
     if (!progressStream) return call();
@@ -368,7 +372,11 @@ export function reportGenerator(pool: DbPool, owner: string, idempotencyKey: str
         ...(tokenSink ? { onModelDelta: (d: { text: string }) => tokenSink.pushDelta(d.text) } : {}),
       }, pool, owner);
       tokenSink?.endUsage(undefined);   // ⑦对账遥测（InvokeOutcome 零 usage 出参=只记 Σdelta 半·关口零改不扩出参）
-      if ('error' in out) throw new Error('report:' + out.error);
+      if ('error' in out) {
+        // N-13：业务闸拒绝已外发的 report 预览；flag 关时 withdrawRejected 为零操作。
+        tokenSink?.withdrawRejected(out.error);
+        throw new Error('report:' + out.error);
+      }
       return { overall, sections: out.value.sections };
     };
     if (!progressStream) return call();
