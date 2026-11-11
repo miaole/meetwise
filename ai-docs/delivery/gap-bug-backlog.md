@@ -88,6 +88,7 @@ main 上 `ci` 工作流对上述合入提交均 success。`deploy` 工作流报�
 13. `sse-slot:prove` 轮询下界只能稳定抓到约 <875ms 的回归（1000ms 的 2 倍退化抓不到）。
 14. 0000 ledger 老库需要手动 DELETE 孤儿行；是否自动化由用户决定。
 15. 0230 迁移头注释误写为 DEFINER，需要勘误。
+16. **WORKER-INFLIGHT-CRASH-01（P0 · 修复已提 PR，未合 · 2026-11-11）**：2c4g sizing `WORKER_INTERVIEW_GLOBAL_INFLIGHT=16` 压测中 worker 整进程退出（N=20 +14s 未处理 42501 `checkpoint_privacy_fenced`＠`PostgresSaver.put`；N=40 +28s 未处理 pg `Connection terminated`＠`PostgresSaver.putWrites`）。根因：LangGraph 1.4.7 `PregelLoop._trackCheckpointerPromise` 的 checkpoint 写 promise 要到 `_streamIterator` finally 才挂 handler，写失败到 finally 之间节点仍在等模型/DB → unhandledRejection → Node 默认退出，一个 job 拖垮全部在飞 job。修法（分支 `fix/worker-inflight-crash`）：`FenceCheckpointSaver.runContained` 收容作用域（首个写失败锁存 + abort 本次 invoke，返回给 LangGraph 的 promise 不再 reject，锁存后零续写，读缝抛锁存错，invoke 结束原码上抛），`adaptive-lifecycle` 四个 invoke 缝全部经 `invokeWithCheckpointContainment`；pg 连接族无 code 错折算 `checkpoint_connection_lost` 并入 transient 白名单（requeue 后 pg-pool 新建连接重试），42501 仍为确定性终态。回归：`pnpm worker-inflight-crash:prove`（零 DB，约 4s；修前 EXIT=1 / 修后 EXIT=0，内置反证臂）。CI 挂钩待 #243 合入后再定（按 ci-cd.md §8 归 `verify:local`），本 PR 不改 ci.yml。未做：真 PG 断连注入 + 16 inflight 全栈复跑 sizing（需重跑 2c4g 矩阵）。
 
 Pins 不变：NOT_HA · releaseEvidence=false。
 
