@@ -77,6 +77,9 @@ async function main() {
   const manifest = loadMigrations(MIG_DIR);
   const dirVersions = readdirSync(MIG_DIR).filter((f) => f.endsWith('.sql')).sort().map((f) => f.replace(/\.sql$/, ''));
   const chainHead = dirVersions[dirVersions.length - 1];
+  if (chainHead === undefined) {
+    throw new Error('migration directory is empty');
+  }
   await admin.query(`DROP DATABASE IF EXISTS ${PROBE_DB} WITH (FORCE)`);
   await admin.query(`CREATE DATABASE ${PROBE_DB}`);
   db = createPool({ purpose: 'event_ttl_probe', database: PROBE_DB });

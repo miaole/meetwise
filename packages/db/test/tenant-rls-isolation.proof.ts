@@ -294,10 +294,11 @@ const readWitness = (rel: string): string => readFileSync(join(REPO_ROOT, normal
 const readMigrationByNameSuffix = (suffix: string): string => {
   const dir = join(REPO_ROOT, 'packages', 'db', 'migrations');
   const matches = readdirSync(dir).filter((f) => f.endsWith(`_${suffix}.sql`) || f === `${suffix}.sql`).sort();
-  if (matches.length !== 1) {
+  const file = matches[0];
+  if (matches.length !== 1 || file === undefined) {
     throw new Error(`migration witness ${suffix}: expected exactly 1 file, got ${matches.length} [${matches.join(', ')}]`);
   }
-  return readFileSync(join(dir, matches[0]), 'utf8');
+  return readFileSync(join(dir, file), 'utf8');
 };
 
 
