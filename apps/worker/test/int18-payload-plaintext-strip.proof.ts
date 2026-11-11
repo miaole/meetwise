@@ -45,10 +45,9 @@ const A = (name: string, ok: boolean) => { total++; console.log(`${ok ? 'PASS' :
 const E = (id: string, data: unknown) => console.log(`EVIDENCE ${id} ${JSON.stringify(data)}`);
 const section = (t: string) => console.log(`\n──────── ${t} ────────`);
 
-console.log('#18 INT-P0-RAW-QUEUE payload 即时剥离 prove（S1-S5 · Ban live）');
+console.log('#18 INT-P0-RAW-QUEUE payload 即时剥离 prove（S1-S5 · 脚本化假模型 · 零 live 外呼）');
 console.log('Pins: haStatus=NOT_HA · releaseEvidence=false · EXIT0≠INT-P0-RAW-QUEUE closed · ≠INT-TRANSCRIPT-01');
 
-for (const k of ['MODEL_API_KEY', 'DASHSCOPE_API_KEY', 'DASHSCOPE_COMPAT_BASE_URL']) delete process.env[k];
 
 const S = Date.now().toString(36);
 const admin = createPool();
