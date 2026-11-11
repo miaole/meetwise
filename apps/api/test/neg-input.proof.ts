@@ -14,6 +14,7 @@
  * 运行:tsx apps/api/test/neg-input.proof.ts(**本文件只负责写,不在此运行**)。
  */
 import { boot, mkAssert } from './_neg-harness';
+import { UPLOAD_BODY_LIMIT_BYTES } from '@meetwise/contracts';
 
 async function main() {
   const h = await boot();
@@ -96,8 +97,11 @@ const AUJ = { ...AU, ...CTJ };
   A('size:over-1MB/profile-settings-413', is4xx((await h.raw('PATCH', '/profile/settings', AUJ, '{"preferences":{"pad":"' + big(1_100_000) + '"}}')).status));
   A('size:over-1MB/quiz-create-413', (await h.raw('POST', '/quiz', AUJ, '{"pad":"' + big(1_100_000) + '"}')).status === 413);   // 无 body 端点也被传输层封顶
 
-  // B2 上传端点(允许 12MB)但 >12MB → Fastify bodyLimit 413
-  A('size:over-12MB/resume-file-413', (await h.post('/resume/file', AU, { filename: 'r.pdf', contentBase64: big(12_600_000) })).status === 413);
+  // B2 上传端点超过共享上传信封 → 413 file_too_large（明确契约）
+  {
+    const r = await h.post('/resume/file', AU, { filename: 'r.pdf', contentBase64: big(UPLOAD_BODY_LIMIT_BYTES + 65_536) });
+    A('size:over-upload-limit/resume-file-413', r.status === 413 && r.body?.error === 'file_too_large');
+  }
 
   // B3 超长 :id(text 列,安全)→ 404 优雅拒,不崩
   A('size:huge-id/interview-404', is4xx((await h.req('GET', '/interview/' + big(5000), AU)).status));
