@@ -72,6 +72,9 @@ main 上 `ci` 工作流对上述合入提交均 success。`deploy` 工作流报�
 
 Pins 不变：NOT_HA · releaseEvidence=false。
 
+**0091 签发根（方案，2026-11-11）**：PR #257 把投影物理 purge 接进生产 worker 后，生产路径仍无人签发 0091 快照，投影行只会计 `skippedUnauthorized`、不会真删。账户注销只 begin、不签名。方案与选项比较见 [`privacy-0091-signer-who.md`](./privacy-0091-signer-who.md)。推荐：上云前用独立签发器（软件 ECDSA），上云后再接 KMS；签发前须先挂 oss/redis/langfuse，避免 0096 在本地 purge 后把请求标成 `completed`。公开 DELETE 仍 503。审查方 mw-privacy-int。本条只登记方案，不是已实现。
+
+
 ## P0 — 演示关键 / 上线阻塞
 
 | 条目 | 状态 |
