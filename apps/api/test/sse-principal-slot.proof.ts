@@ -21,6 +21,8 @@
  * 200ms 则会超 3 次）。不依赖固定窗口相位去数 +5，也没有加大 sleep。
  */
 import 'reflect-metadata';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
@@ -34,7 +36,9 @@ import { AllExceptionsFilter } from '../src/platform/all-exceptions.filter.ts';
 import { DbService } from '../src/platform/db.service.ts';
 import { PrincipalGuard } from '../src/platform/principal.guard.ts';
 import { RateLimitService } from '../src/platform/rate-limit.service.ts';
-import { getSseNotify } from '../src/platform/sse-notify.service.ts';
+import { getSseNotify, type SseNotifyService } from '../src/platform/sse-notify.service.ts';
+import { pumpSseEvents, type SsePumpOptions } from '../src/platform/sse-pump.ts';
+import { createSseRegistry } from '../src/platform/sse-registry.ts';
 
 process.env.AUTH_DEV_HEADER = '1';
 // PR243 小门B：proof 自封闭（hermetic），不依赖「环境里的库是否可达」。
@@ -115,7 +119,77 @@ async function release(hold: HeldStream | undefined): Promise<void> {
   try { await hold.reader?.cancel(); } catch { /* already closed */ }
 }
 
+/**
+ * 空流 attach 头即时可见锁（HA 沙箱 V5 / sse-pump flushHeaders）。
+ * 假 raw 复刻 Node 语义：writeHead 只入队，flushHeaders / 首次 write / end 才对客户端可见。
+ * 去掉 flushHeaders 后本段必红（首事件/健康兜底 ping 之前客户端仍无 200 头）。
+ */
+async function flushHeadersAttachProof(): Promise<void> {
+  const queued: { status?: number; headers?: Record<string, string> } = {};
+  let clientStatus = 0;
+  let clientHeaders: Record<string, string> | null = null;
+  let flushCalls = 0;
+  const frames: string[] = [];
+  const closeListeners: Array<() => void> = [];
+  const flushToClient = () => {
+    if (clientHeaders) return;
+    clientStatus = queued.status ?? 0;
+    clientHeaders = { ...(queued.headers ?? {}) };
+  };
+  const raw = {
+    writeHead(code: number, h: Record<string, string>) {
+      queued.status = code;
+      queued.headers = h;
+    },
+    flushHeaders() {
+      flushCalls += 1;
+      flushToClient();
+    },
+    write(chunk: string) {
+      flushToClient();
+      frames.push(chunk);
+      return true;
+    },
+    end() { flushToClient(); },
+    on(_event: string, _listener: () => void) { /* drain 可选 */ },
+  };
+  const notify = {
+    health: () => ({ healthy: true }),
+    waitFor: () => ({ promise: new Promise<void>(() => { /* hang until close */ }), dispose() {} }),
+  } as unknown as SseNotifyService;
+  const registry = createSseRegistry();
+  let fetchCalled = false;
+  const done = pumpSseEvents({
+    reply: { hijack() {}, raw } as never,
+    reqRaw: { on(event: 'close', listener: () => void) { if (event === 'close') closeListeners.push(listener); } },
+    streamKey: 'flush-headers-empty',
+    initial: { lastId: 0, rows: [] },
+    fetchMore: async () => { fetchCalled = true; return { rows: [] }; },
+    isTerminal: () => false,
+    notify,
+    registry,
+    fallbackMsHealthy: 30_000,
+  } as SsePumpOptions);
+  // writeHead + flushHeaders 在泵的第一处 await 之前同步执行，至此头必须已对客户端可见。
+  A('空流 attach：flushHeaders 已调用', flushCalls >= 1);
+  A('空流 attach：客户端在任何事件之前即收到 200', clientStatus === 200 && frames.length === 0 && fetchCalled === false);
+  // 拷到新对象：clientHeaders 由闭包赋值，TS 控制流仍视为 null，直接 === 会报 TS2367。
+  const visible: Record<string, string> = { ...(clientHeaders ?? {}) };
+  A('空流 attach：响应头含 text/event-stream + cache-control + x-accel-buffering=no',
+    clientHeaders !== null
+    && (visible['content-type'] ?? '').includes('text/event-stream')
+    && (visible['cache-control'] ?? '').includes('no-cache')
+    && visible['x-accel-buffering'] === 'no');
+  const pumpSrc = readFileSync(fileURLToPath(new URL('../src/platform/sse-pump.ts', import.meta.url)), 'utf8');
+  A('源级：writeHead 之后显式 flushHeaders（删行/注释掉即本锁红）', /writeHead\([\s\S]{0,2000}?^\s*reply\.raw\.flushHeaders\?\.\(\);/m.test(pumpSrc));
+  for (const listener of closeListeners) listener();
+  await done;
+  A('空流 attach：清理后 registry 归零', registry.count() === 0);
+}
+
 async function main() {
+  await flushHeadersAttachProof();
+
   const db = createCountingDb();
   const rl = new RateLimitService();
   const interviews = new InterviewService(db as unknown as DbService, rl, {} as never, {} as never, { id: 'disabled' } as never);
