@@ -94,7 +94,17 @@ function finish(exit, fields, cmdExtra = '') {
 function writeReceipt(name, body) {
   mkdirSync(RECEIPTS, { recursive: true });
   const path = join(RECEIPTS, name);
-  writeFileSync(path, `${JSON.stringify({ ...body, haStatus: 'NOT_HA', releaseEvidence: false, claimProductionHA: false }, null, 2)}\n`, 'utf8');
+  // 收据自含证据链：steps 逐条 + estLive + cmd/exit（与 stdout printReceipt 同源）。
+  // steps 快照取写入时点（本条 write 自身不入 steps——note 在写盘之后）。
+  const exitCode = body.result === undefined ? undefined : (body.result === 'OK' ? 0 : 1);
+  writeFileSync(path, `${JSON.stringify({
+    ...body,
+    ...(exitCode === undefined ? {} : { exitCode }),
+    cmd: cmd || '',
+    steps: steps.map((s) => ({ step: s.step, ok: s.ok, detail: s.detail })),
+    estLive: 0,
+    haStatus: 'NOT_HA', releaseEvidence: false, claimProductionHA: false,
+  }, null, 2)}\n`, 'utf8');
   note(`wrote ${name}`, true, path);
   return path;
 }
@@ -229,7 +239,7 @@ function genEnvFile() {
   assertSandboxEnv(lines);
   // 沙箱模型端点档（r10·compose 侧 "${MODEL_ENDPOINT_PROFILE:-deepseek-cn-public}" 默认 deepseek 档，
   // 而沙箱占位模型名=qwen 前缀 → 必须在 env-file 显式指定百炼档，否则 worker 启动即
-  // text_endpoint_profile_model_mismatch 崩（profile 前缀校验 model-client:517-523）。
+  // text_endpoint_profile_model_mismatch 崩（profile 前缀校验 model-client:684-687）。
   if (!lines.some((l) => l.startsWith('MODEL_ENDPOINT_PROFILE='))) {
     lines.push('MODEL_ENDPOINT_PROFILE=dashscope-cn-beijing');
   }
@@ -369,7 +379,7 @@ function waitContainerHealthy(name, kind, timeoutMs, label) {
     const h = containerHealth(name);
     if (h === 'healthy') {
       const seconds = Math.round(((appReadyAt ?? Date.now()) - t0) / 1000);
-      return { ok: true, seconds, via: appReadyAt ? 'app-probe+engine-restart' : 'docker-health', engineFrozen, engineRestarted };
+      return { ok: true, seconds, via: engineRestarted ? 'app-probe+engine-restart' : (appReadyAt ? 'app-probe' : 'docker-health'), engineFrozen, engineRestarted };
     }
     if (appProbeOk(name, kind)) consecutive += 1; else consecutive = 0;
     if (!appReadyAt && consecutive >= 2) {
@@ -789,8 +799,9 @@ async function cmdV4() {
   note('RX-3 INSTANCE_ID injected', ids['api-a'] === 'api-a' && ids['api-b'] === 'api-b', JSON.stringify(ids));
 
   const nameA = containerName('api-a');
-  sh('docker', ['stop', nameA]);
-  note('docker stop api-a (split continuation)', true, nameA);
+  const stop = sh('docker', ['stop', nameA]);
+  note('docker stop api-a (split continuation)', stop.status === 0, `${nameA} exit=${stop.status}`);
+  if (stop.status !== 0) finish(1, { result: 'FAIL', gap: `docker stop api-a failed exit=${stop.status}`, note: stop.stderr.slice(0, 300) });
   sleepSync(2000);
   const after = execCapture('api-b', [HELPER_LB, '20', '/livez', '', join(SANDBOX_DIR, 'out-lb4b.json').replace(ROOT + '/', '/app/')], 'out-lb4b.json', 60000);
   const afterFail = (after && after.failures) ?? 999;
@@ -912,10 +923,11 @@ async function cmdV5() {
   const seqsSeen = resume ? resume.events.map((e) => e.seq) : [];
   const zeroLoss = seqsSeen.includes('2');
   const noBufferOk = maxLatency !== null && maxLatency <= 3000;
+  const crossOk = Boolean(r1 && r2 && r1.attachedBackend && r2.attachedBackend && r1.attachedBackend.split(':')[0] !== r2.attachedBackend.split(':')[0]);
   note('Last-Event-ID resume zero-loss', zeroLoss, `resume backend=${resume && resume.attachedBackend} seqs=${JSON.stringify(seqsSeen)}`);
   note('LB SSE zero-buffer (first event <=3s)', noBufferOk, `maxFirstLatencyMs=${maxLatency}`);
-
-  const v5ok = bothGot && zeroLoss && crashConfirmed && noBufferOk;
+  // fail-closed 收束：全部断言参与 result / EXIT（bothGot/zeroLoss/crashConfirmed/crossOk/noBufferOk 缺一即 FAIL）。
+  const v5ok = bothGot && zeroLoss && crashConfirmed && crossOk && noBufferOk;
   writeReceipt('v5-sse.receipt.json', {
     result: v5ok ? 'OK' : 'FAIL',
     v: 'V5',
@@ -924,12 +936,13 @@ async function cmdV5() {
     killedBackend: backend1, survivor,
     crashConfirmed,
     resume,
+    attachPairCrossReplica: crossOk,
     broadcastBothReplicas: bothGot,
     maxFirstEventLatencyMs: maxLatency,
     zeroBufferOk: noBufferOk,
     zeroLossResumedSeqs: seqsSeen,
     command: 'MEETWISE_HA_SANDBOX_AUTHORIZED=1 node scripts/ha/ha-sandbox.mjs v5',
-    note: 'pg_notify broadcast + DB seq replay; no redis adapter / no sticky dependency; local sandbox ≠ production HA; zero-buffer (first event ≤3s) is part of V5 EXIT',
+    note: 'pg_notify broadcast + DB seq replay; no redis adapter / no sticky dependency; local sandbox ≠ production HA; est live=0; all V5 predicates (incl. cross-replica + zero-buffer first event ≤3s) participate in EXIT',
   });
   finish(v5ok ? 0 : 1, { result: v5ok ? 'V5_SSE_OK' : 'FAIL' }, 'v5');
 }
@@ -973,7 +986,9 @@ async function cmdV6() {
   sh('docker', ['stop', nameA0]);
   const frozenAt = Date.now();
   const fz = psqlOwner(owner, `UPDATE ai_report SET status='running', lease_owner='worker-a#1', lease_expires_at=now()+interval '10 seconds' WHERE id='${reportId}' RETURNING id;`);
-  note('lease row frozen to holder-death shape', fz.stdout.trim() === reportId, 'status=running lease_owner=worker-a#1 expiry=+10s (declared simulation of crash-interrupted claim)');
+  const frozenOk = fz.stdout.trim() === reportId;
+  note('lease row frozen to holder-death shape', frozenOk, 'status=running lease_owner=worker-a#1 expiry=+10s (declared simulation of crash-interrupted claim)');
+  if (!frozenOk) finish(1, { result: 'FAIL', gap: 'freeze row update failed', note: fz.stderr.slice(0, 300) });
   sh('docker', ['start', nameB0]);
 
   // 等 worker-b 租约过期接管（claimReport: running+lease_expires_at<now+attempts<3）。
@@ -1000,7 +1015,7 @@ async function cmdV6() {
   const restored = waitContainerHealthy(nameA0, 'worker', 300000, 'worker-a restore');
   note('worker-a restored to healthy', restored.ok, `${restored.seconds}s via=${restored.via}${restored.engineFrozen ? ' engine-frozen+corrective-restart' : ''}`);
 
-  const ok = Boolean(takeover) && casRows === '' && restored.ok && claimAttempts >= 1;
+  const ok = frozenOk && Boolean(takeover) && casRows === '' && restored.ok && claimAttempts >= 1;
   writeReceipt('v6-lease.receipt.json', {
     result: ok ? 'OK' : 'FAIL',
     v: 'V6',
