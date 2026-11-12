@@ -89,6 +89,10 @@ export async function pumpSseEvents(o: SsePumpOptions): Promise<void> {
   const { reply } = o;
   reply.hijack();                                   // Fastify:接管底层响应做 SSE
   reply.raw.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-cache', connection: 'keep-alive', 'x-accel-buffering': 'no' });
+  // 头即时下发：writeHead 只入队，Node 到首次 write/end 才真正 flush——空流下客户端
+  // （EventSource open / LB attach 探针）要等首个事件或健康态兜底 ping（30s）才见 200。
+  // 显式 flushHeaders 令 attached 语义即时（HA 沙箱 V5 attach 头可见性实测缺口·事件语义零变更）。
+  reply.raw.flushHeaders?.();
   let closed = false;
   let draining = false;                             // HA-2 停机排水旗(R1:registry 条目持旗·只停取不 end)
   let bpTripped = false;                            // #132 背压自有旗:超阈值断开用,与 closed/draining 正交(背压 drain(socket)≠HA-2 排水)
