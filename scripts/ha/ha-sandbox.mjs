@@ -22,7 +22,7 @@
  * 收据：receipts/ha-1/*.json（CMD+EXIT 见 stdout RECEIPT 块·他人可复跑）。
  * 判定：node scripts/ha/ha-status.mjs（独立 fail-closed 判定器·读同一批收据）。
  */
-import { existsSync, mkdirSync, writeFileSync, readFileSync, unlinkSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync, readFileSync, unlinkSync, chmodSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { dirname, join } from 'node:path';
@@ -38,6 +38,15 @@ const F = {
   nginxConf: join(ROOT, 'ops/deploy/nginx.conf'),
 };
 const SANDBOX_DIR = join(ROOT, '.tmp/ha-sandbox');
+/** 容器 helper 要把 JSON 回写到本目录（bind-mount）。compose 继承 cap_drop ALL，
+ *  容器进程即便是 root 也没有 DAC_OVERRIDE，写不进宿主 uid 建的 0755 目录（EACCES）。
+ *  实证：writeFileSync /app/.tmp/ha-sandbox/out-*.json → execCapture 读不到文件 →
+ *  signup status=undefined / LB failures=999。1777 仅限一次性沙箱输出目录
+ *  （dummy 凭据、down 即弃），不改生产 read_only / cap_drop 契约。 */
+function ensureSandboxDir() {
+  mkdirSync(SANDBOX_DIR, { recursive: true });
+  chmodSync(SANDBOX_DIR, 0o1777);
+}
 const ENV_FILE = join(SANDBOX_DIR, 'sandbox.env');
 const CA_PATH = join(SANDBOX_DIR, 'dummy-ca.pem');
 const RECEIPTS = join(ROOT, 'receipts/ha-1');
@@ -151,7 +160,7 @@ function assertSandboxEnv(lines) {
 }
 
 function genEnvFile() {
-  mkdirSync(SANDBOX_DIR, { recursive: true });
+  ensureSandboxDir();
   const PG = `postgres://meetwise:${PW.pgSuper}@ha-pg:5432/meetwise`;
   // migrate 走超级用户（DDL 需权）；runtime/qbank-control/rag-control 三 URL 走 migrate 已
   // provision 的同名专用 login（APP_RUNTIME_DB_USER 等·最小权限生产同形）——worker 的
@@ -388,7 +397,7 @@ function sleepSync(ms) {
 // ------------------------------------------------------------------- helpers
 
 function writeHelper(name, body) {
-  mkdirSync(SANDBOX_DIR, { recursive: true });
+  ensureSandboxDir();
   const p = join(SANDBOX_DIR, name);
   writeFileSync(p, body, 'utf8');
   return `/app/.tmp/ha-sandbox/${name}`;
@@ -530,7 +539,8 @@ function signupViaLb(outName, tries = 5) {
     const out = execCapture('api-b', [HELPER_AUTH, 'signup', '', join(SANDBOX_DIR, outName).replace(ROOT + '/', '/app/')], outName, 30000);
     if (out && out.token && out.userId) return out;
     const status = out && out.signup && out.signup.status;
-    note(`signup attempt ${i}/${tries}`, false, `status=${status}${status === 429 ? ' — signup:ip bucket throttled, backoff 21s' : ''}`);
+    const err = out && out.error;
+    note(`signup attempt ${i}/${tries}`, false, `status=${status}${err ? ` error=${err}` : ''}${status === 429 ? ' — signup:ip bucket throttled, backoff 21s' : ''}`);
     if (i < tries) sleepSync(21000);
   }
   return null;
@@ -717,7 +727,7 @@ async function cmdV3() {
   // 业务 token 预取（健康期，经 LB）。
   const auth0 = execCapture('api-b', [HELPER_AUTH, 'signup', '', join(SANDBOX_DIR, 'out-auth0.json').replace(ROOT + '/', '/app/'), ''], 'out-auth0.json');
   const token = auth0 && auth0.token;
-  note('signup+token via LB (pre-fault)', Boolean(token), auth0 && auth0.signup ? `signup=${auth0.signup.status}` : 'no signup');
+  note('signup+token via LB (pre-fault)', Boolean(token), auth0 && auth0.signup ? `signup=${auth0.signup.status}` : (auth0 && auth0.error ? `no signup: ${auth0.error}` : 'no signup'));
   if (!token) finish(1, { result: 'FAIL', gap: 'no business token (signup via LB failed)' });
 
   const name = containerName('api-a');
