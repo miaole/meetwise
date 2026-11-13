@@ -611,12 +611,15 @@ const VIEW_EXEMPT: readonly { view: string; invokerMustBe: boolean; defExact: st
  *  turn a live grant green is Ban'd. */
 const RLS_FREE_GRANT_TRIPLES: readonly { table: string; role: string; privilege: string; reason: string }[] = [];
 
-/** Census baseline pinned to THIS branch's migration chain (227 files since rev r3 —
- *  0227_auth_user_session_owner_rls adds one policy + flips auth_user_session to an
- *  RLS table: 340+1/166+1 from the rev r2 chain). If a rebase/merge moves the chain,
- *  re-count and update these two constants consciously — drift must never green
- *  silently. */
-const POLICY_CENSUS_BASELINE = { policies: 341, rlsTables: 167 };
+/** Census baseline pinned to THIS branch's migration chain.
+ *  0227_auth_user_session_owner_rls added one policy and flipped auth_user_session
+ *  to an RLS table (340+1/166+1 from the rev r2 chain, 227 files at rev r3).
+ *  0232_interview_job_erasure_projection_purge then added two policies on the
+ *  already-RLS table interview_job (TO privacy_worker_owner, not app_role/PUBLIC):
+ *  interview_job_privacy_worker_residue_select / _delete. 341+2/167+0.
+ *  If a rebase/merge moves the chain, re-count and update these two constants
+ *  consciously — drift must never green silently. */
+const POLICY_CENSUS_BASELINE = { policies: 343, rlsTables: 167 };
 
 /** rev r3 session-table policy predicate (0227 / auth_user_session_owner_rls), exact-equality target for the M8
  *  introspection arm — same normalization as the canonical OWNER_PREDICATE. */
