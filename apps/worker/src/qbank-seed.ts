@@ -84,6 +84,7 @@ const bootstrapScope = (refId: string): string => {
   if (prefix === 'ops') return 'business/operations';
   if (prefix === 'sales') return 'business/sales';
   if (prefix === 'hr') return 'business/hr';
+  if (prefix === 'general') return 'business/general';
   return 'backend/general';
 };
 
@@ -100,6 +101,7 @@ const COMPETENCY: Record<string, string> = {
   obs: '可观测性', rag: 'Agent 与 RAG', jvm: 'JVM 运行时', sec: '应用安全',
   go: 'Go 运行时', py: 'Python 运行时', fe: '前端工程', qa: '测试与质量',
   pm: '产品发现与取舍', ux: '体验与交互设计', ops: '用户与内容运营', sales: '销售与客户成功', hr: '招聘与组织发展',
+  general: '通用职场与协作',
 };
 
 const COACHING: Record<string, { rubric: string; followUp: string; antiPattern: string }> = {
@@ -312,6 +314,11 @@ const QBANK_SEED_V3_BUSINESS: { refId: string; difficulty: number; text: string;
     followUp: '客户说再等等竞品报价，你如何既不压价也不丢掉进程？',
     antiPattern: '只会催单或报低价，说不清决策人和异议本质。',
     seniority: 'mid', questionKind: 'situational' },
+  { refId: 'seed:general-1', difficulty: 2, text: '跨职能项目里各方的目标与口径冲突，你会如何对齐出一个可执行的协作方案',
+    rubric: '能识别目标差异、信息不对称与决策权分布；给出对齐机制（口径文档/例行同步/升级路径）与可验证的执行边界。',
+    followUp: '对齐后对方仍按自己的口径执行，你如何在不升级冲突的前提下纠正？',
+    antiPattern: '只抱怨沟通难，说不出对齐机制、决策权与验收标准。',
+    seniority: 'mid', questionKind: 'case' },
   { refId: 'seed:hr-1', difficulty: 2, text: '某个关键岗位连续两轮招不到人，你会如何重新定义画像并调整流程而不降低录用标准',
     rubric: '区分画像过窄、渠道、流程时延与雇主品牌；给出可度量的流程改进和必须守住的能力底线。',
     followUp: '业务方坚持只要大厂背景但市场供给不足，你如何对齐标准？',

@@ -6,7 +6,7 @@ import {
   CANDIDATE_ROUTE_POLICY_VERSION, CANDIDATE_ROUTE_POLICY_VERSION_V2, CANDIDATE_ROUTE_TAXONOMY_VERSION,
   CANDIDATE_ROUTE_ALLOCATION_BPS, CANDIDATE_ROUTE_TARGET_ROLE_POLICY_SUFFIX,
   candidateRouteDecisionHash, classifyCandidateProfileByRule, classifyJobByRule,
-  taxonomyVersionForLeaves,
+  arbitrateCandidateRouteWithTargetRole, taxonomyVersionForLeaves,
 } from '../src/index.ts';
 /** N17 视图(宽松读形:修前导出缺失时 proof 仍可加载并如实 FAIL)。 */
 type ArbView = { decided: boolean; leafTrackId?: string; targetRoleApplied?: boolean; resumeDegradedFrom?: string; policyVersion: string; inputDigest: string; reason?: string };
@@ -267,8 +267,8 @@ A('v4-f v3 g6 形零翻：裸「自动化测试」单独在场（唯一命中）
   A('L8-R3 前端简历 + 弱命中「prd」→ 仍技术面降级桶（不入 business 面）',
     fePrd.decided && fePrd.leafTrackId === 'backend/general' && fePrd.degraded === true);
   A('L8-R4 弱命中降级桶 taxonomy/policy 仍技术面（v1 + candidate-route v4）',
-    taxonomyVersionForLeaves([javaPrd.leafTrackId]) === 'v1'
-    && javaPrd.leafTrackId === 'backend/general');
+    javaPrd.decided && javaPrd.leafTrackId === 'backend/general'
+    && taxonomyVersionForLeaves([javaPrd.leafTrackId]) === 'v1');
   const strongHybrid = classifyCandidateProfileByRule('Java 工程师，后端转产品，现任产品经理');
   A('L8-R5 强非技术证据在场才降 business/general（岗位自述级闸放行·与弱词反证形成对比）',
     strongHybrid.decided && strongHybrid.leafTrackId === 'business/general' && strongHybrid.degraded === true);
@@ -277,12 +277,12 @@ A('v4-f v3 g6 形零翻：裸「自动化测试」单独在场（唯一命中）
   A('L8-R6 general+弱命中单叶（product 闸不过）→ 不直取 business/product，落技术面降级桶',
     weakSolo.decided && weakSolo.leafTrackId === 'backend/general' && weakSolo.degraded === true);
   // #279 规则③：弱命中进消歧闭集——targetRole 强证据岗位在闭集内可采纳（用户自述意向）：
-  const arbPm = arb('Java 工程师，写过 prd', '产品经理');
+  const arbPm = arbitrateCandidateRouteWithTargetRole('Java 工程师，写过 prd', '产品经理');
   A('L8-R7 闭集内消歧：技术+弱prd 简历 + targetRole「产品经理」→ business/product（targetRoleApplied·v5 策略）',
     arbPm.decided && arbPm.leafTrackId === 'business/product' && arbPm.targetRoleApplied === true
     && arbPm.resumeDegradedFrom === 'ambiguous_language_evidence'
     && arbPm.policyVersion === `${CANDIDATE_ROUTE_POLICY_VERSION_V2}${CANDIDATE_ROUTE_TARGET_ROLE_POLICY_SUFFIX}`);
-  const arbPmWeak = arb('Java 工程师，写过 prd', 'prd');
+  const arbPmWeak = arbitrateCandidateRouteWithTargetRole('Java 工程师，写过 prd', 'prd');
   A('L8-R8 targetRole 仅弱词（prd 闸不过）→ 不采纳，维持技术面降级',
     arbPmWeak.decided && arbPmWeak.leafTrackId === 'backend/general' && arbPmWeak.targetRoleApplied === false);
   // business/general 单独在场仍单叶臂（v3 g6 形零翻·0234 已播种非空）：
