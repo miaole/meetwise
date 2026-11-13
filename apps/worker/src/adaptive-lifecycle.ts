@@ -56,7 +56,7 @@ const pendingQuestion = (snap: any): PendingQuestion | undefined => {
  * 旧 checkpoint 仅记在 generationProvenance 时回退读 snap。非法值丢弃，避免把未知串写入事件。
  * undefined 经 JSON.stringify 缺字段，旧消费者零破坏。
  */
-function projectedDuplicateFallback(p: PendingQuestion, snap?: any): QuestionDuplicateFallback | undefined {
+export function projectedDuplicateFallback(p: PendingQuestion, snap?: any): QuestionDuplicateFallback | undefined {
   const raw = p.duplicateFallback ?? (snap?.values?.generationProvenance as QuestionGenerationProvenance | undefined)?.duplicateFallback;
   return (QUESTION_DUPLICATE_FALLBACKS as readonly string[]).includes(raw as string)
     ? raw as QuestionDuplicateFallback

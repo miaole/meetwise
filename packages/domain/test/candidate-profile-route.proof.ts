@@ -4,6 +4,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   CANDIDATE_ROUTE_POLICY_VERSION, CANDIDATE_ROUTE_TAXONOMY_VERSION, CANDIDATE_ROUTE_ALLOCATION_BPS,
+  CANDIDATE_ROUTE_TARGET_ROLE_POLICY_SUFFIX,
   candidateRouteDecisionHash, classifyCandidateProfileByRule,
 } from '../src/index.ts';
 /** N17 视图(宽松读形:修前导出缺失时 proof 仍可加载并如实 FAIL)。 */
@@ -176,8 +177,9 @@ A('v4-f v3 g6 形零翻：裸「自动化测试」单独在场（唯一命中）
     const r1 = arb(AMBIG, 'Java 后端工程师');
     A('N17-b 歧义简历 + targetRole「Java 后端工程师」→ backend/java（targetRole 做裁决·targetRoleApplied）',
       r1.decided && r1.leafTrackId === 'backend/java' && r1.targetRoleApplied === true && r1.resumeDegradedFrom === 'ambiguous_language_evidence');
-    A('N17-c 采纳时 policyVersion 追加 +target-role:v1 后缀（≤64 字符 0142 CHECK）且 digest ≠ 纯简历 digest',
-      r1.policyVersion === `${CANDIDATE_ROUTE_POLICY_VERSION}+target-role:v1` && r1.policyVersion.length <= 64
+    A('N17-c 采纳时 policyVersion 追加 +target-role:v2 后缀（≤64 字符 0142 CHECK）且 digest ≠ 纯简历 digest',
+      r1.policyVersion === `${CANDIDATE_ROUTE_POLICY_VERSION}${CANDIDATE_ROUTE_TARGET_ROLE_POLICY_SUFFIX}`
+      && r1.policyVersion.endsWith('+target-role:v2') && r1.policyVersion.length <= 64
       && r1.inputDigest !== arb(AMBIG).inputDigest && /^[0-9a-f]{64}$/.test(r1.inputDigest));
     const r2 = arb(NOSIG, '前端开发工程师');
     A('N17-d 零命中简历 + targetRole「前端开发工程师」→ frontend/web', r2.decided && r2.leafTrackId === 'frontend/web' && r2.targetRoleApplied === true);
@@ -196,9 +198,34 @@ A('v4-f v3 g6 形零翻：裸「自动化测试」单独在场（唯一命中）
     const r9 = arb('', 'Java 后端工程师');
     A('N17-g 空简历 + targetRole → 仍 profile_empty 未决（409 profile_unavailable 防御面保留·targetRole 不替代简历）',
       r9.decided === false && r9.reason === 'profile_empty');
-    const r10 = arb(AMBIG, '自动化测试');    // qa 弱证据单独 → 单叶臂=强证据（同词典同闸）
+    const r10 = arb(AMBIG, '自动化测试');    // qa 弱证据：不得再走单叶臂绕过 v4 闸
     const r11 = arb(AMBIG, 'Java 后端工程师');
     A('N17-h 确定性：同输入同决策（leaf/policy/digest 全等）', JSON.stringify(r11) === JSON.stringify(r1) && r10.decided === true);
+    const r12x = arb(AMBIG, '前端开发工程师');
+    A('N17-i 歧义简历 + 简历未命中的叶（前端）→ 维持 general，不采纳',
+      r12x.decided && r12x.leafTrackId === 'backend/general' && r12x.targetRoleApplied === false
+      && r12x.policyVersion === CANDIDATE_ROUTE_POLICY_VERSION);
+    A('N17-j 歧义简历 + 弱证据「自动化测试」/「rag」→ 维持 general（不绕 v4 闸）',
+      r10.decided && r10.leafTrackId === 'backend/general' && r10.targetRoleApplied === false
+      && arb(AMBIG, 'rag').leafTrackId === 'backend/general' && arb(AMBIG, 'rag').targetRoleApplied === false);
+    A('N17-k 零命中 + 弱证据「rag」→ 不采纳；+「算法工程师」→ ai_ml',
+      arb(NOSIG, 'rag').targetRoleApplied === false && arb(NOSIG, 'rag').leafTrackId === 'backend/general'
+      && arb(NOSIG, '算法工程师').targetRoleApplied === true && arb(NOSIG, '算法工程师').leafTrackId === 'ai_ml/applied'
+      && arb(NOSIG, '算法工程师').resumeDegradedFrom === 'no_signal_hit');
+    const GENERAL = '负责订单系统，使用 Redis、MySQL 与高并发限流';
+    const g0 = classifyCandidateProfileByRule(GENERAL);
+    A('N17-l 前提：general-only 简历单独 rule = backend/general 非降级',
+      g0.decided && g0.leafTrackId === 'backend/general' && g0.degraded === false);
+    const g1 = arb(GENERAL, 'Java 后端工程师');
+    A('N17-m general-only + targetRole「Java 后端工程师」→ backend/java（专向生效）',
+      g1.decided && g1.leafTrackId === 'backend/java' && g1.targetRoleApplied === true
+      && g1.resumeDegradedFrom === undefined
+      && g1.policyVersion === `${CANDIDATE_ROUTE_POLICY_VERSION}${CANDIDATE_ROUTE_TARGET_ROLE_POLICY_SUFFIX}`);
+    A('N17-n general-only + 弱证据「自动化测试」→ 仍 general',
+      arb(GENERAL, '自动化测试').targetRoleApplied === false && arb(GENERAL, '自动化测试').leafTrackId === 'backend/general');
+    A('N17-o 采纳臂大小写折叠：Java/java 同叶且 digest 相同',
+      g1.inputDigest === arb(GENERAL, 'java 后端工程师').inputDigest
+      && arb(AMBIG, 'Java 后端工程师').inputDigest === arb(AMBIG, 'java 后端工程师').inputDigest);
   }
 }
 

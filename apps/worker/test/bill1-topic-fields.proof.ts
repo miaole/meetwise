@@ -284,8 +284,13 @@ async function main() {
     && usageCauseForInvokeError('model_circuit_half_open') === 'admission_rejected'
     && usageCauseForInvokeError('model_concurrency_exhausted') === 'admission_rejected'
     && usageCauseForInvokeError('budget_exhausted') === 'admission_rejected'
+    && usageCauseForInvokeError('model_context_budget_exceeded') === 'admission_rejected'
+    && usageCauseForInvokeError('cost_budget_exhausted') === 'admission_rejected'
+    && usageCauseForInvokeError('model_context_policy_invalid') === 'admission_rejected'
+    && usageCauseForInvokeError('model_admission_timeout') === 'admission_rejected'
     && usageCauseForInvokeError('provider_timeout') === 'generation_failed'
-    && usageCauseForInvokeError('business:grounded_refs_not_in_facts') === 'generation_failed');
+    && usageCauseForInvokeError('business:grounded_refs_not_in_facts') === 'generation_failed'
+    && usageCauseForInvokeError('budget_something_else') === 'generation_failed');
 
   /* ───────── ② topic_id 填充臂（A：pivot→probe 同话题） ───────── */
   section('② topic_id 填充臂：pivot 主问题=自己 / probe 追问=主问题 id（全链 scripted 假体）');

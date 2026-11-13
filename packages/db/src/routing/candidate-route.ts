@@ -63,8 +63,8 @@ export async function supplyCandidateProfileRoute(c: Client, owner: string, inte
   } catch {
     return { status: 'undecided', reason: 'profile_unavailable' };
   }
-  // G6 N-17：targetRole（begin 归一化后的用户目标岗位）参与裁决——仅在简历 rule 降级（歧义/零命中）时
-  // 作裁决证据；未采纳时 policyVersion/inputDigest 与修前逐字节一致（domain arbitrateCandidateRouteWithTargetRole）。
+  // G6 N-17 v2：targetRole（begin 归一化后的用户目标岗位）参与裁决——歧义时只在简历命中叶内消歧，
+  // general-only/零命中可专向（qa/ai_ml 须强证据）。未采纳时 policyVersion/inputDigest 与简历-only 路径一致。
   const rule = arbitrateCandidateRouteWithTargetRole(raw ?? '', targetRole);
   if (!rule.decided) {
     return { status: 'undecided', reason: 'profile_unavailable' };
@@ -78,13 +78,15 @@ export async function supplyCandidateProfileRoute(c: Client, owner: string, inte
   const ins = await c.query(
     `INSERT INTO candidate_profile_route_decision
        (id,interview_id,owner_user_id,resume_id,resume_content_sha,input_digest,
-        taxonomy_version,policy_version,route_outcome,attempt_outcome,leaf_track_id,allocation_bps,decision_hash)
-     VALUES($1,$2,$3,$4,$5,$6,$7,$8,'route_decided','rule_decided',$9,$10,$11)
+        taxonomy_version,policy_version,route_outcome,attempt_outcome,leaf_track_id,allocation_bps,decision_hash,
+        resume_degraded_from,target_role_applied)
+     VALUES($1,$2,$3,$4,$5,$6,$7,$8,'route_decided','rule_decided',$9,$10,$11,$12,$13)
      ON CONFLICT (interview_id) DO NOTHING
      RETURNING id`,
     [decisionId, interviewId, ownerScope, resumeId, resumeContentSha, inputDigest,
       CANDIDATE_ROUTE_TAXONOMY_VERSION, rule.policyVersion,
-      rule.leafTrackId, rule.allocationBps, decisionHash],
+      rule.leafTrackId, rule.allocationBps, decisionHash,
+      rule.resumeDegradedFrom ?? null, rule.targetRoleApplied],
   );
   // 并发 begin（advisory 锁下罕见）撞 UNIQUE → 回读既有 decision，snapshot 引用真实行。
   let finalDecisionId = decisionId;

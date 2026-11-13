@@ -20,7 +20,9 @@
  *    绝不多桶推断」的 G7S 冻结条款经**用户决策凌驾**路径解除：多桶不可判定时选最大覆盖面桶
  *    （backend/general）兜底并携带 degraded 信号（G7S 语义变更 erratum 归协调方卷；先前
  *    「待后继用户选择刀」条款作废，UI 刀 #259 非门槛）；
- *  - 输入文本仅在内存匹配信号，派生输出只有 leaf + sha256 digest——原文绝不落库/落 trace。
+ *  - 输入文本仅在内存匹配信号；路由决策与 snapshot 派生输出只有 leaf + sha256 digest，
+ *    不把简历原文或 targetRole 原文写入这两张表（targetRole 原文仍可按既有路径出现在
+ *    interview_job.payload / 诊断表，不在本模块扩大落库范围）。
  * releaseEvidence=false · Not HA · ≠ R4 topic isolation closed · ≠ R1。
  */
 import { createHash } from 'node:crypto';
@@ -107,7 +109,7 @@ function signalMatches(text: string, token: string): boolean {
 
 /**
  * 候选人 profile 语义 canonical digest：只含归一化简历文本的 sha256（结构上无法被伪造的
- * trackId/weight 污染；原文不落库，digest 只作派生身份/审计对账）。
+ * trackId/weight 污染；路由决策/snapshot 不落简历原文，digest 只作派生身份/审计对账）。
  */
 export function canonicalCandidateProfileDigest(raw: string): string {
   return createHash('sha256').update(JSON.stringify({ v: 'candidate-semantic:v1', text: normalize(raw) })).digest('hex');
@@ -151,10 +153,28 @@ export type CandidateProfileRouteRuleResult =
  *    兜底 @10000bps + degraded 信号（不再 409，「绝不多桶推断」冻结条款经用户决策凌驾解除）；
  *  - 空输入 → profile_empty（db 侧 profile_unavailable → 409 防御面保留，R3-3）。
  */
+/** 归一化后的简历/岗位文本命中的叶集合（与 classify 同源词典·供 targetRole 消歧闭集使用）。 */
+export function candidateProfileSignalHits(raw: string): TaxonomyLeaf[] {
+  const text = normalize(raw);
+  if (!text) return [];
+  return TAXONOMY_V1_LEAVES.filter((leaf) => CANDIDATE_PROFILE_SIGNALS[leaf].some((t) => signalMatches(text, t)));
+}
+
+/**
+ * targetRole 臂的 qa/ai_ml 岗位自述级强证据闸（#252 P2-2）。
+ * 短 targetRole 走 classify 单叶臂时会绕过 v4「general+单叶」闸；本闸要求 qa/ai_ml 必须命中
+ * CANDIDATE_ROUTE_LEAF_PROFESSION_TOKENS，语言叶不列本表=不受闸。
+ */
+export function targetRoleSatisfiesProfessionGate(roleText: string, leaf: TaxonomyLeaf): boolean {
+  const profession = CANDIDATE_ROUTE_LEAF_PROFESSION_TOKENS[leaf];
+  if (!profession) return true;
+  return profession.some((t) => signalMatches(normalize(roleText), t));
+}
+
 export function classifyCandidateProfileByRule(raw: string): CandidateProfileRouteRuleResult {
   const text = normalize(raw);
   if (!text) return { decided: false, reason: 'profile_empty' };
-  const hits = TAXONOMY_V1_LEAVES.filter((leaf) => CANDIDATE_PROFILE_SIGNALS[leaf].some((t) => signalMatches(text, t)));
+  const hits = candidateProfileSignalHits(text);
   if (hits.length === 1) return { decided: true, leafTrackId: hits[0]!, allocationBps: CANDIDATE_ROUTE_ALLOCATION_BPS, degraded: false };
   const specific = hits.filter((l) => l !== 'backend/general');
   if (hits.includes('backend/general') && specific.length === 1) {
@@ -172,21 +192,29 @@ export function classifyCandidateProfileByRule(raw: string): CandidateProfileRou
 }
 
 /**
- * G6 N-17（重构审查 P2-5）：用户填写的目标岗位（begin `target-role` 头归一化后的 targetRole）参与路由裁决。
- * 修前 targetRole 只写进 start job payload（planner 岗位行），不参与 candidate route 裁决——简历歧义/零命中
- * 时仍降级 `backend/general`，用户明确说「Java 后端」也拿不到 java 叶题库。
+ * G6 N-17（重构审查 P2-5，v2 收口 #252 P2/P3）：用户填写的目标岗位（begin `target-role` 头归一化后的
+ * targetRole）参与路由裁决。修前 targetRole 只写进 start job payload（planner 岗位行），不参与
+ * candidate route 裁决——简历歧义/零命中时仍降级 `backend/general`，用户明确说「Java 后端」也拿不到
+ * java 叶题库。
  *
  * 裁决（纯数据面·0 次模型外发·同输入同决策 C-HA-2，输入 = 简历原文 + targetRole）：
- *  - 简历 rule 非降级 decided（唯一叶 / general+唯一 specific）→ 简历证据胜，targetRole 不改叶（零翻现状）；
- *  - 简历 rule 降级（≥2 specific 歧义 / 零命中）且 targetRole 经同一词典 rule 非降级命中 specific 叶
- *    （≠ backend/general）→ 取 targetRole 叶（用户明示意图做裁决），targetRoleApplied=true；
- *  - targetRole 缺省/空白/自身降级/只命中 general → 原降级结果逐字节不变；
+ *  - 简历 rule 已锁定唯一 specific 叶（非 general、非降级，含 general+唯一 specific 且过 v4 闸）
+ *    → 简历证据胜，targetRole 不改叶；
+ *  - 简历只命中 general（非降级）或零命中降级 → 允许 targetRole 专向 specific 叶（N-17 最常见诉求）；
+ *  - 简历 ≥2 specific 歧义降级 → targetRole 只能在简历已命中的 specific 叶集合内消歧，不得选简历未支持的叶；
+ *  - targetRole 命中 qa/ai_ml 时必须具备岗位自述级强证据（CANDIDATE_ROUTE_LEAF_PROFESSION_TOKENS），
+ *    避免短词「rag」「自动化测试」走 classify 单叶臂绕过 v4 闸；
+ *  - targetRole 缺省/空白/自身降级/只命中 general / 未过强证据闸 / 不在歧义闭集内 → 维持简历原裁决；
  *  - profile_empty（简历空）→ 原样未决（409 profile_unavailable 防御面保留，targetRole 不替代简历）。
- * 采纳 targetRole 时：policyVersion 追加 `+target-role:v1` 后缀、inputDigest 改为「简历+targetRole」
- * canonical digest——决策行身份可区分、可审计对账；未采纳时 policyVersion/digest 与修前逐字节一致。
- * targetRole 原文同简历原文：仅在内存匹配，派生输出只有 leaf + sha256 digest，绝不落库/落 trace。
+ * 采纳 targetRole 时：policyVersion 追加 `+target-role:v2` 后缀、inputDigest 改为「简历+targetRole」
+ * canonical digest（ASCII 大小写折叠，与 signalMatches 大小写不敏感对齐）——决策行身份可区分、
+ * 可审计对账；未采纳时 policyVersion/digest 与未填 targetRole 的简历-only 路径逐字节一致。
+ *
+ * 落库边界（纠正 v1 注释说过头）：路由决策与 snapshot 表只存 leaf + sha256 digest + 审计信号
+ * （resumeDegradedFrom / targetRoleApplied），不存 targetRole 原文。targetRole 原文仍按既有路径
+ * 写在 interview_job.payload（及诊断表 target_role），本模块不扩大落库范围。简历原文同样不落本表。
  */
-export const CANDIDATE_ROUTE_TARGET_ROLE_POLICY_SUFFIX = '+target-role:v1';
+export const CANDIDATE_ROUTE_TARGET_ROLE_POLICY_SUFFIX = '+target-role:v2';
 
 export type CandidateRouteArbitration =
   | { decided: true; leafTrackId: TaxonomyLeaf; allocationBps: typeof CANDIDATE_ROUTE_ALLOCATION_BPS;
@@ -194,9 +222,14 @@ export type CandidateRouteArbitration =
       policyVersion: string; inputDigest: string }
   | { decided: false; reason: 'profile_empty' };
 
+function digestCanonical(t: string): string {
+  return normalize(t).toLowerCase();
+}
+
 function canonicalCandidateProfileTargetRoleDigest(raw: string, targetRole: string): string {
   return createHash('sha256').update(JSON.stringify({
-    v: `candidate-semantic:v1${CANDIDATE_ROUTE_TARGET_ROLE_POLICY_SUFFIX}`, text: normalize(raw), targetRole: normalize(targetRole),
+    v: `candidate-semantic:v1${CANDIDATE_ROUTE_TARGET_ROLE_POLICY_SUFFIX}`,
+    text: digestCanonical(raw), targetRole: digestCanonical(targetRole),
   })).digest('hex');
 }
 
@@ -208,14 +241,23 @@ export function arbitrateCandidateRouteWithTargetRole(raw: string, targetRole?: 
     targetRoleApplied: false, ...(resumeRule.degraded ? { resumeDegradedFrom: resumeRule.degradedFrom } : {}),
     policyVersion: CANDIDATE_ROUTE_POLICY_VERSION, inputDigest: canonicalCandidateProfileDigest(raw ?? ''),
   };
-  if (!resumeRule.degraded) return baseline;
   const role = normalize(targetRole ?? '');
   if (!role) return baseline;
   const roleRule = classifyCandidateProfileByRule(role);
   if (!roleRule.decided || roleRule.degraded || roleRule.leafTrackId === 'backend/general') return baseline;
+  if (!targetRoleSatisfiesProfessionGate(role, roleRule.leafTrackId)) return baseline;
+  // 简历已锁定唯一 specific 叶（含 general+唯一 specific 过闸）→ 简历证据胜。
+  if (!resumeRule.degraded && resumeRule.leafTrackId !== 'backend/general') return baseline;
+  // 歧义降级：只允许在简历已命中的 specific 叶集合内消歧。
+  if (resumeRule.degraded && resumeRule.degradedFrom === 'ambiguous_language_evidence') {
+    const specificHits = candidateProfileSignalHits(raw ?? '').filter((leaf) => leaf !== 'backend/general');
+    if (!specificHits.includes(roleRule.leafTrackId)) return baseline;
+  }
+  // 其余可采纳：零命中降级，或 general-only 简历被 targetRole 专向。
   return {
     decided: true, leafTrackId: roleRule.leafTrackId, allocationBps: roleRule.allocationBps,
-    targetRoleApplied: true, resumeDegradedFrom: resumeRule.degradedFrom,
+    targetRoleApplied: true,
+    ...(resumeRule.degraded ? { resumeDegradedFrom: resumeRule.degradedFrom } : {}),
     policyVersion: `${CANDIDATE_ROUTE_POLICY_VERSION}${CANDIDATE_ROUTE_TARGET_ROLE_POLICY_SUFFIX}`,
     inputDigest: canonicalCandidateProfileTargetRoleDigest(raw ?? '', role),
   };
