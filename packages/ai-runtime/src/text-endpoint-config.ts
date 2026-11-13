@@ -9,8 +9,9 @@
  * 注册表，对齐 `dashscope-native-config.ts` 的模式：
  *   - 绝不接受 URL 注入：旧 `MODEL_BASE_URL` / `MODEL_BACKUP_BASE_URL` 一律在解析前被拒绝；
  *   - 解析结果 `Object.freeze`，调用方无法在派发前改写 endpoint；
- *   - profile 只有受控 allowlist（DeepSeek 公网 / 百炼兼容北京），跨区域、非 allowlist host
- *     在类型与运行时双重被拒，无法表达。
+ *   - profile 生产闭集只有受控 allowlist（DeepSeek 公网 / 百炼兼容北京），跨区域、非 allowlist host
+ *     在类型与运行时双重被拒，无法表达。另有沙箱专用 sandbox-invalid（host=.invalid），
+ *     仅 MEETWISE_HA_SANDBOX_AUTHORIZED=1 时可解析，不扩大生产可路由面。
  *
  * 注意：这只是**transport 边界**，不是 operation registry，也不做费用治理（那是
  * model-cost-governance / MODEL-OP-01 的职责）。它只保证「文本调用只可能打到受控端点」。
@@ -19,7 +20,12 @@ import { assertKeyFingerprint, parseRevokedFingerprints } from './secret-fingerp
 
 export const TEXT_ENDPOINT_REGISTRY_VERSION = 'text-cn-public-v1' as const;
 
-export type TextEndpointProfile = 'deepseek-cn-public' | 'dashscope-cn-beijing';
+/** 生产闭集：仅这两个真实供应商端点。 */
+export type ProductionTextEndpointProfile = 'deepseek-cn-public' | 'dashscope-cn-beijing';
+/** 沙箱非路由档（host 为 RFC 2606 .invalid）；仅当 MEETWISE_HA_SANDBOX_AUTHORIZED=1 时才能解析。 */
+export const SANDBOX_INVALID_TEXT_ENDPOINT_PROFILE = 'sandbox-invalid' as const;
+export type SandboxTextEndpointProfile = typeof SANDBOX_INVALID_TEXT_ENDPOINT_PROFILE;
+export type TextEndpointProfile = ProductionTextEndpointProfile | SandboxTextEndpointProfile;
 
 export interface TextEndpointConfig {
   readonly registryVersion: typeof TEXT_ENDPOINT_REGISTRY_VERSION;
@@ -34,9 +40,19 @@ export interface TextEndpointConfig {
 const LEGACY_TEXT_URL_VARIABLES = ['MODEL_BASE_URL', 'MODEL_BACKUP_BASE_URL'] as const;
 
 /** profile → 精确 host + basePath。允许集是闭集：新增供应商必须改这里并走评审，不能靠 env 拼出来。 */
-const TEXT_ENDPOINT_PROFILES: Record<TextEndpointProfile, { host: string; basePath: string }> = {
+const PRODUCTION_TEXT_ENDPOINT_PROFILES: Record<ProductionTextEndpointProfile, { host: string; basePath: string }> = {
   'deepseek-cn-public': { host: 'api.deepseek.com', basePath: '' },
   'dashscope-cn-beijing': { host: 'dashscope.aliyuncs.com', basePath: '/compatible-mode/v1' },
+};
+
+/** 沙箱专用：host 为 .invalid，不可达真实供应商。不进生产闭集；无授权时 resolve 与未知 id 一样拒绝。 */
+const SANDBOX_TEXT_ENDPOINT_PROFILES: Record<SandboxTextEndpointProfile, { host: string; basePath: string }> = {
+  [SANDBOX_INVALID_TEXT_ENDPOINT_PROFILE]: { host: 'dashscope.invalid', basePath: '/compatible-mode/v1' },
+};
+
+const TEXT_ENDPOINT_PROFILES: Record<TextEndpointProfile, { host: string; basePath: string }> = {
+  ...PRODUCTION_TEXT_ENDPOINT_PROFILES,
+  ...SANDBOX_TEXT_ENDPOINT_PROFILES,
 };
 
 export function rejectLegacyTextUrlOverrides(env: NodeJS.ProcessEnv): void {
@@ -49,8 +65,13 @@ function resolveProfile(env: NodeJS.ProcessEnv, requested: string): TextEndpoint
   // L1 fix: `in` 会沿原型链命中 Object.prototype 的 constructor/toString/__proto__ 等属性，
   // 使 `TEXT_ENDPOINT_PROFILES['constructor']` 解构出 undefined host/basePath → `https://undefinedundefined`。
   // 必须用 Object.hasOwn 只认注册表**自有**键，闭集之外一律 text_endpoint_profile_invalid（fail-closed）。
-  if (!Object.hasOwn(TEXT_ENDPOINT_PROFILES, requested)) throw new Error('text_endpoint_profile_invalid');
-  return requested as TextEndpointProfile;
+  // sandbox-invalid 不在生产闭集：无 MEETWISE_HA_SANDBOX_AUTHORIZED=1 时与未知 id 相同拒绝。
+  if (requested === SANDBOX_INVALID_TEXT_ENDPOINT_PROFILE) {
+    if (env.MEETWISE_HA_SANDBOX_AUTHORIZED !== '1') throw new Error('text_endpoint_profile_invalid');
+    return requested;
+  }
+  if (!Object.hasOwn(PRODUCTION_TEXT_ENDPOINT_PROFILES, requested)) throw new Error('text_endpoint_profile_invalid');
+  return requested as ProductionTextEndpointProfile;
 }
 
 function buildConfig(env: NodeJS.ProcessEnv, profile: TextEndpointProfile): TextEndpointConfig {

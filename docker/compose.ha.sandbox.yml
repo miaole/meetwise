@@ -86,6 +86,7 @@ services:
       MODEL_COST_ENFORCEMENT: observe
       RAG_COST_ENFORCEMENT: observe
       HOME: /tmp
+      MEETWISE_HA_SANDBOX_AUTHORIZED: ${MEETWISE_HA_SANDBOX_AUTHORIZED:-}
   api-b:
     image: ${MEETWISE_HA_SANDBOX_BACKEND_IMAGE:-meetwise-backend:ha-dual-local}
     volumes:
@@ -98,6 +99,7 @@ services:
       MODEL_COST_ENFORCEMENT: observe
       RAG_COST_ENFORCEMENT: observe
       HOME: /tmp
+      MEETWISE_HA_SANDBOX_AUTHORIZED: ${MEETWISE_HA_SANDBOX_AUTHORIZED:-}
 
   # ---- worker ×2 沙箱材质（同上）----
   worker-a:
@@ -112,6 +114,7 @@ services:
       MODEL_COST_ENFORCEMENT: observe
       RAG_COST_ENFORCEMENT: observe
       HOME: /tmp
+      MEETWISE_HA_SANDBOX_AUTHORIZED: ${MEETWISE_HA_SANDBOX_AUTHORIZED:-}
   worker-b:
     image: ${MEETWISE_HA_SANDBOX_BACKEND_IMAGE:-meetwise-backend:ha-dual-local}
     volumes:
@@ -124,6 +127,7 @@ services:
       MODEL_COST_ENFORCEMENT: observe
       RAG_COST_ENFORCEMENT: observe
       HOME: /tmp
+      MEETWISE_HA_SANDBOX_AUTHORIZED: ${MEETWISE_HA_SANDBOX_AUTHORIZED:-}
 
   # ---- web ×2 沙箱材质：standalone 生产同形（next build 产物由驱动 up 前确保在位：
   #      node apps/web/server.js，WORKDIR=standalone 根——与生产 Dockerfile CMD 逐字同形）。

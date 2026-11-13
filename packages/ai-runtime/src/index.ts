@@ -50,7 +50,8 @@ export {
   rejectTextTransportOverride,
   assertTextEndpointKeyFingerprints,
 } from './text-endpoint-config.ts';
-export type { TextEndpointConfig, TextEndpointProfile } from './text-endpoint-config.ts';
+export type { TextEndpointConfig, TextEndpointProfile, ProductionTextEndpointProfile } from './text-endpoint-config.ts';
+export { SANDBOX_INVALID_TEXT_ENDPOINT_PROFILE } from './text-endpoint-config.ts';
 export {
   VISION_ENDPOINT_REGISTRY_VERSION,
   resolveVisionEndpointConfig,
