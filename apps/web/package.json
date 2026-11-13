@@ -7,6 +7,7 @@
     "lint": "eslint . --max-warnings 615",
     "prove": "tsx test/web-logic.proof.ts",
     "prove:public-copy": "node test/public-copy.proof.mjs",
+    "prove:postcss-css-regression": "node ../../scripts/postcss-css-regression.proof.mjs",
     "prove:uc003-i18n-locale": "node test/uc-e2e-003-i18n-locale.proof.mjs",
     "prove:uc003-nhp-adv": "tsx test/uc-e2e-003-nhp-adv.proof.ts",
     "prove:nhp-perf-web": "tsx test/nhp-perf-web.proof.ts",

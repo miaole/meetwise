@@ -8,6 +8,7 @@
   },
   "scripts": {
     "lint": "eslint . --max-warnings 47",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "prove:pipeline": "tsx test/resume-quiz.proof.ts",
     "prove:adaptive-graph": "tsx test/adaptive-interview.proof.ts",
     "prove:adaptive-signals": "tsx test/decide-signals.proof.ts",

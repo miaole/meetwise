@@ -172,8 +172,9 @@ async function main() {
     // P13 standalone only — must NOT inflate SOLE_WIRING_ALLOWLIST (mw-e2e-ha B5)
     {
       const m = t.match(/SOLE_WIRING_ALLOWLIST\s*=\s*new Set\(([\s\S]*?)\)/);
-      if (!m) fail('SOLE_WIRING_ALLOWLIST Set not parseable');
-      else if (/sole-stack:rag-qdrant:prove|sole-stack:memory-qdrant:prove/.test(m[1])) {
+      const allowlistBody = m?.[1];
+      if (allowlistBody === undefined) fail('SOLE_WIRING_ALLOWLIST Set not parseable');
+      else if (/sole-stack:rag-qdrant:prove|sole-stack:memory-qdrant:prove/.test(allowlistBody)) {
         fail('SOLE_WIRING_ALLOWLIST must NOT include sole-stack:rag/memory-qdrant (P13 standalone only)');
       } else {
         pass('SOLE_WIRING_ALLOWLIST excludes rag/memory-qdrant (P13 standalone package scripts only)');
