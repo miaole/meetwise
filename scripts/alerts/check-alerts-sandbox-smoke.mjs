@@ -178,7 +178,7 @@ function genEnvFile() {
   for (const name of requiredVarNames()) {
     let v = semantic[name];
     if (v === undefined) {
-      // 回落启发式逐字面同 ha-sandbox.mjs:174-190（新增强制变量自动覆盖·漂移免疫）。
+      // 回落启发式逐字面同 ha-sandbox.mjs:231-238（新增强制变量自动覆盖·漂移免疫）。
       if (/_PRICE_SOURCE_URL$|_SOURCE_URL$/.test(name)) v = DUMMY_URL;
       else if (/_MICRO_CNY(_PER_MILLION)?$/.test(name)) v = '1000';
       else if (/_PRICE_REVISION$/.test(name)) v = '1';
@@ -193,6 +193,18 @@ function genEnvFile() {
   }
   const envGap = assertSandboxEnv(lines);
   if (envGap) return envGap;
+  // 完整镜像 ha-sandbox.mjs：显式钉 sandbox-invalid（.invalid 主机，非真实 profile id），
+  // 否则 compose 默认 deepseek-cn-public / 备用 dashscope-cn-beijing，将来若用本 env 起 worker
+  // 会在 deepseek 默认 + qwen-sandbox-* 下 fail-closed，或打到真实供应商主机。
+  if (!lines.some((l) => l.startsWith('MODEL_ENDPOINT_PROFILE='))) {
+    lines.push('MODEL_ENDPOINT_PROFILE=sandbox-invalid');
+  }
+  if (!lines.some((l) => l.startsWith('MODEL_BACKUP_ENDPOINT_PROFILE='))) {
+    lines.push('MODEL_BACKUP_ENDPOINT_PROFILE=sandbox-invalid');
+  }
+  if (!lines.some((l) => l.startsWith('MEETWISE_HA_SANDBOX_AUTHORIZED='))) {
+    lines.push('MEETWISE_HA_SANDBOX_AUTHORIZED=1');
+  }
   if (!lines.some((l) => l.startsWith('MEETWISE_HA_WEB_B_HOST_PORT='))) {
     lines.push(`MEETWISE_HA_WEB_B_HOST_PORT=${process.env.MEETWISE_HA_WEB_B_HOST_PORT || '13001'}`);
   }
@@ -308,10 +320,10 @@ let whitelistRun = null;
       { encoding: 'utf8', cwd: ROOT, maxBuffer: 32 * 1024 * 1024 });
     whitelistRun = { exit: r.status ?? 1, receipt: existsSync(rec) ? JSON.parse(readFileSync(rec, 'utf8')) : null };
     const ok = r.status === 0 && (whitelistRun.receipt?.suppressed?.length ?? 0) === 1;
-    note('whitelist consumption live: EXIT 0 + suppressed=1', ok, `exit=${r.status} suppressed=${whitelistRun.receipt?.suppressed?.length}`);
-    if (!ok) { result = 'FAIL'; gap = 'whitelist live run failed'; }
+    note('whitelist consumption via --metrics-file injection seam: EXIT 0 + suppressed=1', ok, `exit=${r.status} suppressed=${whitelistRun.receipt?.suppressed?.length}; metrics are injected, not scraped from a live worker :9091`);
+    if (!ok) { result = 'FAIL'; gap = 'whitelist injected-metrics run failed'; }
   } else {
-    note('whitelist consumption live', false, 'skipped: prior step failed');
+    note('whitelist consumption via --metrics-file injection seam', false, 'skipped: prior step failed');
   }
 }
 
@@ -331,6 +343,8 @@ const receipt = {
   claimProductionHA: false,
   estLive: '0 (local sandbox dumb credentials; zero production operations, zero real traffic, zero model calls billed)',
   carrier: 'docker/compose.ha.sandbox.yml 零改复用（最小栈 ha-pg + migrate·COMPOSE_BASE 同 ha-sandbox.mjs 形）',
+  metricsSource: 'injected (--metrics-file smoke-metrics.txt); not a live worker scrape of 127.0.0.1:9091',
+  metricsFile: metricsFixture,
   migrateExitCode,
   judge,
   whitelistRun,
@@ -345,6 +359,7 @@ const lines = [
   `migrateExitCode: ${migrateExitCode}`,
   `judge: exit=${judge?.exit} db_pool_error=${Boolean(judge?.receipt?.alerts?.find((a) => a.event === 'db_pool_error'))} migrate_failed=absent-in-alerts`,
   `whitelistRun: exit=${whitelistRun?.exit} suppressed=${whitelistRun?.receipt?.suppressed?.length}`,
+  `metricsSource: injected (--metrics-file); not a live worker scrape of 127.0.0.1:9091`,
   `haStatus: NOT_HA · releaseEvidence: false · claimProductionHA: false · estLive: 0`,
   ...(gap ? [`gap: ${gap}`] : []),
 ];

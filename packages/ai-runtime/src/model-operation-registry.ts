@@ -18,7 +18,7 @@
  */
 import { createHash } from 'node:crypto';
 import type { ModelOperationInputKind } from './model-operation-binding.ts';
-import type { TextEndpointProfile } from './text-endpoint-config.ts';
+import type { ProductionTextEndpointProfile } from './text-endpoint-config.ts';
 
 export const MODEL_OPERATION_REGISTRY_VERSION = 'model-op-registry-v1';
 
@@ -242,7 +242,7 @@ export function modelOperationAdmissionKey(definition: ModelOperationDefinition)
  * 并走评审；profile 闭集之外无行（type 级保证），对表基数=14 为静态等式（proof 遍历钉）。
  */
 export const MODEL_COST_FAILOVER_PREBOUND_ENDPOINT_KEYS: readonly {
-  profile: TextEndpointProfile;
+  profile: ProductionTextEndpointProfile;
   operationId: string;
 }[] = Object.freeze([
   { profile: 'deepseek-cn-public', operationId: 'interview.competency-planning.v1' },
@@ -264,7 +264,7 @@ export const MODEL_COST_FAILOVER_PREBOUND_ENDPOINT_KEYS: readonly {
 /** 纯函数：某 text operation 的预绑定主/备 profile 对（不在对表闭集 → undefined）。 */
 export function preboundCostFailoverProfiles(
   operationId: string,
-): { primary: TextEndpointProfile; backup: TextEndpointProfile } | undefined {
+): { primary: ProductionTextEndpointProfile; backup: ProductionTextEndpointProfile } | undefined {
   const rows = MODEL_COST_FAILOVER_PREBOUND_ENDPOINT_KEYS.filter((r) => r.operationId === operationId);
   if (rows.length !== 2) return undefined;
   const primary = rows.find((r) => r.profile === 'deepseek-cn-public');

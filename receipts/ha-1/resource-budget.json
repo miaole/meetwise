@@ -23,6 +23,351 @@
   "rationale": "EXEC 裁决选①升 4c8g：选②减半会把 OOM 可用性风险永久烘进生产叠加工件（恰是 HA 要修的面）；per-replica 限额与 compose.prod.yml 现值逐项相同，LB 64m 新增。",
   "precondition": "任何生产应用/翻转（B4/S15 面）前必须先完成宿主升 4c8g；该前置随本表入簇收口继承面。",
   "webBHostPortKnob": "MEETWISE_HA_WEB_B_HOST_PORT=13001（默认 3001 契约不变；本机 3001 被无关进程 pid 27713 占用→沙箱旁路）",
+  "exitCode": 0,
+  "cmd": "up",
+  "steps": [
+    {
+      "step": "honesty banner",
+      "ok": true,
+      "detail": "haStatus=NOT_HA; releaseEvidence=false; local sandbox ≠ production HA; est live=0"
+    },
+    {
+      "step": "MEETWISE_HA_SANDBOX_AUTHORIZED",
+      "ok": true,
+      "detail": "set"
+    },
+    {
+      "step": "env fallback DASHSCOPE_ASR_API_KEY",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_ASR_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_EMBED_API_KEY",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_EMBED_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_RERANK_API_KEY",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_RERANK_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_STREAM_ASR_API_KEY",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_STREAM_ASR_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_STREAM_TTS_API_KEY",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_STREAM_TTS_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_TTS_API_KEY",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_TTS_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_BILLING_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_BILLING_PROVIDER",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_BILLING_REGION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_CONTEXT_SAFETY_MARGIN_TOKENS",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_CONTEXT_WINDOW_TOKENS",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_INPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_OUTPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_PRICE_REVISION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_PRICE_SOURCE_URL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_BILLING_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_BILLING_PROVIDER",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_BILLING_REGION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_CONTEXT_SAFETY_MARGIN_TOKENS",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_CONTEXT_WINDOW_TOKENS",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_INPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_OUTPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_PRICE_REVISION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_PRICE_SOURCE_URL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BILLING_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BILLING_PROVIDER",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BILLING_REGION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_CONTEXT_SAFETY_MARGIN_TOKENS",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_CONTEXT_WINDOW_TOKENS",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_INPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_OUTPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_PRICE_REVISION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_PRICE_SOURCE_URL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_BILLING_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_BILLING_PROVIDER",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_BILLING_REGION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_CONTEXT_SAFETY_MARGIN_TOKENS",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_CONTEXT_WINDOW_TOKENS",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_INPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_OUTPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_PRICE_REVISION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_PRICE_SOURCE_URL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback PAY_PROVIDER_SECRET",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback RAG_EMBED_BILLING_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback RAG_EMBED_BILLING_PROVIDER",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback RAG_EMBED_BILLING_REGION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback RAG_EMBED_INPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback RAG_EMBED_PRICE_REVISION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback RAG_EMBED_PRICE_SOURCE_URL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback RESUME_ENC_KEY",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback RESUME_HASH_SECRET",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "sandbox env-file generated",
+      "ok": true,
+      "detail": "88 required vars + knob; /workspace/mw-scripts-close/.tmp/ha-sandbox/sandbox.env"
+    },
+    {
+      "step": "backend image present",
+      "ok": true,
+      "detail": "meetwise-backend:ha-dual-local"
+    },
+    {
+      "step": "web standalone missing — building",
+      "ok": true,
+      "detail": "next build --no-lint (pre-existing lint red registered, see receipt)"
+    },
+    {
+      "step": "next build",
+      "ok": true,
+      "detail": "exit=0 etry+api@1.9.1_@playwright+test@1.61.1_@types+n_7c2cf5b78e78de3ac07330ccc7943f9b/node_modules/next-intl/dist/esm/production/extractor/format/index.js for build dependencies failed at 'import(t)'.\n<w> Build dependencies behind this expression are ignored and might cause incorrect cache invalidation.\n"
+    },
+    {
+      "step": "standalone static/public copied",
+      "ok": true,
+      "detail": "public=0 static=0"
+    },
+    {
+      "step": "compose config (static V1 gate)",
+      "ok": true,
+      "detail": "exit=0 "
+    },
+    {
+      "step": "compose up -d",
+      "ok": true,
+      "detail": " Network meetwise_default Creating \n Network meetwise_default Creating \n Network meetwise_default Created \n Network meetwise_default Created \n Container meetwise-ha-pg-1 Creating \n Container meetwise-privacy-watchdog-1 Creating \n Container meetwise-ha-redis-1 Creating \n Container meetwise-ha-pg-1 Cr"
+    },
+    {
+      "step": "V1 topology (migrate→7 replicas+lb) all healthy",
+      "ok": true,
+      "detail": "ha-pg,ha-redis,api-a,api-b,web-a,web-b,worker-a,worker-b,lb in 8s"
+    },
+    {
+      "step": "RX-1 original three not running",
+      "ok": true,
+      "detail": "api/worker/web absent from ps"
+    }
+  ],
+  "estLive": 0,
   "haStatus": "NOT_HA",
   "releaseEvidence": false,
   "claimProductionHA": false

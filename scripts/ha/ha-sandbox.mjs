@@ -91,15 +91,18 @@ function finish(exit, fields, cmdExtra = '') {
   process.exit(exit);
 }
 
-function writeReceipt(name, body) {
+function writeReceipt(name, body, exitCode) {
   mkdirSync(RECEIPTS, { recursive: true });
   const path = join(RECEIPTS, name);
-  // 收据自含证据链：steps 逐条 + estLive + cmd/exit（与 stdout printReceipt 同源）。
+  // 收据自含证据链：steps 逐条 + estLive + cmd/exit。
+  // exitCode 必须由调用方传入、与即将交给 finish() 的进程 EXIT 是同一个整数——禁止从 result 字符串反推。
   // steps 快照取写入时点（本条 write 自身不入 steps——note 在写盘之后）。
-  const exitCode = body.result === undefined ? undefined : (body.result === 'OK' ? 0 : 1);
+  if (!Number.isInteger(exitCode)) {
+    throw new Error(`writeReceipt ${name}: exitCode must be the same integer finish() will use`);
+  }
   writeFileSync(path, `${JSON.stringify({
     ...body,
-    ...(exitCode === undefined ? {} : { exitCode }),
+    exitCode,
     cmd: cmd || '',
     steps: steps.map((s) => ({ step: s.step, ok: s.ok, detail: s.detail })),
     estLive: 0,
@@ -192,9 +195,10 @@ function genEnvFile() {
     RDS_CA_HOST_PATH: CA_PATH,
     BACKEND_IMAGE: BACKEND_IMAGE,
     WEB_IMAGE: 'node:22-slim@sha256:d649c27dae7ba0137b3cef5dd75baa422c08dc3d9e3fc0c23dfb172dc3cc6436',
-    // 沙箱占位模型名须满足端点 profile 派发前前缀校验（model-client: dashscope-cn-beijing→qwen*·
+    // 沙箱占位模型名须满足端点 profile 派发前前缀校验（sandbox-invalid 与百炼档同为 qwen* 前缀；
     // deepseek-cn-public→deepseek-*）——否则 worker 启动即 text_endpoint_profile_model_mismatch。
-    // 默认 profile=dashscope-cn-beijing → qwen 前缀占位；零真实外呼（沙箱 key=占位）。
+    // 沙箱档 sandbox-invalid → host dashscope.invalid（RFC 2606），不写真实 profile id；
+    // 解析还要求 MEETWISE_HA_SANDBOX_AUTHORIZED=1。零真实外呼（.invalid + 占位 key）。
     MODEL_NAME: 'qwen-sandbox-placeholder',
     MODEL_FAST_NAME: 'qwen-sandbox-fast-placeholder',
     MODEL_BACKUP_NAME: 'qwen-sandbox-backup-placeholder',
@@ -238,10 +242,17 @@ function genEnvFile() {
   }
   assertSandboxEnv(lines);
   // 沙箱模型端点档（r10·compose 侧 "${MODEL_ENDPOINT_PROFILE:-deepseek-cn-public}" 默认 deepseek 档，
-  // 而沙箱占位模型名=qwen 前缀 → 必须在 env-file 显式指定百炼档，否则 worker 启动即
-  // text_endpoint_profile_model_mismatch 崩（profile 前缀校验 model-client:684-687）。
+  // 备用默认 dashscope-cn-beijing → 真实 aliyuncs 主机）。沙箱必须显式钉 sandbox-invalid
+  // （host=dashscope.invalid，qwen 前缀与占位模型名匹配），并写入授权闸，否则要么
+  // text_endpoint_profile_model_mismatch，要么解析到真实供应商主机。
   if (!lines.some((l) => l.startsWith('MODEL_ENDPOINT_PROFILE='))) {
-    lines.push('MODEL_ENDPOINT_PROFILE=dashscope-cn-beijing');
+    lines.push('MODEL_ENDPOINT_PROFILE=sandbox-invalid');
+  }
+  if (!lines.some((l) => l.startsWith('MODEL_BACKUP_ENDPOINT_PROFILE='))) {
+    lines.push('MODEL_BACKUP_ENDPOINT_PROFILE=sandbox-invalid');
+  }
+  if (!lines.some((l) => l.startsWith('MEETWISE_HA_SANDBOX_AUTHORIZED='))) {
+    lines.push('MEETWISE_HA_SANDBOX_AUTHORIZED=1');
   }
   // web-b 宿主回环旋钮（compose.ha.yml 默认 3001；本机 3001 被无关进程占用→沙箱拨 13001）。
   if (!lines.some((l) => l.startsWith('MEETWISE_HA_WEB_B_HOST_PORT='))) {
@@ -677,6 +688,7 @@ async function cmdUp() {
   const origRunning = ORIG3.filter((s) => { const e = psAll.find((x) => x.Service === s); return e && e.State === 'running'; });
   note('RX-1 original three not running', origRunning.length === 0, origRunning.length ? origRunning.join(',') : 'api/worker/web absent from ps');
 
+  const v1exit = w.ok && origRunning.length === 0 ? 0 : 1;
   // 资源预算表（§2.1-6 / §5-4 落卷）。
   writeReceipt('resource-budget.json', {
     decision: 'A_4c8g_host_upgrade',
@@ -690,7 +702,7 @@ async function cmdUp() {
     rationale: 'EXEC 裁决选①升 4c8g：选②减半会把 OOM 可用性风险永久烘进生产叠加工件（恰是 HA 要修的面）；per-replica 限额与 compose.prod.yml 现值逐项相同，LB 64m 新增。',
     precondition: '任何生产应用/翻转（B4/S15 面）前必须先完成宿主升 4c8g；该前置随本表入簇收口继承面。',
     webBHostPortKnob: `MEETWISE_HA_WEB_B_HOST_PORT=${process.env.MEETWISE_HA_WEB_B_HOST_PORT || '13001'}（默认 3001 契约不变；本机 3001 被无关进程 pid 27713 占用→沙箱旁路）`,
-  });
+  }, v1exit);
 
   writeReceipt('v1-topology.receipt.json', {
     result: w.ok && origRunning.length === 0 ? 'OK' : 'FAIL',
@@ -702,8 +714,8 @@ async function cmdUp() {
     command: 'MEETWISE_HA_SANDBOX_AUTHORIZED=1 node scripts/ha/ha-sandbox.mjs up',
     composeArgs: `docker compose --env-file .tmp/ha-sandbox/sandbox.env -f docker/compose.prod.yml -f docker/compose.ha.yml -f docker/compose.ha.sandbox.yml up -d`,
     note: 'local sandbox topology up ≠ production HA; haStatus NOT_HA unchanged',
-  });
-  finish(w.ok && origRunning.length === 0 ? 0 : 1, { result: w.ok ? 'V1_TOPOLOGY_UP' : 'FAIL' }, 'up');
+  }, v1exit);
+  finish(v1exit, { result: w.ok ? 'V1_TOPOLOGY_UP' : 'FAIL' }, 'up');
 }
 
 async function cmdV2() {
@@ -722,6 +734,7 @@ async function cmdV2() {
     results.push({ svc, container: name, killedAt, crash: 'host-pid-ns-sigkill(pid1·non-graceful·engine-classified-crash)', crashConfirmed: c.status === 0 && restarted, policyRestarted: restarted, healed: h.ok, healSeconds: h.seconds, via: h.via, engineFrozen: h.engineFrozen, engineCorrectiveRestart: h.engineRestarted, lastHealth: h.lastHealth });
   }
   const ok = results.every((r) => r.healed && r.crashConfirmed);
+  const v2exit = ok ? 0 : 1;
   writeReceipt('v2-kill-heal.receipt.json', {
     result: ok ? 'OK' : 'FAIL',
     v: 'V2',
@@ -729,8 +742,8 @@ async function cmdV2() {
     crashSemantics: 'docker kill API bypasses unless-stopped policy on engine 29.1.3 (manual-stop semantics, RestartCount=0 observed) — faithful crash = host-PID-namespace SIGKILL of replica PID1 via --pid=host helper (chaos-standard, dockerd not involved → engine-classified crash → real policy restart); heal measured by compose-identical readiness probe',
     command: 'MEETWISE_HA_SANDBOX_AUTHORIZED=1 node scripts/ha/ha-sandbox.mjs v2',
     note: 'non-graceful crash + restart:unless-stopped self-heal; local sandbox ≠ production HA',
-  });
-  finish(ok ? 0 : 1, { result: ok ? 'V2_KILL_HEAL_OK' : 'FAIL' }, 'v2');
+  }, v2exit);
+  finish(v2exit, { result: ok ? 'V2_KILL_HEAL_OK' : 'FAIL' }, 'v2');
 }
 
 async function cmdV3() {
@@ -765,6 +778,7 @@ async function cmdV3() {
   note('api-a healed back', h.ok, `${h.seconds}s via=${h.via}${h.engineFrozen ? ' engine-frozen+corrective-restart' : ''}`);
 
   const ok = failures === 0 && h.ok && c.status === 0 && restarted;
+  const v3exit = ok ? 0 : 1;
   writeReceipt('v3-failover.receipt.json', {
     result: ok ? 'OK' : 'FAIL',
     v: 'V3',
@@ -778,8 +792,8 @@ async function cmdV3() {
     businessProbe: 'GET /profile (auth business path) via LB; readiness GET /readyz/api via LB; zero manual intervention',
     command: 'MEETWISE_HA_SANDBOX_AUTHORIZED=1 node scripts/ha/ha-sandbox.mjs v3',
     note: 'passive probe detection window covered by nginx proxy_next_upstream; local sandbox ≠ production HA',
-  });
-  finish(ok ? 0 : 1, { result: ok ? 'V3_FAILOVER_OK' : 'FAIL' }, 'v3');
+  }, v3exit);
+  finish(v3exit, { result: ok ? 'V3_FAILOVER_OK' : 'FAIL' }, 'v3');
 }
 
 async function cmdV4() {
@@ -811,6 +825,7 @@ async function cmdV4() {
   if (h.ok) reloadLb();
 
   const ok = distinct >= 2 && afterFail === 0 && h.ok;
+  const v4exit = ok ? 0 : 1;
   writeReceipt('v4-split.receipt.json', {
     result: ok ? 'OK' : 'FAIL',
     v: 'V4',
@@ -822,8 +837,8 @@ async function cmdV4() {
     apiARestarted: h.ok,
     command: 'MEETWISE_HA_SANDBOX_AUTHORIZED=1 node scripts/ha/ha-sandbox.mjs v4',
     note: 'split proof via LB X-HA-Upstream header + INSTANCE_ID printenv receipts; product code zero-change; local sandbox ≠ production HA',
-  });
-  finish(ok ? 0 : 1, { result: ok ? 'V4_SPLIT_OK' : 'FAIL' }, 'v4');
+  }, v4exit);
+  finish(v4exit, { result: ok ? 'V4_SPLIT_OK' : 'FAIL' }, 'v4');
 }
 
 async function cmdV5() {
@@ -853,7 +868,7 @@ async function cmdV5() {
   }
   note('sse warmup attach', Boolean(warm && warm.status === 200), `status=${warm && warm.status} backend=${warm && warm.attachedBackend}`);
 
-  let r1 = null, r2 = null, a1 = false, a2 = false;
+  let r1 = null, r2 = null;
   let f1 = null, f2 = null;
   for (let round = 1; round <= 4; round++) {
     const o1 = `out-sse1-r${round}.json`, o2 = `out-sse2-r${round}.json`;
@@ -862,7 +877,6 @@ async function cmdV5() {
     // ——重叠轮会烧光槽位 429（实证）。头到达即落盘（helper snapshot on headers）→轮内 <1s 可判。
     const b1 = execDetach('api-b', [HELPER_SSE, 'attach', interviewId, token, '-', `/app/.tmp/ha-sandbox/${o1}`, '15000']);
     const b2 = execDetach('api-b', [HELPER_SSE, 'attach', interviewId, token, '-', `/app/.tmp/ha-sandbox/${o2}`, '15000']);
-    a1 = a1 || b1; a2 = a2 || b2;
     const p1 = readOut(o1, 30, 500), p2 = readOut(o2, 30, 500);
     r1 = p1 || r1; r2 = p2 || r2;
     const bk1 = r1 && r1.attachedBackend, bk2 = r2 && r2.attachedBackend;
@@ -874,7 +888,8 @@ async function cmdV5() {
     }
     sleepSync(16500);  // 等本轮客户端超时死净（15s 寿命）·槽位归零·再下一轮（零重叠）
   }
-  note('two SSE clients attached via LB', Boolean(a1 && a2), 'clients in api-b container; backends chosen by LB round-robin');
+  const twoClientsOk = Boolean(r1 && r2 && r1.status === 200 && r2.status === 200);
+  note('two SSE clients attached via LB', twoClientsOk, `require both HTTP 200 (not merely helper processes started); status=${r1 && r1.status}/${r2 && r2.status} backends=${r1 && r1.attachedBackend}/${r2 && r2.attachedBackend}`);
   note('attach pair cross-replica', Boolean(r1 && r2 && r1.attachedBackend && r2.attachedBackend && r1.attachedBackend.split(':')[0] !== r2.attachedBackend.split(':')[0]), `backends=${r1 && r1.attachedBackend}/${r2 && r2.attachedBackend}`);
   sleepSync(2500);
 
@@ -926,8 +941,9 @@ async function cmdV5() {
   const crossOk = Boolean(r1 && r2 && r1.attachedBackend && r2.attachedBackend && r1.attachedBackend.split(':')[0] !== r2.attachedBackend.split(':')[0]);
   note('Last-Event-ID resume zero-loss', zeroLoss, `resume backend=${resume && resume.attachedBackend} seqs=${JSON.stringify(seqsSeen)}`);
   note('LB SSE zero-buffer (first event <=3s)', noBufferOk, `maxFirstLatencyMs=${maxLatency}`);
-  // fail-closed 收束：全部断言参与 result / EXIT（bothGot/zeroLoss/crashConfirmed/crossOk/noBufferOk 缺一即 FAIL）。
-  const v5ok = bothGot && zeroLoss && crashConfirmed && crossOk && noBufferOk;
+  // fail-closed 收束：全部断言参与 result / EXIT（twoClientsOk/bothGot/zeroLoss/crashConfirmed/crossOk/noBufferOk 缺一即 FAIL）。
+  const v5ok = twoClientsOk && bothGot && zeroLoss && crashConfirmed && crossOk && noBufferOk;
+  const v5exit = v5ok ? 0 : 1;
   writeReceipt('v5-sse.receipt.json', {
     result: v5ok ? 'OK' : 'FAIL',
     v: 'V5',
@@ -936,15 +952,16 @@ async function cmdV5() {
     killedBackend: backend1, survivor,
     crashConfirmed,
     resume,
+    twoClientsAttached: twoClientsOk,
     attachPairCrossReplica: crossOk,
     broadcastBothReplicas: bothGot,
     maxFirstEventLatencyMs: maxLatency,
     zeroBufferOk: noBufferOk,
     zeroLossResumedSeqs: seqsSeen,
     command: 'MEETWISE_HA_SANDBOX_AUTHORIZED=1 node scripts/ha/ha-sandbox.mjs v5',
-    note: 'pg_notify broadcast + DB seq replay; no redis adapter / no sticky dependency; local sandbox ≠ production HA; est live=0; all V5 predicates (incl. cross-replica + zero-buffer first event ≤3s) participate in EXIT',
-  });
-  finish(v5ok ? 0 : 1, { result: v5ok ? 'V5_SSE_OK' : 'FAIL' }, 'v5');
+    note: 'pg_notify broadcast + DB seq replay; no redis adapter / no sticky dependency; local sandbox ≠ production HA; est live=0; all V5 predicates (incl. both clients HTTP 200 + cross-replica + zero-buffer first event ≤3s) participate in EXIT',
+  }, v5exit);
+  finish(v5exit, { result: v5ok ? 'V5_SSE_OK' : 'FAIL' }, 'v5');
 }
 
 async function cmdV6() {
@@ -1016,6 +1033,7 @@ async function cmdV6() {
   note('worker-a restored to healthy', restored.ok, `${restored.seconds}s via=${restored.via}${restored.engineFrozen ? ' engine-frozen+corrective-restart' : ''}`);
 
   const ok = frozenOk && Boolean(takeover) && casRows === '' && restored.ok && claimAttempts >= 1;
+  const v6exit = ok ? 0 : 1;
   writeReceipt('v6-lease.receipt.json', {
     result: ok ? 'OK' : 'FAIL',
     v: 'V6',
@@ -1031,8 +1049,8 @@ async function cmdV6() {
     restoreSeconds: restored.seconds,
     command: 'MEETWISE_HA_SANDBOX_AUTHORIZED=1 node scripts/ha/ha-sandbox.mjs v6',
     note: 'lease-expiry takeover + RX-4 CAS rejection; zero new mutual-exclusion code; local sandbox ≠ production HA',
-  });
-  finish(ok ? 0 : 1, { result: ok ? 'V6_LEASE_OK' : 'FAIL' }, 'v6');
+  }, v6exit);
+  finish(v6exit, { result: ok ? 'V6_LEASE_OK' : 'FAIL' }, 'v6');
 }
 
 function cmdDown() {

@@ -1,18 +1,63 @@
 {
   "result": "OK",
   "v": "V6",
-  "reportId": "01a1c589-cf52-7504-b218-13a44042b3ad",
+  "reportId": "01a1d3a3-01a0-7781-bb0f-9f6575250f35",
   "firstClaimer": "worker-a#1",
   "claimAttribution": "pin-based (worker-b stopped pre-insert; worker-a sole consumer)",
   "holderDeathSimulation": "row frozen to post-crash shape (status=running/lease_owner=worker-a#1/expiry+10s) — instant-fail jobs (last_error=score_aggregate_empty) leave no capturable live-lease window; takeover+CAS responses are real product machinery (claimReport lease-expiry path); real worker crash+restart covered by V2",
   "takeoverBy": "worker-b",
-  "takeoverSeconds": 14,
+  "takeoverSeconds": 12,
   "takeoverState": "failed||2",
   "rx4CasRowCount": 0,
   "restoredOk": true,
-  "restoreSeconds": 10,
+  "restoreSeconds": 3,
   "command": "MEETWISE_HA_SANDBOX_AUTHORIZED=1 node scripts/ha/ha-sandbox.mjs v6",
   "note": "lease-expiry takeover + RX-4 CAS rejection; zero new mutual-exclusion code; local sandbox ≠ production HA",
+  "exitCode": 0,
+  "cmd": "v6",
+  "steps": [
+    {
+      "step": "honesty banner",
+      "ok": true,
+      "detail": "haStatus=NOT_HA; releaseEvidence=false; local sandbox ≠ production HA; est live=0"
+    },
+    {
+      "step": "MEETWISE_HA_SANDBOX_AUTHORIZED",
+      "ok": true,
+      "detail": "set"
+    },
+    {
+      "step": "ai_report queued row inserted",
+      "ok": true,
+      "detail": "01a1d3a3-01a0-7781-bb0f-9f6575250f35"
+    },
+    {
+      "step": "job claimed by exactly one worker (worker-a sole consumer, pin-attributed)",
+      "ok": true,
+      "detail": "lease_owner=worker-a#1 attempts=1"
+    },
+    {
+      "step": "lease row frozen to holder-death shape",
+      "ok": true,
+      "detail": "status=running lease_owner=worker-a#1 expiry=+10s (declared simulation of crash-interrupted claim)"
+    },
+    {
+      "step": "takeover by worker-b after lease expiry",
+      "ok": true,
+      "detail": "in 12s (failed||2)"
+    },
+    {
+      "step": "RX-4 old-owner terminal write CAS-rejected",
+      "ok": true,
+      "detail": "rowCount=0"
+    },
+    {
+      "step": "worker-a restored to healthy",
+      "ok": true,
+      "detail": "3s via=app-probe"
+    }
+  ],
+  "estLive": 0,
   "haStatus": "NOT_HA",
   "releaseEvidence": false,
   "claimProductionHA": false

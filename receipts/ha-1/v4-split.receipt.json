@@ -9,14 +9,14 @@
       "200": 24
     },
     "upstreams": {
-      "172.20.0.6:8787": 12,
-      "172.20.0.7:8787": 12
+      "172.19.0.7:8787": 12,
+      "172.19.0.6:8787": 12
     },
-    "at": "2026-11-10T12:57:13.811Z"
+    "at": "2026-11-13T06:39:04.008Z"
   },
   "upstreamToService": {
-    "172.20.0.6:8787": "api-a",
-    "172.20.0.7:8787": "api-b"
+    "172.19.0.7:8787": "api-a",
+    "172.19.0.6:8787": "api-b"
   },
   "instanceIds": {
     "api-a": "api-a",
@@ -30,15 +30,50 @@
       "200": 20
     },
     "upstreams": {
-      "172.20.0.7:8787": 17,
-      "172.20.0.6:8787, 172.20.0.7:8787": 3
+      "172.19.0.7:8787, 172.19.0.6:8787": 7,
+      "172.19.0.6:8787": 13
     },
-    "at": "2026-11-10T12:57:35.874Z"
+    "at": "2026-11-13T06:39:42.609Z"
   },
   "postStopFailures": 0,
   "apiARestarted": true,
   "command": "MEETWISE_HA_SANDBOX_AUTHORIZED=1 node scripts/ha/ha-sandbox.mjs v4",
   "note": "split proof via LB X-HA-Upstream header + INSTANCE_ID printenv receipts; product code zero-change; local sandbox ≠ production HA",
+  "exitCode": 0,
+  "cmd": "v4",
+  "steps": [
+    {
+      "step": "honesty banner",
+      "ok": true,
+      "detail": "haStatus=NOT_HA; releaseEvidence=false; local sandbox ≠ production HA; est live=0"
+    },
+    {
+      "step": "MEETWISE_HA_SANDBOX_AUTHORIZED",
+      "ok": true,
+      "detail": "set"
+    },
+    {
+      "step": "LB split 24 requests",
+      "ok": true,
+      "detail": "distinct upstreams=2 {\"172.19.0.7:8787\":12,\"172.19.0.6:8787\":12}"
+    },
+    {
+      "step": "RX-3 INSTANCE_ID injected",
+      "ok": true,
+      "detail": "{\"api-a\":\"api-a\",\"api-b\":\"api-b\"}"
+    },
+    {
+      "step": "docker stop api-a (split continuation)",
+      "ok": true,
+      "detail": "meetwise-api-a-1 exit=0"
+    },
+    {
+      "step": "post-stop zero-failure",
+      "ok": true,
+      "detail": "20 requests failures=0 statuses={\"200\":20}"
+    }
+  ],
+  "estLive": 0,
   "haStatus": "NOT_HA",
   "releaseEvidence": false,
   "claimProductionHA": false

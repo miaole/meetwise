@@ -683,7 +683,8 @@ export function openAICompatibleClient(cfg: {
   // 只在 test 且运输覆盖同为开时整段跳过。deepseek 档必须小写字节前缀 deepseek-；百炼档小写前缀 qwen 即可。不折叠大小写。
   if (!textOverrideAllowed && cfg.vision !== true) {
     if ((resolved.profile === 'deepseek-cn-public' && !model.startsWith('deepseek-'))
-      || (resolved.profile === 'dashscope-cn-beijing' && !model.startsWith('qwen'))) {
+      || ((resolved.profile === 'dashscope-cn-beijing' || resolved.profile === 'sandbox-invalid')
+        && !model.startsWith('qwen'))) {
       throw new Error('text_endpoint_profile_model_mismatch');
     }
   }

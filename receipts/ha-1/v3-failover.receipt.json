@@ -1,7 +1,7 @@
 {
   "result": "OK",
   "v": "V3",
-  "windowSeconds": 46,
+  "windowSeconds": 33,
   "probes": [
     {
       "i": 0,
@@ -210,6 +210,41 @@
   "businessProbe": "GET /profile (auth business path) via LB; readiness GET /readyz/api via LB; zero manual intervention",
   "command": "MEETWISE_HA_SANDBOX_AUTHORIZED=1 node scripts/ha/ha-sandbox.mjs v3",
   "note": "passive probe detection window covered by nginx proxy_next_upstream; local sandbox ≠ production HA",
+  "exitCode": 0,
+  "cmd": "v3",
+  "steps": [
+    {
+      "step": "honesty banner",
+      "ok": true,
+      "detail": "haStatus=NOT_HA; releaseEvidence=false; local sandbox ≠ production HA; est live=0"
+    },
+    {
+      "step": "MEETWISE_HA_SANDBOX_AUTHORIZED",
+      "ok": true,
+      "detail": "set"
+    },
+    {
+      "step": "signup+token via LB (pre-fault)",
+      "ok": true,
+      "detail": "signup=200"
+    },
+    {
+      "step": "sigkill-crash api-a (failover window open)",
+      "ok": true,
+      "detail": "host-pid-ns SIGKILL PID1 exit=0 policyRestarted=true"
+    },
+    {
+      "step": "api-a down-window zero-failure probes",
+      "ok": true,
+      "detail": "22 probes, failures=0, window=33s"
+    },
+    {
+      "step": "api-a healed back",
+      "ok": true,
+      "detail": "0s via=docker-health"
+    }
+  ],
+  "estLive": 0,
   "haStatus": "NOT_HA",
   "releaseEvidence": false,
   "claimProductionHA": false

@@ -1,34 +1,34 @@
 {
   "result": "OK",
   "v": "V5",
-  "interviewId": "ha-iv-1794315467613",
+  "interviewId": "ha-iv-1794551988996",
   "attach1": {
     "mode": "attach",
     "status": 200,
-    "attachedBackend": "172.20.0.7:8787",
+    "attachedBackend": "172.19.0.6:8787",
     "events": [
       {
         "seq": "1",
         "data": "{\"sandbox\":\"v5-first\"}",
-        "atMs": 1794315497156
+        "atMs": 1794552033728
       }
     ],
-    "firstEventMs": 3709,
-    "at": "2026-11-10T12:58:17.156Z"
+    "firstEventMs": 3409,
+    "at": "2026-11-13T06:40:33.728Z"
   },
   "attach2": {
     "mode": "attach",
     "status": 200,
-    "attachedBackend": "172.20.0.6:8787",
+    "attachedBackend": "172.19.0.7:8787",
     "events": [
       {
         "seq": "1",
         "data": "{\"sandbox\":\"v5-first\"}",
-        "atMs": 1794315497160
+        "atMs": 1794552033730
       }
     ],
-    "firstEventMs": 3238,
-    "at": "2026-11-10T12:58:17.160Z"
+    "firstEventMs": 3215,
+    "at": "2026-11-13T06:40:33.730Z"
   },
   "killedBackend": "api-b",
   "survivor": "api-a",
@@ -36,25 +36,97 @@
   "resume": {
     "mode": "resume",
     "status": 200,
-    "attachedBackend": "172.20.0.7:8787, 172.20.0.6:8787",
+    "attachedBackend": "172.19.0.6:8787, 172.19.0.7:8787",
     "events": [
       {
         "seq": "2",
         "data": "{\"sandbox\":\"v5-resume\"}",
-        "atMs": 1794315499203
+        "atMs": 1794552035885
       }
     ],
-    "firstEventMs": 780,
-    "at": "2026-11-10T12:58:19.203Z"
+    "firstEventMs": 719,
+    "at": "2026-11-13T06:40:35.885Z"
   },
+  "twoClientsAttached": true,
+  "attachPairCrossReplica": true,
   "broadcastBothReplicas": true,
-  "maxFirstEventLatencyMs": 296,
+  "maxFirstEventLatencyMs": 230,
   "zeroBufferOk": true,
   "zeroLossResumedSeqs": [
     "2"
   ],
   "command": "MEETWISE_HA_SANDBOX_AUTHORIZED=1 node scripts/ha/ha-sandbox.mjs v5",
-  "note": "pg_notify broadcast + DB seq replay; no redis adapter / no sticky dependency; local sandbox ≠ production HA",
+  "note": "pg_notify broadcast + DB seq replay; no redis adapter / no sticky dependency; local sandbox ≠ production HA; est live=0; all V5 predicates (incl. both clients HTTP 200 + cross-replica + zero-buffer first event ≤3s) participate in EXIT",
+  "exitCode": 0,
+  "cmd": "v5",
+  "steps": [
+    {
+      "step": "honesty banner",
+      "ok": true,
+      "detail": "haStatus=NOT_HA; releaseEvidence=false; local sandbox ≠ production HA; est live=0"
+    },
+    {
+      "step": "MEETWISE_HA_SANDBOX_AUTHORIZED",
+      "ok": true,
+      "detail": "set"
+    },
+    {
+      "step": "interview row inserted",
+      "ok": true,
+      "detail": "ha-iv-1794551988996"
+    },
+    {
+      "step": "sse warmup attach",
+      "ok": true,
+      "detail": "status=200 backend=172.19.0.7:8787"
+    },
+    {
+      "step": "sse attach pair on distinct backends (round 2)",
+      "ok": true,
+      "detail": "172.19.0.6:8787 / 172.19.0.7:8787"
+    },
+    {
+      "step": "two SSE clients attached via LB",
+      "ok": true,
+      "detail": "require both HTTP 200 (not merely helper processes started); status=200/200 backends=172.19.0.6:8787/172.19.0.7:8787"
+    },
+    {
+      "step": "attach pair cross-replica",
+      "ok": true,
+      "detail": "backends=172.19.0.6:8787/172.19.0.7:8787"
+    },
+    {
+      "step": "event seq=1 inserted",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "step": "broadcast reached both replicas",
+      "ok": true,
+      "detail": "latenciesMs=[228,230] backends=172.19.0.6:8787/172.19.0.7:8787"
+    },
+    {
+      "step": "sigkill-crash api-b (client-1 backend)",
+      "ok": true,
+      "detail": "policyRestarted=true; topology self-restores"
+    },
+    {
+      "step": "event seq=2 inserted post-kill",
+      "ok": true,
+      "detail": "2"
+    },
+    {
+      "step": "Last-Event-ID resume zero-loss",
+      "ok": true,
+      "detail": "resume backend=172.19.0.6:8787, 172.19.0.7:8787 seqs=[\"2\"]"
+    },
+    {
+      "step": "LB SSE zero-buffer (first event <=3s)",
+      "ok": true,
+      "detail": "maxFirstLatencyMs=230"
+    }
+  ],
+  "estLive": 0,
   "haStatus": "NOT_HA",
   "releaseEvidence": false,
   "claimProductionHA": false
