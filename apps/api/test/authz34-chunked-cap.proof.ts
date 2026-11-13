@@ -19,6 +19,10 @@
  *   ⑮非法 Content-Length 在 HTTP 解析层 400 拒绝，不进入 FST_ERR_CTP_BODY_TOO_LARGE、响应无 FST_ 内部码；
  *   ⑯sourceDigests 清单含映射/契约/nginx/next.config，所列文件变更会使收据 digest 失效；
  *   ⑰nginx 公网上限严格大于上传信封；Server Action bodySizeLimit 严格大于简历 8MB 语义上限。
+ *   ⑱#280 P3-1 简历双闸 ±1 边界四臂：解码恰 8MiB（base64 11184812 字符）不过闸、解码 8MiB+1（同字符
+ *     长度）服务层 413、字符恰契约上限（zod 含边界·解码 8.4MB）服务层 413、字符 +1（zod）413 file_too_large；
+ *   ⑲#280 P3-2 非法 Content-Length 变体族（负数/科学计数/小数/空/声明远小于实际/重复 CL/TE+CL 并存）
+ *     均由 HTTP 解析层 400 拒绝（不进入 preParsing 计数、不产生 FST_ERR_CTP_BODY_TOO_LARGE、无 FST_ 泄漏）。
  * 运行:pnpm -C apps/api authz34:chunked-cap 或 pnpm body-limit:prove（隔离库包装 run-e2e-isolated）。
  */
 import { createHash } from 'node:crypto';
@@ -209,8 +213,9 @@ function listedIsolatedSources(runnerSrc: string, target: string): string[] {
 
 /**
  * 手写 HTTP/1.1 请求，才能发送非法 Content-Length（Node http.ClientRequest 会改写该头）。
+ * rawHeaderLines（#280 P3-2）：追加裸头行，用于重复 CL / TE+CL 并存等对象形无法表达的手写形态。
  */
-function rawSocketPost(base: string, path: string, headers: Record<string, string>, body: string): Promise<ChunkedResult> {
+function rawSocketPost(base: string, path: string, headers: Record<string, string>, body: string, rawHeaderLines: readonly string[] = []): Promise<ChunkedResult> {
   return new Promise((resolve) => {
     const u = new URL(base);
     let settled = false;
@@ -233,7 +238,8 @@ function rawSocketPost(base: string, path: string, headers: Record<string, strin
       'content-type': 'application/json',
       connection: 'close',
       ...headers,
-    }).map(([k, v]) => `${k}: ${v}`).join('\r\n');
+    }).map(([k, v]) => `${k}: ${v}`).join('\r\n')
+      + (rawHeaderLines.length > 0 ? '\r\n' + rawHeaderLines.join('\r\n') : '');
     const sock = netConnect({ host: u.hostname, port: Number(u.port) || 80 }, () => {
       sock.write(`POST ${path} HTTP/1.1\r\n${headerLines}\r\n\r\n`);
       sock.write(buf);
@@ -287,9 +293,19 @@ async function main() {
     && RESUME_MAX_FILE_BASE64_CHARS < UPLOAD_BODY_LIMIT_BYTES
     && RESUME_MAX_FILE_BASE64_CHARS > 4 * Math.ceil(RESUME_MAX_FILE_BYTES / 3));
   const nextCfg = readFileSync(join(repoRoot, 'apps', 'web', 'next.config.mjs'), 'utf8');
-  const actionLimit = nextCfg.match(/serverActions\s*:\s*\{[^}]*bodySizeLimit\s*:\s*['"](\d+mb)['"]/);
-  A('静态/next.config 显式设置 serverActions.bodySizeLimit=10mb 且大于简历 8MB',
-    actionLimit?.[1] === '10mb' && SERVER_ACTION_BODY_LIMIT_BYTES === 10 * 1024 * 1024 && SERVER_ACTION_BODY_LIMIT_BYTES > RESUME_MAX_FILE_BYTES);
+  const actionLimit = nextCfg.match(/serverActions\s*:\s*\{[^}]*bodySizeLimit\s*:\s*['"](\d+(?:\.\d+)?)(kb|mb|gb)['"]/);
+  // #280 P3-4：'10mb' 双字面量改解析器形（与 nginxClientMaxBodyBytes 同构·1024 进制），
+  // next.config 的字面量与契约常量任一改动都不再互为镜像（改哪侧另一侧断言红）。
+  const nextBodySizeLimitBytes = (() => {
+    const hit = actionLimit && actionLimit.length === 3 ? actionLimit : undefined;
+    if (!hit || hit[1] == null || hit[2] == null) return Number.NaN;
+    const n = Number(hit[1]);
+    const unit = hit[2].toLowerCase();
+    const mul = unit === 'kb' ? 1024 : unit === 'mb' ? 1024 * 1024 : 1024 * 1024 * 1024;
+    return n * mul;
+  })();
+  A('静态/next.config serverActions.bodySizeLimit 解析值=SERVER_ACTION_BODY_LIMIT_BYTES 且大于简历 8MB',
+    actionLimit != null && nextBodySizeLimitBytes === SERVER_ACTION_BODY_LIMIT_BYTES && SERVER_ACTION_BODY_LIMIT_BYTES > RESUME_MAX_FILE_BYTES);
 
   const runnerSrc = readFileSync(join(repoRoot, 'scripts', 'run-e2e-isolated.mjs'), 'utf8');
   const digestPaths = listedIsolatedSources(runnerSrc, 'authz34:chunked-cap:prove');
@@ -462,7 +478,9 @@ async function main() {
       r.status === 400 && r.body?.error === 'invalid_request' && r.body?.code == null && !leaked.includes('FST_'));
   }
   {
-    const mid = '{"productId":"' + 'x'.repeat(2 * 1024 * 1024) + '"}';
+    // 勘注：absolute-form 请求行在解析层 400（或 413），body 大小非断言载荷；2MB 大体在 macOS 回环
+    // 会撞 400+close 的写侧 RST 竞态（响应字节被吞→status=0），缩为 64KB 使信封二选一确定性可达。
+    const mid = '{"productId":"' + 'x'.repeat(64 * 1024) + '"}';
     const r = await rawTargetPost(h.base, 'http://x/commerce/orders#/resume/file', mid, {
       // eslint-disable-next-line @typescript-eslint/naming-convention -- x-user-id 为服务端约定 wire 头名,非代码标识符,不可改名(行内豁免)
       headers: { 'x-user-id': 'userA' },
@@ -488,9 +506,62 @@ async function main() {
       r.status === 413 && r.body?.error === 'file_too_large' && !leaked.includes('too_big') && !leaked.includes('FST_'));
   }
 
+  // ── ⑱ #280 P3-1 简历双闸 ±1 边界四臂（字符闸 zod 含边界·字节闸服务层解码后判定）──
+  {
+    // 解码恰 8MiB：8388608 = 3×2796202+2 → base64 恰 11184812 字符（zod 上限 11200000 之内·字节恰达上限）。
+    const exactBytesB64 = Buffer.alloc(RESUME_MAX_FILE_BYTES, 0x41).toString('base64');
+    const payload = JSON.stringify({ filename: 'r.pdf', mimeType: 'application/pdf', contentBase64: exactBytesB64 });
+    A('静态/解码恰 8MiB 臂仍小于上传信封', Buffer.byteLength(payload) < UPLOAD_BODY_LIMIT_BYTES);
+    const r = await chunkedPost(h.base, '/resume/file', payload, {
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- x-user-id 为服务端约定 wire 头名,非代码标识符,不可改名(行内豁免)
+      headers: { 'x-user-id': 'userA' },
+    });
+    const leaked = JSON.stringify(r.body ?? {}) + (r.raw ?? '');
+    // 边界含语义：解码恰达上限不得被 size 闸拒（后续内容解析/校验失败允许 4xx，但不得是 file_too_large/413）。
+    A(`HTTP/解码恰 8MiB（base64 11184812 字符）→ 不被 size 闸 413（status=${r.status} error=${String(r.body?.error)}）`,
+      r.status !== 413 && r.body?.error !== 'file_too_large' && !leaked.includes('too_big'));
+  }
+  {
+    // 解码 8MiB+1：8388609 = 3×2796203 → base64 同为 11184812 字符（与恰 8MiB 同字符长度）——
+    // 字符闸完全无法区分两者，区分只在服务层解码字节；本臂钉死字节闸存在且越界即 413。
+    const overBytesB64 = Buffer.alloc(RESUME_MAX_FILE_BYTES + 1, 0x41).toString('base64');
+    const payload = JSON.stringify({ filename: 'r.pdf', mimeType: 'application/pdf', contentBase64: overBytesB64 });
+    const r = await chunkedPost(h.base, '/resume/file', payload, {
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- x-user-id 为服务端约定 wire 头名,非代码标识符,不可改名(行内豁免)
+      headers: { 'x-user-id': 'userA' },
+    });
+    A(`HTTP/解码 8MiB+1（同 11184812 字符）→ 服务层 413 file_too_large（status=${r.status}）`,
+      r.status === 413 && r.body?.error === 'file_too_large');
+  }
+  {
+    // 字符恰契约上限：11200000 字符（zod max 含边界=过 zod）→ 解码 8_400_000 字节 > 8MiB → 服务层 413。
+    const exactCharsB64 = 'A'.repeat(RESUME_MAX_FILE_BASE64_CHARS);
+    const payload = JSON.stringify({ filename: 'r.pdf', mimeType: 'application/pdf', contentBase64: exactCharsB64 });
+    A('静态/字符恰上限臂仍小于上传信封', Buffer.byteLength(payload) < UPLOAD_BODY_LIMIT_BYTES);
+    const r = await chunkedPost(h.base, '/resume/file', payload, {
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- x-user-id 为服务端约定 wire 头名,非代码标识符,不可改名(行内豁免)
+      headers: { 'x-user-id': 'userA' },
+    });
+    A(`HTTP/字符恰契约上限（解码 8.4MB）→ 过 zod 含边界、服务层字节闸 413 file_too_large（status=${r.status}）`,
+      r.status === 413 && r.body?.error === 'file_too_large');
+  }
+  {
+    // 字符 +1：zod too_big → 413 file_too_large（⑭ 是 +4 形，此处钉死恰 +1 边界）。
+    const overCharsB64 = 'A'.repeat(RESUME_MAX_FILE_BASE64_CHARS + 1);
+    const payload = JSON.stringify({ filename: 'r.pdf', mimeType: 'application/pdf', contentBase64: overCharsB64 });
+    const r = await chunkedPost(h.base, '/resume/file', payload, {
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- x-user-id 为服务端约定 wire 头名,非代码标识符,不可改名(行内豁免)
+      headers: { 'x-user-id': 'userA' },
+    });
+    A(`HTTP/字符恰 +1 → zod 413 file_too_large（不再 400 too_big·status=${r.status}）`,
+      r.status === 413 && r.body?.error === 'file_too_large');
+  }
+
   // ── ⑮ 非法 Content-Length：HTTP 解析层 400，到不了 FST_ERR_CTP_BODY_TOO_LARGE，响应无 FST_ 内部码 ──
   {
-    const mid = '{"productId":"' + 'x'.repeat(SMALL_BODY_LIMIT_BYTES + 65_536) + '"}';
+    // #280 P3-2 勘注：非法 CL 的 400 在解析层产生，与 body 大小无关；body 用 1KB——大 body 会在服务端
+    // 400+close 时撞写侧 RST 竞态（macOS 回环实测响应字节被 RST 吞掉→status=0），断言语义不变。
+    const mid = '{"productId":"' + 'x'.repeat(1024) + '"}';
     const r = await rawSocketPost(h.base, '/commerce/orders', {
       // eslint-disable-next-line @typescript-eslint/naming-convention -- HTTP 头 wire 名连字符小写为传输格式字面值,非代码标识符,不可改名(行内豁免)
       'content-length': 'abc',
@@ -502,7 +573,7 @@ async function main() {
       r.status === 400 && r.body?.code == null && !leaked.includes('FST_'));
   }
   {
-    const huge = '{"pad":"' + 'x'.repeat(UPLOAD_BODY_LIMIT_BYTES + 65_536) + '"}';
+    const huge = '{"pad":"' + 'x'.repeat(1024) + '"}';
     const r = await rawSocketPost(h.base, '/resume/file', {
       // eslint-disable-next-line @typescript-eslint/naming-convention -- HTTP 头 wire 名连字符小写为传输格式字面值,非代码标识符,不可改名(行内豁免)
       'content-length': 'abc',
@@ -512,6 +583,43 @@ async function main() {
     const leaked = JSON.stringify(r.body ?? {}) + (r.raw ?? '');
     A('HTTP/非法 Content-Length /resume/file → 400，不进入 FST_ERR_CTP_BODY_TOO_LARGE',
       r.status === 400 && r.body?.code == null && !leaked.includes('FST_'));
+  }
+
+  // ── ⑲ #280 P3-2 非法 Content-Length 变体族：HTTP 解析层 400（无 FST_ 泄漏·不进入 preParsing 计数）──
+  // 审查（PR280 §P3-2）raw socket 实测：常见非法形态均在 http_parser 层 400，钩子不可达。
+  // 本族把该实测钉进官方 prove：每变体独立断言 400 + 统一信封 + 无 FST_。
+  {
+    const mid = '{"productId":"' + 'x'.repeat(1024) + '"';
+    const uidHeaders = {
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- x-user-id 为服务端约定 wire 头名,非代码标识符,不可改名(行内豁免)
+      'x-user-id': 'userA',
+    } as Record<string, string>;
+    const variants: { name: string; headers: Record<string, string>; raw: readonly string[]; body?: string }[] = [
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- HTTP 头 wire 名连字符小写为传输格式字面值,非代码标识符,不可改名(行内豁免)
+      { name: '负数', headers: { ...uidHeaders, 'content-length': '-1' }, raw: [], body: mid },
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- HTTP 头 wire 名连字符小写为传输格式字面值,非代码标识符,不可改名(行内豁免)
+      { name: '科学计数', headers: { ...uidHeaders, 'content-length': '1e6' }, raw: [], body: mid },
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- HTTP 头 wire 名连字符小写为传输格式字面值,非代码标识符,不可改名(行内豁免)
+      { name: '小数', headers: { ...uidHeaders, 'content-length': '12.5' }, raw: [], body: mid },
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- HTTP 头 wire 名连字符小写为传输格式字面值,非代码标识符,不可改名(行内豁免)
+      { name: '空值', headers: { ...uidHeaders, 'content-length': '' }, raw: [], body: mid },
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- HTTP 头 wire 名连字符小写为传输格式字面值,非代码标识符,不可改名(行内豁免)
+      { name: '声明远小于实际', headers: { ...uidHeaders, 'content-length': '5' }, raw: [], body: mid },
+      { name: '重复 CL', headers: { ...uidHeaders }, raw: ['content-length: 5', 'content-length: 65536'], body: mid },
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- HTTP 头 wire 名连字符小写为传输格式字面值,非代码标识符,不可改名(行内豁免)
+      { name: 'TE+CL 并存', headers: { ...uidHeaders, 'transfer-encoding': 'chunked', 'content-length': '65536' }, raw: [], body: mid },
+    ];
+    let allRejected = true;
+    const detail: string[] = [];
+    for (const v of variants) {
+      const r = await rawSocketPost(h.base, '/commerce/orders', v.headers, v.body ?? mid, v.raw);
+      const leaked = JSON.stringify(r.body ?? {}) + (r.raw ?? '');
+      const ok = r.status === 400 && !leaked.includes('FST_');
+      if (!ok) allRejected = false;
+      detail.push(`${v.name}=${r.status}`);
+    }
+    A(`HTTP/非法 CL 变体族（负数/科学计数/小数/空/声明小于实际/重复 CL/TE+CL）→ 解析层 400·无 FST_（${detail.join(' ')}）`,
+      allRejected);
   }
 
   // ── 进程存活:超阈 413 断流后服务仍存活 ──
