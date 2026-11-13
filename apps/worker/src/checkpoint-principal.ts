@@ -63,7 +63,24 @@ const GUC_KEYS = ['app.principal_user', 'app.checkpoint_thread_id', 'app.checkpo
  * must stay; hygiene is SET ROLE NONE + clear the three GUCs before the client
  * returns to the pool. If reset throws, destroy the connection so a privileged
  * session never re-enters the pool.
+ *
+ * pg@8 records ReadyForQuery status on the Client as `_txStatus`
+ * ('I' idle / 'T' in-transaction / 'E' aborted). Used by N-6 to ROLLBACK
+ * an open transaction before session SET, so a later ROLLBACK cannot
+ * restore a previous principal. Fallback ROLLBACK is a no-op warning
+ * when already idle. The raw Connection is never exposed.
  */
+type TxStatusClient = {
+  query: (sql: string, params?: unknown[]) => Promise<unknown>;
+  _txStatus?: unknown;
+};
+
+async function rollbackOpenTransaction(client: TxStatusClient): Promise<void> {
+  const status = client._txStatus;
+  if (status === 'I') return;
+  await client.query('ROLLBACK'); // IDLE_BEFORE_CLEANUP
+}
+
 async function cleanupCheckpointPrincipalSession(
   client: { query: (sql: string, params?: unknown[]) => Promise<unknown> },
 ): Promise<void> {
@@ -76,6 +93,11 @@ async function cleanupCheckpointPrincipalSession(
   //   DISCARD ALL    → RESTORES startup `-c role=app_role` (undoes a prior NONE)
   //   SET ROLE NONE  → current_user = session_user, role GUC = none  ← required
   // Ban DISCARD ALL / RESET ROLE as the sole cleanup for this façade.
+  // IDLE_BEFORE_CLEANUP: session SET ROLE / set_config(..., false) issued
+  // inside an open transaction would be undone by a later ROLLBACK (N-6).
+  // Leave any transaction block first. ReadyForQuery status is 'I' idle,
+  // 'T' in-transaction, 'E' aborted; unknown falls back to ROLLBACK.
+  await rollbackOpenTransaction(client); // IDLE_BEFORE_CLEANUP
   await client.query('SET ROLE NONE');
   await client.query(
     `SELECT set_config('${GUC_KEYS[0]}', $1, false),
@@ -120,7 +142,9 @@ type ReleaseWarnEvent =
   | 'checkpoint_pg_double_release'
   | 'checkpoint_pg_release_unhandled'
   | 'checkpoint_pg_release_holder_mismatch'
-  | 'checkpoint_pg_stale_handle';
+  | 'checkpoint_pg_stale_handle'
+  | 'checkpoint_pg_handle_member_denied'
+  | 'checkpoint_pg_handle_immutable';
 
 function warnReleasePath(event: ReleaseWarnEvent, error?: unknown): void {
   let code: string = event;
@@ -141,8 +165,19 @@ function staleHandleError(): Error {
   return Object.assign(new Error('checkpoint_pg_stale_handle'), { code: 'checkpoint_pg_stale_handle' });
 }
 
+function memberDeniedError(): Error {
+  warnReleasePath('checkpoint_pg_handle_member_denied');
+  return Object.assign(new Error('checkpoint_pg_handle_member_denied'), { code: 'checkpoint_pg_handle_member_denied' });
+}
+
+function handleImmutableError(): Error {
+  warnReleasePath('checkpoint_pg_handle_immutable');
+  return Object.assign(new Error('checkpoint_pg_handle_immutable'), { code: 'checkpoint_pg_handle_immutable' });
+}
+
 /**
- * Each checkout returns a dedicated handle (a proxy), not the shared pg Client.
+ * Each checkout returns a dedicated whitelist handle: Object.create(null)
+ * plus a Proxy of that object, not a Proxy of the shared pg Client.
  * query / release / releaseAsync live only on that handle. After the handle is
  * returned to the pool, a later release or query on it warns and throws; it
  * cannot look up the live client.release property and so cannot release the
@@ -188,6 +223,9 @@ function isHandleKey(prop: string | symbol): prop is HandleKey {
  * checkpoint_pg_stale_handle. A leftover release or query therefore cannot
  * touch the next holder.
  */
+/** Raw pool is kept off the instance so asPool() / casual reflection cannot reach a raw Client (P6). */
+const checkpointPools = new WeakMap<PrincipalBoundCheckpointPool, DbPool>();
+
 function installReleaseCleanup(client: RawPoolClient): CheckpointClientHandle {
   serializeClientQueries(client);
 
@@ -285,7 +323,7 @@ function installReleaseCleanup(client: RawPoolClient): CheckpointClientHandle {
     if (isThenableProbe(prop)) return undefined;
     assertOpen();
     if (isHandleKey(prop)) return methods[prop];
-    throw staleHandleError();
+    throw memberDeniedError(); // MEMBER_DENIED — open handle, not stale
   };
 
   return new Proxy(methods, {
@@ -308,20 +346,24 @@ function installReleaseCleanup(client: RawPoolClient): CheckpointClientHandle {
       return isHandleKey(prop);
     },
     set() {
-      return false;
+      assertOpen();
+      throw handleImmutableError(); // HANDLE_IMMUTABLE — not TypeError from false
     },
     defineProperty() {
-      return false;
+      assertOpen();
+      throw handleImmutableError(); // HANDLE_IMMUTABLE
     },
     deleteProperty() {
-      return false;
+      assertOpen();
+      throw handleImmutableError(); // HANDLE_IMMUTABLE
     },
     getPrototypeOf() {
       assertOpen();
       return null;
     },
     setPrototypeOf() {
-      return false;
+      assertOpen();
+      throw handleImmutableError(); // HANDLE_IMMUTABLE
     },
   });
 }
@@ -336,15 +378,34 @@ function installReleaseCleanup(client: RawPoolClient): CheckpointClientHandle {
  * Ban relying on SET LOCAL alone — PostgresSaver autocommit pool.query has no txn.
  */
 export class PrincipalBoundCheckpointPool {
-  constructor(private readonly pool: DbPool) {}
+  constructor(pool: DbPool) {
+    checkpointPools.set(this, pool);
+  }
 
-  /** Underlying createPool instance (prove / diagnostics). */
+  private rawPool(): DbPool {
+    const pool = checkpointPools.get(this);
+    if (!pool) {
+      throw Object.assign(new Error('checkpoint_underlying_pool_missing'), { code: 'checkpoint_underlying_pool_missing' });
+    }
+    return pool;
+  }
+
+  /**
+   * Isolated-prove / diagnostics only. Production callers must use connect() /
+   * query() / asPool(). Unset E2E_ISOLATED throws so a raw Client cannot be
+   * acquired on the product path (P6).
+   */
   get underlyingPool(): DbPool {
-    return this.pool;
+    if (process.env.E2E_ISOLATED !== '1') {
+      throw Object.assign(new Error('checkpoint_underlying_pool_requires_isolated'), {
+        code: 'checkpoint_underlying_pool_requires_isolated',
+      });
+    }
+    return this.rawPool();
   }
 
   async connect(): Promise<CheckpointClientHandle> {
-    const acquired = await this.pool.connect();
+    const acquired = await this.rawPool().connect();
     // CHECKOUT_HANDLE: return a per-checkout whitelist handle. Do not assign
     // release or query wrappers onto the shared pg Client, and do not Proxy
     // that Client, so leftover or reflected access cannot reach the next holder.
@@ -367,7 +428,7 @@ export class PrincipalBoundCheckpointPool {
     }
   }
 
-  async query(...args: any[]): Promise<any> {
+  async query(...args: unknown[]): Promise<QueryResult> {
     const client = await this.connect();
     try {
       return await client.query(...args);
@@ -385,8 +446,17 @@ export class PrincipalBoundCheckpointPool {
     }
   }
 
-  async end(): Promise<void> { await this.pool.end(); }
+  async end(): Promise<void> { await this.rawPool().end(); }
 
-  /** PostgresSaver is typed against pg.Pool; its runtime surface is the three methods above. */
-  asPool(): Pool { return this as unknown as Pool; }
+  /**
+   * PostgresSaver is typed against pg.Pool; runtime 1.0.4 only calls
+   * connect / query / end. The instance is returned so isolated factory
+   * proves (uc052 C-FACTORY) can reach the gated underlyingPool. The
+   * raw DbPool is not an instance field (WeakMap) and underlyingPool
+   * throws unless E2E_ISOLATED=1, so the product path cannot acquire a
+   * raw Client (ASPOOL_SURFACE / P6).
+   */
+  asPool(): Pool {
+    return this as unknown as Pool; // ASPOOL_SURFACE
+  }
 }

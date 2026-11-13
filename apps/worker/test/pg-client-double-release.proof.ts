@@ -43,6 +43,12 @@
  *    P1/P2/P3/P4/P5/P7（真实 PG，max=1）：白名单句柄在反射、on 链、notice、end、
  *      活句柄 on().release 上 fail-closed；Y 始终为本租户；池 1/1/0；end() 正常。
  *      反向复现钉死 SHA 9faf8655291db3864fca28e92b956800ae77f0ff，必须 EXIT 1。
+ *    N-3/N-4（假 pool）：打开态非白名单成员抛 handle_member_denied 而非 stale；
+ *      赋值/define/delete 抛 handle_immutable 而非 TypeError；关闭态仍 stale。
+ *    N-6/P6（真实 PG，max=1）：release 时若仍在未结束事务中，cleanup 先 ROLLBACK
+ *      再 SET ROLE NONE；下一 raw checkout 空闲且 GUC 已清，再 ROLLBACK 不恢复
+ *      上一 principal。asPool 返回同一实例；实例无 this.pool；underlyingPool
+ *      仅 E2E_ISOLATED=1 可取。MUT-IDLE 去掉 IDLE_BEFORE_CLEANUP 后 N-6 必须 EXIT 1。
  *  另：WORKER_ALERT 旧正则对现场崩溃日志假阴性；新正则命中，健康日志不误报。
  *  pnpm pg-client-double-release:prove */
 import { spawnSync } from 'node:child_process';
@@ -91,7 +97,7 @@ export const WORKER_ALERT_RE = /checkpoint_connection_lost|checkpoint_privacy_fe
 
 const ACCESS = { owner: 'owner-a', threadId: 'thread-a', fenceEpoch: 1 };
 
-type Mode = 'after' | 'before' | 'mut-guard' | 'mut-stack' | 'mut-order' | 'xp-after' | 'xp-mut-precedence' | 'xp-e12' | 'xp-e12-before' | 'xp-p137' | 'xp-p137-before';
+type Mode = 'after' | 'before' | 'mut-guard' | 'mut-stack' | 'mut-order' | 'xp-after' | 'xp-mut-precedence' | 'xp-e12' | 'xp-e12-before' | 'xp-p137' | 'xp-p137-before' | 'xp-n6p6' | 'xp-n6p6-mut';
 
 function makeFakeClient(opts: { releaseThrowsAlways?: boolean; overlap?: { current: number; max: number; hits: number }; delayMs?: number; allowReuse?: boolean }): {
   query: (...args: unknown[]) => Promise<{ rows: unknown[]; rowCount: number }>;
@@ -302,6 +308,40 @@ async function runScenario(mod: Record<string, unknown>): Promise<void> {
     A('N-2 submit 未拿到 raw Connection', captured === undefined, `captured=${typeof captured}`);
     if (typeof c.releaseAsync === 'function') await c.releaseAsync();
     else c.release();
+  });
+
+  // N-3 / N-4: open-handle error names; closed handle stays stale.
+  const n3client = makeFakeClient({ delayMs: 0, allowReuse: true });
+  const facadeN3 = new boundCtor({ connect: async () => n3client, end: async () => undefined });
+  await withAccess(ACCESS, async () => {
+    const c = await facadeN3.connect();
+    const codeOf = (err: unknown): string => String((err as { code?: string }).code ?? (err as Error).message ?? err);
+    let openOn = '';
+    try { void (c as { on?: unknown }).on; } catch (err) { openOn = codeOf(err); }
+    let openConn = '';
+    try { void (c as { connection?: unknown }).connection; } catch (err) { openConn = codeOf(err); }
+    let openToString = '';
+    try { void String(c); } catch (err) { openToString = codeOf(err); }
+    A('N-3 打开态 on 抛 handle_member_denied 而非 stale', openOn.includes('checkpoint_pg_handle_member_denied') && !openOn.includes('stale_handle'), `code=${openOn}`);
+    A('N-3 打开态 connection 抛 handle_member_denied 而非 stale', openConn.includes('checkpoint_pg_handle_member_denied') && !openConn.includes('stale_handle'), `code=${openConn}`);
+    A('N-3 打开态 String(handle) 抛 handle_member_denied 而非 stale', openToString.includes('checkpoint_pg_handle_member_denied') && !openToString.includes('stale_handle'), `code=${openToString}`);
+    let setCode = '';
+    let setBareTypeError = false;
+    try {
+      (c as { foo?: unknown }).foo = 1;
+    } catch (err) {
+      setBareTypeError = err instanceof TypeError && (err as { code?: string }).code == null;
+      setCode = codeOf(err);
+    }
+    A('N-4 打开态赋值抛 handle_immutable 而非 TypeError', setCode.includes('checkpoint_pg_handle_immutable') && !setBareTypeError, `code=${setCode} typeError=${setBareTypeError}`);
+    let defineCode = '';
+    try { Object.defineProperty(c, 'bar', { value: 1 }); } catch (err) { defineCode = codeOf(err); }
+    A('N-4 defineProperty 抛 handle_immutable', defineCode.includes('checkpoint_pg_handle_immutable'), `code=${defineCode}`);
+    if (typeof c.releaseAsync === 'function') await c.releaseAsync();
+    else c.release();
+    let closedOn = '';
+    try { void (c as { on?: unknown }).on; } catch (err) { closedOn = codeOf(err); }
+    A('N-3 关闭态仍抛 stale_handle', closedOn.includes('checkpoint_pg_stale_handle'), `code=${closedOn}`);
   });
 
   if (fail !== 0) {
@@ -954,10 +994,132 @@ async function runP137(mod: Record<string, unknown>): Promise<void> {
   }
 }
 
+
+function stripIdleBeforeCleanup(src: string): string {
+  if (!src.includes('IDLE_BEFORE_CLEANUP')) throw new Error('stripIdleBeforeCleanup: marker missing');
+  const next = src.replace(
+    /await rollbackOpenTransaction\(client\); \/\/ IDLE_BEFORE_CLEANUP\n/,
+    '/* MUT_IDLE stripped */\n',
+  );
+  if (next === src) throw new Error('stripIdleBeforeCleanup: pattern not replaced');
+  return next;
+}
+
+async function runN6P6(mod: Record<string, unknown>): Promise<void> {
+  if (process.env.E2E_ISOLATED !== '1') {
+    console.log('N6P6 require E2E_ISOLATED=1 (official isolated runner)');
+    process.exit(1);
+  }
+  const ctx = await setupXpBound(mod, 'n6p6');
+  const { bound, pool, admin, role, withAccess, accessA } = ctx;
+  const boundEx = bound as typeof bound & {
+    asPool?: () => object;
+    underlyingPool?: { connect: () => Promise<{ query: (...args: unknown[]) => unknown; release: (err?: unknown) => void; _txStatus?: unknown }> };
+  };
+  const rawPool = pool as { connect: () => Promise<{ query: (...args: unknown[]) => unknown; release: (err?: unknown) => void; _txStatus?: unknown }>; end?: () => Promise<void> };
+  let fail = 0;
+  const A = (n: string, c: boolean, extra = '') => {
+    console.log(`${c ? 'PASS' : 'FAIL'}  ${n}${extra ? `  [${extra}]` : ''}`);
+    if (!c) fail++;
+  };
+  try {
+    const surface = typeof boundEx.asPool === 'function' ? boundEx.asPool() : null;
+    A(
+      'P6 asPool 返回同一 façade 实例（工厂臂可识别 PrincipalBoundCheckpointPool）',
+      surface === bound && typeof (surface as { connect?: unknown }).connect === 'function' && typeof (surface as { query?: unknown }).query === 'function' && typeof (surface as { end?: unknown }).end === 'function',
+      `same=${surface === bound}`,
+    );
+    A('P6 实例无 this.pool 字段', (bound as { pool?: unknown }).pool === undefined);
+
+    let isolatedOk = false;
+    let isolatedErr = '';
+    try {
+      const raw = boundEx.underlyingPool;
+      isolatedOk = !!raw && typeof raw.connect === 'function';
+    } catch (err) {
+      isolatedErr = String((err as { code?: string }).code ?? (err as Error).message ?? err);
+    }
+    A('P6 isolated 下 underlyingPool 可取', isolatedOk, `err=${isolatedErr}`);
+
+    const prev = process.env.E2E_ISOLATED;
+    let gateCode = '';
+    try {
+      process.env.E2E_ISOLATED = '';
+      void boundEx.underlyingPool;
+    } catch (err) {
+      gateCode = String((err as { code?: string }).code ?? (err as Error).message ?? err);
+    } finally {
+      process.env.E2E_ISOLATED = prev;
+    }
+    A('P6 非 isolated 时 underlyingPool 抛 requires_isolated', gateCode.includes('checkpoint_underlying_pool_requires_isolated'), `code=${gateCode}`);
+
+    await withAccess(accessA, async () => {
+      const c = await bound.connect();
+      await c.query('BEGIN');
+      await c.query(SET_PRINCIPAL_SQL, [`n6-marker-${process.pid}`]);
+      if (typeof c.releaseAsync === 'function') await c.releaseAsync();
+      else c.release();
+    });
+    const raw = await rawPool.connect();
+    let after: Record<string, unknown> = {};
+    let afterRollback: Record<string, unknown> = {};
+    let txStatus: unknown;
+    try {
+      const rows = await raw.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
+      after = rows.rows[0] ?? {};
+      txStatus = raw._txStatus;
+      await raw.query('ROLLBACK');
+      const rows2 = await raw.query(SESSION_SQL) as { rows: Array<Record<string, unknown>> };
+      afterRollback = rows2.rows[0] ?? {};
+    } finally {
+      raw.release();
+    }
+    const snapAfter = xpSnapOf(after);
+    const snapRb = xpSnapOf(afterRollback);
+    const roleAfter = String(after['current_user'] ?? '');
+    A(
+      'N-6 归还后 raw checkout 不在事务中且 GUC 已清',
+      (txStatus === 'I' || txStatus == null)
+        && snapAfter.principal == null
+        && snapAfter.threadId == null
+        && roleAfter !== 'app_role',
+      `tx=${String(txStatus)} snap=${JSON.stringify(snapAfter)} role=${roleAfter}`,
+    );
+    A(
+      'N-6 再 ROLLBACK 不会恢复上一 principal',
+      snapRb.principal == null && snapRb.threadId == null && snapRb.principal !== accessA.owner,
+      `snap=${JSON.stringify(snapRb)} expectedNot=${accessA.owner}`,
+    );
+
+    let endOk = false;
+    try {
+      await withTimeout(bound.end(), 8_000);
+      endOk = true;
+    } catch (error) {
+      console.log(`N6P6 end() failed: ${String((error as Error).message ?? error).slice(0, 120)}`);
+      try { await withTimeout(Promise.resolve(rawPool.end?.() as Promise<void>), 3_000); } catch { /* ignore */ }
+    }
+    A('N-6/P6 pool.end 正常', endOk);
+  } catch (error) {
+    console.log(`N6P6 uncaught ${String((error as Error).message ?? error).slice(0, 200)}`);
+    fail += 1;
+    try { await withTimeout(bound.end(), 8_000); } catch { /* ignore */ }
+  } finally {
+    await admin.query(`DROP ROLE IF EXISTS ${role}`).catch(() => undefined);
+    await admin.end().catch(() => undefined);
+  }
+  if (fail !== 0) {
+    console.log(`CHILD_FAIL N6P6 ${fail}`);
+    process.exit(1);
+  }
+  console.log('CHILD_OK');
+}
+
 async function child(mode: Mode, moduleUrl: string): Promise<void> {
   const mod = await import(moduleUrl);
   if (mode === 'xp-after' || mode === 'xp-mut-precedence') await runXp2(mod, mode === 'xp-mut-precedence');
   else if (mode === 'xp-e12' || mode === 'xp-e12-before') await runE12(mod);
+  else if (mode === 'xp-n6p6' || mode === 'xp-n6p6-mut') await runN6P6(mod);
   else if (mode === 'xp-p137' || mode === 'xp-p137-before') await runP137(mod);
   else await runScenario(mod);
 }
@@ -1104,6 +1266,9 @@ async function parent(): Promise<void> {
 
   A('S-9 源含 REJECT_SUBMITTABLE 与 defineHandle 非可配置自有键', src.includes('REJECT_SUBMITTABLE') && src.includes('defineHandle') && src.includes('configurable: false'));
   A('S-10 getOwnPropertyDescriptor 走 Reflect（与 target 描述符一致）', src.includes('Reflect.getOwnPropertyDescriptor(methods, prop)'));
+  A('S-11 cleanup 含 IDLE_BEFORE_CLEANUP / rollbackOpenTransaction', src.includes('IDLE_BEFORE_CLEANUP') && src.includes('rollbackOpenTransaction'));
+  A('S-12 asPool 为 ASPOOL_SURFACE 且 raw pool 走 WeakMap', src.includes('ASPOOL_SURFACE') && src.includes('checkpointPools') && src.includes('checkpoint_underlying_pool_requires_isolated'));
+  A('S-13 打开态非白名单走 MEMBER_DENIED，set 走 HANDLE_IMMUTABLE', src.includes('MEMBER_DENIED') && src.includes('HANDLE_IMMUTABLE') && src.includes('memberDeniedError') && src.includes('handleImmutableError'));
 
   if (process.env.E2E_ISOLATED !== '1') {
     A('XP-2 须由官方 isolated runner 提供真实 PG（E2E_ISOLATED=1）', false, `E2E_ISOLATED=${process.env.E2E_ISOLATED ?? ''}`);
@@ -1203,6 +1368,29 @@ async function parent(): Promise<void> {
       );
       rmSync(pWritten.dir, { recursive: true, force: true });
     }
+
+    const n6 = runChild('xp-n6p6', `file://${srcPath}`, 180_000);
+    process.stdout.write(n6.stdout ?? '');
+    if (n6.status !== 0) process.stderr.write((n6.stderr ?? '').slice(0, 4000));
+    A(
+      'N-6/P6 真实 PG：事务先 ROLLBACK 再清 GUC；asPool 表面与 isolated 门成立',
+      n6.status === 0 && /CHILD_OK/.test(n6.stdout ?? '') && /PASS {2}N-6 再 ROLLBACK/.test(n6.stdout ?? '') && /PASS {2}P6 asPool/.test(n6.stdout ?? ''),
+      (n6.stdout ?? '').split('\n').find((l) => /N-6 /.test(l) || /P6 /.test(l) || /CHILD_/.test(l)) ?? `status=${n6.status}`,
+    );
+
+    const idleSrc = stripIdleBeforeCleanup(src);
+    A('MUT-IDLE 变换去掉 IDLE_BEFORE_CLEANUP', idleSrc.includes('MUT_IDLE stripped') && !idleSrc.includes('await rollbackOpenTransaction(client); // IDLE_BEFORE_CLEANUP'));
+    const idleWritten = writePatchedModule(idleSrc);
+    const mutIdle = runChild('xp-n6p6-mut', idleWritten.url, 180_000);
+    process.stdout.write(mutIdle.stdout ?? '');
+    if (mutIdle.status !== 0) process.stderr.write((mutIdle.stderr ?? '').slice(0, 4000));
+    A('MUT-IDLE 去掉先 ROLLBACK 后子进程非零退出', mutIdle.status !== 0, `status=${mutIdle.status} signal=${mutIdle.signal}`);
+    A(
+      'MUT-IDLE 失败在 N-6 再 ROLLBACK 恢复 principal',
+      /FAIL {2}N-6 再 ROLLBACK/.test(mutIdle.stdout ?? '') || /FAIL {2}N-6 归还后/.test(mutIdle.stdout ?? ''),
+      (mutIdle.stdout ?? '').split('\n').find((l) => /N-6 /.test(l)) ?? (mutIdle.stderr ?? '').slice(0, 200),
+    );
+    rmSync(idleWritten.dir, { recursive: true, force: true });
   }
 
   for (const dir of [beforeDir, mutWritten.dir, stackWritten.dir, orderWritten.dir]) {
