@@ -16,6 +16,9 @@ import {
 import { keyFingerprint, parseRevokedFingerprints } from '../src/secret-fingerprint.ts';
 const MEETWISE_TEST_FIXTURE_MODEL_API_KEY_TEC1 = 'primary-key';
 const MEETWISE_TEST_FIXTURE_MODEL_BACKUP_API_KEY_TEC2 = 'backup-key';
+const MODEL_ENDPOINT_PROFILE = 'MODEL_ENDPOINT_PROFILE';
+const MODEL_BACKUP_ENDPOINT_PROFILE = 'MODEL_BACKUP_ENDPOINT_PROFILE';
+const MEETWISE_HA_SANDBOX_AUTHORIZED = 'MEETWISE_HA_SANDBOX_AUTHORIZED';
 
 
 let failures = 0;
@@ -51,11 +54,11 @@ function main() {
   A('非法 profile（不在闭集注册表）被拒绝',
     errorOf(() => resolveTextEndpointConfig({ MODEL_ENDPOINT_PROFILE: 'evil-cross-region' })) === 'text_endpoint_profile_invalid');
   A('sandbox-invalid 无授权被拒绝（不扩大生产可路由闭集）',
-    errorOf(() => resolveTextEndpointConfig({ MODEL_ENDPOINT_PROFILE: 'sandbox-invalid' })) === 'text_endpoint_profile_invalid'
-    && errorOf(() => resolveTextBackupEndpointConfig({ MODEL_BACKUP_ENDPOINT_PROFILE: 'sandbox-invalid' })) === 'text_endpoint_profile_invalid');
+    errorOf(() => resolveTextEndpointConfig({ [MODEL_ENDPOINT_PROFILE]: 'sandbox-invalid' })) === 'text_endpoint_profile_invalid'
+    && errorOf(() => resolveTextBackupEndpointConfig({ [MODEL_BACKUP_ENDPOINT_PROFILE]: 'sandbox-invalid' })) === 'text_endpoint_profile_invalid');
   const sand = resolveTextEndpointConfig({
-    MODEL_ENDPOINT_PROFILE: 'sandbox-invalid',
-    MEETWISE_HA_SANDBOX_AUTHORIZED: '1',
+    [MODEL_ENDPOINT_PROFILE]: 'sandbox-invalid',
+    [MEETWISE_HA_SANDBOX_AUTHORIZED]: '1',
   });
   A('sandbox-invalid 仅授权后解析到 .invalid 主机（非真实供应商）',
     sand.profile === 'sandbox-invalid'
@@ -63,12 +66,12 @@ function main() {
     && sand.region === 'cn'
     && Object.isFrozen(sand));
   A('sandbox-invalid 授权开关只认精确 \'1\'，其它取值仍拒绝',
-    errorOf(() => resolveTextEndpointConfig({ MODEL_ENDPOINT_PROFILE: 'sandbox-invalid', MEETWISE_HA_SANDBOX_AUTHORIZED: 'true' })) === 'text_endpoint_profile_invalid'
-    && errorOf(() => resolveTextEndpointConfig({ MODEL_ENDPOINT_PROFILE: 'sandbox-invalid', MEETWISE_HA_SANDBOX_AUTHORIZED: '0' })) === 'text_endpoint_profile_invalid');
+    errorOf(() => resolveTextEndpointConfig({ [MODEL_ENDPOINT_PROFILE]: 'sandbox-invalid', [MEETWISE_HA_SANDBOX_AUTHORIZED]: 'true' })) === 'text_endpoint_profile_invalid'
+    && errorOf(() => resolveTextEndpointConfig({ [MODEL_ENDPOINT_PROFILE]: 'sandbox-invalid', [MEETWISE_HA_SANDBOX_AUTHORIZED]: '0' })) === 'text_endpoint_profile_invalid');
   A('sandbox-invalid 备用档同样仅授权后指向 .invalid',
     resolveTextBackupEndpointConfig({
-      MODEL_BACKUP_ENDPOINT_PROFILE: 'sandbox-invalid',
-      MEETWISE_HA_SANDBOX_AUTHORIZED: '1',
+      [MODEL_BACKUP_ENDPOINT_PROFILE]: 'sandbox-invalid',
+      [MEETWISE_HA_SANDBOX_AUTHORIZED]: '1',
     }).baseUrl === 'https://dashscope.invalid/compatible-mode/v1');
   A('原型链键 constructor/__proto__/toString 不被当作合法 profile（Object.hasOwn 防 in 原型链命中）',
     errorOf(() => resolveTextEndpointConfig({ MODEL_ENDPOINT_PROFILE: 'constructor' })) === 'text_endpoint_profile_invalid'
