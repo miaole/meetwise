@@ -236,12 +236,27 @@ export function scenarioDegradeTemplate(competency: string): string {
  * 挂点=worker 侧本文件三调用点（plan `${threadId}:plan` / ask generate() 全体键（初诊+:gr{k}}+:r{k}）/ assess 评估键），
  * ai-runtime 零触。归集行 usage 列由 recordUsage 从 ai_model_invocation 按键单语句复制（单真相零二次记账）；
  * usage_source='missing' ↔ 上游 0174 打标行 'usage_missing'（§1.4 映射）。 */
-/** 派发前确定性拒绝（MODEL-OP-02 共享准入权威·零外呼臂错误码族）→ 'admission_rejected'；其余调用失败 → 'generation_failed'。 */
+/** 派发前确定性拒绝（MODEL-OP-02 共享准入权威·零外呼臂错误码族，含上下文预算校准拒绝）→ 'admission_rejected'；其余调用失败 → 'generation_failed'。
+ *  闭集明示，禁止 startsWith('budget')：该前缀漏掉 model_context_budget_exceeded / cost_budget_exhausted，
+ *  又会把无关 budget* 串误标为准入拒绝。 */
+const ADMISSION_USAGE_CAUSES = new Set([
+  'model_circuit_open',
+  'model_circuit_half_open',
+  'model_concurrency_exhausted',
+  'budget_exhausted',
+  'cost_budget_exhausted',
+  'model_context_budget_exceeded',
+  'model_context_policy_invalid',
+  'model_context_image_reserve_missing',
+  'model_admission_timeout',
+  'model_admission_failed',
+  'model_admission_operation_unknown',
+  'model_admission_operation_blocked',
+  'model_admission_project_missing',
+  'model_admission_project_disabled',
+]);
 export function usageCauseForInvokeError(error: string): 'generation_failed' | 'admission_rejected' {
-  return error === 'model_circuit_open' || error === 'model_circuit_half_open'
-    || error === 'model_concurrency_exhausted' || error.startsWith('budget')
-    ? 'admission_rejected'
-    : 'generation_failed';
+  return ADMISSION_USAGE_CAUSES.has(error) ? 'admission_rejected' : 'generation_failed';
 }
 /**
  * 归集写=审计面 **fail-soft**（蓝本 §6.2 原文「只做成本侧和审计，不参与默认方案定价」——归集写失败

@@ -5,9 +5,9 @@ import { randomUUID } from 'node:crypto';
 import { MemorySaver, type LangGraphRunnableConfig } from '@langchain/langgraph';
 import { createPool, asPrincipal, reserveEntitlement, appendEvent, answerHash, claimInterviewAnswer, loadMigrations, runMigrations, inviteCandidate, startApplicationInterview, createJob, classifyJobRoute, finalizeApplication, failInterviewAndRelease, enrollCheckpointThread, withInterviewGraphFence } from '@meetwise/db';
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
-import { buildAdaptiveInterviewGraph } from '@meetwise/ai-graphs';
+import { buildAdaptiveInterviewGraph, type PendingQuestion } from '@meetwise/ai-graphs';
 import { buildAdaptiveDeps } from '../src/adaptive-interview-service.ts';
-import { startAdaptiveInterview, submitAdaptiveAnswer, type AdaptiveLifecycleDeps } from '../src/adaptive-lifecycle.ts';
+import { startAdaptiveInterview, submitAdaptiveAnswer, projectedDuplicateFallback, type AdaptiveLifecycleDeps } from '../src/adaptive-lifecycle.ts';
 import { FenceCheckpointSaver } from '../src/checkpoint-fence.ts';
 import { withCheckpointAccess } from '../src/checkpoint-principal.ts';
 import { createCheckpointer } from '../src/main.ts';
@@ -17,6 +17,24 @@ process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'adaptive-life-job-route-input-hmac
 
 const pool = createPool();
 let fail = 0; const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
+
+/* #245 P2-b：旧 checkpoint 回退臂（pending 缺 duplicateFallback，只在 generationProvenance 上有值）。 */
+{
+  const barePending = {
+    questionId: 'q1', stateVersion: 1, turn: 1, question: 'q', competency: '并发',
+    difficulty: 3, kind: 'scenario', sources: [], critique: [],
+  } as PendingQuestion;
+  const snapWithProv = { values: { generationProvenance: { origin: 'model', duplicateFallback: 'cross_session_repeat' } } };
+  A('#245 P2-b 旧形：pending 缺字段、provenance 有值 → 回退读到 cross_session_repeat',
+    projectedDuplicateFallback(barePending, snapWithProv) === 'cross_session_repeat');
+  A('#245 P2-b pending 字段优先于 provenance 回退',
+    projectedDuplicateFallback({ ...barePending, duplicateFallback: 'approved_template' }, snapWithProv) === 'approved_template');
+  A('#245 P2-b 非法 provenance 值丢弃（不写入事件）',
+    projectedDuplicateFallback(barePending, { values: { generationProvenance: { origin: 'model', duplicateFallback: 'evil' } } }) === undefined);
+  A('#245 P2-b 两侧都缺 → undefined',
+    projectedDuplicateFallback(barePending, { values: {} }) === undefined);
+}
+
 const OWNER = 'lifeA', IID = 'life-' + Date.now();
 let askSeq = 0;
 const base = scriptedModelClient({

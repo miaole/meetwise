@@ -261,8 +261,9 @@ async function main() {
       ));
       const supply = await asPrincipal(pool, OWNER, (c) =>
         (supplyCandidateProfileRoute as (...a: unknown[]) => ReturnType<typeof supplyCandidateProfileRoute>)(c, OWNER, iid, ambResume, targetRole));
-      const row = await asPrincipal(pool, OWNER, async (c) => (await c.query<{ leaf: string; policy: string; digest: string; sdigest: string }>(
-        `SELECT d.leaf_track_id AS leaf, d.policy_version AS policy, d.input_digest AS digest, s.input_digest AS sdigest
+      const row = await asPrincipal(pool, OWNER, async (c) => (await c.query<{ leaf: string; policy: string; digest: string; sdigest: string; degraded: string | null; applied: boolean }>(
+        `SELECT d.leaf_track_id AS leaf, d.policy_version AS policy, d.input_digest AS digest, s.input_digest AS sdigest,
+                d.resume_degraded_from AS degraded, d.target_role_applied AS applied
            FROM candidate_profile_route_decision d JOIN candidate_profile_route_snapshot s ON s.decision_id=d.id
           WHERE d.interview_id=$1`, [iid],
       )).rows[0]);
@@ -273,8 +274,10 @@ async function main() {
     A('⑥a 歧义简历+targetRole「Java 后端工程师」→ decision/snapshot 叶=backend/java(修前恒 general)',
       withRole.supply.status === 'supplied' && withRole.row?.leaf === 'backend/java' && withRole.snapLeaf === 'backend/java',
       `leaf=${withRole.row?.leaf} snap=${withRole.snapLeaf}`);
-    A('⑥b 采纳行 policy_version 带 +target-role:v1 后缀;decision/snapshot input_digest 同值', /\+target-role:v1$/.test(withRole.row?.policy ?? '')
+    A('⑥b 采纳行 policy_version 带 +target-role:v2 后缀;decision/snapshot input_digest 同值', /\+target-role:v2$/.test(withRole.row?.policy ?? '')
       && withRole.row?.digest === withRole.row?.sdigest, `policy=${withRole.row?.policy}`);
+    A('⑥b2 采纳行落库 resume_degraded_from=ambiguous_language_evidence 且 target_role_applied=true',
+      withRole.row?.degraded === 'ambiguous_language_evidence' && withRole.row?.applied === true);
     const noRole = await supplyFor('none');
     A('⑥c 同简历缺省 targetRole → backend/general(降级现状)·policy 无后缀(修前逐字节)',
       noRole.row?.leaf === 'backend/general' && !/target-role/.test(noRole.row?.policy ?? ''), `leaf=${noRole.row?.leaf} policy=${noRole.row?.policy}`);
@@ -282,6 +285,34 @@ async function main() {
     const genericRole = await supplyFor('generic', USER_ROLE);   // 「后端开发工程师」只命中 general → 不改
     A('⑥e targetRole 只命中 general(后端开发工程师)→ 维持降级 general·policy 无后缀',
       genericRole.row?.leaf === 'backend/general' && !/target-role/.test(genericRole.row?.policy ?? ''), `leaf=${genericRole.row?.leaf}`);
+    A('⑥e2 未采纳行仍落库 resume_degraded_from（歧义来源可审计）且 target_role_applied=false',
+      genericRole.row?.degraded === 'ambiguous_language_evidence' && genericRole.row?.applied === false);
+    const GENERAL_RESUME = ['工作经历', '负责订单系统限流改造，使用 Redis 计数器和滑动窗口保护下游。', '技能', 'Redis、限流、分布式锁'].join('\n');
+    const genResume = await asPrincipal(pool, OWNER, async (c) => {
+      const created = await createResumeWithBlob(c, OWNER, GENERAL_RESUME);
+      await transitionResume(c, OWNER, created.resumeId, 'uploaded', 'ingesting');
+      await completeIngestion(c, OWNER, created.resumeId, ingestResume(GENERAL_RESUME));
+      return created.resumeId;
+    });
+    const genEpoch = Number(await asPrincipal(pool, OWNER, async (c) => {
+      const rows = await c.query('SELECT privacy_epoch FROM resume WHERE id=$1 AND owner_user_id=$2', [genResume, OWNER]);
+      return (rows.rows[0] as Record<string, unknown> | undefined)?.['privacy_epoch'];
+    }));
+    const genIid = `ri-n17-general-${Date.now()}`;
+    await asPrincipal(pool, OWNER, (c) => c.query(
+      "INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'created',$3,$4)",
+      [genIid, OWNER, genResume, genEpoch],
+    ));
+    const genSupply = await asPrincipal(pool, OWNER, (c) =>
+      (supplyCandidateProfileRoute as (...a: unknown[]) => ReturnType<typeof supplyCandidateProfileRoute>)(c, OWNER, genIid, genResume, 'Java 后端工程师'));
+    const genRow = await asPrincipal(pool, OWNER, async (c) => (await c.query<{ leaf: string; policy: string; degraded: string | null; applied: boolean }>(
+      `SELECT leaf_track_id AS leaf, policy_version AS policy, resume_degraded_from AS degraded, target_role_applied AS applied
+         FROM candidate_profile_route_decision WHERE interview_id=$1`, [genIid],
+    )).rows[0]);
+    A('⑥f general-only 简历 + Java 后端 → 叶=backend/java，target_role_applied=true，resume_degraded_from 为空',
+      genSupply.status === 'supplied' && genRow?.leaf === 'backend/java' && genRow?.applied === true
+      && genRow?.degraded === null && /\+target-role:v2$/.test(genRow?.policy ?? ''),
+      `leaf=${genRow?.leaf} applied=${genRow?.applied} degraded=${genRow?.degraded} policy=${genRow?.policy}`);
   }
 
   console.log(`\n${failures === 0 ? '✓ ROLE-INPUT prove(①②③④⑤·payload→planner 段+quiz prompt 段)全部通过' : `✗ ${failures} 项失败`}`);

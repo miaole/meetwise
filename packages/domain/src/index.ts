@@ -259,6 +259,7 @@ export {
   CANDIDATE_ROUTE_ALLOCATION_BPS, CANDIDATE_ROUTE_LEAF_RE,
   CANDIDATE_PROFILE_SIGNALS, CANDIDATE_ROUTE_LEAF_PROFESSION_TOKENS,
   canonicalCandidateProfileDigest, candidateRouteDecisionHash, classifyCandidateProfileByRule,
+  candidateProfileSignalHits, targetRoleSatisfiesProfessionGate,
   CANDIDATE_ROUTE_TARGET_ROLE_POLICY_SUFFIX, arbitrateCandidateRouteWithTargetRole,
 } from './candidate-profile-route.ts';
 export type { CandidateProfileRouteRuleResult, CandidateProfileRouteDegradedFrom, CandidateRouteArbitration } from './candidate-profile-route.ts';
