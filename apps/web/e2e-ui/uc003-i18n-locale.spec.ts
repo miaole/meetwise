@@ -17,8 +17,9 @@ import { randomUUID } from 'node:crypto';
  *
  * Known DOM-unreachable arms (no API stub allowed): the mapResumeUploadError API-response
  * arm and the :88/:113 network-failure inline faces (their en side is carried by the S4
- * static assertions), and the >8MB arm (blocked by the Next Server Action bodySizeLimit
- * before the action body runs). The deleteResumeAction four failure arms are likewise
+ * static assertions), and the >8MB arm (serverActions.bodySizeLimit is 10mb, so the
+ * action can return the 8MB product message; this spec still does not exercise that arm).
+ * The deleteResumeAction four failure arms are likewise
  * DOM-unreachable here (this spec's happy path never triggers a delete); after the
  * follow-up migration their en side is carried by the S6 static assertions over the
  * messages resumeDelete namespace. The :98/:99 local-refusal arms ARE reachable via

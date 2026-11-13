@@ -234,15 +234,28 @@ export async function createApp(): Promise<NestFastifyApplication> {  // 审计 
     if (url === '/interview/:id/transcribe') return 'audio_too_large';
     return 'payload_too_large';
   };
+  // 只把十进制非负整数当有效 Content-Length。NaN / 科学计数 / 多值头若当 0 放行，
+  // 且 preParsing 见头在就跳过，会把超限体交给 Fastify 解析器，触发 FST_ERR_CTP_BODY_TOO_LARGE。
+  const declaredContentLength = (req: { headers: Record<string, unknown> }): number | null => {
+    const raw = req.headers['content-length'];
+    if (raw === undefined) return null;
+    const text = Array.isArray(raw) ? raw[0] : raw;
+    if (typeof text !== 'string' && typeof text !== 'number') return null;
+    const trimmed = String(text).trim();
+    if (!/^[0-9]+$/.test(trimmed)) return null;
+    const len = Number(trimmed);
+    if (!Number.isSafeInteger(len)) return null;
+    return len;
+  };
   fastify.addHook('onRequest', (req: any, reply: any, done: any) => {
-    const len = Number(req.headers['content-length'] ?? 0);
+    const len = declaredContentLength(req);
     const isUpload = isUploadRoute(req);
     const limit = isUpload ? UPLOAD_BODY_LIMIT_BYTES : SMALL_BODY_LIMIT_BYTES;
-    if (len > limit) { reply.code(413).send({ error: bodyLimitError(req) }); return; }
+    if (len != null && len > limit) { reply.code(413).send({ error: bodyLimitError(req) }); return; }
     done();
   });
   // #34 残半 chunked 封顶(preParsing 流计数):onRequest 生命周期拿不到 body 流,preParsing 才收到——
-  // 仅覆盖**无 content-length** 形(有头路径行为零改,仍走上方 onRequest 钩子);计数包装转发(PassThrough),
+  // 仅覆盖**无有效 content-length** 形(合法数字头路径行为零改,仍走上方 onRequest 钩子);计数包装转发(PassThrough),
   // 超阈即 413(按路由信封),并销毁包装流停转发(content-type-parser 不再缓冲);
   // GET/HEAD(bodyless)必直通零包装:fastify 对 bodyless 不缓冲不 parse 封顶无对象,且对流挂 data/end
   // 即把 bodyless req.raw 推入 flowing——消息即刻消费完成,'close' 在连接未断时就提前发出,SSE 泵
@@ -251,7 +264,7 @@ export async function createApp(): Promise<NestFastifyApplication> {  // 审计 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- fastify 实例上确为 any(见 getInstance() as any),钩子签名沿本文件既有 onRequest/onResponse 钩子同形,改真类型需动实例转换面,非本行内最小形
   fastify.addHook('preParsing', (req: any, reply: any, body: any, done: any) => {
     const method = String(req.method ?? '').toUpperCase();
-    if (method === 'GET' || method === 'HEAD' || req.headers['content-length'] !== undefined) { done(null, body); return; }
+    if (method === 'GET' || method === 'HEAD' || declaredContentLength(req) != null) { done(null, body); return; }
     const isUpload = isUploadRoute(req);
     const limit = isUpload ? UPLOAD_BODY_LIMIT_BYTES : SMALL_BODY_LIMIT_BYTES;
     const capped = new PassThrough();
@@ -272,8 +285,9 @@ export async function createApp(): Promise<NestFastifyApplication> {  // 审计 
     body.once('error', (err: Error) => { if (!settled) capped.destroy(err); });
     done(null, capped);
   });
-  // 不再挂 setErrorHandler 映射 FST_ERR_CTP_BODY_TOO_LARGE：onRequest/preParsing 已在同一阈值先拦，
-  // 该路径实测到不了；再 setErrorHandler 还会覆盖 Nest 过滤器并触发 FSTWRN004。
+  // 不挂 setErrorHandler 映射 FST_ERR_CTP_BODY_TOO_LARGE：会覆盖 Nest 过滤器并触发 FSTWRN004。
+  // onRequest/preParsing 在同一阈值先拦；非法/不可解析的 Content-Length 改走 preParsing 流计数。
+  // 若仍漏到框架层，AllExceptionsFilter 把该码收成按路由区分的业务 413，响应不含 FST_ 内部码。
   // 非法 URL（FST_ERR_BAD_URL）走构造期 frameworkErrors，不走本处。
   fastify.addHook('onResponse', (req: any, reply: any, done: any) => {
     const route = req.routeOptions?.url ?? req.routerPath ?? 'unknown';   // /interview/:id 模板,非具体 id

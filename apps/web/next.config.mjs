@@ -16,6 +16,14 @@ const nextConfig = {
   // define 键须为裸标识符 __E2E_UI_STRESS__（消费点按裸标识符读·DefinePlugin 精确表达式匹配；
   // env 键形因 Next 15.5 对 ^__ 前缀整族保留抛 E170 弃用——机制换、标识符与内联语义不变）。
   compiler: { define: { __E2E_UI_STRESS__: process.env.E2E_UI_STRESS === '1' ? '1' : '0' } },
+  // 简历文件上传走 Server Action（uploadResumeFileAction 直收 File）。
+  // Next 默认 1MB 会在 action 体之前拦下 8MB 语义上限内的文件。
+  // 10mb = 10MiB，严格大于 8MiB，好让 action 返回产品文案；仍远小于公网 nginx 16m。
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
+  },
   // lib/页面用显式 .ts/.tsx 扩展(与 tsx gate 工具链一致);让 Next/webpack 也能解析,消除工具链冲突。
   webpack: (config) => {
     config.resolve.extensionAlias = {
