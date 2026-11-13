@@ -46,7 +46,12 @@ export interface QbankEmbedder {
 export const QBANK_OWNER = '__system_qbank__';   // 系统灌库主体:qbank 向量唯一可写 principal + 治理路径下的 curator(迁移 0017 seed)
 
 export const QBANK_TAXONOMY_V1 = 'v1';
+export const QBANK_TAXONOMY_V2 = 'v2';
 export const QBANK_ANNOTATION_SOURCES = ['curator_reviewed', 'seed_v1_reviewed'] as const;
+export const QBANK_SENIORITY_VALUES = ['intern', 'junior', 'mid', 'senior', 'staff', 'principal'] as const;
+export const QBANK_QUESTION_KIND_VALUES = ['conceptual', 'behavioral', 'system_design', 'case', 'situational', 'coding'] as const;
+export const QBANK_LANGUAGE_RE = /^[a-z]{2}(-[A-Za-z0-9]+)?$/;
+export const QBANK_TECHNOLOGY_FACET_RE = /^[a-z][a-z0-9_]{0,31}$/;
 export type QbankAnnotationSource = (typeof QBANK_ANNOTATION_SOURCES)[number];
 
 /**
@@ -102,6 +107,11 @@ export interface QbankQuestionArtifact {
   taxonomyVersion: string;
   servingScopeId: string;
   annotationSource: QbankAnnotationSource;
+  /** RAG-01 QuestionArtifactMetadata facets. Optional on v1; required on v2. */
+  seniority?: string;
+  questionKind?: string;
+  language?: string;
+  technologyFacets?: readonly string[];
   chunks: readonly QbankQuestionArtifactChunk[];
   /** AG39 owner layer（0186）: additive 可选，缺省=platform。org 工件全链（chunk/question）owner 一致穿链。 */
   ownerKind?: 'platform' | 'org';
@@ -348,14 +358,49 @@ export async function ingestQbank(
   return n;
 }
 
+function routeMetadataForHash(artifact: QbankQuestionArtifact): Record<string, unknown> {
+  const extra: Record<string, unknown> = {};
+  if (artifact.seniority) extra.seniority = artifact.seniority;
+  if (artifact.questionKind) extra.questionKind = artifact.questionKind;
+  if (artifact.language) extra.language = artifact.language;
+  if (artifact.technologyFacets && artifact.technologyFacets.length > 0) extra.technologyFacets = [...artifact.technologyFacets];
+  return extra;
+}
+
 const artifactHash = (artifact: QbankQuestionArtifact) => createHash('sha256').update(JSON.stringify({
   id: artifact.id, competency: artifact.competency, difficulty: artifact.difficulty,
   taxonomyVersion: artifact.taxonomyVersion, servingScopeId: artifact.servingScopeId,
   annotationSource: artifact.annotationSource,
+  ...routeMetadataForHash(artifact),
   chunks: artifact.chunks.map((chunk) => ({
     refId: chunk.refId, text: chunk.text, role: chunk.role, ordinal: chunk.ordinal, required: chunk.required === true,
   })),
 })).digest('hex');
+
+/** 岗位/track 可路由 metadata 校验：形状 + v2 必填。不把缺字段的 v1 工件改哈希。 */
+export function validateArtifactRouteMetadata(artifact: QbankQuestionArtifact): void {
+  const required = artifact.taxonomyVersion === QBANK_TAXONOMY_V2;
+  const checkEnum = (value: string | undefined, allowed: readonly string[], code: string) => {
+    if (value == null || value === '') {
+      if (required) throw new Error(`${code}:${artifact.id}`);
+      return;
+    }
+    if (!(allowed as readonly string[]).includes(value)) throw new Error(`${code}:${artifact.id}`);
+  };
+  checkEnum(artifact.seniority, QBANK_SENIORITY_VALUES, 'qbank_question_invalid_seniority');
+  checkEnum(artifact.questionKind, QBANK_QUESTION_KIND_VALUES, 'qbank_question_invalid_question_kind');
+  if (artifact.language == null || artifact.language === '') {
+    if (required) throw new Error(`qbank_question_invalid_language:${artifact.id}`);
+  } else if (!QBANK_LANGUAGE_RE.test(artifact.language)) {
+    throw new Error(`qbank_question_invalid_language:${artifact.id}`);
+  }
+  if (artifact.technologyFacets) {
+    if (artifact.technologyFacets.length > 8) throw new Error(`qbank_question_invalid_technology_facets:${artifact.id}`);
+    for (const facet of artifact.technologyFacets) {
+      if (!QBANK_TECHNOLOGY_FACET_RE.test(facet)) throw new Error(`qbank_question_invalid_technology_facets:${artifact.id}`);
+    }
+  }
+}
 
 /** 导入工具/证明面复用(§3-①:校验全接):与 ingestQuestionBankArtifacts 内部同一校验函数。 */
 export function validateQuestionArtifacts(artifacts: readonly QbankQuestionArtifact[]): void {
@@ -368,6 +413,7 @@ export function validateQuestionArtifacts(artifacts: readonly QbankQuestionArtif
     if (!artifact.competency.trim() || artifact.competency.length > 128) throw new Error(`qbank_question_invalid_competency:${artifact.id}`);
     if (!Number.isInteger(artifact.difficulty) || artifact.difficulty < 1 || artifact.difficulty > 5) throw new Error(`qbank_question_invalid_difficulty:${artifact.id}`);
     validateServingMetadata(artifact, artifact.id);
+    validateArtifactRouteMetadata(artifact);
     validateOwnerScope(artifact, artifact.id);
     if (artifact.chunks.length < 3 || artifact.chunks.length > 12) throw new Error(`qbank_question_invalid_chunk_count:${artifact.id}`);
     const refIds = new Set<string>();

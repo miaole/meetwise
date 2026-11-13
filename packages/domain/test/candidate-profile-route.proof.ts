@@ -3,9 +3,10 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  CANDIDATE_ROUTE_POLICY_VERSION, CANDIDATE_ROUTE_TAXONOMY_VERSION, CANDIDATE_ROUTE_ALLOCATION_BPS,
-  CANDIDATE_ROUTE_TARGET_ROLE_POLICY_SUFFIX,
-  candidateRouteDecisionHash, classifyCandidateProfileByRule,
+  CANDIDATE_ROUTE_POLICY_VERSION, CANDIDATE_ROUTE_POLICY_VERSION_V2, CANDIDATE_ROUTE_TAXONOMY_VERSION,
+  CANDIDATE_ROUTE_ALLOCATION_BPS, CANDIDATE_ROUTE_TARGET_ROLE_POLICY_SUFFIX,
+  candidateRouteDecisionHash, classifyCandidateProfileByRule, classifyJobByRule,
+  taxonomyVersionForLeaves,
 } from '../src/index.ts';
 /** N17 视图(宽松读形:修前导出缺失时 proof 仍可加载并如实 FAIL)。 */
 type ArbView = { decided: boolean; leafTrackId?: string; targetRoleApplied?: boolean; resumeDegradedFrom?: string; policyVersion: string; inputDigest: string; reason?: string };
@@ -44,7 +45,7 @@ const EXPECT: Record<string, Expect> = {
   's13-nodejs-javascript-express.txt': { leaf: 'backend/nodejs', degraded: false },
   's14-qa-tester-mysql.txt':          { leaf: 'qa/quality_engineering', degraded: false },
   's15-html-css-slicer.txt':          { leaf: 'backend/general', degraded: false },
-  's16-pm-no-signal.txt':             { leaf: 'backend/general', degraded: true, from: 'no_signal_hit' },
+  's16-pm-no-signal.txt':             { leaf: 'business/product', degraded: false },
   's17-go-uppercase-guard.txt':       { leaf: 'backend/go', degraded: false },
   /* R3-4 审计验收类目：Node+TS / Java+测试 / Python+算法 / Go+gin / 纯前端 / 纯QA / 纯算法 各 3 */
   'n1-nodejs-typescript-koa.txt':     { leaf: 'backend/nodejs', degraded: false },
@@ -190,9 +191,9 @@ A('v4-f v3 g6 形零翻：裸「自动化测试」单独在场（唯一命中）
     const r4 = arb(AMBIG);
     const r5 = arb(AMBIG, '   ');
     const r6 = arb(AMBIG, '后端开发');       // targetRole 只命中 general → 不改
-    const r7 = arb(AMBIG, '产品经理');       // targetRole 零命中 → 不改
+    const r7 = arb(AMBIG, '产品经理');       // product 不在 AMBIG 简历命中闭集 → 不采纳（#279 规则③）
     const r8 = arb(AMBIG, 'Java/Python 工程师'); // targetRole 自身歧义 → 不改
-    A('N17-f 缺省/空白/仅 general/零命中/自身歧义 targetRole → 原降级 general，policy/digest 与修前逐字节一致',
+    A('N17-f 缺省/空白/仅 general/闭集外/自身歧义 targetRole → 原降级 general，policy/digest 与修前逐字节一致',
       [r4, r5, r6, r7, r8].every((r) => r.decided && r.leafTrackId === 'backend/general' && r.targetRoleApplied === false
         && r.policyVersion === CANDIDATE_ROUTE_POLICY_VERSION && r.inputDigest === r4.inputDigest));
     const r9 = arb('', 'Java 后端工程师');
@@ -229,5 +230,67 @@ A('v4-f v3 g6 形零翻：裸「自动化测试」单独在场（唯一命中）
   }
 }
 
-console.log(`\n${fail === 0 ? `✓ #133 ROUTE-DICT 词典 v3 + v4 #270 更强证据闸 + 409 退役降级臂全部通过（fixture ${files.length} 份 · 断言 ${total} 项）` : '✗ ' + fail + ' 失败'}`);
+/* ── L8 非技术岗硬过滤（纯域·0 次模型外发）──────────────────────────────── */
+{
+  const pm = classifyCandidateProfileByRule('产品经理，负责 B 端需求与产品路线图');
+  A('L8-a 产品经理简历 → business/product，不降级到 backend/general',
+    pm.decided === true && pm.leafTrackId === 'business/product' && pm.degraded === false);
+  const pmStack = classifyCandidateProfileByRule('产品经理，日常会看 Redis 与 MySQL 报表');
+  A('L8-b 产品经理 + 通用后端栈词 → 仍取 business/product（不把非技术岗送进后端题库）',
+    pmStack.decided === true && pmStack.leafTrackId === 'business/product' && pmStack.degraded === false);
+  const hybrid = classifyCandidateProfileByRule('Java 工程师兼产品经理，Spring 与产品路线图');
+  A('L8-c 技术叶与【强】非技术叶同时命中 → business/general 降级（岗位自述级强证据闸·禁止静默落到 Java 题库）',
+    hybrid.decided === true && hybrid.leafTrackId === 'business/general' && hybrid.degraded === true
+    && taxonomyVersionForLeaves([hybrid.leafTrackId]) === 'v2');
+  const jobPm = classifyJobByRule({ title: '产品经理', description: '负责需求与产品路线图', competencies: ['用户故事'] });
+  A('L8-d 岗位「产品经理」rule 唯一命中 business/product（0 次模型）', jobPm === 'business/product');
+  const jobNode = classifyJobByRule({ title: 'Node.js 服务端工程师', description: '使用 NestJS 构建服务', competencies: ['nestjs'] });
+  A('L8-e 既有技术岗 rule 不回归（仍是 backend/nodejs）', jobNode === 'backend/nodejs');
+  A('L8-f 非技术叶决策写 taxonomy v2，纯技术决策仍写 v1',
+    taxonomyVersionForLeaves(['business/product']) === 'v2' && taxonomyVersionForLeaves(['backend/nodejs']) === 'v1');
+  A('L8-g 默认 CANDIDATE_ROUTE_TAXONOMY_VERSION 仍为 v1（技术面零翻）',
+    CANDIDATE_ROUTE_TAXONOMY_VERSION === 'v1');
+}
+
+/* ── L8-R 反向隔离回归（#281 mw-rag-route BLOCK 修复·#279 规则①：简历唯一 specific 叶胜出、
+    弱命中只进消歧集——技术简历 + 弱非技术命中仍走技术路由）────────────────────────── */
+{
+  // mw-rag-route BLOCK 实测三探针（修前全部误降 business/general → 空题库）：
+  const javaPrd = classifyCandidateProfileByRule('Java Spring Boot，Redis，MySQL，写过 prd');
+  A('L8-R1 Java 简历 + 弱命中「写过 prd」→ 仍技术面（backend/general 降级·不入 business/general）',
+    javaPrd.decided && javaPrd.leafTrackId === 'backend/general' && javaPrd.degraded === true
+    && javaPrd.degradedFrom === 'ambiguous_language_evidence');
+  const javaStory = classifyCandidateProfileByRule('Java 工程师，把用户故事拆成技术任务');
+  A('L8-R2 Java 简历 + 弱命中「用户故事」→ 仍技术面（不入 business 面）',
+    javaStory.decided && javaStory.leafTrackId === 'backend/general' && javaStory.degraded === true);
+  const fePrd = classifyCandidateProfileByRule('前端 React 工程师，写过 prd');
+  A('L8-R3 前端简历 + 弱命中「prd」→ 仍技术面降级桶（不入 business 面）',
+    fePrd.decided && fePrd.leafTrackId === 'backend/general' && fePrd.degraded === true);
+  A('L8-R4 弱命中降级桶 taxonomy/policy 仍技术面（v1 + candidate-route v4）',
+    taxonomyVersionForLeaves([javaPrd.leafTrackId]) === 'v1'
+    && javaPrd.leafTrackId === 'backend/general');
+  const strongHybrid = classifyCandidateProfileByRule('Java 工程师，后端转产品，现任产品经理');
+  A('L8-R5 强非技术证据在场才降 business/general（岗位自述级闸放行·与弱词反证形成对比）',
+    strongHybrid.decided && strongHybrid.leafTrackId === 'business/general' && strongHybrid.degraded === true);
+  // 弱词不得绕闸走单叶/general+单叶臂（同 v4 qa 闸形）：
+  const weakSolo = classifyCandidateProfileByRule('后端工程师，写过 prd');
+  A('L8-R6 general+弱命中单叶（product 闸不过）→ 不直取 business/product，落技术面降级桶',
+    weakSolo.decided && weakSolo.leafTrackId === 'backend/general' && weakSolo.degraded === true);
+  // #279 规则③：弱命中进消歧闭集——targetRole 强证据岗位在闭集内可采纳（用户自述意向）：
+  const arbPm = arb('Java 工程师，写过 prd', '产品经理');
+  A('L8-R7 闭集内消歧：技术+弱prd 简历 + targetRole「产品经理」→ business/product（targetRoleApplied·v5 策略）',
+    arbPm.decided && arbPm.leafTrackId === 'business/product' && arbPm.targetRoleApplied === true
+    && arbPm.resumeDegradedFrom === 'ambiguous_language_evidence'
+    && arbPm.policyVersion === `${CANDIDATE_ROUTE_POLICY_VERSION_V2}${CANDIDATE_ROUTE_TARGET_ROLE_POLICY_SUFFIX}`);
+  const arbPmWeak = arb('Java 工程师，写过 prd', 'prd');
+  A('L8-R8 targetRole 仅弱词（prd 闸不过）→ 不采纳，维持技术面降级',
+    arbPmWeak.decided && arbPmWeak.leafTrackId === 'backend/general' && arbPmWeak.targetRoleApplied === false);
+  // business/general 单独在场仍单叶臂（v3 g6 形零翻·0234 已播种非空）：
+  const bizGeneral = classifyCandidateProfileByRule('通用职场协作与商务沟通');
+  A('L8-R9 business/general 单叶命中 → decided（单叶臂=强证据·降级桶语义另见 L8-c/R5）',
+    bizGeneral.decided && bizGeneral.leafTrackId === 'business/general' && bizGeneral.degraded === false
+    && taxonomyVersionForLeaves([bizGeneral.leafTrackId]) === 'v2');
+}
+
+console.log(`\n${fail === 0 ? `✓ #133 ROUTE-DICT 词典 v3 + v4 #270 更强证据闸 + 409 退役降级臂 + L8 非技术岗硬过滤 + L8-R 反向隔离回归全部通过（fixture ${files.length} 份 · 断言 ${total} 项）` : '✗ ' + fail + ' 失败'}`);
 process.exit(fail === 0 ? 0 : 1);

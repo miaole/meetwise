@@ -22,7 +22,9 @@ import { newEntityId } from '../ids.ts';
 import type { PoolClient as Client } from 'pg';
 import { asPrincipal, type DbPool } from '../principal.ts';
 import {
-  TAXONOMY_V1_LEAVES, JOB_ROUTE_TAXONOMY_VERSION, JOB_ROUTE_POLICY_VERSION,
+  TAXONOMY_V1_LEAVES, TAXONOMY_V2_LEAVES, TAXONOMY_V2_BUSINESS_LEAVES,
+  JOB_ROUTE_TAXONOMY_VERSION, JOB_ROUTE_TAXONOMY_V2, JOB_ROUTE_POLICY_VERSION, JOB_ROUTE_POLICY_VERSION_V2,
+  isBusinessTaxonomyLeaf, taxonomyVersionForLeaves, isServingTaxonomyForLeaf, policyVersionForLeaves,
   canonicalJobSemanticDigest, classifyJobByRule, validateModelRouteOutput,
   jobRouteDecisionHash, type JobRouteAllocation, type JobRouteModelOutput,
 } from '@meetwise/domain';
@@ -139,9 +141,12 @@ async function writeRouteDecided(c: Client, args: {
   fromStatus: 'rule_decided' | 'result_validated';
 }): Promise<{ decisionId: string }> {
   const decisionId = newEntityId('rd');
+  const leaves = args.allocations.map((a) => a.leafTrackId);
+  const taxonomyVersion = taxonomyVersionForLeaves(leaves);
+  const policyVersion = policyVersionForLeaves(leaves);
   const decisionHash = jobRouteDecisionHash({
     jobId: args.jobId, revision: args.revision,
-    taxonomyVersion: JOB_ROUTE_TAXONOMY_VERSION, policyVersion: JOB_ROUTE_POLICY_VERSION,
+    taxonomyVersion, policyVersion,
     allocations: args.allocations, confidenceBps: args.confidenceBps, marginBps: args.marginBps,
     attemptOutcome: args.attemptOutcome, reasonCodes: [],
   });
@@ -149,7 +154,7 @@ async function writeRouteDecided(c: Client, args: {
     `INSERT INTO job_route_decision(id,job_id,owner_user_id,revision,route_outcome,attempt_outcome,taxonomy_version,policy_version,allocations,confidence_bps,margin_bps,reason_codes,decision_hash)
      VALUES($1,$2,$3,$4,'route_decided',$5,$6,$7,$8,$9,$10,'{}',$11)`,
     [decisionId, args.jobId, args.owner, args.revision, args.attemptOutcome,
-      JOB_ROUTE_TAXONOMY_VERSION, JOB_ROUTE_POLICY_VERSION, toJsonb(args.allocations),
+      taxonomyVersion, policyVersion, toJsonb(args.allocations),
       args.confidenceBps, args.marginBps, decisionHash],
   );
   await c.query(
@@ -414,27 +419,33 @@ export async function snapshotInterviewRoute(c: Client, candidate: string, inter
 export interface InterviewRouteSnapshotView {
   interviewId: string; jobId: string; revision: number; decisionId: string;
   routeDigest: string; allocations: JobRouteAllocation[];
+  /** 冻结决策的 taxonomy 版本；缺省时由 leaf 派生（纯技术=v1，含非技术叶=v2）。 */
+  taxonomyVersion?: string;
 }
 
 /** 图内 planner 读取 snapshot 的合法 leaf 集合（服务端校验 planner 输出必须属于它）。 */
 export async function getInterviewRouteSnapshot(c: Client, candidate: string, interviewId: string): Promise<InterviewRouteSnapshotView | null> {
   const r = await c.query(
-    `SELECT interview_id, job_id, revision, decision_id, route_digest, allocations
-       FROM interview_route_snapshot
-      WHERE interview_id=$1 AND candidate_user_id=$2`,
+    `SELECT s.interview_id, s.job_id, s.revision, s.decision_id, s.route_digest, s.allocations,
+            d.taxonomy_version
+       FROM interview_route_snapshot s
+       JOIN job_route_decision d ON d.id=s.decision_id
+      WHERE s.interview_id=$1 AND s.candidate_user_id=$2`,
     [interviewId, candidate],
   );
   if (r.rowCount === 0) return null;
-  const row = r.rows[0] as { interview_id: string; job_id: string; revision: number; decision_id: string; route_digest: string; allocations: unknown };
+  const row = r.rows[0] as { interview_id: string; job_id: string; revision: number; decision_id: string; route_digest: string; allocations: unknown; taxonomy_version: string };
   const allocations = (Array.isArray(row.allocations) ? row.allocations : []) as unknown as { leafTrackId: string; allocationBps: number }[];
+  const mapped = allocations.map((a) => ({ leafTrackId: String(a.leafTrackId), allocationBps: Number(a.allocationBps) }));
   return {
     interviewId: row.interview_id, jobId: row.job_id, revision: row.revision,
     decisionId: row.decision_id, routeDigest: row.route_digest,
-    allocations: allocations.map((a) => ({ leafTrackId: String(a.leafTrackId), allocationBps: Number(a.allocationBps) })),
+    allocations: mapped,
+    taxonomyVersion: String(row.taxonomy_version || taxonomyVersionForLeaves(mapped.map((a) => a.leafTrackId))),
   };
 }
 
-export { TAXONOMY_V1_LEAVES, JOB_ROUTE_TAXONOMY_VERSION, JOB_ROUTE_POLICY_VERSION };
+export { TAXONOMY_V1_LEAVES, TAXONOMY_V2_LEAVES, TAXONOMY_V2_BUSINESS_LEAVES, JOB_ROUTE_TAXONOMY_VERSION, JOB_ROUTE_TAXONOMY_V2, JOB_ROUTE_POLICY_VERSION, JOB_ROUTE_POLICY_VERSION_V2, isBusinessTaxonomyLeaf, taxonomyVersionForLeaves, isServingTaxonomyForLeaf, policyVersionForLeaves };
 
 /* ─────────────────────────── Worker claim (route_pending drain) ─────────────────────────── */
 

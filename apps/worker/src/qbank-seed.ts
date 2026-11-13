@@ -9,7 +9,7 @@
  * 保留零改**——同 refId 内容不可变守卫(qbank-ingest 改版 fail-loud)禁止原位改写,其共享 rubric
  * 症状(#76 病灶)以「旧通道兼容保留」裁决登记,新语料面(导入件+V2 种子)已逐题化。
  */
-import { buildQuestionArtifact, QBANK_TAXONOMY_V1, type QbankItem, type QbankQuestionArtifact } from '@meetwise/db';
+import { buildQuestionArtifact, QBANK_TAXONOMY_V1, QBANK_TAXONOMY_V2, type QbankItem, type QbankQuestionArtifact } from '@meetwise/db';
 
 type BootstrapSeedItem = Pick<QbankItem, 'refId' | 'text' | 'kind'>;
 
@@ -79,6 +79,11 @@ const bootstrapScope = (refId: string): string => {
   if (prefix === 'py') return 'backend/python';
   if (prefix === 'fe') return 'frontend/web';
   if (prefix === 'qa') return 'qa/quality_engineering';
+  if (prefix === 'pm') return 'business/product';
+  if (prefix === 'ux') return 'business/design';
+  if (prefix === 'ops') return 'business/operations';
+  if (prefix === 'sales') return 'business/sales';
+  if (prefix === 'hr') return 'business/hr';
   return 'backend/general';
 };
 
@@ -94,6 +99,7 @@ const COMPETENCY: Record<string, string> = {
   mq: '消息可靠性', design: '系统设计', net: '网络协议', os: '操作系统', micro: '分布式系统',
   obs: '可观测性', rag: 'Agent 与 RAG', jvm: 'JVM 运行时', sec: '应用安全',
   go: 'Go 运行时', py: 'Python 运行时', fe: '前端工程', qa: '测试与质量',
+  pm: '产品发现与取舍', ux: '体验与交互设计', ops: '用户与内容运营', sales: '销售与客户成功', hr: '招聘与组织发展',
 };
 
 const COACHING: Record<string, { rubric: string; followUp: string; antiPattern: string }> = {
@@ -280,4 +286,56 @@ const V2_QBANK_ARTIFACTS: QbankQuestionArtifact[] = QBANK_SEED_V2_SOURCE.map((it
   });
 });
 
-export const QBANK_ARTIFACTS: QbankQuestionArtifact[] = [...LEGACY_QBANK_ARTIFACTS, ...V2_QBANK_ARTIFACTS];
+const QBANK_SEED_V3_BUSINESS: { refId: string; difficulty: number; text: string; rubric: string; followUp: string; antiPattern: string; seniority: string; questionKind: string }[] = [
+  { refId: 'seed:pm-1', difficulty: 2, text: '如何把一个模糊的业务目标拆成可验证的产品需求，并决定本季度做与不做的边界',
+    rubric: '给出发现过程（用户/数据/约束）、需求验收标准与明确的不做清单；能用一个指标解释为什么这项优先于替代项。',
+    followUp: '核心指标两周没有变化时，你如何判断是需求写错了、还是交付质量问题？',
+    antiPattern: '只罗列功能清单，说不出验收标准、取舍理由或失败后的退出条件。',
+    seniority: 'mid', questionKind: 'case' },
+  { refId: 'seed:pm-2', difficulty: 3, text: '两个高优先级需求都声称能提升留存，但研发只够做其中一个，你怎么决策并同步各方',
+    rubric: '展示证据比较（影响面、置信度、成本、风险），给出决策记录与同步对象；说明被放弃项如何复盘而不是消失。',
+    followUp: '销售承诺已经把被放弃的需求讲给客户后，你如何在不拆信任的前提下守住边界？',
+    antiPattern: '用职位压人拍板，或把两个需求各做一半导致都无法验收。',
+    seniority: 'senior', questionKind: 'situational' },
+  { refId: 'seed:ux-1', difficulty: 2, text: '一个核心任务的完成率偏低，你会如何定位体验问题并给出可验证的改版方案',
+    rubric: '从任务路径、阻力点与证据来源说明定位方法；改版有成功标准、对照实验或可用性验证，而不是只改视觉。',
+    followUp: '定性访谈与漏斗数据结论冲突时，你下一步收集什么证据？',
+    antiPattern: '直接重绘界面，不说明任务失败发生在哪一步。',
+    seniority: 'mid', questionKind: 'case' },
+  { refId: 'seed:ops-1', difficulty: 2, text: '如何设计一期拉新活动，既能带来注册，又能避免低质量用户砸坏核心指标',
+    rubric: '定义目标用户、渠道、激励与反作弊；给出质量过滤指标和活动结束后的留存观察窗口。',
+    followUp: '渠道效果很好但次日留存显著下降，你如何判断是激励设计问题还是人群不匹配？',
+    antiPattern: '只讲投放量和注册量，不谈质量、作弊与事后复盘。',
+    seniority: 'mid', questionKind: 'case' },
+  { refId: 'seed:sales-1', difficulty: 2, text: '面对一个犹豫的企业客户，你会如何诊断卡点并推进到可验收的下一步',
+    rubric: '区分需求、预算、决策链与风险点；下一步必须是双方可验收的行动，而不是继续跟进的空话。',
+    followUp: '客户说再等等竞品报价，你如何既不压价也不丢掉进程？',
+    antiPattern: '只会催单或报低价，说不清决策人和异议本质。',
+    seniority: 'mid', questionKind: 'situational' },
+  { refId: 'seed:hr-1', difficulty: 2, text: '某个关键岗位连续两轮招不到人，你会如何重新定义画像并调整流程而不降低录用标准',
+    rubric: '区分画像过窄、渠道、流程时延与雇主品牌；给出可度量的流程改进和必须守住的能力底线。',
+    followUp: '业务方坚持只要大厂背景但市场供给不足，你如何对齐标准？',
+    antiPattern: '把标准一降再降，或只抱怨市场没有解释流程与画像问题。',
+    seniority: 'mid', questionKind: 'case' },
+];
+
+const V3_QBANK_ARTIFACTS: QbankQuestionArtifact[] = QBANK_SEED_V3_BUSINESS.map((item) => {
+  const prefix = item.refId.split(':')[1]?.split('-')[0] ?? '';
+  return buildQuestionArtifact({
+    refId: item.refId,
+    text: item.text,
+    competency: COMPETENCY[prefix] ?? '职场协作',
+    difficulty: item.difficulty,
+    taxonomyVersion: QBANK_TAXONOMY_V2,
+    servingScopeId: bootstrapScope(item.refId),
+    annotationSource: 'seed_v1_reviewed',
+    seniority: item.seniority,
+    questionKind: item.questionKind,
+    language: 'zh',
+    rubric: item.rubric,
+    followUp: item.followUp,
+    antiPattern: item.antiPattern,
+  });
+});
+
+export const QBANK_ARTIFACTS: QbankQuestionArtifact[] = [...LEGACY_QBANK_ARTIFACTS, ...V2_QBANK_ARTIFACTS, ...V3_QBANK_ARTIFACTS];

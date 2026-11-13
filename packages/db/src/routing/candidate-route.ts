@@ -20,7 +20,8 @@
 import { newEntityId } from '../ids.ts';
 import type { PoolClient as Client } from 'pg';
 import {
-  CANDIDATE_ROUTE_TAXONOMY_VERSION, CANDIDATE_ROUTE_REVISION,
+  CANDIDATE_ROUTE_REVISION,
+  taxonomyVersionForLeaves,
   candidateRouteDecisionHash, arbitrateCandidateRouteWithTargetRole,
 } from '@meetwise/domain';
 import { requireOwnerUserId } from '../tenant/index.ts';   // PRIV01-C 第二层 E1(应用层 tenant ≠ RLS · 授权根仍为 asPrincipal+RLS)
@@ -70,6 +71,7 @@ export async function supplyCandidateProfileRoute(c: Client, owner: string, inte
     return { status: 'undecided', reason: 'profile_unavailable' };
   }
   const inputDigest = rule.inputDigest;
+  const taxonomyVersion = taxonomyVersionForLeaves([rule.leafTrackId]);
   const decisionHash = candidateRouteDecisionHash({
     interviewId, resumeId, inputDigest,
     leafTrackId: rule.leafTrackId, allocationBps: rule.allocationBps, policyVersion: rule.policyVersion,
@@ -84,7 +86,7 @@ export async function supplyCandidateProfileRoute(c: Client, owner: string, inte
      ON CONFLICT (interview_id) DO NOTHING
      RETURNING id`,
     [decisionId, interviewId, ownerScope, resumeId, resumeContentSha, inputDigest,
-      CANDIDATE_ROUTE_TAXONOMY_VERSION, rule.policyVersion,
+      taxonomyVersion, rule.policyVersion,
       rule.leafTrackId, rule.allocationBps, decisionHash,
       rule.resumeDegradedFrom ?? null, rule.targetRoleApplied],
   );
@@ -105,7 +107,7 @@ export async function supplyCandidateProfileRoute(c: Client, owner: string, inte
      VALUES($1,$2,$3,$4,$5,$6,$7,$8,'interview_snapshotted')
      ON CONFLICT (interview_id) DO NOTHING`,
     [interviewId, ownerScope, finalDecisionId, resumeContentSha, inputDigest,
-      CANDIDATE_ROUTE_TAXONOMY_VERSION, rule.leafTrackId, rule.allocationBps],
+      taxonomyVersion, rule.leafTrackId, rule.allocationBps],
   );
   return { status: 'supplied', decisionId: finalDecisionId, leafTrackId: rule.leafTrackId, reused: false };
 }
@@ -121,21 +123,23 @@ export async function getInterviewRouteSnapshotForAdaptiveRole(c: Client, candid
   const primary = await getInterviewRouteSnapshot(c, candidate, interviewId);
   if (primary) return primary;
   const r = await c.query(
-    `SELECT s.interview_id, s.decision_id, s.leaf_track_id, s.allocation_bps, s.input_digest
+    `SELECT s.interview_id, s.decision_id, s.leaf_track_id, s.allocation_bps, s.input_digest, s.taxonomy_version
        FROM candidate_profile_route_snapshot s
       WHERE s.interview_id=$1 AND s.candidate_user_id=$2`,
     [interviewId, candidate],
   );
   if (r.rowCount === 0) return null;
   const row = r.rows[0] as {
-    interview_id: string; decision_id: string; leaf_track_id: string; allocation_bps: number; input_digest: string;
+    interview_id: string; decision_id: string; leaf_track_id: string; allocation_bps: number; input_digest: string; taxonomy_version: string;
   };
+  const leafTrackId = String(row.leaf_track_id);
   return {
     interviewId: row.interview_id,
     jobId: '',
     revision: CANDIDATE_ROUTE_REVISION,
     decisionId: row.decision_id,
     routeDigest: row.input_digest,
-    allocations: [{ leafTrackId: String(row.leaf_track_id), allocationBps: Number(row.allocation_bps) }],
+    allocations: [{ leafTrackId, allocationBps: Number(row.allocation_bps) }],
+    taxonomyVersion: String(row.taxonomy_version || taxonomyVersionForLeaves([leafTrackId])),
   };
 }
