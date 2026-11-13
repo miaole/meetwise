@@ -251,14 +251,25 @@ function installReleaseCleanup(client: RawPoolClient): CheckpointClientHandle {
 
   const query: QueryFn = (...args: unknown[]) => {
     if (!handleOpen) throw staleHandleError();
+    // REJECT_SUBMITTABLE: Query.submit(connection) would expose the raw
+    // Connection after release (line-level DoS / injection residual).
+    if (args.some((arg) => arg !== null && typeof arg === 'object' && typeof (arg as { submit?: unknown }).submit === 'function')) {
+      throw Object.assign(new Error('checkpoint_query_submittable_rejected'), { code: 'checkpoint_query_submittable_rejected' });
+    }
     return client.query(...args);
   };
 
   // WHITELIST_HANDLE: null-prototype plain object; do not wrap the shared Client.
+  // Define own keys as non-configurable so getOwnPropertyDescriptor matches the
+  // target (configurable:false on an assignment-created property is an invariant
+  // violation and makes Object.keys(handle) throw TypeError).
   const methods = Object.create(null) as CheckpointClientHandle;
-  methods.query = query;
-  methods.release = release;
-  methods.releaseAsync = releaseAsync;
+  const defineHandle = <K extends HandleKey>(key: K, value: CheckpointClientHandle[K]): void => {
+    Object.defineProperty(methods, key, { value, writable: false, enumerable: true, configurable: false });
+  };
+  defineHandle('query', query);
+  defineHandle('release', release);
+  defineHandle('releaseAsync', releaseAsync);
   Object.preventExtensions(methods);
 
   const assertOpen = (): void => {
@@ -285,7 +296,7 @@ function installReleaseCleanup(client: RawPoolClient): CheckpointClientHandle {
       if (isThenableProbe(prop)) return undefined;
       assertOpen();
       if (!isHandleKey(prop)) return undefined;
-      return { value: methods[prop], writable: false, enumerable: true, configurable: false };
+      return Reflect.getOwnPropertyDescriptor(methods, prop);
     },
     ownKeys() {
       assertOpen();

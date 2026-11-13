@@ -7,10 +7,11 @@ const forbidden = [
   'OSS_ACCESS_KEY_ID', 'OSS_ACCESS_KEY_SECRET', 'OSS_SECURITY_TOKEN',
   'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_SESSION_TOKEN',
   'LANGSMITH_API_KEY',
+  'MODEL_API_KEY', 'MODEL_BACKUP_API_KEY',
 ];
 const present = [
   ...forbidden.filter((key) => process.env[key]),
-  ...Object.keys(process.env).filter((key) => key.startsWith('LANGFUSE_')),
+  ...Object.keys(process.env).filter((key) => key.startsWith('LANGFUSE_') || key.startsWith('OPENAI') || key.startsWith('ANTHROPIC') || key.startsWith('XAI') || key.startsWith('DASHSCOPE_')),
 ];
 if (process.env.E2E_ISOLATED !== '1' || process.env.PGHOST !== '127.0.0.1' || process.env.DATABASE_SSL_MODE !== 'disable'
   || !process.env.E2E_TEST_CONTAINER || !process.env.E2E_TEST_TARGET_TOKEN || present.length) {

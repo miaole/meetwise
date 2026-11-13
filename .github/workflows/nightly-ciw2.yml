@@ -79,8 +79,8 @@ jobs:
           pnpm privacy-erasure-preview:prove
           pnpm privacy-erasure:pause-upgrade:prove
       # CI-WIRING3 五门接线（scor-parity 邻位·isolated-runner 一次性本地 PG·fail-loud 红即阻断）。
-      # 裁位亲证 @79382f4d：四门本地实跑绿入 per-push；ha6:prove 基线红（50 PASS/26 FAIL·锚漂+治理门漂）
-      # 不接线——归属 line/ha6-repin 重钉着陆后另批。
+      # 裁位亲证 @79382f4d：四门本地实跑绿入 per-push；当时 ha6:prove 基线红故未接线。
+      # t1660u：ha6 重钉已着陆，改接到 nightly（不进主 CI，保持轻量）。
       # 评分/报告 P0 完整性（23 断言·本地实测 10.9s·总分确定性聚合+模型越权防护）
       - name: 评分/报告 P0 完整性（隔离一次性 PG·总分聚合不可被模型越权改写）
         run: pnpm scoring-integrity:prove
@@ -122,3 +122,7 @@ jobs:
         # 前序步骤红也照跑（只在手动取消时跳过），避免容器构建等抖动把本门当晚跳过。
         if: ${{ !cancelled() }}
         run: pnpm runtime:isolated:prove
+      - name: ha6 scripts digest 与治理锚（不进主 CI · t1660u 放 nightly）
+        # 静态门，无 key、无库。前序步骤红也照跑，避免无关红把 digest 漂移当晚跳过。
+        if: ${{ !cancelled() }}
+        run: pnpm ha6:prove
