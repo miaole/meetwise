@@ -62,8 +62,14 @@ function main() {
     /promptedModel\(model, 'planner\.competencies', \{ role, facts, focusWeaknesses: focus, job, quizQuestions \}\)/.test(service));
 
   // ── ④ #259 透传线与 G-R2-5 门零冲突（原样源串在位）──
-  A('#259 透传线零触（roleFromUserInput: requestContext.targetRole 原样）',
-    /roleFromUserInput: requestContext\.targetRole,/.test(consumer));
+  // #279 ④（pre-cloud inventory 代决④·前云可做）：未采纳原文岗位闸——透传线从「原样」改为
+  // 「经 effectiveTargetRole 闸」（targetRoleApplied=false → 丢弃），采纳面直通语义零翻。
+  A('#279 ④ 闸在位（effectiveTargetRole=roleRouteView targetRoleApplied 门）',
+    /const effectiveTargetRole = roleRouteView\?\.targetRoleApplied === false \? undefined : requestContext\.targetRole;/.test(consumer));
+  A('#279 ④ 闸喂 role 优先序（roleFromUserInput: effectiveTargetRole）',
+    /roleFromUserInput: effectiveTargetRole,/.test(consumer));
+  A('#279 ④ 闸喂 CRAG 岗位段（targetRole: effectiveTargetRole）',
+    /targetRole: effectiveTargetRole,/.test(consumer));
   A('G-R2-5 fail-closed 门零触（decideRouteSnapshotRetrieve 原样在位）',
     /const retrieveDecision = decideRouteSnapshotRetrieve\(routeSnapForRetrieve\);/.test(consumer));
 

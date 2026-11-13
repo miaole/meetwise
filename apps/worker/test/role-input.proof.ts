@@ -42,6 +42,7 @@ const RESUME = [
   'Redis、限流、分布式锁',
 ].join('\n');
 const USER_ROLE = '后端开发工程师';
+const ADOPTED_ROLE = 'Java 后端工程师';   // #279 ④ 采纳臂:general-only 简历被专向 backend/java（general+单 specific·过闸）
 const DEPS_SEAM_ROLE = 'deps-seam-role';
 
 // ── 捕获型模型(seam 策略:断言 CompletionRequest 对象字段;剧本面镜像 interview.proof 形制) ──
@@ -109,8 +110,9 @@ async function main() {
   ))).rows[0]?.privacy_epoch);
   if (!Number.isFinite(epoch)) throw new Error(`fixture_epoch_unreadable:resume=${resume}`);
 
-  /** 造一场面试:withRoute=生产同链供给 snapshot(缺供给仅供 ③c 死角行使);payload 由调用方定(=api begin 写出形)。 */
-  const makeInterview = async (tag: string, opts: { withRoute: boolean }): Promise<{ iid: string; leaf: string }> => {
+  /** 造一场面试:withRoute=生产同链供给 snapshot(缺供给仅供 ③c 死角行使);payload 由调用方定(=api begin 写出形)。
+   *  supplyTargetRole(#279 ④):供给时是否带 targetRole——undefined=简历-only 裁决（targetRoleApplied=false）;带=按 v2 仲裁（general-only 可专向）。 */
+  const makeInterview = async (tag: string, opts: { withRoute: boolean; supplyTargetRole?: string }): Promise<{ iid: string; leaf: string }> => {
     const iid = `ri-${tag}-${Date.now()}-${randomUUID().slice(0, 8)}`;
     await asPrincipal(pool, OWNER, (c) => c.query(
       "INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'created',$3,$4)",
@@ -118,11 +120,17 @@ async function main() {
     ));
     let leaf = '';
     if (opts.withRoute) {
-      const supply = await asPrincipal(pool, OWNER, (c) => supplyCandidateProfileRoute(c, OWNER, iid, resume));
+      const supply = await asPrincipal(pool, OWNER, (c) =>
+        supplyCandidateProfileRoute(c, OWNER, iid, resume, opts.supplyTargetRole));
       A(`fixture ${tag} route 供给(v3 恒 decided)`, supply.status === 'supplied', String((supply as { status?: string }).status));
       const snap = await asPrincipal(pool, OWNER, (c) => getInterviewRouteSnapshotForAdaptiveRole(c, OWNER, iid));
       leaf = typeof snap?.allocations?.[0]?.leafTrackId === 'string' ? (snap!.allocations![0]!.leafTrackId as string).trim() : '';
       A(`fixture ${tag} snapshot 叶可读(生产同链)`, leaf.length > 0, `leaf=${leaf}`);
+      const applied = await asPrincipal(pool, OWNER, async (c) => (await c.query<{ applied: boolean | null }>(
+        'SELECT d.target_role_applied AS applied FROM candidate_profile_route_snapshot s LEFT JOIN candidate_profile_route_decision d ON d.id=s.decision_id WHERE s.interview_id=$1',
+        [iid],
+      )).rows[0]?.applied ?? null);
+      A(`fixture ${tag} targetRoleApplied 记账=供给形一致`, applied === (opts.supplyTargetRole !== undefined), String(applied));
     }
     await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, iid, 'mock_interview', 1));
     return { iid, leaf };
@@ -146,8 +154,9 @@ async function main() {
     "SELECT count(*)::int AS n FROM interview_question WHERE interview_id=$1 AND status='issued'", [iid],
   )).rows[0]!.n);
 
-  // ── ① 填岗位:start job payload 带 targetRole → planner userData=用户岗位,零 snapshot 叶串 ──
-  section('① 用户岗位入 planner <data>(优先序#1>#2 坐实)');
+  // ── ① 未采纳原文岗位不进 planner(#279 ④ 闸·规则①简历胜出):供给无 targetRole →
+  //    targetRoleApplied=false → payload 原文岗位被消费闸丢弃 → planner userData=snapshot 叶 ──
+  section('① 未采纳原文岗位闸(#279 ④):payload 带岗位但仲裁未采纳 → planner=snapshot 叶');
   const t1 = await makeInterview('user-role', { withRoute: true });
   await asPrincipal(pool, OWNER, (c) => enqueueInterviewJob(c, OWNER, t1.iid, 'start', { requestId: 'role-input-user', targetRole: USER_ROLE }, 0));
   const before1 = captureAll.length;
@@ -155,15 +164,29 @@ async function main() {
   const planner1 = plannerCallsSince(before1)[0];
   A('①a 调度器消费 owner 队列(owners=1)', tick1.owners === 1);
   A('①b planner 调用在场且 service=planner.competencies', !!planner1);
-  A('①c planner userData 岗位行=用户输入串(buildData v.role 同形参)', !!planner1 && planner1.userData.startsWith(`岗位:${USER_ROLE}\n简历事实:\n`),
+  A('①c planner userData 岗位行=snapshot 叶(未采纳原文被闸丢弃·不再用户串胜过路由叶)', !!planner1 && planner1.userData.startsWith(`岗位:${t1.leaf}\n简历事实:\n`),
     planner1?.userData.slice(0, 40));
-  A('①d planner userData 零 snapshot 叶串(用户输入胜过规则路由叶·优先序坐实)', !!planner1 && !planner1.userData.includes(t1.leaf), `leaf=${t1.leaf}`);
+  A('①d planner userData 零未采纳原文串(简历证据胜·#279 规则①端到端)', !!planner1 && !planner1.userData.includes(USER_ROLE), `leaf=${t1.leaf}`);
   A('①e start job 全链投影 issued 首题(消费不因新源中断)', await firstQuestionOf(t1.iid) >= 1);
   A('①f selectPlannerFacts 同源收用户串(排序面同参·≤8 条预算)', (() => {
     const pool1 = buildResumeFactPool(ingestResume(RESUME) as unknown as { experience?: unknown; skills?: unknown });
     const picked = selectPlannerFacts(pool1, USER_ROLE);
     return picked.length <= 8 && picked.every((f) => f.length <= 120);
   })());
+
+  // ── ①-A 采纳臂:供给带 targetRole(general-only 简历被专向·targetRoleApplied=true)→
+  //    已采纳岗位照常进 planner <data>(④ 闸只丢「未采纳」·采纳面 #259 语义零翻) ──
+  section('①-A 已采纳岗位入 planner <data>(闸只丢未采纳·采纳面零翻)');
+  const t1a = await makeInterview('adopted-role', { withRoute: true, supplyTargetRole: ADOPTED_ROLE });
+  await asPrincipal(pool, OWNER, (c) => enqueueInterviewJob(c, OWNER, t1a.iid, 'start', { requestId: 'role-input-adopted', targetRole: ADOPTED_ROLE }, 0));
+  const before1a = captureAll.length;
+  const tick1a = await interviewDispatchTick(deps);
+  const planner1a = plannerCallsSince(before1a)[0];
+  A('①-Aa 调度器消费 owner 队列(owners=1)', tick1a.owners === 1);
+  A('①-Ab planner userData 岗位行=已采纳用户岗位串(采纳面用户胜·targetRoleApplied=true 直通)', !!planner1a && planner1a.userData.startsWith(`岗位:${ADOPTED_ROLE}\n简历事实:\n`),
+    planner1a?.userData.slice(0, 40));
+  A('①-Ac snapshot 叶=采纳叶 backend/java(专向落库·采纳改变路由面)', t1a.leaf === 'backend/java', `leaf=${t1a.leaf}`);
+  A('①-Ad start job 全链投影 issued 首题(采纳面消费不中断)', await firstQuestionOf(t1a.iid) >= 1);
 
   // ── ② 留空:payload 零键(旧 job 无键同形)→ 现状路由 leaf,byte-identical 判据 ──
   section('② 留空=现状路由(byte-identical·兼 ③d 旧 job 无键容忍)');
@@ -215,7 +238,8 @@ async function main() {
 
   // ── 额度收口:三场供给面各扣 1,③c 死角场由 failInterviewAndRelease 释放(无静默泄漏) ──
   const unitsAfter = await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER));
-  A('④ 额度账实相符(3 场扣 1+死角场释放=net 3)', unitsBefore - unitsAfter === 3, `before=${unitsBefore} after=${unitsAfter}`);
+  // #279 ④ 采纳臂(①-A)加一场扣 1：3 场（①/②/③b）扣 1 + 采纳场扣 1 + 死角场释放 = net 4。
+  A('④ 额度账实相符(4 场扣 1+死角场释放=net 4)', unitsBefore - unitsAfter === 4, `before=${unitsBefore} after=${unitsAfter}`);
 
   // ── ⑤ quiz 链(#230·S1 同形镜像):prompt v2 条件段+缺省回退 v1 字节(捕获型 ModelClient·真 invoke 链·零外呼) ──
   section('⑤ quiz prompt(#230):v2 条件段+缺省回退 v1 字节(B 片断言落槽:并入 worker role-input proof·收据注明)');
