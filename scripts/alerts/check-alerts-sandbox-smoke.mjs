@@ -111,6 +111,23 @@ const PW = {
 // 与 ha-sandbox.mjs / packages/db/src/principal.ts RUNTIME_ROLE_NAME 同形：
 // 角色名或 DATABASE_URL 被启发式填成非法值时，在 compose up 前 fail-closed。
 const RUNTIME_ROLE_NAME = /^[a-z][a-z0-9_]{0,62}$/;
+function lastEnvValue(lines, name) {
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (lines[i].startsWith(`${name}=`)) return lines[i].slice(name.length + 1);
+  }
+  return '';
+}
+
+function assertSandboxEndpointProfiles(lines) {
+  for (const name of ['MODEL_ENDPOINT_PROFILE', 'MODEL_BACKUP_ENDPOINT_PROFILE']) {
+    const v = lastEnvValue(lines, name);
+    if (v !== 'sandbox-invalid') {
+      return `sandbox env ${name} must be sandbox-invalid before up (got ${v ? v : 'missing'})`;
+    }
+  }
+  return null;
+}
+
 function assertSandboxEnv(lines) {
   for (const line of lines) {
     if (!line || line.startsWith('#')) continue;
@@ -208,6 +225,8 @@ function genEnvFile() {
   if (!lines.some((l) => l.startsWith('MEETWISE_HA_WEB_B_HOST_PORT='))) {
     lines.push(`MEETWISE_HA_WEB_B_HOST_PORT=${process.env.MEETWISE_HA_WEB_B_HOST_PORT || '13001'}`);
   }
+  const profileGap = assertSandboxEndpointProfiles(lines);
+  if (profileGap) return profileGap;
   writeFileSync(ENV_FILE, `${lines.join('\n')}\n`, 'utf8');
   writeFileSync(CA_PATH, '-----BEGIN CERTIFICATE-----\nha-sandbox-dummy-ca (SSL disabled in sandbox; placeholder only)\n-----END CERTIFICATE-----\n', 'utf8');
   note('sandbox env-file generated (mirrored form)', true, `${requiredVarNames().length} required vars + knob; ${ENV_FILE}`);

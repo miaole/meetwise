@@ -67,6 +67,17 @@ function note(step, ok, detail) {
   console.error(`[ha:sandbox] ${ok ? 'PASS' : 'FAIL'} ${step}${detail ? ` — ${detail}` : ''}`);
 }
 
+function successResultTokens() {
+  return new Set(['OK', 'V1_TOPOLOGY_UP', 'V2_KILL_HEAL_OK', 'V3_FAILOVER_OK', 'V4_SPLIT_OK', 'V5_SSE_OK', 'V6_LEASE_OK', 'SANDBOX_DOWN']);
+}
+
+/** result 由 exitCode 对齐：非 0 不得写成功 token（v5exit=2 反证：exitCode=2 且 result=OK）。 */
+function resultAlignedWithExit(exitCode, requested) {
+  const success = successResultTokens();
+  if (exitCode === 0) return success.has(requested) ? requested : 'OK';
+  return !requested || success.has(requested) ? 'FAIL' : requested;
+}
+
 function printReceipt(fields) {
   const lines = [
     '===== RECEIPT ha:sandbox =====',
@@ -86,7 +97,8 @@ function printReceipt(fields) {
 }
 
 function finish(exit, fields, cmdExtra = '') {
-  printReceipt(fields);
+  const aligned = { ...fields, result: resultAlignedWithExit(exit, fields.result) };
+  printReceipt(aligned);
   console.log(`CMD=MEETWISE_HA_SANDBOX_AUTHORIZED=1 node scripts/ha/ha-sandbox.mjs ${cmdExtra || cmd} EXIT=${exit}`);
   process.exit(exit);
 }
@@ -102,6 +114,7 @@ function writeReceipt(name, body, exitCode) {
   }
   writeFileSync(path, `${JSON.stringify({
     ...body,
+    result: resultAlignedWithExit(exitCode, body.result),
     exitCode,
     cmd: cmd || '',
     steps: steps.map((s) => ({ step: s.step, ok: s.ok, detail: s.detail })),
@@ -154,6 +167,22 @@ const PW = {
 // 与 packages/db/src/principal.ts RUNTIME_ROLE_NAME 同形：角色名类变量若被启发式
 // 填成非法值（如 ha-sandbox-dummy 含连字符），在 compose up 前 fail-closed。
 const RUNTIME_ROLE_NAME = /^[a-z][a-z0-9_]{0,62}$/;
+function lastEnvValue(lines, name) {
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (lines[i].startsWith(`${name}=`)) return lines[i].slice(name.length + 1);
+  }
+  return '';
+}
+
+function assertSandboxEndpointProfiles(lines) {
+  for (const name of ['MODEL_ENDPOINT_PROFILE', 'MODEL_BACKUP_ENDPOINT_PROFILE']) {
+    const v = lastEnvValue(lines, name);
+    if (v !== 'sandbox-invalid') {
+      finish(1, { result: 'FAIL', gap: `sandbox env ${name} must be sandbox-invalid before up (got ${v ? v : 'missing'})` });
+    }
+  }
+}
+
 function assertSandboxEnv(lines) {
   for (const line of lines) {
     if (!line || line.startsWith('#')) continue;
@@ -258,6 +287,7 @@ function genEnvFile() {
   if (!lines.some((l) => l.startsWith('MEETWISE_HA_WEB_B_HOST_PORT='))) {
     lines.push(`MEETWISE_HA_WEB_B_HOST_PORT=${process.env.MEETWISE_HA_WEB_B_HOST_PORT || '13001'}`);
   }
+  assertSandboxEndpointProfiles(lines);
   writeFileSync(ENV_FILE, `${lines.join('\n')}\n`, 'utf8');
   writeFileSync(CA_PATH, '-----BEGIN CERTIFICATE-----\nha-sandbox-dummy-ca (SSL disabled in sandbox; placeholder only)\n-----END CERTIFICATE-----\n', 'utf8');
   note('sandbox env-file generated', true, `${requiredVarNames().length} required vars + knob; ${ENV_FILE}`);

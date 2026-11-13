@@ -2971,7 +2971,7 @@ if (![
   'uc031-032:structure:prove:raw',
   'stress:prove:raw', 'voice-adaptive:prove:raw', 'adaptive-latency:prove', 'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'adaptive-degrade:prove:raw', 'vectorstore:prove:raw',
   'qbank-source:prove:raw', 'memory:prove:raw', 'weakness:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'diagnosis:prove:raw', 'reaper:prove:raw', 'requeue-backoff:prove:raw', 'bill1-topic-fields:prove:raw', 'bill2-shadow-meter:prove:raw', 'ag19-prompt-version:prove:raw', 'ag12-estimator-freeze:prove:raw', 'bill3-settlement:prove:raw', 'bill4-ledger-list:prove:raw', 'ocr:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'ag-a-resume:prove:raw', 'ag16-legacy:prove:raw', 'graph-fence-write:prove:raw', 'resume-grounding:prove:raw', 'tokenstream:prove:raw', 'rag-generation:prove:raw', 'rag-corpus-version:prove:raw', 'qa-tool-layer:prove:raw', 's4b-invoke-delta:prove:raw', 's4b-token-stream:prove:raw',
-  'voice:prove', 'scoring-integrity:prove', 'scoring:eval:raw', 'qbank-pipeline:prove:raw', 'runtime-role:prove:raw', 'checkpoint-role:prove:raw', 'api-runtime-role:prove:raw',
+  'voice:prove', 'voice:prove:raw', 'graph:prove', 'graph:prove:raw', 'scoring-integrity:prove', 'scoring:eval:raw', 'qbank-pipeline:prove:raw', 'runtime-role:prove:raw', 'checkpoint-role:prove:raw', 'api-runtime-role:prove:raw',
   // #232 G2 刀:押题列表扩投影隔离库证明(fixture 直插 resume+resume_quiz,绝不触碰开发库)。
   'quiz-list:prove',
   'qbank:prove:raw', 'privacy-erasure:prove:raw', 'erasure-job-projection:prove:raw', 'privacy-erasure:http:prove:raw', 'privacy-erasure-preview:prove:raw', 'unstube-erase:prove:raw', 'consent-min:prove:raw', 'privacy-erasure:pause-upgrade:prove:raw', 'resume-erasure:foundation:prove:raw', 'resume-derivative-reference:prove:raw', 'resume-reference:http:prove:raw', 'reqid:prove:raw', 'interview:prove:raw', 'role-input:prove:raw',
@@ -3789,6 +3789,10 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'packages/db', 'prove:migrate-cli']]
   : target === 'checkpoint-schema:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:checkpoint-schema-selfcheck']]
+  : target === 'voice:prove' || target === 'voice:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:voice']]
+  : target === 'graph:prove' || target === 'graph:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:resume']]
   : target === 'scoring-integrity:prove'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:scoring-integrity']]
   : target === 'scoring:eval:raw'

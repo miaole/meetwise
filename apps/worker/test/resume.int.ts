@@ -2,7 +2,7 @@
  * worker 集成证明（对真 Postgres）：mock-interview 纯图 + PostgresSaver checkpointer
  * 证明头号差异化在真框架上成立：interrupt 持久化等待用户，换新图实例（模拟进程重启）
  * 后凭 thread_id 从 Postgres 续上同一会话——无内存 session。
- *   pnpm graph:prove   (需 pnpm db:up)
+ *   pnpm graph:prove   (经 run-e2e-isolated 一次性隔离 PG；勿对开发库直跑)
  */
 import { Command } from '@langchain/langgraph';
 import { buildMockInterviewGraph } from '@meetwise/ai-graphs';

@@ -14,12 +14,86 @@
  *
  * app_role/app_gateway_role 是 cluster 级角色:临时库里直接复用,既不 DROP(跨库依赖会失败)也不重复 CREATE;
  * 用完 DROP 两个临时库(避免角色跨库依赖污染其它门)。
- * 用法:pnpm drift:prove   (需 docker DB 在跑)
+ * 用法:pnpm drift:prove
+ *   未设 PGCONTAINER 时自行拉起一次性容器（默认镜像 pgvector/pgvector:pg16，
+ *   名 meetwise-postgres-drift-<pid>，结束后 docker rm -f -v 只拆本容器；
+ *   不复用、不启动 meetwise-postgres-dev，避免依赖开发者手工 db:up）。
+ *   显式设置 PGCONTAINER 则复用该已运行容器（未在跑 = fail-closed，不自动 db:up）。
  */
 import { readFileSync, readdirSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execSync, spawnSync } from 'node:child_process';
 
-const CN = process.env.PGCONTAINER || 'meetwise-postgres-dev';
+const EXPLICIT_CN = (process.env.PGCONTAINER ?? '').trim();
+const OWN_CN = `meetwise-postgres-drift-${process.pid}`;
+const IMAGE = process.env.DRIFT_PG_IMAGE || 'pgvector/pgvector:pg16';
+const CONTAINER_NAME_RE = /^[A-Za-z0-9][A-Za-z0-9_.-]*$/;
+let CN = EXPLICIT_CN || OWN_CN;
+let ownedContainer = false;
+
+function sleepMs(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+function docker(args, opts = {}) {
+  return spawnSync('docker', args, { encoding: 'utf8', ...opts });
+}
+
+function assertSafeContainerName(name) {
+  if (!CONTAINER_NAME_RE.test(name)) {
+    throw new Error(`drift_postgres_invalid_container_name:${name}`);
+  }
+}
+
+function containerRunning(name) {
+  const r = docker(['inspect', '-f', '{{.State.Running}}', name]);
+  return r.status === 0 && r.stdout.trim() === 'true';
+}
+
+function ensurePostgres() {
+  if (EXPLICIT_CN) {
+    assertSafeContainerName(EXPLICIT_CN);
+    if (!containerRunning(EXPLICIT_CN)) {
+      throw new Error(
+        `drift_postgres_not_running:PGCONTAINER=${EXPLICIT_CN} 已显式指定但容器未在跑（fail-closed，不自动 db:up）`,
+      );
+    }
+    CN = EXPLICIT_CN;
+    ownedContainer = false;
+    console.log(`drift:prove 复用已运行容器 PGCONTAINER=${CN}`);
+    return;
+  }
+  assertSafeContainerName(OWN_CN);
+  CN = OWN_CN;
+  if (containerRunning(CN) || docker(['inspect', CN]).status === 0) {
+    docker(['rm', '-f', '-v', CN]);
+  }
+  const run = docker([
+    'run', '-d', '--name', CN,
+    '-e', 'POSTGRES_USER=meetwise',
+    '-e', 'POSTGRES_PASSWORD=meetwise_dev_password',
+    '-e', 'POSTGRES_DB=meetwise',
+    IMAGE,
+  ]);
+  if (run.status !== 0) {
+    throw new Error(`drift_postgres_start_failed:${(run.stderr || run.stdout || '').trim()}`);
+  }
+  ownedContainer = true;
+  console.log(`drift:prove 拉起一次性容器 ${CN} image=${IMAGE}`);
+  const deadline = Date.now() + 60_000;
+  while (Date.now() < deadline) {
+    const ready = docker(['exec', CN, 'pg_isready', '-U', 'meetwise', '-d', 'meetwise']);
+    if (ready.status === 0) return;
+    sleepMs(500);
+  }
+  throw new Error(`drift_postgres_not_ready:${CN}`);
+}
+
+function cleanupOwnContainer() {
+  if (!ownedContainer) return;
+  const r = docker(['rm', '-f', '-v', CN]);
+  console.log(`drift:prove 拆除自建容器 ${CN} rm_exit=${r.status}`);
+  ownedContainer = false;
+}
 const DB_MIG = '_drift_mig', DB_SQL = '_drift_sql';
 const ROOT = new URL('..', import.meta.url).pathname;
 
@@ -67,26 +141,36 @@ const CONS_SQL = `SELECT tc.table_name||' UNIQUE ('||string_agg(kcu.column_name,
 const rows = (db, q) => new Set(psql(db, `\\pset format unaligned\n\\pset tuples_only on\n${q}`).split('\n').map((s) => s.trim()).filter(Boolean));
 
 function main() {
-  for (const db of [DB_MIG, DB_SQL]) { try { psqlAdmin(`DROP DATABASE IF EXISTS ${db}`); } catch {} psqlAdmin(`CREATE DATABASE ${db}`); }
   try {
-    loadFrom('packages/db/migrations', DB_MIG);   // fresh deploy 路径
-    loadFrom('packages/db/sql', DB_SQL);          // 真相(dbhy1 case-B' 后=夹具镜像·退役残面经 EXEMPTIONS 登记)
-    let fail = 0;
-    const A = (n, c) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
-    for (const [label, q] of [['列', COLS_SQL], ['UNIQUE/PK 约束', CONS_SQL]]) {
-      const mig = rows(DB_MIG, q), sql = rows(DB_SQL, q);
-      const missing = [...sql].filter((x) => !mig.has(x));
-      const unregistered = missing.filter((x) => !EXEMPTIONS.has(exemptionKey(x)));
-      A(`sql/ 的${label}迁移路径全覆盖(fresh deploy 不缺·退役残面经登记豁免)`, unregistered.length === 0);
-      if (missing.length) {
-        console.log(`  ${label}缺口 ${missing.length} 项(豁免登记 ${missing.length - unregistered.length}·未登记 ${unregistered.length}):`);
-        missing.forEach((m) => console.log(`     - ${m}${EXEMPTIONS.has(exemptionKey(m)) ? '(豁免·' + EXEMPTIONS.get(exemptionKey(m)) + ')' : '(未登记=红·改了 sql/ 忘写迁移?需补增量迁移)'}`));
+    ensurePostgres();
+    for (const db of [DB_MIG, DB_SQL]) { try { psqlAdmin(`DROP DATABASE IF EXISTS ${db}`); } catch {} psqlAdmin(`CREATE DATABASE ${db}`); }
+    try {
+      loadFrom('packages/db/migrations', DB_MIG);   // fresh deploy 路径
+      loadFrom('packages/db/sql', DB_SQL);          // 真相(dbhy1 case-B' 后=夹具镜像·退役残面经 EXEMPTIONS 登记)
+      let fail = 0;
+      const A = (n, c) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
+      for (const [label, q] of [['列', COLS_SQL], ['UNIQUE/PK 约束', CONS_SQL]]) {
+        const mig = rows(DB_MIG, q), sql = rows(DB_SQL, q);
+        const missing = [...sql].filter((x) => !mig.has(x));
+        const unregistered = missing.filter((x) => !EXEMPTIONS.has(exemptionKey(x)));
+        A(`sql/ 的${label}迁移路径全覆盖(fresh deploy 不缺·退役残面经登记豁免)`, unregistered.length === 0);
+        if (missing.length) {
+          console.log(`  ${label}缺口 ${missing.length} 项(豁免登记 ${missing.length - unregistered.length}·未登记 ${unregistered.length}):`);
+          missing.forEach((m) => console.log(`     - ${m}${EXEMPTIONS.has(exemptionKey(m)) ? '(豁免·' + EXEMPTIONS.get(exemptionKey(m)) + ')' : '(未登记=红·改了 sql/ 忘写迁移?需补增量迁移)'}`));
+        }
+      }
+      console.log(`\n${fail === 0 ? '✓ schema 无漂移:迁移路径覆盖 sql/ 真相(退役残面经登记豁免·fresh deploy 安全)' : '✗ ' + fail + ' 类漂移——补增量迁移或在 EXEMPTIONS 亲核登记后再合并'}`);
+      process.exitCode = fail === 0 ? 0 : 1;
+    } finally {
+      if (!ownedContainer) {
+        for (const db of [DB_MIG, DB_SQL]) { try { psqlAdmin(`DROP DATABASE IF EXISTS ${db}`); } catch {} }   // 复用外来容器时只删临时库
       }
     }
-    console.log(`\n${fail === 0 ? '✓ schema 无漂移:迁移路径覆盖 sql/ 真相(退役残面经登记豁免·fresh deploy 安全)' : '✗ ' + fail + ' 类漂移——补增量迁移或在 EXEMPTIONS 亲核登记后再合并'}`);
-    process.exitCode = fail === 0 ? 0 : 1;
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : error);
+    process.exitCode = 1;
   } finally {
-    for (const db of [DB_MIG, DB_SQL]) { try { psqlAdmin(`DROP DATABASE IF EXISTS ${db}`); } catch {} }   // 清理:删临时库,避免角色跨库依赖污染其它门
+    cleanupOwnContainer();
   }
 }
 main();
