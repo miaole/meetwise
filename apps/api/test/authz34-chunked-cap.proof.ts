@@ -15,13 +15,23 @@
  *   ⑪# 后缀 / 未注册上传形路径按路由模板判定，不得按 15MiB 收体（#248 P1）；
  *   ⑫音频 base64 越过契约上限但仍小于上传信封 → 413 audio_too_large（不再 400 too_big）；
  *   ⑬非法 URL（/%world）→ 400 invalid_request 统一信封，不含 FST_ 内部码。
+ *   ⑭简历 contentBase64 越过契约上限但仍小于上传信封 → 413 file_too_large（不再 400 too_big）；
+ *   ⑮非法 Content-Length 在 HTTP 解析层 400 拒绝，不进入 FST_ERR_CTP_BODY_TOO_LARGE、响应无 FST_ 内部码；
+ *   ⑯sourceDigests 清单含映射/契约/nginx/next.config，所列文件变更会使收据 digest 失效；
+ *   ⑰nginx 公网上限严格大于上传信封；Server Action bodySizeLimit 严格大于简历 8MB 语义上限。
  * 运行:pnpm -C apps/api authz34:chunked-cap 或 pnpm body-limit:prove（隔离库包装 run-e2e-isolated）。
  */
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { request as httpRequest } from 'node:http';
+import { connect as netConnect } from 'node:net';
 import {
+  PUBLIC_INGRESS_BODY_LIMIT_BYTES,
+  RESUME_MAX_FILE_BASE64_CHARS,
+  RESUME_MAX_FILE_BYTES,
+  SERVER_ACTION_BODY_LIMIT_BYTES,
   SMALL_BODY_LIMIT_BYTES,
   UPLOAD_BODY_LIMIT_BYTES,
   VOICE_CAPTURE_POLICY_VERSION,
@@ -173,16 +183,79 @@ function rawTargetPost(base: string, requestTarget: string, body: string, opts: 
   });
 }
 
+
+/** nginx `m`/`k`/`g` 按 1024 进制。找不到或出现多次则 NaN。 */
+function nginxClientMaxBodyBytes(src: string): number {
+  const matches = [...src.matchAll(/client_max_body_size\s+(\d+)([kmg])\s*;/gi)];
+  const hit = matches.length === 1 ? matches[0] : undefined;
+  if (!hit || hit[1] == null || hit[2] == null) return Number.NaN;
+  const n = Number(hit[1]);
+  const unit = hit[2].toLowerCase();
+  const mul = unit === 'k' ? 1024 : unit === 'm' ? 1024 * 1024 : 1024 * 1024 * 1024;
+  return n * mul;
+}
+
+function sha256File(path: string, suffix = ''): string {
+  return `sha256:${createHash('sha256').update(readFileSync(path)).update(suffix).digest('hex')}`;
+}
+
+function listedIsolatedSources(runnerSrc: string, target: string): string[] {
+  const escaped = target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const block = runnerSrc.match(new RegExp(`'${escaped}':\\s*\\[([\\s\\S]*?)\\]`));
+  const listed = block?.[1];
+  if (listed == null) return [];
+  return [...listed.matchAll(/'([^']+)'/g)].flatMap((m) => (m[1] ? [m[1]] : []));
+}
+
+/**
+ * 手写 HTTP/1.1 请求，才能发送非法 Content-Length（Node http.ClientRequest 会改写该头）。
+ */
+function rawSocketPost(base: string, path: string, headers: Record<string, string>, body: string): Promise<ChunkedResult> {
+  return new Promise((resolve) => {
+    const u = new URL(base);
+    let settled = false;
+    let raw = '';
+    const buf = Buffer.from(body, 'utf8');
+    const settle = () => {
+      if (settled) return;
+      settled = true;
+      const sep = raw.indexOf('\r\n\r\n');
+      const head = sep >= 0 ? raw.slice(0, sep) : raw;
+      const payload = sep >= 0 ? raw.slice(sep + 4) : '';
+      const status = Number((/^HTTP\/1\.[01] (\d+)/.exec(head) ?? [])[1] ?? 0);
+      let parsed: Record<string, unknown> | null = null;
+      if (payload.length > 0) { try { parsed = JSON.parse(payload); } catch { parsed = { _raw: payload }; } }
+      resolve({ status, body: parsed, raw: payload || raw });
+    };
+    const headerLines = Object.entries({
+      host: u.host,
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- HTTP 头 wire 名连字符小写为传输格式字面值,非代码标识符,不可改名(行内豁免)
+      'content-type': 'application/json',
+      connection: 'close',
+      ...headers,
+    }).map(([k, v]) => `${k}: ${v}`).join('\r\n');
+    const sock = netConnect({ host: u.hostname, port: Number(u.port) || 80 }, () => {
+      sock.write(`POST ${path} HTTP/1.1\r\n${headerLines}\r\n\r\n`);
+      sock.write(buf);
+    });
+    sock.setEncoding('utf8');
+    sock.on('data', (c: string) => { raw += c; });
+    sock.on('end', settle);
+    sock.on('error', () => { raw = raw || 'client-error'; settle(); });
+    setTimeout(() => { sock.destroy(); settle(); }, 20_000);
+  });
+}
+
 async function main() {
 
   const { A, done } = mkAssert('authz34:chunked-cap');
 
   // ── 静态:钩子在位 + 常量一致性（#70：服务内 413 必须可达）──
   const mainSrc = readFileSync(join(here, '..', 'src', 'main.ts'), 'utf8');
-  A('静态/main.ts preParsing 流计数钩子在位(无 content-length 分流)',
-    mainSrc.includes("addHook('preParsing'") && mainSrc.includes("req.headers['content-length'] !== undefined") && mainSrc.includes('new PassThrough()'));
-  A('静态/既有 onRequest content-length 钩子原值在位(有头路径零改)',
-    mainSrc.includes("Number(req.headers['content-length'] ?? 0)") && mainSrc.includes("addHook('onRequest'"));
+  A('静态/main.ts preParsing 流计数钩子在位(无有效 content-length 分流)',
+    mainSrc.includes("addHook('preParsing'") && mainSrc.includes('declaredContentLength(req)') && mainSrc.includes('new PassThrough()'));
+  A('静态/onRequest 只把合法十进制 Content-Length 当声明长度',
+    mainSrc.includes('const declaredContentLength') && mainSrc.includes("addHook('onRequest'") && mainSrc.includes('len != null && len > limit'));
   A('静态/main.ts 使用共享上传信封常量作 Fastify bodyLimit',
     mainSrc.includes('bodyLimit: UPLOAD_BODY_LIMIT_BYTES') && mainSrc.includes("from '@meetwise/contracts'"));
   const exactAudioB64 = 4 * Math.ceil(VOICE_MAX_AUDIO_BYTES / 3);
@@ -195,14 +268,51 @@ async function main() {
   A('静态/上传路由按 req.routeOptions.url 模板判定（不以请求行原始 URL 后缀为准）',
     mainSrc.includes('UPLOAD_ROUTE_TEMPLATES') && mainSrc.includes('req.routeOptions?.url') && mainSrc.includes("isUploadRoute(req)"));
   const filterSrc = readFileSync(join(here, '..', 'src', 'platform', 'all-exceptions.filter.ts'), 'utf8');
-  A('静态/已拆除 FST_ERR_CTP_BODY_TOO_LARGE 的 setErrorHandler / 过滤器映射',
-    !mainSrc.includes('fastify.setErrorHandler') && !mainSrc.includes("err?.code === 'FST_ERR_CTP_BODY_TOO_LARGE'") && !filterSrc.includes("code === 'FST_ERR_CTP_BODY_TOO_LARGE'"));
+  A('静态/不挂 setErrorHandler；过滤器兜底映射 FST_ERR_CTP_BODY_TOO_LARGE',
+    !mainSrc.includes('fastify.setErrorHandler') && filterSrc.includes("code === 'FST_ERR_CTP_BODY_TOO_LARGE'") && filterSrc.includes('isFastifyBodyTooLarge'));
   A('静态/frameworkErrors 把非法 URL 收成统一信封 invalid_request',
     mainSrc.includes('frameworkErrors:') && mainSrc.includes("error: 'invalid_request'"));
-  const nginxHost = readFileSync(join(here, '..', '..', '..', 'ops', 'deploy', 'nginx.conf'), 'utf8');
-  const nginxLb = readFileSync(join(here, '..', '..', '..', 'docker', 'lb.nginx.conf'), 'utf8');
-  A('静态/宿主与 LB nginx 均设 client_max_body_size 15m（与上传信封一致）',
-    /client_max_body_size\s+15m\s*;/.test(nginxHost) && /client_max_body_size\s+15m\s*;/.test(nginxLb));
+  const repoRoot = join(here, '..', '..', '..');
+  const nginxHost = readFileSync(join(repoRoot, 'ops', 'deploy', 'nginx.conf'), 'utf8');
+  const nginxLb = readFileSync(join(repoRoot, 'docker', 'lb.nginx.conf'), 'utf8');
+  A('静态/宿主与 LB nginx 公网上限严格大于应用上传信封',
+    nginxClientMaxBodyBytes(nginxHost) === PUBLIC_INGRESS_BODY_LIMIT_BYTES
+    && nginxClientMaxBodyBytes(nginxLb) === PUBLIC_INGRESS_BODY_LIMIT_BYTES
+    && PUBLIC_INGRESS_BODY_LIMIT_BYTES > UPLOAD_BODY_LIMIT_BYTES);
+  A('静态/体积上限单调：语义 < Server Action < 上传信封 < 公网 nginx',
+    RESUME_MAX_FILE_BYTES < SERVER_ACTION_BODY_LIMIT_BYTES
+    && SERVER_ACTION_BODY_LIMIT_BYTES < UPLOAD_BODY_LIMIT_BYTES
+    && UPLOAD_BODY_LIMIT_BYTES < PUBLIC_INGRESS_BODY_LIMIT_BYTES
+    && VOICE_MAX_AUDIO_BASE64_CHARS < UPLOAD_BODY_LIMIT_BYTES
+    && RESUME_MAX_FILE_BASE64_CHARS < UPLOAD_BODY_LIMIT_BYTES
+    && RESUME_MAX_FILE_BASE64_CHARS > 4 * Math.ceil(RESUME_MAX_FILE_BYTES / 3));
+  const nextCfg = readFileSync(join(repoRoot, 'apps', 'web', 'next.config.mjs'), 'utf8');
+  const actionLimit = nextCfg.match(/serverActions\s*:\s*\{[^}]*bodySizeLimit\s*:\s*['"](\d+mb)['"]/);
+  A('静态/next.config 显式设置 serverActions.bodySizeLimit=10mb 且大于简历 8MB',
+    actionLimit?.[1] === '10mb' && SERVER_ACTION_BODY_LIMIT_BYTES === 10 * 1024 * 1024 && SERVER_ACTION_BODY_LIMIT_BYTES > RESUME_MAX_FILE_BYTES);
+
+  const runnerSrc = readFileSync(join(repoRoot, 'scripts', 'run-e2e-isolated.mjs'), 'utf8');
+  const digestPaths = listedIsolatedSources(runnerSrc, 'authz34:chunked-cap:prove');
+  const requiredDigestPaths = [
+    'scripts/run-e2e-isolated.mjs',
+    'apps/api/test/authz34-chunked-cap.proof.ts',
+    'apps/api/src/main.ts',
+    'apps/api/src/platform/zod.pipe.ts',
+    'apps/api/src/platform/all-exceptions.filter.ts',
+    'packages/contracts/src/index.ts',
+    'ops/deploy/nginx.conf',
+    'docker/lb.nginx.conf',
+    'apps/web/next.config.mjs',
+  ];
+  A('行为/sourceDigests 清单含映射、契约、nginx 与 next.config',
+    requiredDigestPaths.every((rel) => digestPaths.includes(rel)));
+  A('行为/sourceDigests 所列文件变更会使收据 sha256 失效',
+    digestPaths.length === new Set(digestPaths).size
+    && digestPaths.every((rel) => {
+      const abs = join(repoRoot, rel);
+      const digest = sha256File(abs);
+      return /^sha256:[0-9a-f]{64}$/.test(digest) && digest !== sha256File(abs, 'x');
+    }));
 
   const h = await boot();
   // 服务内 audio_too_large 在同意门之后；为本证明补 voice_capture 同意（不改共享 harness 种子）。
@@ -362,6 +472,46 @@ async function main() {
     const limited = r.status === 413 && r.body?.error === 'payload_too_large';
     A('HTTP/absolute-form+# → 统一信封（400 invalid_request 或 413 payload_too_large，无 FST_ 内部码）',
       (mapped || limited) && r.body?.code == null && !leaked.includes('FST_'));
+  }
+
+  // ── ⑭ 简历契约 contentBase64 超限窗统一 413 file_too_large（不再 400 too_big）──
+  {
+    const contentBase64 = 'A'.repeat(RESUME_MAX_FILE_BASE64_CHARS + 4);
+    const payload = JSON.stringify({ filename: 'r.pdf', mimeType: 'application/pdf', contentBase64 });
+    A('静态/该契约超限简历体仍小于上传信封', Buffer.byteLength(payload) < UPLOAD_BODY_LIMIT_BYTES);
+    const r = await chunkedPost(h.base, '/resume/file', payload, {
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- x-user-id 为服务端约定 wire 头名,非代码标识符,不可改名(行内豁免)
+      headers: { 'x-user-id': 'userA' },
+    });
+    const leaked = JSON.stringify(r.body ?? {}) + (r.raw ?? '');
+    A('HTTP/contentBase64 too_big → 413 file_too_large（统一信封，非 400 too_big）',
+      r.status === 413 && r.body?.error === 'file_too_large' && !leaked.includes('too_big') && !leaked.includes('FST_'));
+  }
+
+  // ── ⑮ 非法 Content-Length：HTTP 解析层 400，到不了 FST_ERR_CTP_BODY_TOO_LARGE，响应无 FST_ 内部码 ──
+  {
+    const mid = '{"productId":"' + 'x'.repeat(SMALL_BODY_LIMIT_BYTES + 65_536) + '"}';
+    const r = await rawSocketPost(h.base, '/commerce/orders', {
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- HTTP 头 wire 名连字符小写为传输格式字面值,非代码标识符,不可改名(行内豁免)
+      'content-length': 'abc',
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- x-user-id 为服务端约定 wire 头名,非代码标识符,不可改名(行内豁免)
+      'x-user-id': 'userA',
+    }, mid);
+    const leaked = JSON.stringify(r.body ?? {}) + (r.raw ?? '');
+    A('HTTP/非法 Content-Length 非上传路由 → 400，不进入 FST_ERR_CTP_BODY_TOO_LARGE',
+      r.status === 400 && r.body?.code == null && !leaked.includes('FST_'));
+  }
+  {
+    const huge = '{"pad":"' + 'x'.repeat(UPLOAD_BODY_LIMIT_BYTES + 65_536) + '"}';
+    const r = await rawSocketPost(h.base, '/resume/file', {
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- HTTP 头 wire 名连字符小写为传输格式字面值,非代码标识符,不可改名(行内豁免)
+      'content-length': 'abc',
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- x-user-id 为服务端约定 wire 头名,非代码标识符,不可改名(行内豁免)
+      'x-user-id': 'userA',
+    }, huge);
+    const leaked = JSON.stringify(r.body ?? {}) + (r.raw ?? '');
+    A('HTTP/非法 Content-Length /resume/file → 400，不进入 FST_ERR_CTP_BODY_TOO_LARGE',
+      r.status === 400 && r.body?.code == null && !leaked.includes('FST_'));
   }
 
   // ── 进程存活:超阈 413 断流后服务仍存活 ──
