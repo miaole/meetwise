@@ -9,6 +9,7 @@
   },
   "scripts": {
     "lint": "eslint . --max-warnings 27",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "prove:skeleton": "tsx test/qdrant-store.skeleton.proof.ts",
     "prove:erase-honesty": "tsx test/qdrant-store.erase-honesty.proof.ts",
     "prove:vectorstore-adapter": "tsx test/qdrant-vectorstore-adapter.proof.ts",

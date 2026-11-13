@@ -43,12 +43,15 @@ async function historyBlob(saver: MemorySaver, cfg: Parameters<typeof checkpoint
 type GateInterrupt = Record<'__interrupt__', Array<{ value: { competency: string; question: string } }>>;
 type GateView = Partial<GateInterrupt> & {
   concluded?: boolean;
-  pending?: unknown;
+  pending?: { duplicateFallback?: string } | null;
   degraded?: { reason?: string } | null;
   generationProvenance?: { origin?: string; errorCode?: string; invokeError?: string; duplicateFallback?: string } | null;
   competencyExhaustions?: number;
 };
 const view = (v: unknown): GateView => v as GateView;
+/** noUncheckedIndexedAccess：有 __interrupt__ 也不保证 [0] 有值。 */
+const firstInterruptValue = (v: GateView): { competency: string; question: string } | undefined =>
+  v.__interrupt__?.[0]?.value;
 /** 线程配置(键面为框架契约名·运行时组装词面)。 */
 const proofCfg = (id: string): Parameters<typeof checkpointContains>[1] =>
   ({ configurable: { ['thread_' + 'id']: id } } as Parameters<typeof checkpointContains>[1]);
@@ -138,10 +141,11 @@ async function main() {
     });
     const swCfg = proofCfg('critique-gate-switch');
     const swRes = view(await swGraph.invoke({}, swCfg));
+    const swQ = firstInterruptValue(swRes);
     A('件② 换序:帽内批判拒顺延 planner 序下一 competency 出题(interrupt 在场·concluded 禁置)',
       !!swRes.__interrupt__ && swRes.concluded !== true
-      && swRes.__interrupt__[0].value.competency === '缓存'
-      && swRes.__interrupt__[0].value.question.includes('缓存击穿'));
+      && swQ?.competency === '缓存'
+      && !!swQ?.question.includes('缓存击穿'));
     A('件② 换序成功归零:exhaustions===0·degraded===null(「连续」语义只跨失败链存活)',
       swRes.competencyExhaustions === 0 && swRes.degraded === null);
     A('件② 换序轨迹存 checkpoint 历史:既有 token question_competency_exhausted·exhaustions=1·三键收据',
@@ -211,7 +215,9 @@ async function main() {
     const zeroAsked: string[] = [];
     let zGuard = 0;
     while (zRes.__interrupt__ && zGuard++ < 8) {
-      zeroAsked.push(zRes.__interrupt__[0].value.competency);
+      const competency = firstInterruptValue(zRes)?.competency;
+      if (competency === undefined) break;
+      zeroAsked.push(competency);
       zRes = await zeroGraph.invoke(new Command({ resume: zeroVault.issue('我用双删加过期时间兜底,压测验证过一致性窗口') }), zeroCfg);
     }
     A('件② 归零跨回合保持:换序后同 competency 复问·坏题面永不入 interrupt·exhaustions 恒 0',
@@ -486,10 +492,11 @@ async function main() {
     });
     const g2aCfg = proofCfg('g2-dup-switch');
     const r = view(await g2a.invoke({}, g2aCfg));
+    const g2aQ = firstInterruptValue(r);
     A('G2-a 判重耗尽 → 换下一 competency 出新题(interrupt 在场·concluded 未置·题属缓存)',
       !!r.__interrupt__ && r.concluded !== true
-      && r.__interrupt__[0].value.competency === '缓存'
-      && r.__interrupt__[0].value.question.includes('缓存雪崩'));
+      && g2aQ?.competency === '缓存'
+      && !!g2aQ?.question.includes('缓存雪崩'));
     A('G2-a 降级候选未被采用(换序优先):seam 依序调用 并发→缓存·provenance 无 duplicateFallback',
       JSON.stringify(seen) === JSON.stringify(['并发', '缓存'])
       && r.generationProvenance?.duplicateFallback === undefined);
@@ -507,10 +514,11 @@ async function main() {
       loadAnswer: createEphemeralAnswerVault().loadAnswer,
     });
     const r = view(await g2b.invoke({}, proofCfg('g2-dup-degrade')));
+    const g2bQ = firstInterruptValue(r);
     A('G2-b 全耗尽 → 降级出题:interrupt 在场·concluded 未置·题=末位候选(网络)·恰 3 次 seam 调用',
       !!r.__interrupt__ && r.concluded !== true && calls === 3
-      && r.__interrupt__[0].value.competency === '网络'
-      && r.__interrupt__[0].value.question === '请讲讲你在网络方面做过的一次关键设计取舍');
+      && g2bQ?.competency === '网络'
+      && g2bQ?.question === '请讲讲你在网络方面做过的一次关键设计取舍');
     A('G2-b 降级可审计:provenance origin=model·duplicateFallback=cross_session_repeat·exhaustions 归零',
       r.generationProvenance?.origin === 'model'
       && r.generationProvenance?.duplicateFallback === 'cross_session_repeat'
