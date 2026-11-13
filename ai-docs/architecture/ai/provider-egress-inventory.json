@@ -441,7 +441,7 @@
     },
     {
       "name": "DASHSCOPE_API_KEY",
-      "source": "scripts/run-e2e-isolated.mjs",
+      "source": "scripts/isolated-inherited-env.mjs",
       "class": "test-isolation"
     },
     {
@@ -621,7 +621,7 @@
     },
     {
       "name": "DASHSCOPE_ASR_MODEL",
-      "source": "scripts/run-e2e-isolated.mjs",
+      "source": "scripts/isolated-inherited-env.mjs",
       "class": "test-isolation"
     },
     {
@@ -651,7 +651,7 @@
     },
     {
       "name": "DASHSCOPE_COMPAT_BASE_URL",
-      "source": "scripts/run-e2e-isolated.mjs",
+      "source": "scripts/isolated-inherited-env.mjs",
       "class": "test-isolation"
     },
     {
@@ -721,7 +721,7 @@
     },
     {
       "name": "DASHSCOPE_EMBED_MODEL",
-      "source": "scripts/run-e2e-isolated.mjs",
+      "source": "scripts/isolated-inherited-env.mjs",
       "class": "test-isolation"
     },
     {
@@ -746,7 +746,7 @@
     },
     {
       "name": "DASHSCOPE_ENDPOINT_PROFILE",
-      "source": "scripts/run-e2e-isolated.mjs",
+      "source": "scripts/isolated-inherited-env.mjs",
       "class": "test-isolation"
     },
     {
@@ -801,7 +801,7 @@
     },
     {
       "name": "DASHSCOPE_RERANK_MODEL",
-      "source": "scripts/run-e2e-isolated.mjs",
+      "source": "scripts/isolated-inherited-env.mjs",
       "class": "test-isolation"
     },
     {
@@ -831,7 +831,7 @@
     },
     {
       "name": "DASHSCOPE_RERANK_URL",
-      "source": "scripts/run-e2e-isolated.mjs",
+      "source": "scripts/isolated-inherited-env.mjs",
       "class": "test-isolation"
     },
     {
@@ -916,7 +916,7 @@
     },
     {
       "name": "DASHSCOPE_STREAM_ASR_MODEL",
-      "source": "scripts/run-e2e-isolated.mjs",
+      "source": "scripts/isolated-inherited-env.mjs",
       "class": "test-isolation"
     },
     {
@@ -976,7 +976,7 @@
     },
     {
       "name": "DASHSCOPE_STREAM_TTS_MODEL",
-      "source": "scripts/run-e2e-isolated.mjs",
+      "source": "scripts/isolated-inherited-env.mjs",
       "class": "test-isolation"
     },
     {
@@ -1006,7 +1006,7 @@
     },
     {
       "name": "DASHSCOPE_STREAM_URL",
-      "source": "scripts/run-e2e-isolated.mjs",
+      "source": "scripts/isolated-inherited-env.mjs",
       "class": "test-isolation"
     },
     {
@@ -1111,7 +1111,7 @@
     },
     {
       "name": "DASHSCOPE_TTS_MODEL",
-      "source": "scripts/run-e2e-isolated.mjs",
+      "source": "scripts/isolated-inherited-env.mjs",
       "class": "test-isolation"
     },
     {
@@ -1141,7 +1141,7 @@
     },
     {
       "name": "DASHSCOPE_TTS_URL",
-      "source": "scripts/run-e2e-isolated.mjs",
+      "source": "scripts/isolated-inherited-env.mjs",
       "class": "test-isolation"
     },
     {
@@ -1201,7 +1201,7 @@
     },
     {
       "name": "DASHSCOPE_VISION_MODEL",
-      "source": "scripts/run-e2e-isolated.mjs",
+      "source": "scripts/isolated-inherited-env.mjs",
       "class": "test-isolation"
     },
     {
@@ -1241,7 +1241,7 @@
     },
     {
       "name": "DASHSCOPE_WORKSPACE_ID",
-      "source": "scripts/run-e2e-isolated.mjs",
+      "source": "scripts/isolated-inherited-env.mjs",
       "class": "test-isolation"
     },
     {
@@ -2503,6 +2503,46 @@
       "name": "ROUTE_RETRY_UNKNOWN_COOLDOWN_MS",
       "source": "apps/web/app/recruiter/jobs/actions.ts",
       "class": "runtime-configuration"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/isolated-inherited-env.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/isolated-env-policy.proof.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/isolated-env.proof.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "scripts/isolated-inherited-env.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "scripts/isolated-env-policy.proof.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "scripts/isolated-env.proof.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "scripts/run-e2e-isolated.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "scripts/isolated-env-policy.proof.mjs",
+      "class": "test-isolation"
     }
   ],
   "deploymentReferences": [

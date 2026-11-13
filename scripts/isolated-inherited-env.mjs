@@ -33,8 +33,29 @@ export const INHERITED_ENV_PREFIXES = [
 const PROVIDER_KEY_PREFIX = /^(OPENAI|ANTHROPIC|XAI|DASHSCOPE|LANGFUSE|LANGSMITH)(_|$)/i;
 const SECRET_SUFFIX = /(_API_KEY|_ACCESS_KEY|_SECRET|_SECRET_KEY|_PRIVATE_KEY|_PASSWORD|_TOKEN)$/i;
 
+// Exact names previously stripped in run-e2e-isolated inheritedEnv. Kept as
+// literals so provider-egress inventory can see the moved deny list.
+export const STRIPPED_PROVIDER_ENV_EXACT = [
+  'MODEL_API_KEY',
+  'MODEL_BACKUP_API_KEY',
+  'DASHSCOPE_API_KEY',
+  'DASHSCOPE_ENDPOINT_PROFILE',
+  'DASHSCOPE_WORKSPACE_ID',
+  'DASHSCOPE_COMPAT_BASE_URL',
+  'DASHSCOPE_TTS_URL',
+  'DASHSCOPE_STREAM_URL',
+  'DASHSCOPE_RERANK_URL',
+  'DASHSCOPE_ASR_MODEL',
+  'DASHSCOPE_TTS_MODEL',
+  'DASHSCOPE_EMBED_MODEL',
+  'DASHSCOPE_RERANK_MODEL',
+  'DASHSCOPE_VISION_MODEL',
+  'DASHSCOPE_STREAM_ASR_MODEL',
+  'DASHSCOPE_STREAM_TTS_MODEL',
+];
+
 export function isSecretShapedEnvKey(key) {
-  if (key === 'MODEL_API_KEY' || key === 'MODEL_BACKUP_API_KEY') return true;
+  if (STRIPPED_PROVIDER_ENV_EXACT.includes(key)) return true;
   if (PROVIDER_KEY_PREFIX.test(key)) return true;
   if (SECRET_SUFFIX.test(key)) return true;
   return false;
