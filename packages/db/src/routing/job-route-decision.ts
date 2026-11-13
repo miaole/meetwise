@@ -434,14 +434,15 @@ export async function getInterviewRouteSnapshot(c: Client, candidate: string, in
     [interviewId, candidate],
   );
   if (r.rowCount === 0) return null;
-  const row = r.rows[0] as { interview_id: string; job_id: string; revision: number; decision_id: string; route_digest: string; allocations: unknown; taxonomy_version: string };
+  const row = r.rows[0] as { interview_id: string; job_id: string; revision: number; decision_id: string; route_digest: string; allocations: unknown };
   const allocations = (Array.isArray(row.allocations) ? row.allocations : []) as unknown as { leafTrackId: string; allocationBps: number }[];
   const mapped = allocations.map((a) => ({ leafTrackId: String(a.leafTrackId), allocationBps: Number(a.allocationBps) }));
+  const taxonomyCol = String((row as Record<string, unknown>)['taxonomy_version'] ?? '');
   return {
     interviewId: row.interview_id, jobId: row.job_id, revision: row.revision,
     decisionId: row.decision_id, routeDigest: row.route_digest,
     allocations: mapped,
-    taxonomyVersion: String(row.taxonomy_version || taxonomyVersionForLeaves(mapped.map((a) => a.leafTrackId))),
+    taxonomyVersion: taxonomyCol || taxonomyVersionForLeaves(mapped.map((a) => a.leafTrackId)),
   };
 }
 

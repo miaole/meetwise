@@ -130,9 +130,10 @@ export async function getInterviewRouteSnapshotForAdaptiveRole(c: Client, candid
   );
   if (r.rowCount === 0) return null;
   const row = r.rows[0] as {
-    interview_id: string; decision_id: string; leaf_track_id: string; allocation_bps: number; input_digest: string; taxonomy_version: string;
+    interview_id: string; decision_id: string; leaf_track_id: string; allocation_bps: number; input_digest: string;
   };
   const leafTrackId = String(row.leaf_track_id);
+  const taxonomyCol = String((row as Record<string, unknown>)['taxonomy_version'] ?? '');
   return {
     interviewId: row.interview_id,
     jobId: '',
@@ -140,6 +141,6 @@ export async function getInterviewRouteSnapshotForAdaptiveRole(c: Client, candid
     decisionId: row.decision_id,
     routeDigest: row.input_digest,
     allocations: [{ leafTrackId, allocationBps: Number(row.allocation_bps) }],
-    taxonomyVersion: String(row.taxonomy_version || taxonomyVersionForLeaves([leafTrackId])),
+    taxonomyVersion: taxonomyCol || taxonomyVersionForLeaves([leafTrackId]),
   };
 }
