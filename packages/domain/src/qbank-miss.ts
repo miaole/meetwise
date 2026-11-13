@@ -16,7 +16,7 @@
  */
 import { createHash } from 'node:crypto';
 import {
-  validatePlannerOutput, JOB_ROUTE_TAXONOMY_VERSION, type JobRouteAllocation,
+  validatePlannerOutput, isServingTaxonomyForLeaf, type JobRouteAllocation,
 } from './job-route-classifier.ts';
 import { deriveRouteScopeDigest } from './qbank-track-local-retrieval.ts';
 
@@ -161,7 +161,7 @@ export function validateQuestionPlan(plan: QuestionPlan, snapshot: QuestionPlanS
   if (typeof plan.routeScopeDigest !== 'string' || !DIGEST.test(plan.routeScopeDigest)) return { ok: false, reason: 'route_scope_digest_invalid' };
   if (typeof plan.leafTrackId !== 'string' || !LEAF.test(plan.leafTrackId)) return { ok: false, reason: 'leaf_invalid' };
   if (typeof plan.taxonomyVersion !== 'string' || !TAXONOMY_VERSION.test(plan.taxonomyVersion)) return { ok: false, reason: 'taxonomy_invalid' };
-  if (plan.taxonomyVersion !== JOB_ROUTE_TAXONOMY_VERSION) return { ok: false, reason: 'taxonomy_not_current' };
+  if (!isServingTaxonomyForLeaf(plan.taxonomyVersion, plan.leafTrackId)) return { ok: false, reason: 'taxonomy_not_current' };
 
   // 复用 RAG-03 planner 校验：leaf ∈ snapshot、difficulty 1..5、competencyId 形状。
   const planner = validatePlannerOutput(

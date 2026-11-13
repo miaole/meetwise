@@ -18,7 +18,7 @@
  * - releaseEvidence=false · Not HA · ≠ cutover · ≠ flip default.
  */
 import {
-  JOB_ROUTE_TAXONOMY_VERSION,
+  taxonomyVersionForLeaves,
   type InterviewRouteSnapshotView,
   type QbankServingScopeInput,
 } from '@meetwise/db';
@@ -27,7 +27,7 @@ import {
 const SERVING_SCOPE_RE = /^[a-z][a-z0-9_]*(\/[a-z][a-z0-9_]*){0,3}$/;
 const TAXONOMY_VERSION_RE = /^v[1-9][0-9]{0,15}$/;
 
-export type RouteSnapshotScopeSource = Pick<InterviewRouteSnapshotView, 'allocations'> | null | undefined;
+export type RouteSnapshotScopeSource = Pick<InterviewRouteSnapshotView, 'allocations' | 'taxonomyVersion'> | null | undefined;
 
 export type RouteSnapshotRetrieveDecision =
   | { allowed: true; scope: QbankServingScopeInput }
@@ -39,12 +39,9 @@ export type RouteSnapshotRetrieveDecision =
  */
 export function resolveServingScopeFromRouteSnapshot(
   snapshot: RouteSnapshotScopeSource,
-  taxonomyVersion: string = JOB_ROUTE_TAXONOMY_VERSION,
+  taxonomyVersion?: string,
 ): QbankServingScopeInput | undefined {
   if (!snapshot || !Array.isArray(snapshot.allocations) || snapshot.allocations.length === 0) {
-    return undefined;
-  }
-  if (typeof taxonomyVersion !== 'string' || !TAXONOMY_VERSION_RE.test(taxonomyVersion)) {
     return undefined;
   }
   let best: { leafTrackId: string; allocationBps: number } | undefined;
@@ -56,7 +53,13 @@ export function resolveServingScopeFromRouteSnapshot(
     if (!best || bps > best.allocationBps) best = { leafTrackId: leaf, allocationBps: bps };
   }
   if (!best) return undefined;
-  return { taxonomyVersion, servingScopeId: best.leafTrackId };
+  const version = (typeof taxonomyVersion === 'string' && taxonomyVersion.trim()
+    ? taxonomyVersion.trim()
+    : (typeof snapshot.taxonomyVersion === 'string' && snapshot.taxonomyVersion.trim()
+      ? snapshot.taxonomyVersion.trim()
+      : taxonomyVersionForLeaves([best.leafTrackId])));
+  if (!TAXONOMY_VERSION_RE.test(version)) return undefined;
+  return { taxonomyVersion: version, servingScopeId: best.leafTrackId };
 }
 
 /**
@@ -67,7 +70,7 @@ export function resolveServingScopeFromRouteSnapshot(
  */
 export function decideRouteSnapshotRetrieve(
   snapshot: RouteSnapshotScopeSource,
-  taxonomyVersion: string = JOB_ROUTE_TAXONOMY_VERSION,
+  taxonomyVersion?: string,
 ): RouteSnapshotRetrieveDecision {
   const scope = resolveServingScopeFromRouteSnapshot(snapshot, taxonomyVersion);
   return scope ? { allowed: true, scope } : { allowed: false, reason: 'route_snapshot_missing' };

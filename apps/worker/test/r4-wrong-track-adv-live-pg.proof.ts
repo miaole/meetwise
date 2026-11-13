@@ -47,8 +47,9 @@ import {
   type InterviewRouteSnapshotView,
 } from '@meetwise/db';
 import {
-  JOB_ROUTE_TAXONOMY_VERSION,
+  JOB_ROUTE_TAXONOMY_VERSION, JOB_ROUTE_TAXONOMY_V2,
   assembleValidatedRetrievalPlan,
+  validatePlannerOutput,
   degradedRetrieval,
 } from '@meetwise/domain';
 import {
@@ -182,6 +183,22 @@ const javaArtifact: QbankQuestionArtifact = {
     { refId: 'java_prompt', text: JAVA_PROMPT, role: 'prompt', ordinal: 0, required: true },
     { refId: 'java_rubric', text: JAVA_RUBRIC, role: 'rubric', ordinal: 1, required: true },
     { refId: 'java_example', text: JAVA_EXAMPLE, role: 'example', ordinal: 2, required: false },
+  ],
+};
+
+const PRODUCT_LEAF = 'business/product';
+const PRODUCT_QID = 'product_q1';
+const PRODUCT_PROMPT = 'How do you turn a vague quarterly goal into a testable product requirement and a clear not-doing list?';
+const PRODUCT_RUBRIC = 'The answer names an acceptance metric, a trade-off, and an exit condition.';
+const PRODUCT_EXAMPLE = 'A discovery note that compares two bets and records the rejected option.';
+const productArtifact: QbankQuestionArtifact = {
+  id: PRODUCT_QID, competency: 'discovery', difficulty: 2,
+  taxonomyVersion: JOB_ROUTE_TAXONOMY_V2, servingScopeId: PRODUCT_LEAF, annotationSource: 'seed_v1_reviewed',
+  seniority: 'mid', questionKind: 'case', language: 'zh',
+  chunks: [
+    { refId: 'product_prompt', text: PRODUCT_PROMPT, role: 'prompt', ordinal: 0, required: true },
+    { refId: 'product_rubric', text: PRODUCT_RUBRIC, role: 'rubric', ordinal: 1, required: true },
+    { refId: 'product_example', text: PRODUCT_EXAMPLE, role: 'example', ordinal: 2, required: false },
   ],
 };
 
@@ -398,13 +415,13 @@ async function main() {
   A('L1 helper bans P-FAKEPLAN + fail-closed + no unscoped',
     /P-FAKEPLAN/.test(helper) && /fail-closed/.test(helper) && /no unscoped|never unscoped|question_ready/.test(helper));
 
-  section('0. fixture: dual-leaf qbank + active generation + nodejs interview snapshot');
+  section('0. fixture: dual-leaf qbank + product leaf + active generation + nodejs interview snapshot');
   await pool.query(
     "INSERT INTO resume(id, owner_user_id, status, content_sha) VALUES ($1,$2,'ingested',$3)",
     [resumeCand, cand, `${TAG}:${cand}`],
   );
-  const ingest = await ingestQuestionBankArtifacts(pool, [nodejsArtifact, javaArtifact], embedder);
-  A('ingest 2 questions / 6 chunks', ingest.questionCount === 2 && ingest.chunkCount === 6);
+  const ingest = await ingestQuestionBankArtifacts(pool, [nodejsArtifact, javaArtifact, productArtifact], embedder);
+  A('ingest 3 questions / 9 chunks', ingest.questionCount === 3 && ingest.chunkCount === 9);
   const generationId = await buildActiveGeneration();
   A('active generation built', /^qgen-[0-9a-f-]{36}$/.test(generationId));
   const active = await asPrincipal(pool, cand, (c) => activeQbankGeneration(c));
@@ -612,7 +629,67 @@ async function main() {
   A('L4 degradedRetrieval observable (fail-closed helper)',
     degradedRetrieval('route_snapshot_missing').availability === 'degraded');
 
+  section('L8 non-tech job (产品经理) hard filter + metadata validation');
+  let v2MetaRejected = false;
+  try {
+    await ingestQuestionBankArtifacts(pool, [{
+      ...productArtifact,
+      id: 'product_q_bad_meta',
+      seniority: undefined,
+      questionKind: undefined,
+      language: undefined,
+      chunks: productArtifact.chunks.map((c) => ({ ...c, refId: `${c.refId}_bad` })),
+    }], embedder);
+  } catch (e) {
+    v2MetaRejected = /qbank_question_invalid_(seniority|question_kind|language)/.test((e as Error).message);
+  }
+  A('L8 v2 artifact missing seniority/kind/language is rejected', v2MetaRejected);
+
+  const recPm = `${TAG}_rec_pm`;
+  const candPm = `${TAG}_cand_pm`;
+  const resumePm = randomUUID();
+  await pool.query(
+    "INSERT INTO resume(id, owner_user_id, status, content_sha) VALUES ($1,$2,'ingested',$3)",
+    [resumePm, candPm, `${TAG}:${candPm}`],
+  );
+  const pmJob = await asPrincipal(pool, recPm, (c) => createJob(c, recPm, {
+    title: '产品经理', description: '负责 B 端需求与产品路线图', competencies: ['用户故事', 'prd'],
+  }));
+  const pmClassify = await classifyJobRoute(pool, recPm, pmJob.id, await maxRev(pmJob.id), {
+    modelClassify: async () => { throw new Error('product-manager rule path must never call model'); },
+  });
+  A('L8 产品经理 rule_decided business/product（0 次模型）',
+    pmClassify.status === 'route_decided' && pmClassify.attemptOutcome === 'rule_decided');
+  const pmApp = await asPrincipal(pool, candPm, (c) => applyToJob(c, candPm, pmJob.id));
+  const pmStarted = await asPrincipal(pool, candPm, (c) => startApplicationInterview(c, candPm, pmApp!.applicationId, resumePm));
+  const pmInterviewId = pmStarted.status === 'started' || pmStarted.status === 'reused' ? pmStarted.interviewId : undefined;
+  const pmSnapshot = await asPrincipal(pool, candPm, (c) => getInterviewRouteSnapshot(c, candPm, pmInterviewId!));
+  A('L8 snapshot leaf=business/product taxonomy=v2',
+    !!pmSnapshot && pmSnapshot.allocations.length === 1
+    && pmSnapshot.allocations[0]!.leafTrackId === PRODUCT_LEAF
+    && (pmSnapshot.taxonomyVersion ?? JOB_ROUTE_TAXONOMY_V2) === JOB_ROUTE_TAXONOMY_V2);
+
+  const pmDeficit = pmSnapshot!.allocations.map(() => 0);
+  const pmHappy = await retrieveViaDispatchTrackLocal({
+    pool, owner: candPm, snapshot: pmSnapshot, query: 'discovery 难度2', deficit: pmDeficit, deps: mkDeps(new MemoryQbankCache()),
+  });
+  A('L8 非技术岗正常出题且 wrong_track=0（只 product_q1，无 nodejs/java）',
+    pmHappy.refs.length >= 1
+    && !isDegraded(pmHappy.refs)
+    && onlyAllowedQidOrDegraded(pmHappy.refs, PRODUCT_QID)
+    && noCrossLeafServed(pmHappy.refs, NODEJS_QID)
+    && noCrossLeafServed(pmHappy.refs, JAVA_QID),
+    `refs=${pmHappy.refs.map((r) => r.ref).join(',')}`);
+
+  const crossLeaf = validatePlannerOutput(
+    { leafTrackId: NODEJS_LEAF, competencyId: 'discovery', difficulty: 2 },
+    pmSnapshot!.allocations,
+  );
+  A('L8 反证：产品岗 snapshot 上强制 nodejs leaf → planner 拒绝（不跨 track）',
+    crossLeaf.ok === false && (crossLeaf.ok === false ? crossLeaf.reason === 'leaf_not_in_snapshot' : false));
+
   section('L5–L8 honesty pins');
+
   const harness = read(harnessPath);
   const status = read(statusPath);
   const matrix = read(matrixPath);

@@ -27,6 +27,10 @@ export interface QbankCorpusImportItem {
   taxonomyVersion?: string;
   servingScopeId: string;
   annotationSource?: QbankAnnotationSource;
+  seniority?: string;
+  questionKind?: string;
+  language?: string;
+  technologyFacets?: readonly string[];
   rubric: string;
   followUp: string;
   antiPattern: string;
@@ -171,6 +175,10 @@ export function buildQuestionArtifact(item: QbankCorpusImportItem): QbankQuestio
     taxonomyVersion: item.taxonomyVersion ?? 'v1',
     servingScopeId: item.servingScopeId,
     annotationSource: item.annotationSource ?? 'curator_reviewed',
+    ...(item.seniority ? { seniority: item.seniority } : {}),
+    ...(item.questionKind ? { questionKind: item.questionKind } : {}),
+    ...(item.language ? { language: item.language } : {}),
+    ...(item.technologyFacets && item.technologyFacets.length ? { technologyFacets: item.technologyFacets } : {}),
     chunks: [
       { refId: `${base}:prompt`, role: 'prompt', ordinal: 0, required: true, text: `【训练问题】${item.text}\n【能力域】${item.competency}\n请先澄清前提、约束和失败语义，再给出可验证的方案。` },
       { refId: `${base}:rubric`, role: 'rubric', ordinal: 0, required: true, text: `【评分锚点】${item.rubric}\n高分回答必须陈述至少一个可量化指标、一个失败模式和一个验证/回滚步骤。` },

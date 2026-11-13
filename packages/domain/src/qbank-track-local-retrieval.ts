@@ -14,7 +14,7 @@
  */
 import { createHash } from 'node:crypto';
 import {
-  validatePlannerOutput, planInterviewTurn, JOB_ROUTE_TAXONOMY_VERSION,
+  validatePlannerOutput, planInterviewTurn, isServingTaxonomyForLeaf, taxonomyVersionForLeaves,
   type JobRouteAllocation, type InterviewPlannerOutput,
 } from './job-route-classifier.ts';
 
@@ -111,7 +111,7 @@ export function validateRetrievalPlan(
   if (typeof plan.routeScopeDigest !== 'string' || !/^[0-9a-f]{64}$/.test(plan.routeScopeDigest)) return { ok: false, reason: 'route_scope_digest_invalid' };
   if (typeof plan.leafTrackId !== 'string' || !LEAF.test(plan.leafTrackId)) return { ok: false, reason: 'leaf_invalid' };
   if (typeof plan.taxonomyVersion !== 'string' || !TAXONOMY_VERSION.test(plan.taxonomyVersion)) return { ok: false, reason: 'taxonomy_invalid' };
-  if (plan.taxonomyVersion !== JOB_ROUTE_TAXONOMY_VERSION) return { ok: false, reason: 'taxonomy_not_current' };
+  if (!isServingTaxonomyForLeaf(plan.taxonomyVersion, plan.leafTrackId)) return { ok: false, reason: 'taxonomy_not_current' };
 
   // 复用 RAG-03 planner 校验：leaf 必须属于 snapshot、difficulty 1..5、competencyId 形状。
   const planner = validatePlannerOutput(
@@ -155,7 +155,7 @@ export function buildRetrievalPlanFromPlannerOutput(input: {
   seniority?: string;
   questionKind?: string;
 }): RetrievalPlan {
-  const taxonomyVersion = input.taxonomyVersion ?? JOB_ROUTE_TAXONOMY_VERSION;
+  const taxonomyVersion = input.taxonomyVersion ?? taxonomyVersionForLeaves([input.planner.leafTrackId]);
   const policyVersion = input.policyVersion ?? RETRIEVAL_POLICY_VERSION;
   const plan: RetrievalPlan = {
     snapshotId: input.snapshot.interviewId,

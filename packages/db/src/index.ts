@@ -214,7 +214,7 @@ export {
 } from './qbank/qbank-curation.ts';
 export type { QbankSourceKind, QbankSourceStatus, ReviewDecision, ProposeInput, ProposeResult } from './qbank/qbank-curation.ts';
 export {
-  ingestQbank, ingestQuestionBankArtifacts, qbankMetadataHash, QBANK_OWNER, QBANK_TAXONOMY_V1,
+  ingestQbank, ingestQuestionBankArtifacts, qbankMetadataHash, validateArtifactRouteMetadata, QBANK_OWNER, QBANK_TAXONOMY_V1, QBANK_TAXONOMY_V2, QBANK_SENIORITY_VALUES, QBANK_QUESTION_KIND_VALUES,
   QBANK_ANNOTATION_SOURCES, QBANK_QUESTION_CHUNK_ROLES,
 } from './qbank/qbank-ingest.ts';
 export type {
@@ -477,7 +477,9 @@ export {
   JOB_SEMANTIC_REVISION_STATUSES, JOB_ROUTE_ATTEMPT_OUTCOMES,
   createJobSemanticRevision, classifyJobRoute, listNextJobRoutePending,
   bindApplicationRoute, snapshotInterviewRoute, getInterviewRouteSnapshot,
-  TAXONOMY_V1_LEAVES, JOB_ROUTE_TAXONOMY_VERSION, JOB_ROUTE_POLICY_VERSION,
+  TAXONOMY_V1_LEAVES, TAXONOMY_V2_LEAVES, TAXONOMY_V2_BUSINESS_LEAVES,
+  JOB_ROUTE_TAXONOMY_VERSION, JOB_ROUTE_TAXONOMY_V2, JOB_ROUTE_POLICY_VERSION, JOB_ROUTE_POLICY_VERSION_V2,
+  isBusinessTaxonomyLeaf, taxonomyVersionForLeaves, isServingTaxonomyForLeaf, policyVersionForLeaves,
 } from './routing/job-route-decision.ts';
 export type {
   JobSemanticRevisionStatus, JobRouteAttemptOutcome, JobRouteModelInput, JobRouteModelClassify,
