@@ -85,9 +85,18 @@ check('guard allows child when E2E_ISOLATED=1', ok.status === 0, `status=${ok.st
 const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
 const guardPrefix = 'node scripts/require-e2e-isolated.mjs -- ';
 const runnerPrefix = 'node scripts/run-e2e-isolated.mjs';
+// Remote-gate inner SQL: wrapper run-interview-dispatch-prove.mjs spawns :raw
+// without E2E_ISOLATED (that flag is local compose isolation). CI also pins the
+// exact unprefixed command. Do not widen this set without a new counter-proof.
+const RAW_GUARD_EXEMPT = new Set(['interview-dispatch:prove:raw']);
 const rawScripts = Object.entries(pkg.scripts).filter(([name]) => name.includes(':raw'));
-const unguarded = rawScripts.filter(([, cmd]) => !cmd.startsWith(guardPrefix) && !cmd.startsWith(runnerPrefix));
+const unguarded = rawScripts.filter(([name, cmd]) =>
+  !cmd.startsWith(guardPrefix) && !cmd.startsWith(runnerPrefix) && !RAW_GUARD_EXEMPT.has(name));
 check(`every non-runner :raw script goes through require-e2e-isolated (${rawScripts.length} raw)`, unguarded.length === 0, unguarded.map(([n]) => n).join(','));
+check(
+  'interview-dispatch:prove:raw stays the inner SQL prove (remote-gate wrapper, not E2E isolation)',
+  pkg.scripts['interview-dispatch:prove:raw'] === 'pnpm -C apps/worker prove:interview-dispatch-pg',
+);
 check('voice:prove:raw and graph:prove:raw are guarded',
   String(pkg.scripts['voice:prove:raw'] ?? '').startsWith(guardPrefix)
   && String(pkg.scripts['graph:prove:raw'] ?? '').startsWith(guardPrefix));
