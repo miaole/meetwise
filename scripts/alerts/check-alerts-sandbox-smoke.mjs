@@ -97,7 +97,7 @@ function requiredVarNames() {
   return [...names].sort();
 }
 // 一次性沙箱哑凭据（tmpfs·down 即灭·非生产·与 ha-sandbox.mjs 同款哑值）。字面 join 拼装形
-// 避开 secret-gate 机械误报（值均为公开哑值非凭据）——镜像 ha-sandbox.mjs:141-150 注记同源。
+// 避开 secret-gate 机械误报（值均为公开哑值非凭据）——镜像 ha-sandbox.mjs:143-152 注记同源。
 const PW = {
   pgSuper: ['meetwise', '_ha_pg_dev_', 'password'].join(''),
   runtime: ['ha_', 'runtime_dev_', 'pw'].join(''),
