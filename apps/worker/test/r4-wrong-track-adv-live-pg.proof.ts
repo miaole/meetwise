@@ -34,6 +34,8 @@ import {
   startApplicationInterview,
   classifyJobRoute,
   getInterviewRouteSnapshot,
+  getInterviewRouteSnapshotForAdaptiveRole,
+  supplyCandidateProfileRoute,
   ingestQuestionBankArtifacts,
   ingestQbank,
   activeQbankGeneration,
@@ -160,6 +162,7 @@ const NODEJS_LEAF = 'backend/nodejs';
 const JAVA_LEAF = 'backend/java';
 const NODEJS_QID = 'nodejs_q1';
 const JAVA_QID = 'java_q1';
+const GENERAL_QID = 'general_q1';
 const NODEJS_PROMPT = 'Explain how to avoid callback hell in Node.js event loops and async flows.';
 const NODEJS_RUBRIC = 'Candidate mentions async/await, Promise chaining, and error propagation.';
 const NODEJS_EXAMPLE = 'A refactor example converting nested callbacks into async/await.';
@@ -199,6 +202,18 @@ const productArtifact: QbankQuestionArtifact = {
     { refId: 'product_prompt', text: PRODUCT_PROMPT, role: 'prompt', ordinal: 0, required: true },
     { refId: 'product_rubric', text: PRODUCT_RUBRIC, role: 'rubric', ordinal: 1, required: true },
     { refId: 'product_example', text: PRODUCT_EXAMPLE, role: 'example', ordinal: 2, required: false },
+  ],
+};
+
+const GENERAL_PROMPT = 'Walk through a system design where a hot key throttles writes and a queue decouples the burst.';
+const generalArtifact: QbankQuestionArtifact = {
+  id: GENERAL_QID, competency: 'system design', difficulty: 3,
+  taxonomyVersion: JOB_ROUTE_TAXONOMY_VERSION, servingScopeId: 'backend/general', annotationSource: 'seed_v1_reviewed',
+  seniority: 'mid', questionKind: 'case', language: 'zh',
+  chunks: [
+    { refId: 'general_prompt', text: GENERAL_PROMPT, role: 'prompt', ordinal: 0, required: true },
+    { refId: 'general_rubric', text: 'The answer names capacity numbers, failure semantics, and one observable.', role: 'rubric', ordinal: 1, required: true },
+    { refId: 'general_example', text: 'A design note that picks Redis + queue and records the rejected alternative.', role: 'example', ordinal: 2, required: false },
   ],
 };
 
@@ -420,8 +435,8 @@ async function main() {
     "INSERT INTO resume(id, owner_user_id, status, content_sha) VALUES ($1,$2,'ingested',$3)",
     [resumeCand, cand, `${TAG}:${cand}`],
   );
-  const ingest = await ingestQuestionBankArtifacts(pool, [nodejsArtifact, javaArtifact, productArtifact], embedder);
-  A('ingest 3 questions / 9 chunks', ingest.questionCount === 3 && ingest.chunkCount === 9);
+  const ingest = await ingestQuestionBankArtifacts(pool, [nodejsArtifact, javaArtifact, productArtifact, generalArtifact], embedder);
+  A('ingest 4 questions / 12 chunks', ingest.questionCount === 4 && ingest.chunkCount === 12);
   const generationId = await buildActiveGeneration();
   A('active generation built', /^qgen-[0-9a-f-]{36}$/.test(generationId));
   const active = await asPrincipal(pool, cand, (c) => activeQbankGeneration(c));
@@ -687,6 +702,52 @@ async function main() {
   );
   A('L8 反证：产品岗 snapshot 上强制 nodejs leaf → planner 拒绝（不跨 track）',
     crossLeaf.ok === false && (crossLeaf.ok === false ? crossLeaf.reason === 'leaf_not_in_snapshot' : false));
+
+  section('L8-R weak-hit reverse isolation (mw-rag-route BLOCK regression): tech resume + weak non-tech hit stays tech AND questions served');
+  const candR = `${TAG}_cand_l8r`;
+  const resumeR = randomUUID();
+  const rContentSha = createHash('sha256').update('Java Spring Boot，Redis，MySQL，写过 prd').digest('hex');
+  const rInterview = `h2q-l8r-${randomUUID().slice(0, 8)}`;
+  await pool.query(
+    "INSERT INTO resume(id, owner_user_id, status, content_sha) VALUES ($1,$2,'ingested',$3)",
+    [resumeR, candR, rContentSha],
+  );
+  // C 侧 supply 写侧真链（domain classify 已由 candidate-route:prove 覆盖·本臂证 DB 供给 + 检索有题）：
+  // blob 解密取钥形同 resume-reference-http 先形（pgp_sym_encrypt + key_version=1 dev 钥回落）。
+  const resumeKey = process.env.RESUME_ENC_KEY && process.env.RESUME_ENC_KEY.length >= 16
+    ? process.env.RESUME_ENC_KEY
+    : 'dev_resume_key_change_in_prod__x';
+  await pool.query(
+    'INSERT INTO resume_blob(resume_id,owner_user_id,ciphertext,key_version) VALUES ($1,$2,pgp_sym_encrypt($3,$4),1)',
+    [resumeR, candR, 'Java Spring Boot，Redis，MySQL，写过 prd', resumeKey],
+  );
+  const rEpoch = Number((await pool.query('SELECT privacy_epoch FROM resume WHERE id=$1', [resumeR])).rows[0]?.privacy_epoch ?? 0);
+  await pool.query(
+    "INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'created',$3,$4)",
+    [rInterview, candR, resumeR, rEpoch],
+  );
+  const rSupply = await asPrincipal(pool, candR, (c) => supplyCandidateProfileRoute(c, candR, rInterview, resumeR));
+  A('L8-R supply：技术简历 + 弱命中「写过 prd」→ route_decided·leaf=backend/general（修前误降 business/general 空题库）',
+    rSupply.status === 'supplied' && rSupply.leafTrackId === 'backend/general',
+    `status=${rSupply.status} leaf=${rSupply.status === 'supplied' ? rSupply.leafTrackId : '-'}`);
+  const rSnapshot = await asPrincipal(pool, candR, (c) => getInterviewRouteSnapshotForAdaptiveRole(c, candR, rInterview));
+  A('L8-R snapshot 读回：leaf=backend/general·taxonomy=v1（技术面零翻）',
+    !!rSnapshot && rSnapshot.allocations.length === 1
+    && rSnapshot.allocations[0]!.leafTrackId === 'backend/general'
+    && (rSnapshot.taxonomyVersion ?? JOB_ROUTE_TAXONOMY_VERSION) === JOB_ROUTE_TAXONOMY_VERSION,
+    `leaf=${rSnapshot?.allocations[0]?.leafTrackId} taxonomy=${rSnapshot?.taxonomyVersion}`);
+  const rDeficit = rSnapshot!.allocations.map(() => 0);
+  const rHappy = await retrieveViaDispatchTrackLocal({
+    pool, owner: candR, snapshot: rSnapshot, query: 'throttling 难度3', deficit: rDeficit, deps: mkDeps(new MemoryQbankCache()),
+  });
+  A('L8-R 技术面降级桶有题可出（general_q1·零跨叶零 business）',
+    rHappy.refs.length >= 1
+    && !isDegraded(rHappy.refs)
+    && onlyAllowedQidOrDegraded(rHappy.refs, GENERAL_QID)
+    && noCrossLeafServed(rHappy.refs, NODEJS_QID)
+    && noCrossLeafServed(rHappy.refs, JAVA_QID)
+    && noCrossLeafServed(rHappy.refs, PRODUCT_QID),
+    `refs=${rHappy.refs.map((r) => r.ref).join(',')}`);
 
   section('L5–L8 honesty pins');
 
