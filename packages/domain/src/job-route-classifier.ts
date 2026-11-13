@@ -15,7 +15,7 @@
  */
 import { createHash } from 'node:crypto';
 
-/** taxonomy v1 叶节点（父节点 backend/frontend/qa/ai_ml 不是 leaf）。与迁移 0086 种子一一对应。 */
+/** taxonomy v1 叶节点（父节点 backend/frontend/qa/ai_ml 不是 leaf）。与迁移 0086 种子一一对应。语义冻结，不得改写。 */
 export const TAXONOMY_V1_LEAVES = [
   'backend/nodejs',
   'backend/java',
@@ -26,11 +26,47 @@ export const TAXONOMY_V1_LEAVES = [
   'qa/quality_engineering',
   'ai_ml/applied',
 ] as const;
-export type TaxonomyLeaf = (typeof TAXONOMY_V1_LEAVES)[number];
+export type TaxonomyV1Leaf = (typeof TAXONOMY_V1_LEAVES)[number];
 
+/**
+ * taxonomy v2 新增非技术叶（父节点 business 不是 leaf）。与迁移 0234 种子一一对应。
+ * v1 叶语义不变；含非技术叶的决策写 v2，纯技术决策仍写 v1，以免技术题库投影对不上。
+ */
+export const TAXONOMY_V2_BUSINESS_LEAVES = [
+  'business/product',
+  'business/design',
+  'business/operations',
+  'business/sales',
+  'business/hr',
+  'business/general',
+] as const;
+export const TAXONOMY_V2_LEAVES = [...TAXONOMY_V1_LEAVES, ...TAXONOMY_V2_BUSINESS_LEAVES] as const;
+export type TaxonomyBusinessLeaf = (typeof TAXONOMY_V2_BUSINESS_LEAVES)[number];
+export type TaxonomyLeaf = (typeof TAXONOMY_V2_LEAVES)[number];
+
+/** 纯技术决策与既有 assemble 默认值仍是 v1；不得把该常量改成 v2，否则技术题库会 taxonomy_not_current / 空检索。 */
 export const JOB_ROUTE_TAXONOMY_VERSION = 'v1';
+export const JOB_ROUTE_TAXONOMY_V2 = 'v2';
+
+export function isBusinessTaxonomyLeaf(leaf: string): leaf is TaxonomyBusinessLeaf {
+  return (TAXONOMY_V2_BUSINESS_LEAVES as readonly string[]).includes(leaf);
+}
+
+/** 决策/快照/检索计划的 taxonomy 版本：出现任一非技术叶 → v2，否则 v1。 */
+export function taxonomyVersionForLeaves(leaves: readonly string[]): 'v1' | 'v2' {
+  return leaves.some((leaf) => isBusinessTaxonomyLeaf(leaf)) ? JOB_ROUTE_TAXONOMY_V2 : JOB_ROUTE_TAXONOMY_VERSION;
+}
+
+export function isServingTaxonomyForLeaf(version: string, leafTrackId: string): boolean {
+  return version === taxonomyVersionForLeaves([leafTrackId]);
+}
 /** 冻结校准策略版本：count/min-weight/confidence 阈值/margin 全部冻结。 */
 export const JOB_ROUTE_POLICY_VERSION = 'calibration-2026-08-frozen:v1';
+/** 含非技术叶的决策使用 v2 策略；纯技术决策保持 v1，校准阈值未改。 */
+export const JOB_ROUTE_POLICY_VERSION_V2 = 'calibration-2026-11-frozen:v2';
+export function policyVersionForLeaves(leaves: readonly string[]): string {
+  return taxonomyVersionForLeaves(leaves) === 'v2' ? JOB_ROUTE_POLICY_VERSION_V2 : JOB_ROUTE_POLICY_VERSION;
+}
 export const JOB_ROUTE_MAX_LEAVES = 4;
 export const JOB_ROUTE_MIN_ALLOCATION_BPS = 500;
 export const JOB_ROUTE_CONFIDENCE_THRESHOLD_BPS = 7000;
@@ -63,6 +99,27 @@ export function canonicalJobSemanticDigest(input: { title: string; description: 
   return createHash('sha256').update(JSON.stringify({ v: 'job-semantic:v1', title, description, competencies })).digest('hex');
 }
 
+
+function leafSignalRecord<K extends string>(
+  entries: ReadonlyArray<readonly [K, readonly string[]]>,
+): Record<K, readonly string[]> {
+  const out = {} as Record<K, readonly string[]>;
+  for (const [leaf, tokens] of entries) out[leaf] = tokens;
+  return out;
+}
+
+/** 非技术叶信号（数组项构造，避免 leaf id 触发 naming-convention；token 只用岗位自述级强证据）。 */
+const BUSINESS_RULE_SIGNALS = leafSignalRecord([
+  ['business/product', ['产品经理', '产品负责人', 'product manager', 'product owner', 'prd', '用户故事', '产品路线图']],
+  ['business/design', ['产品设计师', 'ui 设计师', 'ux 设计师', '视觉设计师', '交互设计师', 'ui designer', 'ux designer']],
+  ['business/operations', ['用户运营', '内容运营', '活动运营', '社区运营', '增长运营']],
+  ['business/sales', ['销售经理', '客户成功', '商务拓展', 'account executive', 'customer success']],
+  ['business/hr', ['人力资源', 'hrbp', '招聘经理', '人事经理', '人才发展']],
+  ['business/general', ['通用职场', '商务沟通']],
+] satisfies ReadonlyArray<readonly [TaxonomyBusinessLeaf, readonly string[]]>);
+
+/**
+ * rule 信号词典：
 /**
  * rule 信号词典：确定性关键词 → 唯一 leaf。通用/歧义词（后端/backend/全栈/fullstack/api/数据库/
  * 分布式/系统/架构…）刻意不映射到任何单一 leaf，否则 "全栈" 会被扩散成所有语言桶。
@@ -77,6 +134,7 @@ const RULE_SIGNALS: Record<TaxonomyLeaf, readonly string[]> = {
   'frontend/web': ['前端', 'frontend', 'react', 'vue', 'angular', '小程序', 'typescript', 'javascript', 'html', 'css'],
   'qa/quality_engineering': ['测试', 'qa', '质量工程', '自动化测试', 'sdet'],
   'ai_ml/applied': ['机器学习', '深度学习', '大模型', 'llm', 'rag', 'nlp', '算法', '人工智能', 'pytorch', 'tensorflow', 'embedding', 'langchain'],
+  ...BUSINESS_RULE_SIGNALS,
 };
 
 function corpus(input: { title: string; description: string; competencies: string[] }): string {
@@ -95,7 +153,7 @@ function signalMatches(text: string, token: string): boolean {
 /** 规则分类：唯一 leaf 才返回（0 调用模型）；0 个或 ≥2 个 leaf 命中 → null。 */
 export function classifyJobByRule(input: { title: string; description: string; competencies: string[] }): TaxonomyLeaf | null {
   const text = corpus(input);
-  const hits = TAXONOMY_V1_LEAVES.filter((leaf) => RULE_SIGNALS[leaf].some((t) => signalMatches(text, t)));
+  const hits = TAXONOMY_V2_LEAVES.filter((leaf) => RULE_SIGNALS[leaf].some((t) => signalMatches(text, t)));
   return hits.length === 1 ? hits[0]! : null;
 }
 
@@ -127,7 +185,7 @@ export function validateModelRouteOutput(output: JobRouteModelOutput): ValidateJ
   let sum = 0;
   for (const a of allocs) {
     if (!a || typeof a !== 'object' || typeof a.leafTrackId !== 'string' || !LEAF_RE.test(a.leafTrackId)) { push('invalid_schema'); continue; }
-    if (!(TAXONOMY_V1_LEAVES as readonly string[]).includes(a.leafTrackId)) push('taxonomy_invalid');
+    if (!(TAXONOMY_V2_LEAVES as readonly string[]).includes(a.leafTrackId)) push('taxonomy_invalid');
     if (seen.has(a.leafTrackId)) push('too_broad'); // 同 bucket 拆两份 = 歧义
     seen.add(a.leafTrackId);
     if (!Number.isInteger(a.allocationBps) || a.allocationBps <= 0) push('invalid_schema');

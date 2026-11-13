@@ -22,6 +22,7 @@ import {
   SEALED_JOB_ROUTE_CLASSIFY_OUTPUT_CONTRACT,
   parseSealedJobRouteClassifyProvenance,
   canonicalJobSemanticDigest,
+  TAXONOMY_V2_LEAVES,
   type SealedJobRouteClassifyProvenance,
   type JobRouteModelOutput,
 } from '@meetwise/domain';
@@ -156,7 +157,7 @@ export function createJobRouteModelClassify(deps: CreateJobRouteModelClassifyDep
       title: input.title,
       description: input.description,
       competencies: input.competencies,
-      taxonomyLeaves: 'backend/nodejs,backend/java,backend/go,backend/python,backend/general,frontend/web,qa/quality_engineering,ai_ml/applied',
+      taxonomyLeaves: TAXONOMY_V2_LEAVES.join(','),
     });
 
     let outcome: { value: z.infer<typeof JobRouteModelOutputSchema> } | { error: string };
