@@ -227,6 +227,7 @@ DoD：标"已 wired"的每条都是 CI 里真实运行、真能卡住合并的 j
 | S9 | #254 HTTP 层跳过当澄清（隔离 PG + 脚本模型） | `pnpm skip-as-clarify:http:prove` | 未入 CI，本地手跑（第二批合入后补挂） |
 | S10 | #263 0143 SSE NOTIFY trigger 缺失或禁用时 readiness fail-closed（隔离 PG） | `pnpm sse-notify-trigger-health:prove` | 未入 CI，本地手跑（第二批合入后补挂） |
 | S11 | #257 擦除流覆盖 interview_job 明文 + 投影物理 purge（0232，隔离 PG） | `pnpm erasure-job-projection:prove` | 未入 CI，本地手跑（第二批合入后补挂） |
+| S12 | ha6 scripts digest / 治理锚（改根 package.json scripts 后须重登；t1660u：不进主 CI） | `pnpm ha6:prove` | 仅 nightly（t1660u 协调者代决 · 改 scripts 的 PR 本地必跑） |
 
 ### 8.3 nightly 只放少量关键 prove（建议与理由）
 
@@ -249,6 +250,7 @@ DoD：标"已 wired"的每条都是 CI 里真实运行、真能卡住合并的 j
 | `db-acl2:prove`、`checkpoint-role:prove`、`qbank-control-role:prove`、`rag-control-role:prove`、`migrate-cli:prove`（复审补入） | 权限 / RLS 低权账号门，越权即泄露，与 uc033 同一风险类 |
 | `dbhy1:prove`、`qbank-integrity-upgrade:prove`、`rag-control-upgrade:prove`（复审补入） | 迁移升级类，与 migrate-upgrade / drift 同属「上云即炸」 |
 | `runtime:isolated:prove`（复审补入） | 运行内核：CAS / 租约 / 幂等 / 可恢复 / 迟到成功，坏了是全局正确性问题 |
+| `ha6:prove`（t1660u 补入 nightly，不进主 CI） | 根 package.json scripts digest 与治理锚；改 scripts 漏重登会让本地/nightly 红，主 CI 仍保持轻量 |
 
 其余 37 行只在本地。改到相关域时按 `ai-docs/skills/testing/run-gates.md` 选跑对应 prove，合并前大改动建议整跑一次 `pnpm verify:local`。
 

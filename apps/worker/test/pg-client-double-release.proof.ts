@@ -262,6 +262,48 @@ async function runScenario(mod: Record<string, unknown>): Promise<void> {
     `order=${order.join(',')}`,
   );
 
+  // N-1: configurable 与 target 一致，Object.keys(handle) 不得抛 TypeError。
+  const n1client = makeFakeClient({ delayMs: 0, allowReuse: true });
+  const facadeN1 = new boundCtor({ connect: async () => n1client, end: async () => undefined });
+  await withAccess(ACCESS, async () => {
+    const c = await facadeN1.connect();
+    let keys: string[] | undefined;
+    let keysErr: string | undefined;
+    try { keys = Object.keys(c); } catch (err) { keysErr = String((err as Error).message ?? err); }
+    A('N-1 Object.keys(handle) 不抛 TypeError', keysErr === undefined, `err=${keysErr ?? ''}`);
+    A(
+      'N-1 Object.keys 回报白名单三键',
+      !!keys && keys.length === 3 && keys.includes('query') && keys.includes('release') && keys.includes('releaseAsync'),
+      `keys=${keys?.join(',') ?? ''}`,
+    );
+    const desc = Reflect.getOwnPropertyDescriptor(c, 'query');
+    A('N-1 query 描述符与 target 同为 configurable:false', desc?.enumerable === true && desc?.configurable === false && typeof desc.value === 'function');
+    if (typeof c.releaseAsync === 'function') await c.releaseAsync();
+    else c.release();
+  });
+
+  // N-2: query 拒绝 Submittable，submit 不得拿到 raw Connection。
+  const n2client = makeFakeClient({ delayMs: 0, allowReuse: true });
+  const facadeN2 = new boundCtor({ connect: async () => n2client, end: async () => undefined });
+  await withAccess(ACCESS, async () => {
+    const c = await facadeN2.connect();
+    let captured: unknown;
+    const submittable = { submit(conn: unknown) { captured = conn; } };
+    let rejected = false;
+    let code: unknown;
+    try {
+      await (c.query as (...args: unknown[]) => Promise<unknown>)(submittable);
+    } catch (err) {
+      code = (err as { code?: string }).code;
+      rejected = code === 'checkpoint_query_submittable_rejected'
+        || /checkpoint_query_submittable_rejected/.test(String((err as Error).message ?? err));
+    }
+    A('N-2 query(Submittable) 拒绝', rejected, `code=${String(code ?? '')}`);
+    A('N-2 submit 未拿到 raw Connection', captured === undefined, `captured=${typeof captured}`);
+    if (typeof c.releaseAsync === 'function') await c.releaseAsync();
+    else c.release();
+  });
+
   if (fail !== 0) {
     console.log(`CHILD_FAIL ${fail}`);
     process.exit(1);
@@ -927,6 +969,26 @@ function writePatchedModule(src: string): { dir: string; url: string } {
   return { dir, url: `file://${file}` };
 }
 
+function loosenGopdInvariant(src: string): string {
+  let out = src;
+  out = out.replace(
+    /const defineHandle[\s\S]*?defineHandle\('releaseAsync', releaseAsync\);/,
+    "methods.query = query;\n  methods.release = release;\n  methods.releaseAsync = releaseAsync; // MUT_GOPD",
+  );
+  out = out.replace(
+    'return Reflect.getOwnPropertyDescriptor(methods, prop);',
+    'return { value: methods[prop], writable: false, enumerable: true, configurable: false }; // MUT_GOPD',
+  );
+  return out;
+}
+
+function stripSubmittableReject(src: string): string {
+  return src.replace(
+    /\/\/ REJECT_SUBMITTABLE[\s\S]*?throw Object\.assign\(new Error\('checkpoint_query_submittable_rejected'\), \{ code: 'checkpoint_query_submittable_rejected' \}\);\n\s*\}\n/,
+    '/* MUT_SUBMIT stripped */\n',
+  );
+}
+
 async function parent(): Promise<void> {
   let fail = 0;
   const A = (n: string, c: boolean, extra = '') => {
@@ -1006,6 +1068,28 @@ async function parent(): Promise<void> {
     (mutOrder.stdout ?? '').split('\n').find((l) => /E-1/.test(l)) ?? (mutOrder.stderr ?? '').slice(0, 200),
   );
 
+  const gopdSrc = loosenGopdInvariant(src);
+  A('MUT-GOPD 变换恢复 assignment + configurable:false 描述符', gopdSrc.includes('MUT_GOPD') && !gopdSrc.includes('defineHandle('));
+  const gopdWritten = writePatchedModule(gopdSrc);
+  const mutGopd = runChild('after', gopdWritten.url);
+  A('MUT-GOPD 破坏 invariant 后子进程非零退出', mutGopd.status !== 0, `status=${mutGopd.status} signal=${mutGopd.signal}`);
+  A(
+    'MUT-GOPD 失败在 N-1 Object.keys',
+    /FAIL {2}N-1 Object\.keys\(handle\)/.test(mutGopd.stdout ?? ''),
+    (mutGopd.stdout ?? '').split('\n').find((l) => /N-1 /.test(l)) ?? (mutGopd.stderr ?? '').slice(0, 200),
+  );
+
+  const submitSrc = stripSubmittableReject(src);
+  A('MUT-SUBMIT 变换去掉 REJECT_SUBMITTABLE', submitSrc.includes('MUT_SUBMIT stripped') && !submitSrc.includes('REJECT_SUBMITTABLE'));
+  const submitWritten = writePatchedModule(submitSrc);
+  const mutSubmit = runChild('after', submitWritten.url);
+  A('MUT-SUBMIT 去掉拒绝后子进程非零退出', mutSubmit.status !== 0, `status=${mutSubmit.status} signal=${mutSubmit.signal}`);
+  A(
+    'MUT-SUBMIT 失败在 N-2 query(Submittable) 拒绝',
+    /FAIL {2}N-2 query\(Submittable\) 拒绝/.test(mutSubmit.stdout ?? ''),
+    (mutSubmit.stdout ?? '').split('\n').find((l) => /N-2 /.test(l)) ?? (mutSubmit.stderr ?? '').slice(0, 200),
+  );
+
   A('ALERT-OLD 对现场崩溃日志假阴性', !WORKER_ALERT_RE_OLD.test(CRASH_LOG));
   A('ALERT-NEW 命中 already-released 与 Node 退出横幅', WORKER_ALERT_RE.test(CRASH_LOG));
   A('ALERT-NEW 对健康 worker.log 不误报', !WORKER_ALERT_RE.test(HEALTHY_LOG));
@@ -1017,6 +1101,9 @@ async function parent(): Promise<void> {
   A('S-6 façade.query finally 显式分支（无 await/?? 优先级陷阱）', src.includes('RELEASE_ASYNC_ONLY') && !/await \(client as \{ releaseAsync\?:/.test(src));
   A('S-7 connect 返回独立句柄（不把 release 包装挂到共享 Client）', src.includes('CHECKOUT_HANDLE') && !/client\.release = /.test(src) && src.includes('checkpoint_pg_stale_handle'));
   A('S-8 句柄为白名单普通对象（不 Proxy 共享 Client，不暴露 on/end/connection）', src.includes('WHITELIST_HANDLE') && src.includes('Object.create(null)') && !/new Proxy\(client/.test(src));
+
+  A('S-9 源含 REJECT_SUBMITTABLE 与 defineHandle 非可配置自有键', src.includes('REJECT_SUBMITTABLE') && src.includes('defineHandle') && src.includes('configurable: false'));
+  A('S-10 getOwnPropertyDescriptor 走 Reflect（与 target 描述符一致）', src.includes('Reflect.getOwnPropertyDescriptor(methods, prop)'));
 
   if (process.env.E2E_ISOLATED !== '1') {
     A('XP-2 须由官方 isolated runner 提供真实 PG（E2E_ISOLATED=1）', false, `E2E_ISOLATED=${process.env.E2E_ISOLATED ?? ''}`);

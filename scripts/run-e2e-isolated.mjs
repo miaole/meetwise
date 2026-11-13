@@ -52,6 +52,7 @@ import { captureBounded, appendStderrTail, commandLabel, disposableDockerRmArgs,
 import { assertNoFakeServiceFlags } from './e2e-fake-service-flags.mjs';
 import { writeLocalE2EReceipt, writeLocalIsolatedReceipt } from './local-e2e-receipt.mjs';
 import { withheldOutputSummary } from './withheld-output.mjs';
+import { buildInheritedEnv } from './isolated-inherited-env.mjs';
 
 
 function loadG7ReceiptFromLedger(env) {
@@ -4145,31 +4146,18 @@ if (isolationStack === LEGACY_STACK) {
     );
   }
 }
-const inheritedEnv = { ...process.env };
 // A real-model scoring evaluation must never load a developer `.env` or pay
 // for a provider call implicitly. CI/manual operators inject the key into this
 // process; without it no disposable database is even started.
-if (target === 'scoring:eval:raw' && !String(inheritedEnv.MODEL_API_KEY ?? '').trim()) {
+if (target === 'scoring:eval:raw' && !String(process.env.MODEL_API_KEY ?? '').trim()) {
   console.log('SKIP scoring:eval:raw: live_provider_key_not_injected');
   process.exit(0);
 }
-// An operator's shell may contain cloud data-plane credentials. Isolated tests
-// have one explicitly allowed external dependency (the live model for the
-// full E2E); RDS/Tair/OSS and tracing credentials are stripped before any
-// child is spawned, so a test cannot silently read/write a paid cloud service.
-for (const key of [
-  'DATABASE_URL', 'DATABASE_SSL_MODE', 'DATABASE_SSL_CA_PATH', 'QBANK_CONTROL_DATABASE_URL', 'QBANK_CONTROL_DB_USER', 'QBANK_CONTROL_DB_PASSWORD',
-  'REDIS_URL', 'RAG_REDIS_URL', 'RAG_REDIS_TEST_URL', 'RAG_QBANK_CACHE_HASH_KEY',
-  'RAG_QBANK_COMPUTE_CACHE_HASH_KEY', 'RAG_QBANK_COMPUTE_CACHE_VALUE_HASH_KEY', 'RAG_JOB_ROUTE_INPUT_HASH_KEY', 'RAG_FREE_TEXT_ROUTE_INPUT_HASH_KEY',
-  'OBJECT_STORAGE_ENDPOINT', 'OBJECT_STORAGE_BUCKET', 'OBJECT_STORAGE_ACCESS_KEY', 'OBJECT_STORAGE_SECRET_KEY',
-  'OSS_ACCESS_KEY_ID', 'OSS_ACCESS_KEY_SECRET', 'OSS_SECURITY_TOKEN',
-  'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_SESSION_TOKEN',
-  'MINIO_USER', 'MINIO_PASSWORD', 'LANGSMITH_API_KEY',
-  'DASHSCOPE_API_KEY', 'DASHSCOPE_ENDPOINT_PROFILE', 'DASHSCOPE_WORKSPACE_ID',
-  'DASHSCOPE_COMPAT_BASE_URL', 'DASHSCOPE_TTS_URL', 'DASHSCOPE_STREAM_URL', 'DASHSCOPE_RERANK_URL',
-  'DASHSCOPE_ASR_MODEL', 'DASHSCOPE_TTS_MODEL', 'DASHSCOPE_EMBED_MODEL', 'DASHSCOPE_RERANK_MODEL', 'DASHSCOPE_VISION_MODEL', 'DASHSCOPE_STREAM_ASR_MODEL', 'DASHSCOPE_STREAM_TTS_MODEL',
-]) delete inheritedEnv[key];
-for (const key of Object.keys(inheritedEnv)) if (key.startsWith('LANGFUSE_')) delete inheritedEnv[key];
+// Allowlist inherited env (scripts/isolated-inherited-env.mjs). Operator shells
+// may contain MODEL_API_KEY / MODEL_BACKUP_API_KEY / OPENAI* / ANTHROPIC* / XAI*
+// and other provider or data-plane secrets; non-live targets must not inherit
+// them. Live E2E and scoring:eval:raw may receive MODEL_API_KEY only.
+const inheritedEnv = buildInheritedEnv(process.env, target, LIVE_E2E_TARGETS);
 if (LIVE_E2E_TARGETS.has(target)) assertNoFakeServiceFlags(inheritedEnv);
 const targetToken = randomUUID();
 registerFailureRedactionSecrets(['meetwise_dev_password', targetToken]);

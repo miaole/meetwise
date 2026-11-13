@@ -1,0 +1,1715 @@
+Meetwise verify:local self-contained receipt
+timezone: Asia/Shanghai (UTC+8)
+worktree: /workspace/mw-vl-fix
+base: origin/main c33bd3b21 (#276)
+window: 2026-11-13 16:14:45-16:22:30 CST
+result: 75/75 EXIT 0
+elapsed_ms: 465458
+parent_pid: 3516351
+no leftover meetwise containers
+pins: NOT_HA · releaseEvidence=false · claimProductionHA=false
+source_steps_json: /workspace/meetwise-review-out/verify-local-20261113-selfcontained-steps.json
+source_summary_json: /workspace/meetwise-review-out/verify-local-20261113-selfcontained-summary.json
+--- steps.json ---
+[
+  {
+    "i": 1,
+    "cmd": "e2e-ui-stale-build-guard:prove",
+    "exit": 0,
+    "ms": 497,
+    "pid": 3516371,
+    "started": "2026-11-13 16:14:45 CST",
+    "ended": "2026-11-13 16:14:45 CST",
+    "containers": []
+  },
+  {
+    "i": 2,
+    "cmd": "-C apps/web prove:public-copy",
+    "exit": 0,
+    "ms": 343,
+    "pid": 3516493,
+    "started": "2026-11-13 16:14:45 CST",
+    "ended": "2026-11-13 16:14:46 CST",
+    "containers": []
+  },
+  {
+    "i": 3,
+    "cmd": "migrate-upgrade:prove",
+    "exit": 0,
+    "ms": 9801,
+    "pid": 3516543,
+    "started": "2026-11-13 16:14:46 CST",
+    "ended": "2026-11-13 16:14:55 CST",
+    "containers": [
+      "meetwise-e2e-3516561-1794557686358"
+    ]
+  },
+  {
+    "i": 4,
+    "cmd": "drift:prove",
+    "exit": 0,
+    "ms": 20017,
+    "pid": 3517664,
+    "started": "2026-11-13 16:14:55 CST",
+    "ended": "2026-11-13 16:15:15 CST",
+    "containers": [
+      "meetwise-postgres-drift-3517682"
+    ]
+  },
+  {
+    "i": 5,
+    "cmd": "neg:bend",
+    "exit": 0,
+    "ms": 5811,
+    "pid": 3526608,
+    "started": "2026-11-13 16:15:16 CST",
+    "ended": "2026-11-13 16:15:21 CST",
+    "containers": [
+      "meetwise-e2e-3526651-1794557716239"
+    ]
+  },
+  {
+    "i": 6,
+    "cmd": "neg:auth",
+    "exit": 0,
+    "ms": 5234,
+    "pid": 3527337,
+    "started": "2026-11-13 16:15:21 CST",
+    "ended": "2026-11-13 16:15:27 CST",
+    "containers": [
+      "meetwise-e2e-3527355-1794557722080"
+    ]
+  },
+  {
+    "i": 7,
+    "cmd": "neg:commerce",
+    "exit": 0,
+    "ms": 4499,
+    "pid": 3528031,
+    "started": "2026-11-13 16:15:27 CST",
+    "ended": "2026-11-13 16:15:31 CST",
+    "containers": [
+      "meetwise-e2e-3528052-1794557727334"
+    ]
+  },
+  {
+    "i": 8,
+    "cmd": "neg:resume",
+    "exit": 0,
+    "ms": 4623,
+    "pid": 3528685,
+    "started": "2026-11-13 16:15:31 CST",
+    "ended": "2026-11-13 16:15:36 CST",
+    "containers": [
+      "meetwise-e2e-3528703-1794557731857"
+    ]
+  },
+  {
+    "i": 9,
+    "cmd": "neg:interview",
+    "exit": 0,
+    "ms": 4744,
+    "pid": 3529335,
+    "started": "2026-11-13 16:15:36 CST",
+    "ended": "2026-11-13 16:15:41 CST",
+    "containers": [
+      "meetwise-e2e-3529353-1794557736499"
+    ]
+  },
+  {
+    "i": 10,
+    "cmd": "neg:input",
+    "exit": 0,
+    "ms": 4683,
+    "pid": 3529992,
+    "started": "2026-11-13 16:15:41 CST",
+    "ended": "2026-11-13 16:15:45 CST",
+    "containers": [
+      "meetwise-e2e-3530013-1794557741273"
+    ]
+  },
+  {
+    "i": 11,
+    "cmd": "uc033:cross-user-authz:prove",
+    "exit": 0,
+    "ms": 4549,
+    "pid": 3530670,
+    "started": "2026-11-13 16:15:45 CST",
+    "ended": "2026-11-13 16:15:50 CST",
+    "containers": [
+      "meetwise-e2e-3530688-1794557745983"
+    ]
+  },
+  {
+    "i": 12,
+    "cmd": "dbhy1:prove",
+    "exit": 0,
+    "ms": 6476,
+    "pid": 3531341,
+    "started": "2026-11-13 16:15:50 CST",
+    "ended": "2026-11-13 16:15:56 CST",
+    "containers": [
+      "meetwise-e2e-3531359-1794557750560"
+    ]
+  },
+  {
+    "i": 13,
+    "cmd": "db-acl2:prove",
+    "exit": 0,
+    "ms": 9331,
+    "pid": 3532347,
+    "started": "2026-11-13 16:15:56 CST",
+    "ended": "2026-11-13 16:16:06 CST",
+    "containers": [
+      "meetwise-e2e-3532365-1794557757071"
+    ]
+  },
+  {
+    "i": 14,
+    "cmd": "commerce:prove",
+    "exit": 0,
+    "ms": 5923,
+    "pid": 3533393,
+    "started": "2026-11-13 16:16:06 CST",
+    "ended": "2026-11-13 16:16:12 CST",
+    "containers": [
+      "meetwise-e2e-3533411-1794557766427"
+    ]
+  },
+  {
+    "i": 15,
+    "cmd": "resume:prove",
+    "exit": 0,
+    "ms": 5622,
+    "pid": 3534254,
+    "started": "2026-11-13 16:16:12 CST",
+    "ended": "2026-11-13 16:16:17 CST",
+    "containers": [
+      "meetwise-e2e-3534272-1794557772379"
+    ]
+  },
+  {
+    "i": 16,
+    "cmd": "report:prove",
+    "exit": 0,
+    "ms": 6365,
+    "pid": 3535119,
+    "started": "2026-11-13 16:16:17 CST",
+    "ended": "2026-11-13 16:16:24 CST",
+    "containers": [
+      "meetwise-e2e-3535137-1794557778039"
+    ]
+  },
+  {
+    "i": 17,
+    "cmd": "quiz:prove",
+    "exit": 0,
+    "ms": 6366,
+    "pid": 3535975,
+    "started": "2026-11-13 16:16:24 CST",
+    "ended": "2026-11-13 16:16:30 CST",
+    "containers": [
+      "meetwise-e2e-3535994-1794557784408"
+    ]
+  },
+  {
+    "i": 18,
+    "cmd": "reaper:prove",
+    "exit": 0,
+    "ms": 6344,
+    "pid": 3536834,
+    "started": "2026-11-13 16:16:30 CST",
+    "ended": "2026-11-13 16:16:36 CST",
+    "containers": [
+      "meetwise-e2e-3536860-1794557790813"
+    ]
+  },
+  {
+    "i": 19,
+    "cmd": "model-op00:prove",
+    "exit": 0,
+    "ms": 6101,
+    "pid": 3537712,
+    "started": "2026-11-13 16:16:36 CST",
+    "ended": "2026-11-13 16:16:43 CST",
+    "containers": [
+      "meetwise-e2e-3537730-1794557797182"
+    ]
+  },
+  {
+    "i": 20,
+    "cmd": "adaptive:prove",
+    "exit": 0,
+    "ms": 881,
+    "pid": 3538602,
+    "started": "2026-11-13 16:16:43 CST",
+    "ended": "2026-11-13 16:16:43 CST",
+    "containers": []
+  },
+  {
+    "i": 21,
+    "cmd": "adaptive-flow:prove",
+    "exit": 0,
+    "ms": 6257,
+    "pid": 3538713,
+    "started": "2026-11-13 16:16:43 CST",
+    "ended": "2026-11-13 16:16:50 CST",
+    "containers": [
+      "meetwise-e2e-3538731-1794557804209"
+    ]
+  },
+  {
+    "i": 22,
+    "cmd": "adaptive-life:prove",
+    "exit": 0,
+    "ms": 7518,
+    "pid": 3539587,
+    "started": "2026-11-13 16:16:50 CST",
+    "ended": "2026-11-13 16:16:57 CST",
+    "containers": [
+      "meetwise-e2e-3539605-1794557810496"
+    ]
+  },
+  {
+    "i": 23,
+    "cmd": "adaptive-consumer:prove",
+    "exit": 0,
+    "ms": 7015,
+    "pid": 3540604,
+    "started": "2026-11-13 16:16:57 CST",
+    "ended": "2026-11-13 16:17:04 CST",
+    "containers": [
+      "meetwise-e2e-3540622-1794557818042"
+    ]
+  },
+  {
+    "i": 24,
+    "cmd": "checkpoint-role:prove",
+    "exit": 0,
+    "ms": 5870,
+    "pid": 3541487,
+    "started": "2026-11-13 16:17:04 CST",
+    "ended": "2026-11-13 16:17:10 CST",
+    "containers": [
+      "meetwise-e2e-3541505-1794557825086"
+    ]
+  },
+  {
+    "i": 25,
+    "cmd": "privacy-erasure:prove",
+    "exit": 0,
+    "ms": 6375,
+    "pid": 3542213,
+    "started": "2026-11-13 16:17:10 CST",
+    "ended": "2026-11-13 16:17:17 CST",
+    "containers": [
+      "meetwise-e2e-3542231-1794557831055"
+    ]
+  },
+  {
+    "i": 26,
+    "cmd": "privacy-erasure:http:prove",
+    "exit": 0,
+    "ms": 37017,
+    "pid": 3543081,
+    "started": "2026-11-13 16:17:17 CST",
+    "ended": "2026-11-13 16:17:54 CST",
+    "containers": [
+      "meetwise-e2e-3543102-1794557837388"
+    ]
+  },
+  {
+    "i": 27,
+    "cmd": "privacy-erasure-preview:prove",
+    "exit": 0,
+    "ms": 5645,
+    "pid": 3544554,
+    "started": "2026-11-13 16:17:54 CST",
+    "ended": "2026-11-13 16:17:59 CST",
+    "containers": [
+      "meetwise-e2e-3544572-1794557874426"
+    ]
+  },
+  {
+    "i": 28,
+    "cmd": "privacy-erasure:pause-upgrade:prove",
+    "exit": 0,
+    "ms": 5209,
+    "pid": 3545402,
+    "started": "2026-11-13 16:17:59 CST",
+    "ended": "2026-11-13 16:18:05 CST",
+    "containers": [
+      "meetwise-e2e-3545421-1794557880154"
+    ]
+  },
+  {
+    "i": 29,
+    "cmd": "scor-00:http:prove",
+    "exit": 0,
+    "ms": 6618,
+    "pid": 3546083,
+    "started": "2026-11-13 16:18:05 CST",
+    "ended": "2026-11-13 16:18:11 CST",
+    "containers": [
+      "meetwise-e2e-3546101-1794557885330"
+    ]
+  },
+  {
+    "i": 30,
+    "cmd": "scor-parity:prove",
+    "exit": 0,
+    "ms": 6055,
+    "pid": 3546970,
+    "started": "2026-11-13 16:18:11 CST",
+    "ended": "2026-11-13 16:18:17 CST",
+    "containers": [
+      "meetwise-e2e-3546994-1794557891977"
+    ]
+  },
+  {
+    "i": 31,
+    "cmd": "scoring-integrity:prove",
+    "exit": 0,
+    "ms": 6870,
+    "pid": 3547850,
+    "started": "2026-11-13 16:18:17 CST",
+    "ended": "2026-11-13 16:18:24 CST",
+    "containers": [
+      "meetwise-e2e-3547869-1794557898086"
+    ]
+  },
+  {
+    "i": 32,
+    "cmd": "tokenstream:prove",
+    "exit": 0,
+    "ms": 19200,
+    "pid": 3548705,
+    "started": "2026-11-13 16:18:24 CST",
+    "ended": "2026-11-13 16:18:43 CST",
+    "containers": [
+      "meetwise-e2e-3548723-1794557904961"
+    ]
+  },
+  {
+    "i": 33,
+    "cmd": "stress:prove",
+    "exit": 0,
+    "ms": 7089,
+    "pid": 3549805,
+    "started": "2026-11-13 16:18:43 CST",
+    "ended": "2026-11-13 16:18:51 CST",
+    "containers": [
+      "meetwise-e2e-3549823-1794557924194"
+    ]
+  },
+  {
+    "i": 34,
+    "cmd": "uc003:i18n-locale:prove",
+    "exit": 0,
+    "ms": 2622,
+    "pid": 3550697,
+    "started": "2026-11-13 16:18:51 CST",
+    "ended": "2026-11-13 16:18:53 CST",
+    "containers": [
+      "meetwise-e2e-3550715-1794557931300"
+    ]
+  },
+  {
+    "i": 35,
+    "cmd": "metrics:prove",
+    "exit": 0,
+    "ms": 1349,
+    "pid": 3551415,
+    "started": "2026-11-13 16:18:53 CST",
+    "ended": "2026-11-13 16:18:55 CST",
+    "containers": []
+  },
+  {
+    "i": 36,
+    "cmd": "model-output-limit:prove",
+    "exit": 0,
+    "ms": 1353,
+    "pid": 3551529,
+    "started": "2026-11-13 16:18:55 CST",
+    "ended": "2026-11-13 16:18:56 CST",
+    "containers": []
+  },
+  {
+    "i": 37,
+    "cmd": "dashscope-native-config:prove",
+    "exit": 0,
+    "ms": 712,
+    "pid": 3551653,
+    "started": "2026-11-13 16:18:56 CST",
+    "ended": "2026-11-13 16:18:57 CST",
+    "containers": []
+  },
+  {
+    "i": 38,
+    "cmd": "voice-operation-policy:prove",
+    "exit": 0,
+    "ms": 1681,
+    "pid": 3551755,
+    "started": "2026-11-13 16:18:57 CST",
+    "ended": "2026-11-13 16:18:58 CST",
+    "containers": []
+  },
+  {
+    "i": 39,
+    "cmd": "voice-stream-asr-honesty:prove",
+    "exit": 0,
+    "ms": 1345,
+    "pid": 3551876,
+    "started": "2026-11-13 16:18:58 CST",
+    "ended": "2026-11-13 16:19:00 CST",
+    "containers": []
+  },
+  {
+    "i": 40,
+    "cmd": "interview-voice-seams:prove",
+    "exit": 0,
+    "ms": 1390,
+    "pid": 3551992,
+    "started": "2026-11-13 16:19:00 CST",
+    "ended": "2026-11-13 16:19:01 CST",
+    "containers": []
+  },
+  {
+    "i": 41,
+    "cmd": "ocr-operation-policy:prove",
+    "exit": 0,
+    "ms": 1263,
+    "pid": 3552112,
+    "started": "2026-11-13 16:19:01 CST",
+    "ended": "2026-11-13 16:19:02 CST",
+    "containers": []
+  },
+  {
+    "i": 42,
+    "cmd": "voice-adaptive:prove",
+    "exit": 0,
+    "ms": 7311,
+    "pid": 3552226,
+    "started": "2026-11-13 16:19:03 CST",
+    "ended": "2026-11-13 16:19:10 CST",
+    "containers": [
+      "meetwise-e2e-3552244-1794557943247"
+    ]
+  },
+  {
+    "i": 43,
+    "cmd": "rag-generation:prove",
+    "exit": 0,
+    "ms": 6558,
+    "pid": 3553106,
+    "started": "2026-11-13 16:19:10 CST",
+    "ended": "2026-11-13 16:19:16 CST",
+    "containers": [
+      "meetwise-e2e-3553124-1794557950606"
+    ]
+  },
+  {
+    "i": 44,
+    "cmd": "qbank-integrity-upgrade:prove",
+    "exit": 0,
+    "ms": 4308,
+    "pid": 3554012,
+    "started": "2026-11-13 16:19:16 CST",
+    "ended": "2026-11-13 16:19:21 CST",
+    "containers": [
+      "meetwise-e2e-3554030-1794557957186"
+    ]
+  },
+  {
+    "i": 45,
+    "cmd": "qbank-control-role:prove",
+    "exit": 0,
+    "ms": 6366,
+    "pid": 3554671,
+    "started": "2026-11-13 16:19:21 CST",
+    "ended": "2026-11-13 16:19:27 CST",
+    "containers": [
+      "meetwise-e2e-3554689-1794557961526"
+    ]
+  },
+  {
+    "i": 46,
+    "cmd": "rag-control-runtime:prove",
+    "exit": 0,
+    "ms": 937,
+    "pid": 3555570,
+    "started": "2026-11-13 16:19:27 CST",
+    "ended": "2026-11-13 16:19:28 CST",
+    "containers": []
+  },
+  {
+    "i": 47,
+    "cmd": "rag-control-role:prove",
+    "exit": 0,
+    "ms": 4829,
+    "pid": 3555674,
+    "started": "2026-11-13 16:19:28 CST",
+    "ended": "2026-11-13 16:19:33 CST",
+    "containers": [
+      "meetwise-e2e-3555692-1794557968865"
+    ]
+  },
+  {
+    "i": 48,
+    "cmd": "rag-control-upgrade:prove",
+    "exit": 0,
+    "ms": 4522,
+    "pid": 3556337,
+    "started": "2026-11-13 16:19:33 CST",
+    "ended": "2026-11-13 16:19:38 CST",
+    "containers": [
+      "meetwise-e2e-3556358-1794557973738"
+    ]
+  },
+  {
+    "i": 49,
+    "cmd": "rag-corpus-version:prove",
+    "exit": 0,
+    "ms": 4973,
+    "pid": 3557036,
+    "started": "2026-11-13 16:19:38 CST",
+    "ended": "2026-11-13 16:19:43 CST",
+    "containers": [
+      "meetwise-e2e-3557054-1794557978292"
+    ]
+  },
+  {
+    "i": 50,
+    "cmd": "rag-control-dispatch:prove",
+    "exit": 0,
+    "ms": 4968,
+    "pid": 3557718,
+    "started": "2026-11-13 16:19:43 CST",
+    "ended": "2026-11-13 16:19:48 CST",
+    "containers": [
+      "meetwise-e2e-3557736-1794557983287"
+    ]
+  },
+  {
+    "i": 51,
+    "cmd": "migrate-cli:prove",
+    "exit": 0,
+    "ms": 6782,
+    "pid": 3558438,
+    "started": "2026-11-13 16:19:48 CST",
+    "ended": "2026-11-13 16:19:54 CST",
+    "containers": [
+      "meetwise-e2e-3558456-1794557988274"
+    ]
+  },
+  {
+    "i": 52,
+    "cmd": "qbank-pipeline:prove",
+    "exit": 0,
+    "ms": 5980,
+    "pid": 3559338,
+    "started": "2026-11-13 16:19:54 CST",
+    "ended": "2026-11-13 16:20:00 CST",
+    "containers": [
+      "meetwise-e2e-3559356-1794557995101"
+    ]
+  },
+  {
+    "i": 53,
+    "cmd": "adaptive-degrade:prove",
+    "exit": 0,
+    "ms": 10711,
+    "pid": 3560200,
+    "started": "2026-11-13 16:20:00 CST",
+    "ended": "2026-11-13 16:20:11 CST",
+    "containers": [
+      "meetwise-e2e-3560218-1794558001092"
+    ]
+  },
+  {
+    "i": 54,
+    "cmd": "interview:prove",
+    "exit": 0,
+    "ms": 7211,
+    "pid": 3561124,
+    "started": "2026-11-13 16:20:11 CST",
+    "ended": "2026-11-13 16:20:18 CST",
+    "containers": [
+      "meetwise-e2e-3561145-1794558011830"
+    ]
+  },
+  {
+    "i": 55,
+    "cmd": "drain:prove",
+    "exit": 0,
+    "ms": 15684,
+    "pid": 3562025,
+    "started": "2026-11-13 16:20:18 CST",
+    "ended": "2026-11-13 16:20:34 CST",
+    "containers": []
+  },
+  {
+    "i": 56,
+    "cmd": "worker-wakeup:prove",
+    "exit": 0,
+    "ms": 1069,
+    "pid": 3562372,
+    "started": "2026-11-13 16:20:34 CST",
+    "ended": "2026-11-13 16:20:35 CST",
+    "containers": []
+  },
+  {
+    "i": 57,
+    "cmd": "vectorstore:prove",
+    "exit": 0,
+    "ms": 3489,
+    "pid": 3562474,
+    "started": "2026-11-13 16:20:35 CST",
+    "ended": "2026-11-13 16:20:39 CST",
+    "containers": [
+      "meetwise-e2e-3562503-1794558035870"
+    ]
+  },
+  {
+    "i": 58,
+    "cmd": "memory:prove",
+    "exit": 0,
+    "ms": 6218,
+    "pid": 3563147,
+    "started": "2026-11-13 16:20:39 CST",
+    "ended": "2026-11-13 16:20:45 CST",
+    "containers": [
+      "meetwise-e2e-3563165-1794558039391"
+    ]
+  },
+  {
+    "i": 59,
+    "cmd": "deploy:check",
+    "exit": 0,
+    "ms": 542,
+    "pid": 3564050,
+    "started": "2026-11-13 16:20:45 CST",
+    "ended": "2026-11-13 16:20:45 CST",
+    "containers": []
+  },
+  {
+    "i": 60,
+    "cmd": "voice:prove",
+    "exit": 0,
+    "ms": 4065,
+    "pid": 3564154,
+    "started": "2026-11-13 16:20:45 CST",
+    "ended": "2026-11-13 16:20:50 CST",
+    "containers": [
+      "meetwise-e2e-3564178-1794558046210"
+    ]
+  },
+  {
+    "i": 61,
+    "cmd": "-C packages/ai-runtime prove:voice-reliability",
+    "exit": 0,
+    "ms": 31223,
+    "pid": 3564808,
+    "started": "2026-11-13 16:20:50 CST",
+    "ended": "2026-11-13 16:21:21 CST",
+    "containers": []
+  },
+  {
+    "i": 62,
+    "cmd": "-C apps/web prove:speak-proxy",
+    "exit": 0,
+    "ms": 472,
+    "pid": 3565555,
+    "started": "2026-11-13 16:21:21 CST",
+    "ended": "2026-11-13 16:21:21 CST",
+    "containers": []
+  },
+  {
+    "i": 63,
+    "cmd": "-C apps/web prove:transcribe-proxy",
+    "exit": 0,
+    "ms": 474,
+    "pid": 3565637,
+    "started": "2026-11-13 16:21:21 CST",
+    "ended": "2026-11-13 16:21:22 CST",
+    "containers": []
+  },
+  {
+    "i": 64,
+    "cmd": "-C apps/api prove:voice-timeout",
+    "exit": 0,
+    "ms": 1443,
+    "pid": 3565728,
+    "started": "2026-11-13 16:21:22 CST",
+    "ended": "2026-11-13 16:21:23 CST",
+    "containers": []
+  },
+  {
+    "i": 65,
+    "cmd": "-C apps/api prove:voice-cancel-http",
+    "exit": 0,
+    "ms": 1270,
+    "pid": 3565807,
+    "started": "2026-11-13 16:21:23 CST",
+    "ended": "2026-11-13 16:21:25 CST",
+    "containers": []
+  },
+  {
+    "i": 66,
+    "cmd": "runtime:isolated:prove",
+    "exit": 0,
+    "ms": 9092,
+    "pid": 3565907,
+    "started": "2026-11-13 16:21:25 CST",
+    "ended": "2026-11-13 16:21:34 CST",
+    "containers": [
+      "meetwise-e2e-3565925-1794558085336"
+    ]
+  },
+  {
+    "i": 67,
+    "cmd": "graph:prove",
+    "exit": 0,
+    "ms": 4131,
+    "pid": 3566924,
+    "started": "2026-11-13 16:21:34 CST",
+    "ended": "2026-11-13 16:21:38 CST",
+    "containers": [
+      "meetwise-e2e-3566949-1794558094473"
+    ]
+  },
+  {
+    "i": 68,
+    "cmd": "api:validate",
+    "exit": 0,
+    "ms": 9374,
+    "pid": 3567585,
+    "started": "2026-11-13 16:21:38 CST",
+    "ended": "2026-11-13 16:21:47 CST",
+    "containers": [
+      "meetwise-e2e-3567604-1794558098627"
+    ]
+  },
+  {
+    "i": 69,
+    "cmd": "ocr:prove",
+    "exit": 0,
+    "ms": 6072,
+    "pid": 3568492,
+    "started": "2026-11-13 16:21:47 CST",
+    "ended": "2026-11-13 16:21:53 CST",
+    "containers": [
+      "meetwise-e2e-3568513-1794558108018"
+    ]
+  },
+  {
+    "i": 70,
+    "cmd": "worker-inflight-crash:prove",
+    "exit": 0,
+    "ms": 4270,
+    "pid": 3569471,
+    "started": "2026-11-13 16:21:53 CST",
+    "ended": "2026-11-13 16:21:58 CST",
+    "containers": []
+  },
+  {
+    "i": 71,
+    "cmd": "int18:payload-strip:prove",
+    "exit": 0,
+    "ms": 6745,
+    "pid": 3569676,
+    "started": "2026-11-13 16:21:58 CST",
+    "ended": "2026-11-13 16:22:04 CST",
+    "containers": [
+      "meetwise-e2e-3569700-1794558118420"
+    ]
+  },
+  {
+    "i": 72,
+    "cmd": "body-limit:prove",
+    "exit": 0,
+    "ms": 4885,
+    "pid": 3570555,
+    "started": "2026-11-13 16:22:04 CST",
+    "ended": "2026-11-13 16:22:09 CST",
+    "containers": [
+      "meetwise-e2e-3570573-1794558125199"
+    ]
+  },
+  {
+    "i": 73,
+    "cmd": "skip-as-clarify:http:prove",
+    "exit": 0,
+    "ms": 8016,
+    "pid": 3571213,
+    "started": "2026-11-13 16:22:09 CST",
+    "ended": "2026-11-13 16:22:17 CST",
+    "containers": [
+      "meetwise-e2e-3571231-1794558130113"
+    ]
+  },
+  {
+    "i": 74,
+    "cmd": "sse-notify-trigger-health:prove",
+    "exit": 0,
+    "ms": 6910,
+    "pid": 3572109,
+    "started": "2026-11-13 16:22:17 CST",
+    "ended": "2026-11-13 16:22:24 CST",
+    "containers": [
+      "meetwise-e2e-3572127-1794558138167"
+    ]
+  },
+  {
+    "i": 75,
+    "cmd": "erasure-job-projection:prove",
+    "exit": 0,
+    "ms": 5783,
+    "pid": 3572965,
+    "started": "2026-11-13 16:22:24 CST",
+    "ended": "2026-11-13 16:22:30 CST",
+    "containers": [
+      "meetwise-e2e-3572983-1794558145097"
+    ]
+  }
+]
+--- summary.json ---
+{
+  "parentPid": 3516351,
+  "cwd": "/workspace/mw-vl-fix",
+  "startedAt": "2026-11-13 16:14:45 CST",
+  "finishedAt": "2026-11-13 16:22:30 CST",
+  "durationMs": 465458,
+  "stepsPlanned": 75,
+  "stepsRun": 75,
+  "allPassed": true,
+  "firstFail": null,
+  "leftoverContainers": [],
+  "records": [
+    {
+      "i": 1,
+      "cmd": "pnpm e2e-ui-stale-build-guard:prove",
+      "started": "2026-11-13 16:14:45 CST",
+      "ended": "2026-11-13 16:14:45 CST",
+      "durationMs": 497,
+      "exitCode": 0,
+      "childPid": 3516371,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 2,
+      "cmd": "pnpm -C apps/web prove:public-copy",
+      "started": "2026-11-13 16:14:45 CST",
+      "ended": "2026-11-13 16:14:46 CST",
+      "durationMs": 343,
+      "exitCode": 0,
+      "childPid": 3516493,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 3,
+      "cmd": "MIGRATE_UPGRADE_REQUIRE_GIT_ARM=1 pnpm migrate-upgrade:prove",
+      "started": "2026-11-13 16:14:46 CST",
+      "ended": "2026-11-13 16:14:55 CST",
+      "durationMs": 9801,
+      "exitCode": 0,
+      "childPid": 3516543,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 4,
+      "cmd": "pnpm drift:prove",
+      "started": "2026-11-13 16:14:55 CST",
+      "ended": "2026-11-13 16:15:15 CST",
+      "durationMs": 20017,
+      "exitCode": 0,
+      "childPid": 3517664,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 5,
+      "cmd": "pnpm neg:bend",
+      "started": "2026-11-13 16:15:16 CST",
+      "ended": "2026-11-13 16:15:21 CST",
+      "durationMs": 5811,
+      "exitCode": 0,
+      "childPid": 3526608,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 6,
+      "cmd": "pnpm neg:auth",
+      "started": "2026-11-13 16:15:21 CST",
+      "ended": "2026-11-13 16:15:27 CST",
+      "durationMs": 5234,
+      "exitCode": 0,
+      "childPid": 3527337,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 7,
+      "cmd": "pnpm neg:commerce",
+      "started": "2026-11-13 16:15:27 CST",
+      "ended": "2026-11-13 16:15:31 CST",
+      "durationMs": 4499,
+      "exitCode": 0,
+      "childPid": 3528031,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 8,
+      "cmd": "pnpm neg:resume",
+      "started": "2026-11-13 16:15:31 CST",
+      "ended": "2026-11-13 16:15:36 CST",
+      "durationMs": 4623,
+      "exitCode": 0,
+      "childPid": 3528685,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 9,
+      "cmd": "pnpm neg:interview",
+      "started": "2026-11-13 16:15:36 CST",
+      "ended": "2026-11-13 16:15:41 CST",
+      "durationMs": 4744,
+      "exitCode": 0,
+      "childPid": 3529335,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 10,
+      "cmd": "pnpm neg:input",
+      "started": "2026-11-13 16:15:41 CST",
+      "ended": "2026-11-13 16:15:45 CST",
+      "durationMs": 4683,
+      "exitCode": 0,
+      "childPid": 3529992,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 11,
+      "cmd": "pnpm uc033:cross-user-authz:prove",
+      "started": "2026-11-13 16:15:45 CST",
+      "ended": "2026-11-13 16:15:50 CST",
+      "durationMs": 4549,
+      "exitCode": 0,
+      "childPid": 3530670,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 12,
+      "cmd": "pnpm dbhy1:prove",
+      "started": "2026-11-13 16:15:50 CST",
+      "ended": "2026-11-13 16:15:56 CST",
+      "durationMs": 6476,
+      "exitCode": 0,
+      "childPid": 3531341,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 13,
+      "cmd": "pnpm db-acl2:prove",
+      "started": "2026-11-13 16:15:56 CST",
+      "ended": "2026-11-13 16:16:06 CST",
+      "durationMs": 9331,
+      "exitCode": 0,
+      "childPid": 3532347,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 14,
+      "cmd": "pnpm commerce:prove",
+      "started": "2026-11-13 16:16:06 CST",
+      "ended": "2026-11-13 16:16:12 CST",
+      "durationMs": 5923,
+      "exitCode": 0,
+      "childPid": 3533393,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 15,
+      "cmd": "pnpm resume:prove",
+      "started": "2026-11-13 16:16:12 CST",
+      "ended": "2026-11-13 16:16:17 CST",
+      "durationMs": 5622,
+      "exitCode": 0,
+      "childPid": 3534254,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 16,
+      "cmd": "pnpm report:prove",
+      "started": "2026-11-13 16:16:17 CST",
+      "ended": "2026-11-13 16:16:24 CST",
+      "durationMs": 6365,
+      "exitCode": 0,
+      "childPid": 3535119,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 17,
+      "cmd": "pnpm quiz:prove",
+      "started": "2026-11-13 16:16:24 CST",
+      "ended": "2026-11-13 16:16:30 CST",
+      "durationMs": 6366,
+      "exitCode": 0,
+      "childPid": 3535975,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 18,
+      "cmd": "pnpm reaper:prove",
+      "started": "2026-11-13 16:16:30 CST",
+      "ended": "2026-11-13 16:16:36 CST",
+      "durationMs": 6344,
+      "exitCode": 0,
+      "childPid": 3536834,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 19,
+      "cmd": "pnpm model-op00:prove",
+      "started": "2026-11-13 16:16:36 CST",
+      "ended": "2026-11-13 16:16:43 CST",
+      "durationMs": 6101,
+      "exitCode": 0,
+      "childPid": 3537712,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 20,
+      "cmd": "pnpm adaptive:prove",
+      "started": "2026-11-13 16:16:43 CST",
+      "ended": "2026-11-13 16:16:43 CST",
+      "durationMs": 881,
+      "exitCode": 0,
+      "childPid": 3538602,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 21,
+      "cmd": "pnpm adaptive-flow:prove",
+      "started": "2026-11-13 16:16:43 CST",
+      "ended": "2026-11-13 16:16:50 CST",
+      "durationMs": 6257,
+      "exitCode": 0,
+      "childPid": 3538713,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 22,
+      "cmd": "pnpm adaptive-life:prove",
+      "started": "2026-11-13 16:16:50 CST",
+      "ended": "2026-11-13 16:16:57 CST",
+      "durationMs": 7518,
+      "exitCode": 0,
+      "childPid": 3539587,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 23,
+      "cmd": "pnpm adaptive-consumer:prove",
+      "started": "2026-11-13 16:16:57 CST",
+      "ended": "2026-11-13 16:17:04 CST",
+      "durationMs": 7015,
+      "exitCode": 0,
+      "childPid": 3540604,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 24,
+      "cmd": "pnpm checkpoint-role:prove",
+      "started": "2026-11-13 16:17:04 CST",
+      "ended": "2026-11-13 16:17:10 CST",
+      "durationMs": 5870,
+      "exitCode": 0,
+      "childPid": 3541487,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 25,
+      "cmd": "pnpm privacy-erasure:prove",
+      "started": "2026-11-13 16:17:10 CST",
+      "ended": "2026-11-13 16:17:17 CST",
+      "durationMs": 6375,
+      "exitCode": 0,
+      "childPid": 3542213,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 26,
+      "cmd": "pnpm privacy-erasure:http:prove",
+      "started": "2026-11-13 16:17:17 CST",
+      "ended": "2026-11-13 16:17:54 CST",
+      "durationMs": 37017,
+      "exitCode": 0,
+      "childPid": 3543081,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 27,
+      "cmd": "pnpm privacy-erasure-preview:prove",
+      "started": "2026-11-13 16:17:54 CST",
+      "ended": "2026-11-13 16:17:59 CST",
+      "durationMs": 5645,
+      "exitCode": 0,
+      "childPid": 3544554,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 28,
+      "cmd": "pnpm privacy-erasure:pause-upgrade:prove",
+      "started": "2026-11-13 16:17:59 CST",
+      "ended": "2026-11-13 16:18:05 CST",
+      "durationMs": 5209,
+      "exitCode": 0,
+      "childPid": 3545402,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 29,
+      "cmd": "pnpm scor-00:http:prove",
+      "started": "2026-11-13 16:18:05 CST",
+      "ended": "2026-11-13 16:18:11 CST",
+      "durationMs": 6618,
+      "exitCode": 0,
+      "childPid": 3546083,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 30,
+      "cmd": "pnpm scor-parity:prove",
+      "started": "2026-11-13 16:18:11 CST",
+      "ended": "2026-11-13 16:18:17 CST",
+      "durationMs": 6055,
+      "exitCode": 0,
+      "childPid": 3546970,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 31,
+      "cmd": "pnpm scoring-integrity:prove",
+      "started": "2026-11-13 16:18:17 CST",
+      "ended": "2026-11-13 16:18:24 CST",
+      "durationMs": 6870,
+      "exitCode": 0,
+      "childPid": 3547850,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 32,
+      "cmd": "pnpm tokenstream:prove",
+      "started": "2026-11-13 16:18:24 CST",
+      "ended": "2026-11-13 16:18:43 CST",
+      "durationMs": 19200,
+      "exitCode": 0,
+      "childPid": 3548705,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 33,
+      "cmd": "pnpm stress:prove",
+      "started": "2026-11-13 16:18:43 CST",
+      "ended": "2026-11-13 16:18:51 CST",
+      "durationMs": 7089,
+      "exitCode": 0,
+      "childPid": 3549805,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 34,
+      "cmd": "pnpm uc003:i18n-locale:prove",
+      "started": "2026-11-13 16:18:51 CST",
+      "ended": "2026-11-13 16:18:53 CST",
+      "durationMs": 2622,
+      "exitCode": 0,
+      "childPid": 3550697,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 35,
+      "cmd": "pnpm metrics:prove",
+      "started": "2026-11-13 16:18:53 CST",
+      "ended": "2026-11-13 16:18:55 CST",
+      "durationMs": 1349,
+      "exitCode": 0,
+      "childPid": 3551415,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 36,
+      "cmd": "pnpm model-output-limit:prove",
+      "started": "2026-11-13 16:18:55 CST",
+      "ended": "2026-11-13 16:18:56 CST",
+      "durationMs": 1353,
+      "exitCode": 0,
+      "childPid": 3551529,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 37,
+      "cmd": "pnpm dashscope-native-config:prove",
+      "started": "2026-11-13 16:18:56 CST",
+      "ended": "2026-11-13 16:18:57 CST",
+      "durationMs": 712,
+      "exitCode": 0,
+      "childPid": 3551653,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 38,
+      "cmd": "pnpm voice-operation-policy:prove",
+      "started": "2026-11-13 16:18:57 CST",
+      "ended": "2026-11-13 16:18:58 CST",
+      "durationMs": 1681,
+      "exitCode": 0,
+      "childPid": 3551755,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 39,
+      "cmd": "pnpm voice-stream-asr-honesty:prove",
+      "started": "2026-11-13 16:18:58 CST",
+      "ended": "2026-11-13 16:19:00 CST",
+      "durationMs": 1345,
+      "exitCode": 0,
+      "childPid": 3551876,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 40,
+      "cmd": "pnpm interview-voice-seams:prove",
+      "started": "2026-11-13 16:19:00 CST",
+      "ended": "2026-11-13 16:19:01 CST",
+      "durationMs": 1390,
+      "exitCode": 0,
+      "childPid": 3551992,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 41,
+      "cmd": "pnpm ocr-operation-policy:prove",
+      "started": "2026-11-13 16:19:01 CST",
+      "ended": "2026-11-13 16:19:02 CST",
+      "durationMs": 1263,
+      "exitCode": 0,
+      "childPid": 3552112,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 42,
+      "cmd": "pnpm voice-adaptive:prove",
+      "started": "2026-11-13 16:19:03 CST",
+      "ended": "2026-11-13 16:19:10 CST",
+      "durationMs": 7311,
+      "exitCode": 0,
+      "childPid": 3552226,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 43,
+      "cmd": "pnpm rag-generation:prove",
+      "started": "2026-11-13 16:19:10 CST",
+      "ended": "2026-11-13 16:19:16 CST",
+      "durationMs": 6558,
+      "exitCode": 0,
+      "childPid": 3553106,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 44,
+      "cmd": "pnpm qbank-integrity-upgrade:prove",
+      "started": "2026-11-13 16:19:16 CST",
+      "ended": "2026-11-13 16:19:21 CST",
+      "durationMs": 4308,
+      "exitCode": 0,
+      "childPid": 3554012,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 45,
+      "cmd": "pnpm qbank-control-role:prove",
+      "started": "2026-11-13 16:19:21 CST",
+      "ended": "2026-11-13 16:19:27 CST",
+      "durationMs": 6366,
+      "exitCode": 0,
+      "childPid": 3554671,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 46,
+      "cmd": "pnpm rag-control-runtime:prove",
+      "started": "2026-11-13 16:19:27 CST",
+      "ended": "2026-11-13 16:19:28 CST",
+      "durationMs": 937,
+      "exitCode": 0,
+      "childPid": 3555570,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 47,
+      "cmd": "pnpm rag-control-role:prove",
+      "started": "2026-11-13 16:19:28 CST",
+      "ended": "2026-11-13 16:19:33 CST",
+      "durationMs": 4829,
+      "exitCode": 0,
+      "childPid": 3555674,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 48,
+      "cmd": "pnpm rag-control-upgrade:prove",
+      "started": "2026-11-13 16:19:33 CST",
+      "ended": "2026-11-13 16:19:38 CST",
+      "durationMs": 4522,
+      "exitCode": 0,
+      "childPid": 3556337,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 49,
+      "cmd": "pnpm rag-corpus-version:prove",
+      "started": "2026-11-13 16:19:38 CST",
+      "ended": "2026-11-13 16:19:43 CST",
+      "durationMs": 4973,
+      "exitCode": 0,
+      "childPid": 3557036,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 50,
+      "cmd": "pnpm rag-control-dispatch:prove",
+      "started": "2026-11-13 16:19:43 CST",
+      "ended": "2026-11-13 16:19:48 CST",
+      "durationMs": 4968,
+      "exitCode": 0,
+      "childPid": 3557718,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 51,
+      "cmd": "pnpm migrate-cli:prove",
+      "started": "2026-11-13 16:19:48 CST",
+      "ended": "2026-11-13 16:19:54 CST",
+      "durationMs": 6782,
+      "exitCode": 0,
+      "childPid": 3558438,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 52,
+      "cmd": "pnpm qbank-pipeline:prove",
+      "started": "2026-11-13 16:19:54 CST",
+      "ended": "2026-11-13 16:20:00 CST",
+      "durationMs": 5980,
+      "exitCode": 0,
+      "childPid": 3559338,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 53,
+      "cmd": "pnpm adaptive-degrade:prove",
+      "started": "2026-11-13 16:20:00 CST",
+      "ended": "2026-11-13 16:20:11 CST",
+      "durationMs": 10711,
+      "exitCode": 0,
+      "childPid": 3560200,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 54,
+      "cmd": "pnpm interview:prove",
+      "started": "2026-11-13 16:20:11 CST",
+      "ended": "2026-11-13 16:20:18 CST",
+      "durationMs": 7211,
+      "exitCode": 0,
+      "childPid": 3561124,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 55,
+      "cmd": "pnpm drain:prove",
+      "started": "2026-11-13 16:20:18 CST",
+      "ended": "2026-11-13 16:20:34 CST",
+      "durationMs": 15684,
+      "exitCode": 0,
+      "childPid": 3562025,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 56,
+      "cmd": "pnpm worker-wakeup:prove",
+      "started": "2026-11-13 16:20:34 CST",
+      "ended": "2026-11-13 16:20:35 CST",
+      "durationMs": 1069,
+      "exitCode": 0,
+      "childPid": 3562372,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 57,
+      "cmd": "pnpm vectorstore:prove",
+      "started": "2026-11-13 16:20:35 CST",
+      "ended": "2026-11-13 16:20:39 CST",
+      "durationMs": 3489,
+      "exitCode": 0,
+      "childPid": 3562474,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 58,
+      "cmd": "pnpm memory:prove",
+      "started": "2026-11-13 16:20:39 CST",
+      "ended": "2026-11-13 16:20:45 CST",
+      "durationMs": 6218,
+      "exitCode": 0,
+      "childPid": 3563147,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 59,
+      "cmd": "pnpm deploy:check",
+      "started": "2026-11-13 16:20:45 CST",
+      "ended": "2026-11-13 16:20:45 CST",
+      "durationMs": 542,
+      "exitCode": 0,
+      "childPid": 3564050,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 60,
+      "cmd": "pnpm voice:prove",
+      "started": "2026-11-13 16:20:45 CST",
+      "ended": "2026-11-13 16:20:50 CST",
+      "durationMs": 4065,
+      "exitCode": 0,
+      "childPid": 3564154,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 61,
+      "cmd": "pnpm -C packages/ai-runtime prove:voice-reliability",
+      "started": "2026-11-13 16:20:50 CST",
+      "ended": "2026-11-13 16:21:21 CST",
+      "durationMs": 31223,
+      "exitCode": 0,
+      "childPid": 3564808,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 62,
+      "cmd": "pnpm -C apps/web prove:speak-proxy",
+      "started": "2026-11-13 16:21:21 CST",
+      "ended": "2026-11-13 16:21:21 CST",
+      "durationMs": 472,
+      "exitCode": 0,
+      "childPid": 3565555,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 63,
+      "cmd": "pnpm -C apps/web prove:transcribe-proxy",
+      "started": "2026-11-13 16:21:21 CST",
+      "ended": "2026-11-13 16:21:22 CST",
+      "durationMs": 474,
+      "exitCode": 0,
+      "childPid": 3565637,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 64,
+      "cmd": "pnpm -C apps/api prove:voice-timeout",
+      "started": "2026-11-13 16:21:22 CST",
+      "ended": "2026-11-13 16:21:23 CST",
+      "durationMs": 1443,
+      "exitCode": 0,
+      "childPid": 3565728,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 65,
+      "cmd": "pnpm -C apps/api prove:voice-cancel-http",
+      "started": "2026-11-13 16:21:23 CST",
+      "ended": "2026-11-13 16:21:25 CST",
+      "durationMs": 1270,
+      "exitCode": 0,
+      "childPid": 3565807,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 66,
+      "cmd": "pnpm runtime:isolated:prove",
+      "started": "2026-11-13 16:21:25 CST",
+      "ended": "2026-11-13 16:21:34 CST",
+      "durationMs": 9092,
+      "exitCode": 0,
+      "childPid": 3565907,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 67,
+      "cmd": "pnpm graph:prove",
+      "started": "2026-11-13 16:21:34 CST",
+      "ended": "2026-11-13 16:21:38 CST",
+      "durationMs": 4131,
+      "exitCode": 0,
+      "childPid": 3566924,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 68,
+      "cmd": "pnpm api:validate",
+      "started": "2026-11-13 16:21:38 CST",
+      "ended": "2026-11-13 16:21:47 CST",
+      "durationMs": 9374,
+      "exitCode": 0,
+      "childPid": 3567585,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 69,
+      "cmd": "pnpm ocr:prove",
+      "started": "2026-11-13 16:21:47 CST",
+      "ended": "2026-11-13 16:21:53 CST",
+      "durationMs": 6072,
+      "exitCode": 0,
+      "childPid": 3568492,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 70,
+      "cmd": "pnpm worker-inflight-crash:prove",
+      "started": "2026-11-13 16:21:53 CST",
+      "ended": "2026-11-13 16:21:58 CST",
+      "durationMs": 4270,
+      "exitCode": 0,
+      "childPid": 3569471,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 71,
+      "cmd": "pnpm int18:payload-strip:prove",
+      "started": "2026-11-13 16:21:58 CST",
+      "ended": "2026-11-13 16:22:04 CST",
+      "durationMs": 6745,
+      "exitCode": 0,
+      "childPid": 3569676,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 72,
+      "cmd": "pnpm body-limit:prove",
+      "started": "2026-11-13 16:22:04 CST",
+      "ended": "2026-11-13 16:22:09 CST",
+      "durationMs": 4885,
+      "exitCode": 0,
+      "childPid": 3570555,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 73,
+      "cmd": "pnpm skip-as-clarify:http:prove",
+      "started": "2026-11-13 16:22:09 CST",
+      "ended": "2026-11-13 16:22:17 CST",
+      "durationMs": 8016,
+      "exitCode": 0,
+      "childPid": 3571213,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 74,
+      "cmd": "pnpm sse-notify-trigger-health:prove",
+      "started": "2026-11-13 16:22:17 CST",
+      "ended": "2026-11-13 16:22:24 CST",
+      "durationMs": 6910,
+      "exitCode": 0,
+      "childPid": 3572109,
+      "containersSeen": [],
+      "containersCreated": []
+    },
+    {
+      "i": 75,
+      "cmd": "pnpm erasure-job-projection:prove",
+      "started": "2026-11-13 16:22:24 CST",
+      "ended": "2026-11-13 16:22:30 CST",
+      "durationMs": 5783,
+      "exitCode": 0,
+      "childPid": 3572965,
+      "containersSeen": [],
+      "containersCreated": []
+    }
+  ]
+}

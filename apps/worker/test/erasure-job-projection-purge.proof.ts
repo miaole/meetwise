@@ -283,7 +283,15 @@ async function main() {
     await authorize(worker, ownerD, ivD, begunD.requestId);
     A('B2-fn 投影 purge tick 存在', projectionTick !== null);
     const tick1 = projectionTick ? await projectionTick(worker, `erj-worker-${S}`, 128) : null;
-    A('B2-a 无已消费授权的 3 个 target 跳过（无授权不删）', (tick1?.skippedUnauthorized ?? 0) >= 3, JSON.stringify(tick1));
+    // A/B/E 场 begin 后未授权；D 场已授权。listClaimable 含 4 个 sink
+    //（event/ai_graph_run/report + checkpoint_rows）。无 jti 则 skippedUnauthorized++，
+    // 投影 purge 只物理删除前三。fresh 隔离库精确值= A4+B4+E4=12 跳过、D 的 3 个投影 sink 删除。
+    // 禁止再用 >= 3（会把漏跳过或数量漂移算绿）。
+    A('B2-a 无已消费授权的投影 target 精确跳过 12 个（A/B/E 各 4；无授权不删）',
+      tick1?.skippedUnauthorized === 12 && tick1?.erased === 3 && tick1?.claimed === 3 && tick1?.receipted === 3,
+      JSON.stringify(tick1));
+    A('B2-a 源码钉死精确相等（禁止 >= 3）',
+      /tick1\?\.skippedUnauthorized === 12/.test(readFileSync(fileURLToPath(import.meta.url), 'utf8')));
     A('B2-b 无授权面试投影行原样保留', await projectionRows(ivE) === 5);
     A('B2-c 有授权面试 event/ai_graph_run/report 物理删除 → 0', await projectionRows(ivD) === 0);
     const dTargets = (await admin.query<{ sink: string; status: string }>(
