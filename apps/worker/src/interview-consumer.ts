@@ -5,7 +5,7 @@
  */
 import { AsyncLocalStorage } from 'node:async_hooks';
 import type { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
-import { asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, requeueInterviewJob, withInterviewGraphFence, renewInterviewGraphFence, appendEvent, decryptActiveResumeBlob, enrollCheckpointThread, failInterviewAndRelease, markApplicationAssessmentUnavailable, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, purgeStaleInterviewJobPayloads, getInterviewRouteSnapshotForAdaptiveRole, getJobPlannerInputForInterview, deriveQbankOwnerScope, DEFAULT_LEASE_SECONDS, INTERVIEW_RESUME_REFERENCE_VERSION, MAX_INTERVIEW_JOB_ATTEMPTS, errCode, asErr, type DbPool, type InterviewGraphFence, type QbankServingScopeInput } from '@meetwise/db';
+import { asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, requeueInterviewJob, withInterviewGraphFence, renewInterviewGraphFence, appendEvent, decryptActiveResumeBlob, enrollCheckpointThread, failInterviewAndRelease, markApplicationAssessmentUnavailable, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, purgeStaleInterviewJobPayloads, getInterviewRouteSnapshotForAdaptiveRole, getJobPlannerInputForInterview, deriveQbankOwnerScope, DEFAULT_LEASE_SECONDS, INTERVIEW_RESUME_REFERENCE_VERSION, MAX_INTERVIEW_JOB_ATTEMPTS, errCode, asErr, type DbPool, type InterviewGraphFence, type QbankServingScopeInput, type InterviewRouteSnapshotView } from '@meetwise/db';
 import { getMetrics, METRIC, type ModelClient, type GraphObserver, type ModelCostPolicy } from '@meetwise/ai-runtime';
 import { admitInterviewResume, degradedRetrieval, type ScoredRef, type SourceDoc } from '@meetwise/domain';
 import { startAdaptiveInterview, submitAdaptiveAnswer } from './adaptive-lifecycle.ts';
@@ -478,6 +478,16 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
         });
         // 勘误：事务级 advisory xact lock 仅覆盖 begin 竞态窗（COMMIT 即释放·interview-graph-lease.ts:21-25）；invoke 全程互斥由 ai_graph_run durable lease（lease_owner/version/lease_expires_at·TTL 120s）+interview_job lease 承接；第二 worker 不得并发 Command(resume) 的保证源=lease CAS 与 claim 谓词·非会话锁。
         const checkpointEnrollment = await asPrincipal(d.pool, owner, (c) => enrollCheckpointThread(c, owner, job.interviewId));
+        // #279 ④（planner raw-role 闸·读序前移）：start job + fail-closed ON 时在 life 构造**前**
+        // 读路由视图（与原 start 分支内同一条读·零新查询），据此丢弃「未被采纳」的 payload 原文
+        // 岗位（targetRoleApplied=false → 简历证据胜·原文不进 role/planner/CRAG）。flag-off / answer
+        // job 不读不闸（行为逐字节现状）；job 面读形无该位（undefined）→ 同样不闸（B 端零触）。
+        let roleRouteView: InterviewRouteSnapshotView | null = null;
+        if (job.kind === 'start' && isTechRoleFailClosedEnabled()) {
+          roleRouteView = await asPrincipal(d.pool, owner, (c) =>
+            getInterviewRouteSnapshotForAdaptiveRole(c, owner, job.interviewId));
+        }
+        const effectiveTargetRole = roleRouteView?.targetRoleApplied === false ? undefined : requestContext.targetRole;
         const fenced = await withInterviewGraphFence(d.pool, owner, job.interviewId, `${d.leaseOwner}:${job.id}`, async (fence) => withCheckpointAccess({
           owner, threadId: checkpointEnrollment.threadId, fenceEpoch: checkpointEnrollment.fenceEpoch,
         }, async () => {
@@ -497,7 +507,8 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
             // AG-37(修法③):per-claim deficit holder——seam seed/出参回流的 claim 内导管(见上方注)。
             trackLocalDeficitRef,
             // H2 #79(#259 供给线):用户显式岗位透传至 buildAdaptiveDeps(CRAG 查询岗位段)。
-            targetRole: requestContext.targetRole,
+            // #279 ④:未被采纳（targetRoleApplied=false）的原文岗位不再喂 CRAG 岗位段（上方 roleRouteView 闸）。
+            targetRole: effectiveTargetRole,
             // QBANK-PLANNER-HONESTY #200-A(#259 供给线同形):押题题面(owner-scoped 读自 resume_quiz.questions,
             // 上方 start 分支专用读;只进 planner 输入组装,禁入图 state/checkpoint/SSE)。缺省 undefined=无押题段(现状字节)。
             quizQuestions,
@@ -548,6 +559,7 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
             // 死源处置(C-MO-S3):原 roleFromJobRouteMetadata(声明从未赋值)已删除,非接线——
             // 通用面供给走独立 candidate 结构,Ban 冒用 job 维度 metadata。
             let roleFromRouteSnapshot: string | undefined;
+            const snap = roleRouteView;
             // I3 JOB-MGMT（#197/#258·裁决⑥ 读侧 join 形）：岗位侧 planner 供给（competencies+JD 摘要）。
             // 条件化：经 RLS 读 job_posting + 快照同源门（db getJobPlannerInputForInterview——live 文本
             // canonical digest 必须等于绑定 revision 存证 digest 才供给；岗位编辑后旧面试不喂新文本，
@@ -555,8 +567,6 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
             // JD 摘要=确定性有界截取（零模型·非 LLM 摘要），只进「考哪些能力」面，绝不触难度/confidence。
             let jobPlannerContext: { competencies: string[]; jdSummary: string } | undefined;
             if (isTechRoleFailClosedEnabled()) {
-              const snap = await asPrincipal(d.pool, owner, (c) =>
-                getInterviewRouteSnapshotForAdaptiveRole(c, owner, job.interviewId));
               // I3 JOB-MGMT（#197 顺手面·改道条件化）：多叶子按 allocationBps 最高权重取 primary——
               // 单叶与原 [0] 形逐字节等价；并列权重取快照序首个（reduce 保守比较·确定性）。
               // #259 透传线（下方 roleFromUserInput）与 G-R2-5 检索门（上方 routeSnapForRetrieve）零触。
@@ -577,7 +587,8 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
             // #259: 用户显式岗位(payload->>'targetRole',begin 头透传)置最高优先源;旧 job 缺键 →
             // undefined(容忍不崩,沿 requestId 同形制)。门语义零改:缺 snapshot 仍 throw(下方 resolver)。
             const role = resolveAdaptiveInterviewRole({
-              roleFromUserInput: requestContext.targetRole,
+              // #279 ④:未被采纳的原文岗位不进 role 优先序（简历证据胜·规则①）。读形已上提复用（零新查询）。
+              roleFromUserInput: effectiveTargetRole,
               roleFromRouteSnapshot,
               roleFromDeps: adaptive.role,
             });
