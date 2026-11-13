@@ -1,7 +1,7 @@
 /**
  * 语音面试证明（对真 Postgres checkpointer）：证明**同一面试图经语音(ASR/TTS)推进,与纯文本路径行为完全一致**(modality-agnostic)。
  * 语音只是边缘适配器:转写留在适配器返回值,图状态作答固定为 answer_omitted;下一题合成音频,checkpointer/续会话/状态机一行不动。CI 用 fake ASR/TTS(不联网)。
- *   pnpm voice:prove   (需 pnpm db:up)
+ *   pnpm voice:prove   (经 run-e2e-isolated 一次性隔离 PG；勿对开发库直跑)
  *
  * 世界口径（AG-32 rev r1 注记·证伪外席2 P2）：本 proof 在隔离 runner 的 boot 世界跑
  * （预迁移名单不含 0047 checkpoint 隐私栅栏等业务迁移——本证面是 mock 图边缘契约,零业务表依赖,
