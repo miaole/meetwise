@@ -38,6 +38,8 @@ related:
 
 ## 2026-11-11 第二批修复合入（统一授权：对口审查 PASS + CI 绿，按顺序合；2026-11-11 16:15–19:13 Asia/Shanghai）
 
+**2026-11-13 收尾同步**（#272 之后合入 #273 / #271 / #237 / #274；跟进条按回执原文校正，5 份进度文档本段逐字相同）：
+
 **合入 main（merge commit；每个 PR 只在自己已审 head 上并入当时 main，只改 PTP cap / lint 帽 / 冲突）**
 
 | PR | 内容 | merge sha | 合入后 PTP cap |
@@ -69,6 +71,11 @@ related:
 | #262 | fix(token-stream): G5 N-13 业务拒绝发撤回帧（预览开关缺省关）；**含 #268**（重连漏撤回，base 为 #262 分支，17:50 以 `a210de9ce` 合入该分支，经 #262 `f8b8fa092` 间接进入 main） | `f8b8fa092` | 2544 |
 | #267 | chore(lint): 清 worker 机械警告并把帽收回实测值（合并树实测重算：root 5431→5378、worker 1007→956） | `d70b75587` | 2544 |
 | #266 | fix(test): 收窄 qbank-corpus-gates 的 seam 钉与 markers 扫描范围（已审 head `0ec17e42b` 只并入 main，diff 与已审补丁逐字一致） | `3d508f72b` | 2544 |
+| #272 | docs: 第二批修复合入账本（5 份进度文档同步）+ 入仓 PR270 审查回执 | `9ff50145a` | 2545 |
+| #273 | ci: 将 6 条新 prove 挂入 `verify:local`，并第八次重登 ha6 scripts digest | `3da3dae03` | 2545 |
+| #271 | fix(worker): 修复 checkpoint PG 连接双 release（跨租户共享连接） | `b0c7ce438` | 2546 |
+| #237 | fix(ha/e2e): HA 沙箱语义环境与 V5 零缓冲进 EXIT；空流 attach 隔离 prove:sse-slot | `a74e909cb` | 2546 |
+| #274 | fix(ha): HA 沙箱加固（V5 判据合一、V4/V6 fail-closed、告警冒烟 `--metrics-file` 注入缝） | `6e3b1d438` | 2546 |
 
 **#18 只算部分修复**：任务记录写成 done/failed 时明文立即剥离，但排队等处理期间明文仍在库里，`INT-P0-RAW-QUEUE` 仍 **open**，要等 INT-TRANSCRIPT-01。已擦除面试的 `interview_job` 明文由 #257 补上（见跟进第 8 条）。
 
@@ -81,8 +88,9 @@ related:
 | #252 | 5430→5431 | 1005→1006 | 并线后合并树实测 |
 | #262 | 5431（不变） | 1006→1007 | 并线后合并树实测 |
 | #267 | 5431→**5378** | 1007→**956** | 清机械警告后按合并树实测收回，零余量 |
+| #271 | 5378→**5376** | 956→**954** | 去掉本刀引入及 `connect`/`installReleaseCleanup` 的可避免告警，合并树实测收回，零余量 |
 
-根目录和 apps/worker 的 lint 警告数这批被抬高，后续要降回去：#267 已把两处收回到合并时的实测值（root 5378、worker 956），比本批开始前的 5425 / 999 都低；之后新 PR 不应再往上抬。apps/api 帽 1555 本批未动（#254 合并树实测 1545）。
+根目录和 apps/worker 的 lint 警告数这批被抬高，后续要降回去：#267 已把两处收回到合并时的实测值（root 5378、worker 956），比本批开始前的 5425 / 999 都低；#271 再收到 root 5376、worker 954。之后新 PR 不应再往上抬。apps/api 帽 1555 本批未动（#254 合并树实测 1545）。
 
 **新增跟进（未关项未标「已修复」的都仍 open）**
 
@@ -92,11 +100,11 @@ related:
 4. `FST_ERR_CTP_BODY_TOO_LARGE` 映射原是死代码、启动有 FSTWRN004（#248 P2-3）；#261 已补 FST 信封，待复核。
 5. 前端 `duplicateFallback` 严格枚举会丢整帧（#245 审查 P2-a）——**已由 #256 修复**（未知 enum 只丢字段）。
 6. `int-answer-dual-write-fence:prove` 夹具存量红（`interview_queue_saturated`），需单独修（#249 审查）。
-7. `ha6:prove` A1 正则未锚行首（#244 审查）——**已由 #259 修复**；`ha6:prove` 仍未接进 CI，scripts digest 每次改根 scripts 都会漂（本 PR 已重注册到 `d70b75587`）。
+7. `ha6:prove` A1 正则未锚行首（#244 审查）——**已由 #259 修复**；`ha6:prove` 仍未接进 CI，每次改根 `package.json` scripts 都要人工重登 scripts digest（#272 时第七次登记仍为 `188d121c`@`d70b75587`，因未改 scripts；#273 第八次重登 `711bff22`@`70f9cc144`；#271 第九/十次重登至 `99c190c3964b695099a9981d62f665e1596dc462`，lint 帽 5378→5376；#237/#274 未改 scripts，main `6e3b1d438` 与登记值恒等）。
 8. 已擦除面试的 `interview_job` 明文与投影物理 purge——**已由 #257 修复**（0232）；生产路径仍无人签发 0091 快照，投影行只会计 `skippedUnauthorized`，签发方案见 #264 文档，**待用户拍板**。
 9. N-11 深审结论：原缺陷早已修好，「口径冲突」是过时待办，应改为「已修」，**待用户确认关项**。
 10. G6-N17 targetRole（#252）P2：①简历歧义时 targetRole 可选简历未命中的叶；②短 targetRole 单叶分支绕过 v4 强证据闸，"rag"→ai_ml、"自动化测试"→qa；③简历只命中 general 时 targetRole 不生效。P3：大小写 digest 不同、`resumeDegradedFrom` 未落库、「targetRole 原文不落库」注释说过头。
-11. ~~`tenant-rls-isolation:prove` 在 main 上 EXIT 1：引用 `0225_auth_user_session_owner_rls.sql`，已改名 0227（ENOENT）。~~ **已由 #259 修复**：见证改为按后缀 `auth_user_session_owner_rls` 匹配（`readMigrationByNameSuffix`，要求恰好 1 个文件），容器臂已 PASS；仅剩 P3-b 注释仍写 0225。
+11. ~~`tenant-rls-isolation:prove` 在 main 上 EXIT 1：引用 `0225_auth_user_session_owner_rls.sql`，已改名 0227（ENOENT）。~~ **已由 #259 修复**：见证改为按后缀 `auth_user_session_owner_rls` 匹配（`readMigrationByNameSuffix`，要求恰好 1 个文件），容器臂已 PASS。P3-b 已关（#259 `5a65f3d7a` 已把注释/变量改成 0227；main 上残留的 0225 都是「historically numbered 0225 / renumbered from 0225」的史注，不是 P3-b 未改）。
 12. #246 审查 P2：postcss override 8.4.31→8.5.32 未做 CSS/UI 回归（box 无 Playwright 浏览器）。
 13. G5-N14 粘住重试预算失败时报 mismatch 提示不准（#255）——**已由 #269 修复**。
 14. #269 跟进：`usageCauseForInvokeError` 用 `startsWith('budget')`，漏掉 `model_context_budget_exceeded`（`apps/worker/src/adaptive-interview-service.ts:242`）。
@@ -104,7 +112,7 @@ related:
 16. #258 P2-a..d、P3-a：删掉 `runCiStepLedgerGate()` 调用后 docs:check 仍 EXIT 0（门本身无自检臂）。
 17. #247 非阻塞：无码 PG 断连报文白名单很窄（未知报文直接终态）；新 proof 用假连接池，未接进 CI。42501 晚到不能覆盖已锁存可重试错——**已由 #260 修复**。
 18. #260 非阻塞：未知错误会覆盖 connection_lost 窗口；L-sync 只单向。
-19. #262（G5 N-13 撤回帧）：`TOKEN_STREAM_WITHDRAW_PREVIEW` 保持 **OFF**（缺省关，只认 `=== '1'`，部署配置未设）。P2 漏 critique 面；P3-c；P3-d（环满时撤回帧可能在未断流窗口被 `sse-pump.ts` `shift()` 挤掉，前端仍可能把 re-roll 拼到拒稿上）；report / adaptive 两面只有静态断言。#268（重连漏撤回）MUT-B 变异（同时清空 `tokenWithdrawnByKey`）全绿，属覆盖缺口：没有「撤回已达 → 断流 → 迟到旧 seq 仍丢」的臂。**开 `TOKEN_STREAM_WITHDRAW_PREVIEW` 之前必须先修 P3-d、补 MUT-B 臂**（#268 mw-model-op / mw-e2e-ha 审查均列为开 flag 前提；#268 的 PASS 不是开 flag 的授权）。
+19. #262（G5 N-13 撤回帧）：`TOKEN_STREAM_WITHDRAW_PREVIEW` 保持 **OFF**（缺省关，只认 `=== '1'`，部署配置未设）。P2 漏 critique 面；report / adaptive 两面只有静态断言（P2 残余：拒绝 → LISTEN 实收 withdrawn 仍无行为臂）。#268（重连漏撤回）已合。开 `TOKEN_STREAM_WITHDRAW_PREVIEW` 之前的前提（#268 mw-e2e-ha §8 :131-135；mw-model-op :72-77,99；#268 的 PASS 不是开 flag 的授权）：① **关闭或显式接受** P3-d（环满时撤回帧可能在未断流窗口被 `sse-pump.ts` `shift()` 挤掉，前端仍可能把 re-roll 拼到拒稿上；本刀只覆盖断流/重连窗）——不是「必须先修」；② 接受「撤回仍不落 `interview_event`、catch-up 不含撤回」的设计（完全依赖客户端断流丢 buffer + 已达水位），或改为服务端持久化撤回；③ P3-c：reason 仍可能带题面片段（只剥控制符），若客户端或未来 UI 会展示 reason，建议在开 flag 前做成机器可读 allowlist（或从客户端载荷去掉 reason）；④ MUT-B 覆盖缺口：**建议补**「撤回已达后断流，迟到旧 seq 仍按保留水位丢弃」——不是「必须」。
 20. #263（0143 SSE trigger readiness）：P1 catch→unknown 无结构化日志/指标/告警；M5 health fail-open（有意政策变更，未升 BLOCK）；**超时后查询不取消**：`withShortTimeout` 是 Promise 竞速（`health.service.ts:32-55`），不是 `SET statement_timeout`，实证 `pg_sleep(3)` 下 HTTP 约 2007ms 返回，返回后 `pg_stat_activity` 仍见 `pg_sleep`，查询继续占连接直到结束；持续超时会叠加占用。建议对查询 `cancel` 或设更紧的 `statement_timeout`。P3-b/c/d。
 21. #253（DEFINER 勘误钉 + format %s 白名单）：**P1-1 仍 OPEN**——DEFINER 钉只覆盖 0229/0230 两个文件内部，新迁移 `ALTER FUNCTION mw_admin_* SECURITY DEFINER`（或 `CREATE OR REPLACE` 时模板不带 %s）可把函数切成 DEFINER 而门禁不拦；建议全目录加拒绝门。**P1-2 仍 OPEN**——`format(%s)` 扫描器可被相邻字面量续接、`E'…'`、位置参数 `%1$s`、宽度 `%-5s` 绕过，变量模板 `format(t, …)` 与 `EXECUTE '…' || x` 不在覆盖范围（存量 21 处无隐藏站点）。P2-1 检测器在 D2/D3/D3b/D4 形态下漏检，只靠 checksum 兜底；P2-2 白名单键是 `file:line:template`、不含实参，非钉死文件（0032/0073/0226）换实参门禁看不出；P2-3 principal.ts 白名单无单测或静态门；P2-R1 `principal-config:prove` 不覆盖调用点是否套上 assert（去掉包装仍 EXIT 0）；P2-R2 0229:89 `%s` 未引号（未改 `%I`）的 SQL 层纵深防御缺口，有意保留，要关须另开迁移。
 22. #264 方案文档 N-A..N-D、L182/L209 措辞；方案**待用户拍板**，未实现。
@@ -116,14 +124,18 @@ related:
 28. db-trigfam P1：SD 计数钉值需修订。
 29. #250 残留：**P1（非阻塞）** 以下 7 种仍可泄漏进 CI 日志（`redactFailureText`，`scripts/bounded-command.mjs`）：①JSON 数组值 `{"password":["s1","s2"]}`；②转义引号 `\"password\":\"…\"`；③Unicode 转义键名 `{"\u0070assword":"…"}`；④键名内侧空格 `{ " password ": "…" }`；⑤多段 base64（密钥拆两段分别编码）；⑥双重 URL 编码（未登记时）；⑦不在已知列表、无键名/URL 形态的裸密钥及其 base64。P2 脱敏正则在病理输入上呈二次方耗时（128KiB 约 10s）。
 30. 3 个匿名卷 `97faea65` / `575ef41e76` / `56fcfe95` 来源不明，只登记、不删。
-31. 新增 prove 挂 `verify:local` / `ci-cd.md` §8.2.1：`worker-inflight-crash:prove`、`int18:payload-strip:prove`、`body-limit:prove`、`skip-as-clarify:http:prove`、`sse-notify-trigger-health:prove`、`erasure-job-projection:prove`——另开小 PR 送审。
+31. 新增 prove 挂 `verify:local` / `ci-cd.md` §8.2.1：`worker-inflight-crash:prove`、`int18:payload-strip:prove`、`body-limit:prove`、`skip-as-clarify:http:prove`、`sse-notify-trigger-health:prove`、`erasure-job-projection:prove`——**已由 #273 挂入**（merge `3da3dae03`，ha6 第八次重登）。这 6 条此前从未被独立复现（`PR273-verifylocal-mw-e2e-ha.md` Verdict）；独立整跑结果见第 39 条，在那之前不得写「已独立验证」。
 32. 合并过程记录：冻结期间 role-input:prove 起过一次隔离容器；#252/#255 本地检查曾用错依赖（node_modules 是 #246 的），已按锁文件离线重装后复跑。
 33. #259 A6 **残留 P1**：字符串诱饵（`"INSERT INTO interview_route_snapshot("` / `"FROM …"`）、未使用的模板字面量、以及「改名 + 桩文件」仍可让检查假通过（MUT-A6-STRING / MUT-A6-TEMPLATE 仍 PASS）；原注释类 P1 已关。建议把 INSERT/FROM 钉到实际查询调用，而不是再扩正则。另 #259 P2-b：移走 0219 后计数=226、链头仍 `0230` 两条 PASS，只能靠行为臂变红。
-34. #271（pg-pool 双 release）**BLOCK，未合，另一条线在修**：`checkpoint-principal.ts:227-228` 的 `await (client as …).releaseAsync?.() ?? Promise.resolve(client.release())` 因 `await` 优先级高于 `??`，被解析成 `(await releaseAsync()) ?? …`，façade.query 在 cleanup + release 之后又用原始 release 释放下一个持有者的 checkout，同一连接交给两个租户（跨租户共享连接，真实 PG 复现 mismatches=60），:141-144 又把随之出现的 already-released 静默吞掉。mw-privacy-int 上轮 PASS @842252d4a 已作废。
+34. #271（pg-pool 双 release）**已合入** `b0c7ce438`（双审 PASS @`e3c92d789`；原 BLOCK：`checkpoint-principal.ts` 中 `await` 优先级高于 `??`，façade.query 在 cleanup + release 之后又用原始 release 释放下一个持有者的 checkout，真实 PG 复现 mismatches=60，已修）。合入后非阻塞（只记录，本 docs PR 不改代码）：mw-privacy-int @e3c92d7：N-1 `getOwnPropertyDescriptor` 回报 `configurable:false` 与 target 不一致，导致 `Object.keys(handle)` 抛 TypeError；N-2/P8 `query` 传入 Submittable 时可拿到 raw Connection（线级 DoS 风险，当前未见跨租户；Saver/仓库调用方不走该 API；建议 query 拒绝非字符串或非纯 config 参数）；P6 `underlyingPool` 仍可拿 raw Client（仅记录）；N-6 事务态。mw-model-op 第5轮 @e3c92d7：`asPool()` 仍 `as unknown as Pool`；打开态访问非白名单成员也抛 `checkpoint_pg_stale_handle`（错误名误导）；`set` / `defineProperty` / `deleteProperty` 返回 false 致 TypeError；`:145` 注释「a proxy」过时（实现是白名单 `Object.create(null)` 再 Proxy）；3 条既有 any/naming 告警（`query(...args: any[])` 与 `__set…ForTest`）。第4轮 @9faf865 中「消 3 条可避免告警并把 cap 回退到 main 值」已在后续轮落地（合入帽 root 5376 / worker 954）。
 35. #254 P2-1：H1 不能单独证明 isSkip 分流（isSkip 恒 false 变异下 H1 仍全绿，判别力只来自 H2）；P2-3：收据 sourceDigests 未含 `evaluate-answer.ts`、`adaptive-lifecycle.ts`、`score-writer.ts`、`principal.guard.ts`，这些文件变了收据不会失效。（P2-2 runner 匿名卷泄漏已由 #250 关。）
 36. #245 P2-b：旧 checkpoint 回退分支（pending 缺字段、只有 generationProvenance 有值，`adaptive-lifecycle.ts:58` `??` 右侧）没有任何断言覆盖。
 37. #257 非阻塞：N-1 列表队头饿死（0096 `ORDER BY created_at LIMIT 32`，无授权 target 永远占住前 32 个名额，**建议在 0091 签发方上线前修**）；N-2 A1 清除与 A2 物理删除都没有持久收据；N-4 两条 policy 删掉 `pt.owner_user_id = interview_job.owner_user_id`（0232:206/:220）后 proof 仍 32/32，缺跨 owner 臂；N-6 清扫每 5 秒扫几乎全部 `interview_job` 行逐行 EXISTS，`privacy_checkpoint_target` 无 (thread_id, owner_user_id) 索引。
-38. `ha6:prove` 不在 CI 中：main 上曾因此存量变红（#244 修复前即 3 条红，之后 scripts digest 又多次漂红；每次改根 `package.json` scripts 都会让 scripts digest 漂移，CI 绿兜不住）。合入改 scripts 的 PR 前须在合并树上跑 `ha6:prove`=0；是否接进 CI 待用户决定。
+38. `ha6:prove` 不在 CI 中：main 上曾因此存量变红（#244 修复前即 3 条红，之后 scripts digest 又多次漂红；每次改根 `package.json` scripts 都会让 scripts digest 漂移，CI 绿兜不住）。mw-e2e-ha 在 #272 增量复审中对 30 个 main 合入点逐点实跑 `ha6:prove`：其中只有 #244 和 #259 两处是绿的（`PR272-batch2docs-mw-e2e-ha.md` §D）；#244 修复前恰 3 条红，其后 26 个合入点因 digest 漂移 EXIT 1。当时 main `3d508f72b` 的 ha6:prove 就是 EXIT 1，#272 合入后转绿；其后 #273/#271 改 scripts 并重登（现登记 `99c190c3964b695099a9981d62f665e1596dc462`，与 main `6e3b1d438` 恒等）。合入改 scripts 的 PR 前须在合并树上跑 `ha6:prove`=0；是否接进 CI 待用户决定。
+
+39. #273 挂进 `verify:local` 的 6 条 prove 独立整跑（box 独立 worktree `/workspace/mw-verifylocal`，origin/main `6e3b1d438`，2026-11-13 Asia/Shanghai）。**整条 `pnpm verify:local` 未跑通，不得写「已独立验证」；#273 的 6 条新 prove 均未执行到。** 第一次直接跑：14:27:02–14:27:14，EXIT 1，耗时 12s。`e2e-ui-stale-build-guard:prove` 与 `pnpm -C apps/web prove:public-copy` 绿；`migrate-upgrade:prove` 经隔离容器 `meetwise-e2e-2782700-1794551223629`（127.0.0.1:32768）32 条断言绿后，`drift:prove` 因默认容器 `meetwise-postgres-dev` 不存在而红（`scripts/schema-drift-check.mjs` 注释「需 docker DB 在跑」，默认 `PGCONTAINER=meetwise-postgres-dev`）。第二次：先 `pnpm db:up` 起 `meetwise-postgres-dev`（id `ec547b7a40d8`，pid 2786785，healthy，宿主端口 54329），14:29:40–14:35:41 再整跑 `pnpm verify:local`，EXIT 1，耗时 361s。从 `drift:prove` 起一直绿到 `deploy:check`（含 `memory:prove`）；随后 `voice:prove`（`pnpm -C apps/worker prove:voice` → `tsx test/voice.proof.ts`，未走 `run-e2e-isolated`）以 `database_config_invalid:database_target_missing` 红停。其后 `prove:voice-reliability` 直至 `erasure-job-projection:prove`（含 #273 的 6 条）均未执行。第二次期间隔离容器 44 只（`meetwise-e2e-2787489-1794551381320` … `meetwise-e2e-2833240-1794551732973`），均已随 runner 拆除，结束时 `docker ps` 仅余本席 `db:up` 的 `meetwise-postgres-dev`。
+40. #237 / #274 非阻塞（脚本域另开 PR，不在本 docs PR 改代码）：沙箱曾写入真实 profile id `dashscope-cn-beijing`（→ dashscope.aliyuncs.com）而非 .invalid 主机；告警冒烟 `genEnv` 不写 `MODEL_ENDPOINT_PROFILE`；冒烟注释行号过期；冒烟 stdout/顶层收据未点明 metrics 是 `--metrics-file` 注入、步骤标题仍写 live；V5「two SSE clients attached」子判据偏松（只认 helper 进程启动）；`writeReceipt` 的 exitCode 由 `result === 'OK'` 推导，目前与进程 EXIT 一致但可能漂移。既有：`provider-egress-inventory.mjs` env 行 class 只校验 nonEmptyString（MUT2 改成 production-runtime 仍绿）；qwen 前缀闸不是沙箱白名单；沙箱没有网络 deny-list（阻断外联靠 dummy key + 授权门）。#237 已补空流 attach 立即见 200 的隔离 prove（`prove:sse-slot`）；`sse-pump.ts` `flushHeaders` 无回归锁（注释掉后 4 条 SSE proof 仍全绿）仍为记录项。
+41. P2：`ha6:prove` 未入 CI，每次改根 `package.json` scripts 都要人工重登 scripts digest（当前第十次 `99c190c3964b695099a9981d62f665e1596dc462`，随 #271 合入树）。
 
 Pins 不变：NOT_HA · releaseEvidence=false · claimProductionHA=false · DELETE=503。
 
