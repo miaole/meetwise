@@ -212,9 +212,10 @@ must(/sseNotifyReady/.test(healthSrc) && /SSE_NOTIFY_TRIGGER_HEALTH_SQL/.test(he
   && /SSE_NOTIFY_TRIGGER_HEALTH_TIMEOUT_MS/.test(healthSrc),
   'readiness 必须经 sseNotifyReady 做 0143 trigger fail-closed 检查，并带专用短超时');
 const healthSseFn = (stripJsComments(healthSrc).match(/async\s+sseNotifyReady\s*\([^)]*\)[\s\S]*$/) ?? [''])[0];
+// A-20 后 catch 带绑定（catch (error)）——pin 接受带/不带绑定两形，语义不变：catch 路径必须归 unknown。
 must(/rowCount\s*!==\s*1\)\s*return\s*'trigger_missing'/.test(healthSseFn)
-  && /catch\s*\{[\s\S]*?return\s*'unknown'/.test(healthSseFn)
-  && !/catch\s*\{[\s\S]*?return\s*'trigger_missing'/.test(healthSseFn),
+  && /catch\s*(?:\([^)]*\))?\s*\{[\s\S]*?return\s*'unknown'/.test(healthSseFn)
+  && !/catch\s*(?:\([^)]*\))?\s*\{[\s\S]*?return\s*'trigger_missing'/.test(healthSseFn),
   'sseNotifyReady 查询异常必须标 unknown（不得把 catch 标成 trigger_missing）');
 const healthCtl = rf('apps/api/src/modules/health/health.controller.ts', 'utf8');
 must(/sse:\s*\{\s*notify/.test(healthCtl) && /trigger_missing/.test(healthCtl),
