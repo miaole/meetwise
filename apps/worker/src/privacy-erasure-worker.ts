@@ -42,10 +42,11 @@ function stableErrorCode(error: unknown, fallback: string): string {
 }
 
 /**
- * 0232 B · 投影物理 purge 步（event/ai_graph_run/report · 0096 函数原样复用）：0096 feed →
- * 0232 已消费授权 jti feed（缺失即跳过：无授权不删）→ 0091 冻结 claim（十项复核，唯一授权
- * 裁定者）→ 0096 purge（残留≠0 raise）→ 0091 local_erased 收据。单 target 失败只记稳定错误类，
- * 不中断其余 target（target id/owner/错误细节都可能成为隐私元数据，不入日志）。
+ * 0232 B · 投影物理 purge 步（event/ai_graph_run/report · 0096 函数复用）：0235 起 feed 内联
+ * 已消费授权 jti 限定（N-1 队头饿死闭合——无授权 target 不入列不占坑）→ 0232 已消费授权 jti
+ * feed（纵深兜底：缺失即跳过）→ 0091 冻结 claim（十项复核，唯一授权裁定者）→ 0096 purge
+ * （残留≠0 raise）→ 0091 local_erased 收据。单 target 失败只记稳定错误类，不中断其余
+ * target（target id/owner/错误细节都可能成为隐私元数据，不入日志）。
  */
 export async function interviewProjectionPrivacyErasureTick(
   pool: DbPool, workerId: string, maxItems = 32,

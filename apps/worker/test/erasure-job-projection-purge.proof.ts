@@ -15,9 +15,11 @@
  *   A3 RLS 不弱化：owner 自己读不到已围栏 job 行；app_role 仍无 DELETE；app_role 不能执行
  *      worker 清扫函数；privacy_worker_owner 即使 GUC 在场也删不到未围栏面试的行，缺 GUC
  *      则连已围栏行也删不到。
- *   B1 worker 残留清扫只删已围栏面试上 payload 非空的行（租约未过期的 running 行保留），幂等。
- *   B2 投影 purge：无已消费 0091 授权 → 跳过不删；有授权 → event/ai_graph_run/report 物理删除
- *      + local_erased 收据 + target erased。
+ *   B1 worker 残留清扫只删已围栏面试上 payload 非空的行（租约未过期的 running 行保留），幂等；
+ *      每次清扫落批次台账收据（N-2·0235）·错配 owner 的已围栏残留行不删（N-4 跨 owner 臂）。
+ *   B2 投影 purge：claimable feed 只列已有已消费 0091 授权的 target（N-1·0235·队头饿死闭合，
+ *      无授权 target 不入列不占坑）；有授权 → event/ai_graph_run/report 物理删除
+ *      + local_erased 收据 + target erased；无授权 target 保持 pending。
  *   B3 生产接线：main.ts 的 privacy 循环跑的就是 privacyErasureSweepTick（三步合一拍），
  *      直接调用该 tick 能同时完成投影 purge 与残留清扫。
  *
@@ -35,7 +37,8 @@ import * as db from '@meetwise/db';
 import {
   asPrincipal, asPrivacyWorkerExecutor, assertIsolatedTestTarget, beginInterviewProjectionErasure,
   consumeAuthorizationSnapshotBound, createPool, enqueueInterviewJob, issueAuthorizationSnapshot,
-  provisionPrivacyWorkerLogin, provisionRuntimeLogin, type Client, type DbPool,
+  listClaimableInterviewProjectionTargets, provisionPrivacyWorkerLogin, provisionRuntimeLogin,
+  type Client, type DbPool,
 } from '@meetwise/db';
 import {
   generatePrivacyAuthzKeyPair, PrivacyAuthzKeyRegistry, signPrivacyAuthorizationSnapshot,
@@ -267,9 +270,38 @@ async function main() {
     A('B1-c 已为 {} 的行（start 与 A 场全部行）不动', afterB.some((j) => j.seq === 0) && (await jobs(ivA)).length === 6);
     const cRows = await jobs(ivC);
     A('B1-d 未围栏面试的行一条不碰（含明文 done 行：属 #249 域）', cRows.length === 6 && cRows.filter((j) => j.hasPlain).length === 5);
+    // N-4（PR257·A-37）跨 owner 夹具：已围栏面试上错配 owner 的残留行（interview_job 对
+    // interview 无 FK·schema 上可能存在；replica 会话注入=模拟 0059 写 guard 前的历史存量，
+    // 与 restoreLegacyResidue 同形）。本臂同时是 0232 policy 撤 owner 限定的反证——
+    // 撤掉 pt.owner_user_id = interview_job.owner_user_id 限定后本臂必红（审查者手测撤闸
+    // 后 32/32 仍绿=旧证明无判别力；本臂闭合该面）。
+    {
+      const fc = await admin.connect();
+      try {
+        await fc.query('BEGIN');
+        await fc.query('SET LOCAL session_replication_role = replica');
+        await fc.query(
+          `INSERT INTO interview_job(owner_user_id, interview_id, kind, seq, payload, resume_id, resume_privacy_epoch, reference_schema_version, status)
+           SELECT $2, j.interview_id, j.kind, 9, j.payload, j.resume_id, j.resume_privacy_epoch, j.reference_schema_version, 'done'
+             FROM interview_job j WHERE j.interview_id=$1 AND j.seq=4`, [ivB, `erj-x-${S}`]);
+        await fc.query('COMMIT');
+      } catch (e) { await fc.query('ROLLBACK').catch(() => undefined); throw e; } finally { fc.release(); }
+    }
+    const residueBefore = Number((await admin.query<{ n: string }>(
+      'SELECT count(*)::text AS n FROM privacy_job_residue_receipt')).rows[0]?.n ?? '0');
     const deleted2 = purgeResidue ? await asPrivacyWorkerExecutor(worker, (c) => purgeResidue(c, 256)) : -1;
-    A('B1-e 幂等：第二次清扫=0', deleted2 === 0, `deleted=${deleted2}`);
+    A('B1-e 幂等：第二次清扫=0（跨 owner 行与活租约行均不删）', deleted2 === 0, `deleted=${deleted2}`);
     A('B1-f 越界参数 fail-closed', purgeResidue !== null && await rejects(() => asPrivacyWorkerExecutor(worker, (c) => purgeResidue(c, 0))));
+    const seq9 = (await jobs(ivB)).find((j) => j.seq === 9);
+    A('N4-a 跨 owner 保留：错配 owner 的已围栏残留行清扫不删（policy owner 限定在位·撤限定即本臂红）',
+      deleted2 === 0 && seq9 !== undefined && seq9.hasPlain, `seq9=${seq9 ? (seq9.hasPlain ? 'plain' : '{}') : 'missing'}`);
+    // N-2（PR257·A-37）：A2 残留清扫持久批次收据——每次清扫落一行（只记计数/上限/时点，
+    // 零 job id/owner/内容元数据；同事务原子·清扫失败台账同滚）。
+    const residueAfter = (await admin.query<{ n: string; last: string; first: string }>(
+      'SELECT count(*)::text AS n, (SELECT deleted_count::text FROM privacy_job_residue_receipt ORDER BY id DESC LIMIT 1) AS last, (SELECT deleted_count::text FROM privacy_job_residue_receipt ORDER BY id ASC LIMIT 1) AS first FROM privacy_job_residue_receipt')).rows[0];
+    A('N2-a 残留清扫台账：每次清扫落一行（首行=首扫 4 在账·末行=本次 0 在账）',
+      Number(residueAfter?.n ?? '0') === residueBefore + 1 && residueAfter?.last === '0' && residueAfter?.first === '4',
+      `before=${residueBefore} after=${residueAfter?.n} last=${residueAfter?.last} first=${residueAfter?.first}`);
 
     // ── B2 投影 purge：无授权跳过 / 有授权物理删除 ─────────────────────────────
     const ownerE = `erj-e-${S}`; const ivE = `erj-iv-e-${S}`;
@@ -282,16 +314,25 @@ async function main() {
     const begunD = await asPrincipal(runtime, ownerD, (c) => beginInterviewProjectionErasure(c, ivD, nextHash('d'), 1));
     await authorize(worker, ownerD, ivD, begunD.requestId);
     A('B2-fn 投影 purge tick 存在', projectionTick !== null);
+    // N-1 feed 级直证（必须在 tick1 purge 之前取读——purge 后 D 的 target 已 erased、不再可认领）：
+    // 无授权 target 不出现在 claimable feed（修前 12 个无授权 target 永久占坑）。
+    const dTargetIdRows = (await admin.query<{ target_id: string }>(
+      `SELECT id AS target_id FROM privacy_deletion_target WHERE request_id=$1::uuid AND sink IN ('event','ai_graph_run','report')`, [begunD.requestId])).rows;
+    const dTargetIds = new Set(dTargetIdRows.map((r) => r.target_id));
+    const feedRows = await asPrivacyWorkerExecutor(worker, (c) => listClaimableInterviewProjectionTargets(c, 128));
+    A('N1-a claimable feed 只含已授权 D 场 3 个 target（无授权 A/B/E 全部不入列·不占坑）',
+      feedRows.length === 3 && feedRows.every((r: { targetId: string }) => dTargetIds.has(r.targetId)),
+      `feed=${feedRows.length} dTargets=${dTargetIds.size}`);
     const tick1 = projectionTick ? await projectionTick(worker, `erj-worker-${S}`, 128) : null;
-    // A/B/E 场 begin 后未授权；D 场已授权。listClaimable 含 4 个 sink
-    //（event/ai_graph_run/report + checkpoint_rows）。无 jti 则 skippedUnauthorized++，
-    // 投影 purge 只物理删除前三。fresh 隔离库精确值= A4+B4+E4=12 跳过、D 的 3 个投影 sink 删除。
-    // 禁止再用 >= 3（会把漏跳过或数量漂移算绿）。
-    A('B2-a 无已消费授权的投影 target 精确跳过 12 个（A/B/E 各 4；无授权不删）',
-      tick1?.skippedUnauthorized === 12 && tick1?.erased === 3 && tick1?.claimed === 3 && tick1?.receipted === 3,
+    // A/B/E 场 begin 后未授权；D 场已授权。N-1（0235）起 claimable feed 只列已有已消费 jti 的
+    // target（队头饿死闭合）：无授权 target 根本不入 feed，tick 只见 D 的 3 个投影 target；
+    // skippedUnauthorized 由主判据降为纵深兜底（feed 漏网时才 >0）。fresh 隔离库精确值=
+    // 0 跳过、D 的 3 个投影 sink 删除。禁止再用 >= 3（会把漏跳过或数量漂移算绿）。
+    A('B2-a feed 只列已授权 target（无授权 0 入列·D 恰 3 删+3 收据）',
+      tick1?.skippedUnauthorized === 0 && tick1?.erased === 3 && tick1?.claimed === 3 && tick1?.receipted === 3,
       JSON.stringify(tick1));
     A('B2-a 源码钉死精确相等（禁止 >= 3）',
-      /tick1\?\.skippedUnauthorized === 12/.test(readFileSync(fileURLToPath(import.meta.url), 'utf8')));
+      /tick1\?\.skippedUnauthorized === 0 && tick1\?\.erased === 3/.test(readFileSync(fileURLToPath(import.meta.url), 'utf8')));
     A('B2-b 无授权面试投影行原样保留', await projectionRows(ivE) === 5);
     A('B2-c 有授权面试 event/ai_graph_run/report 物理删除 → 0', await projectionRows(ivD) === 0);
     const dTargets = (await admin.query<{ sink: string; status: string }>(
@@ -328,6 +369,12 @@ async function main() {
     A('B3-c 生产 tick 一拍：投影行 → 0', await projectionRows(ivF) === 0, JSON.stringify(sweep));
     A('B3-d 生产 tick 一拍：job 残留明文只剩活租约 running 行', fJobs.filter((j) => j.hasPlain).map((j) => j.seq).join(',') === '4',
       fJobs.map((j) => `${j.seq}:${j.status}:${j.hasPlain ? 'P' : '-'}`).join(' '));
+    // N-2 续：生产 tick 的 A2 残留清扫同样落台账（本拍 F 场删 4·B1 场跨 owner/活租约行不受扰）。
+    const residueTail = (await admin.query<{ n: string; last: string }>(
+      'SELECT count(*)::text AS n, (SELECT deleted_count::text FROM privacy_job_residue_receipt ORDER BY id DESC LIMIT 1) AS last FROM privacy_job_residue_receipt')).rows[0];
+    A('N2-b 生产 tick 台账续行（末行=F 场 4 删·台账单调增长）',
+      residueTail?.last === '4' && Number(residueTail?.n ?? '0') >= 3,
+      `n=${residueTail?.n} last=${residueTail?.last}`);
   } finally {
     await runtime.end().catch(() => undefined);
     await worker.end().catch(() => undefined);
