@@ -66,6 +66,17 @@ const checks = {
     entry.class = 'anything-goes';
     expectError(candidate, 'environment_reference_class_invalid:MODEL_API_KEY:scripts/ha/ha-sandbox.mjs');
   },
+  'TC-MODEL-002-E3-sandbox-model-name-whitelist-gate': () => {
+    // A-40 残余收口（#274 mw-model-op P2）：qwen 前缀闸不是沙箱白名单——ha-sandbox env 起跑前
+    // 必须校验四个模型名都是 qwen-sandbox-* 占位名（真实档名 qwen-plus 等在沙箱边界即拒）。
+    // 静态锚：闸从 ha-sandbox.mjs 消失（或被改为放行真实档名）即红。
+    const sandboxSrc = readFileSync(resolve(repoRoot, 'scripts/ha/ha-sandbox.mjs'), 'utf8');
+    if (!sandboxSrc.includes("for (const name of ['MODEL_NAME', 'MODEL_FAST_NAME', 'MODEL_BACKUP_NAME', 'MODEL_FAST_BACKUP_NAME'])")
+      || !sandboxSrc.includes('/^qwen-sandbox-/.test(v')
+      || !sandboxSrc.includes('must be a qwen-sandbox-* placeholder before up')) {
+      throw new Error('sandbox_model_name_whitelist_gate_missing');
+    }
+  },
   'TC-MODEL-002-E3-inventory-unregistered-transport': () => {
     const candidate = clone(manifest);
     candidate.transportSources = candidate.transportSources.filter((source) => source !== 'packages/ai-runtime/src/voice-stream.ts');

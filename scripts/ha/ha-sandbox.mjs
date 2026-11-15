@@ -181,6 +181,15 @@ function assertSandboxEndpointProfiles(lines) {
       finish(1, { result: 'FAIL', gap: `sandbox env ${name} must be sandbox-invalid before up (got ${v ? v : 'missing'})` });
     }
   }
+  // A-40 残余收口（#274 mw-model-op P2）：qwen 前缀闸不是沙箱白名单（qwen-plus 也 construct-ok）
+  // ——沙箱 env 的四个模型名必须显式 qwen-sandbox-* 占位名，真实档名（qwen-plus 等）在沙箱
+  // 起跑前即拒，阻断「沙箱跑真名模型」误配面（外联本就被 .invalid 主机+dummy key 兜底）。
+  for (const name of ['MODEL_NAME', 'MODEL_FAST_NAME', 'MODEL_BACKUP_NAME', 'MODEL_FAST_BACKUP_NAME']) {
+    const v = lastEnvValue(lines, name);
+    if (!/^qwen-sandbox-/.test(v ?? '')) {
+      finish(1, { result: 'FAIL', gap: `sandbox env ${name} must be a qwen-sandbox-* placeholder before up (got ${v ? v : 'missing'})` });
+    }
+  }
 }
 
 function assertSandboxEnv(lines) {
