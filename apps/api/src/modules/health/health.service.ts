@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { fileURLToPath } from 'node:url';
-import { latestMigrationVersion } from '@meetwise/db';
+import { errCode, latestMigrationVersion } from '@meetwise/db';
+import type { Client } from '@meetwise/db';
 import { DbService } from '../../platform/db.service';
 import { parseCriticalEnv } from '../../platform/env-schema';
 import { getSseNotify, SSE_NOTIFY_TRIGGER_HEALTH_SQL, SSE_NOTIFY_TRIGGER_NAME } from '../../platform/sse-notify.service';
@@ -25,7 +26,9 @@ export type SseNotifyReadiness = 'ok' | 'trigger_missing' | 'listen_down' | 'unk
 /**
  * 目录读专用短超时。compose api healthcheck timeout=3s（docker/compose.prod.yml），
  * 本查询须先于探活超时失败，避免沿用池级 15s statement timeout 把探活打挂。
- * 无缓存（每次 readiness 现查）。
+ * A-20：同一常数同时装填服务端 statement_timeout（probeCatalogQuery 事务内
+ * set_config(…, is_local=true)）——客户端竞速只保证响应契约，超时后查询由 PG 在本常数内
+ * 真取消（57014），孤儿查询寿命 ≤常数+连接建立，不再沿用池级 15s。无缓存（每次现查）。
  */
 export const SSE_NOTIFY_TRIGGER_HEALTH_TIMEOUT_MS = 2_000;
 
@@ -92,6 +95,41 @@ function isConnectionClassError(error: unknown): boolean {
 export class HealthService {
   constructor(private readonly db: DbService) {}
 
+  /**
+   * A-20：降级探针的结构化日志（沿 SSE_NOTIFY_DEGRADED/RL_SHARED_DEGRADED 行式先例）。
+   * 只记 probe/outcome/code/elapsed_ms 四键——error message、SQL、trigger 名零落日志
+   * （pg message 可携带 SQL 片段，公开探针纪律 + 日志卫生同款收口）。
+   */
+  private logDegraded(probe: string, outcome: string, error?: unknown, startedAt?: number): void {
+    const elapsed = startedAt === undefined ? '' : ` elapsed_ms=${Date.now() - startedAt}`;
+    console.warn(
+      `HEALTH_PROBE_DEGRADED probe=${probe} outcome=${outcome} code=${errCode(error) ?? 'none'}${elapsed}`,
+    );
+  }
+
+  /**
+   * A-20：目录读的服务端短超时执行形。池级 statement_timeout=15s 对探针过宽（DB stall 期孤儿
+   * 查询占池连接 15s，探针周期性重试会叠放）；本 helper 用专用池连接 + 事务内
+   * set_config('statement_timeout', …, is_local=true)（SET 工具命令不吃绑定参数，set_config
+   * 是参数化等价形·asPrincipal 同款习语）把本查询寿命收口在本常数内。连接归还：成功 COMMIT 后
+   * release；失败路径 ROLLBACK（连接已死时 ROLLBACK 同败，finally release 兜底归还）。
+   */
+  private async probeCatalogQuery<T>(run: (c: Client) => Promise<T>): Promise<T> {
+    const c = await this.db.pool.connect();
+    try {
+      await c.query('BEGIN');
+      await c.query("SELECT set_config('statement_timeout', $1, true)", [String(SSE_NOTIFY_TRIGGER_HEALTH_TIMEOUT_MS)]);
+      const r = await run(c);
+      await c.query('COMMIT');
+      return r;
+    } catch (error) {
+      try { await c.query('ROLLBACK'); } catch { /* 连接已死：ROLLBACK 同败，finally release 兜底归还 */ }
+      throw error;
+    } finally {
+      c.release();
+    }
+  }
+
   livez(): { status: 'ok' } {
     return { status: 'ok' };
   }
@@ -111,9 +149,12 @@ export class HealthService {
    * migration_mismatch，绝不 fail-open。
    */
   async apiReady(): Promise<ApiReadiness> {
+    const startedAt = Date.now();
     try {
       await this.db.pool.query('SELECT 1');
-    } catch {
+    } catch (error) {
+      // A-20：SELECT 1 失败不再静默——结构化降级日志（code-only）。
+      this.logDegraded('select_1', 'db_unreachable', error, startedAt);
       return 'db_unreachable';
     }
     try {
@@ -130,7 +171,10 @@ export class HealthService {
       // 账本查询窗内连接类错误（SELECT 1 与账本查询之间 DB 抖动/断连）→ db_unreachable
       // （真态归类，编排方不再误读为迁移漂移）；其余（含无码 Error 与目录不可读的文件系
       // 错误）→ 无法证明非迁移漂移即按漂移降级 → migration_mismatch 维持 fail-closed。
-      return isConnectionClassError(error) ? 'db_unreachable' : 'migration_mismatch';
+      // A-20：两分支都落结构化降级日志（code-only，消息/SQL 零落）。
+      const connectionClass = isConnectionClassError(error);
+      this.logDegraded('migration_ledger', connectionClass ? 'db_unreachable' : 'migration_mismatch', error, startedAt);
+      return connectionClass ? 'db_unreachable' : 'migration_mismatch';
     }
   }
 
@@ -149,18 +193,24 @@ export class HealthService {
    * trigger 缺席/禁用（rowCount !== 1）→ trigger_missing；目录查询异常（含专用短超时）
    * → unknown（不与缺席混同，不单独 503）。目录 ok 后再读进程内 LISTEN 健康面
    * （零请求池查询）→ listen_down 可见但不由本函数单独抛错。
+   * A-20：查询改走 probeCatalogQuery 专用连接（服务端 statement_timeout 同常数装填，
+   * 超时后查询被 PG 真取消）；响应契约仍由 withShortTimeout 竞速守（connect/BEGIN 挂起时
+   * 先返回）。异常降级从静默改结构化日志（probe/outcome/code/elapsed）。
    */
   async sseNotifyReady(): Promise<SseNotifyReadiness> {
+    const startedAt = Date.now();
     try {
       const trig = await withShortTimeout(
-        this.db.pool.query(SSE_NOTIFY_TRIGGER_HEALTH_SQL, [SSE_NOTIFY_TRIGGER_NAME]),
+        this.probeCatalogQuery((c) => c.query(SSE_NOTIFY_TRIGGER_HEALTH_SQL, [SSE_NOTIFY_TRIGGER_NAME])),
         SSE_NOTIFY_TRIGGER_HEALTH_TIMEOUT_MS,
         'sse_notify_trigger_health',
       );
       if (trig.rowCount !== 1) return 'trigger_missing';
-    } catch {
+    } catch (error) {
       // 查询异常标 unknown：与 DB 不可达时的短路同形，既有 ready 公式不单独 503。
       // 真缺席/禁用走上方 rowCount 分支，仍为 trigger_missing → 503。
+      // A-20：不再静默——结构化降级日志（code-only）。
+      this.logDegraded('sse_notify_catalog', 'unknown', error, startedAt);
       return 'unknown';
     }
     const h = getSseNotify().health();

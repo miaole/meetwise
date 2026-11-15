@@ -13,7 +13,11 @@
  * T-6  单元缝：假客户端 trigger 查询 rowCount=0 → health()=trigger_missing + 结构化降级日志
  * T-R  ENABLE REPLICA TRIGGER（tgenabled='R'）→ 503，sse.notify=trigger_missing
  * T-table  表改名使 to_regclass 为 NULL → 503，sse.notify=trigger_missing（非 listen_down）
- * T-7  目录查询抛错 → sse.notify=unknown，HTTP 200（不单独 503）
+ * T-7  目录查询抛错 → sse.notify=unknown，HTTP 200（不单独 503；A-20 起拦截面=pool.connect 包装）
+ * T-8  A-20 单元缝：目录读专用连接事务形依序（BEGIN→set_config(statement_timeout,2000,is_local)
+ *      →目录查询→COMMIT）+ 57014 失败路径 ROLLBACK 归还 + HEALTH_PROBE_DEGRADED 结构化降级日志
+ *      （probe/outcome/code/elapsed·消息与 trigger 名零落）+ 挂起查询客户端竞速 ≤2.5s + apiReady
+ *      SELECT 1 失败 db_unreachable 日志面
  *
  * 不改 apps/api prove:sse-slot（#243 的 env -u 六变量封闭化不在本刀，且本刀不碰该脚本）。
  * #243 未合，本证明只登记 pnpm 脚本，待挂 verify:local。
@@ -192,13 +196,40 @@ try {
   {
     console.log('\n──────── T-7 · catalog query throw → unknown, HTTP 200 ────────');
     const health = app.get(HealthService);
-    const db = (health as unknown as { db: { pool: { query: (...args: unknown[]) => Promise<unknown> } } }).db;
-    const orig = db.pool.query.bind(db.pool);
-    db.pool.query = ((...args: unknown[]) => {
-      const sql = String(args[0] ?? '');
-      if (sql.includes('pg_trigger')) return Promise.reject(new Error('catalog_boom'));
-      return orig(...args);
-    }) as typeof db.pool.query;
+    const db = (health as unknown as { db: { pool: DbPool } }).db;
+    // A-20：目录查询改走 probeCatalogQuery 专用连接（pool.connect），拦截面随之从 pool.query
+    // 换到 pool.connect——包装真实 client，仅 pg_trigger 查询注入异常，其余（SELECT 1、asGateway
+    // 账本读）原样透传。pg Pool.query 内部以 callback 形调 this.connect，包装必须双形兼容
+    // （promise 形给 probeCatalogQuery/asGateway，callback 形给池内 query 快路）。
+    const origConnect = db.pool.connect.bind(db.pool) as unknown as () => Promise<Client>;
+    // 包装只拦 query/release 两个名字，其余（EventEmitter 面 on/once/emit 等）原样委托真 client
+    // ——pg-pool connect 路径会对 client.once('error') 装处理器，整对象替换会砸掉该面。
+    const wrapClient = (real: Client): Client => new Proxy(real, {
+      get(target, prop) {
+        if (prop === 'query') {
+          return async (...qargs: unknown[]) => {
+            if (String(qargs[0] ?? '').includes('pg_trigger')) throw new Error('catalog_boom');
+            return (target as unknown as { query: (...a: unknown[]) => Promise<unknown> }).query(...qargs);
+          };
+        }
+        if (prop === 'release') return () => (target as unknown as { release: () => void }).release();
+        const v = Reflect.get(target, prop, target);
+        return typeof v === 'function' ? (v as (...a: unknown[]) => unknown).bind(target) : v;
+      },
+    }) as unknown as Client;
+    db.pool.connect = ((
+      cb?: (err: Error | undefined, client?: Client, release?: () => void) => void,
+    ) => {
+      if (typeof cb === 'function') {
+        void origConnect().then(
+          (real) => cb(undefined, real ? wrapClient(real) : undefined,
+            real ? () => (real as unknown as { release: () => void }).release() : undefined),
+          (err: unknown) => cb(err instanceof Error ? err : new Error(String(err))),
+        );
+        return;
+      }
+      return origConnect().then((real) => (real ? wrapClient(real) : real));
+    }) as unknown as typeof db.pool.connect;
     try {
       const r = await get('/readyz/api');
       A('T-7a /readyz/api 查询异常 → 200 sse.notify=unknown（不单独 503）',
@@ -207,7 +238,7 @@ try {
       A('T-7b /health 同面 200 sse.notify=unknown',
         alias.status === 200 && alias.body.sse?.notify === 'unknown', alias);
     } finally {
-      db.pool.query = orig;
+      db.pool.connect = origConnect as unknown as typeof db.pool.connect;
     }
     const restored = await get('/readyz/api');
     A('T-7c 还原查询后 /readyz/api 不再标 unknown',
@@ -296,6 +327,104 @@ try {
       logs.some((l) => /^SSE_NOTIFY_DEGRADED reason=trigger_missing fallback=legacy_2s_poll hint=/.test(l)),
       logs);
     await svc.stop();
+  }
+
+  // ── T-8 A-20 单元缝：目录读服务端短超时执行形 + 降级结构化日志（零 DB）──
+  {
+    console.log('\n──────── T-8 · A-20 server-side statement_timeout + degraded log ────────');
+    // ① happy path：专用连接事务形依序（BEGIN→set_config→目录查询→COMMIT）+ 归还一次。
+    const calls: Array<{ sql: string; params?: unknown[] }> = [];
+    let releases = 0;
+    const happyClient = {
+      query: async (sql: string, params?: unknown[]) => {
+        calls.push({ sql, params });
+        if (/pg_trigger/i.test(sql)) return { rowCount: 1, rows: [] };
+        return { rowCount: 0, rows: [] };
+      },
+      release: () => { releases += 1; },
+    };
+    const happySvc = new HealthService({ pool: { connect: async () => happyClient } } as never);
+    const outA = await happySvc.sseNotifyReady();
+    const sqls = calls.map((c) => c.sql);
+    const iBegin = sqls.findIndex((s) => /^BEGIN$/i.test(s.trim()));
+    const iSet = sqls.findIndex((s) => /set_config\('statement_timeout'/.test(s));
+    const iTrig = sqls.findIndex((s) => /pg_trigger/i.test(s));
+    const iCommit = sqls.findIndex((s) => /^COMMIT$/i.test(s.trim()));
+    A('T-8a 目录查询 rowCount=1 放行（非 unknown/trigger_missing；终值合并进程 LISTEN 单例面·T-5 前态）',
+      outA !== 'unknown' && outA !== 'trigger_missing', outA);
+    A('T-8b 服务端短超时装填依序：BEGIN→set_config(statement_timeout)→目录查询→COMMIT',
+      iBegin >= 0 && iSet > iBegin && iTrig > iSet && iCommit > iTrig, sqls.join(' | '));
+    A('T-8c set_config 值=2000ms 且 is_local=true（参数化等价 SET LOCAL·SET 不吃绑定参数）',
+      (() => {
+        const set = calls[iSet];
+        return set !== undefined && set.params?.[0] === '2000' && /,\s*true\s*\)/.test(set.sql);
+      })());
+    A('T-8d 专用连接归还一次（release×1）', releases === 1, String(releases));
+
+    // ② 失败路径：57014（服务端超时真取消的返回形）→ unknown + ROLLBACK + 归还 + 结构化日志。
+    const failCalls: string[] = [];
+    let failReleases = 0;
+    const failClient = {
+      query: async (sql: string) => {
+        failCalls.push(sql);
+        if (/pg_trigger/i.test(sql)) {
+          throw Object.assign(new Error('canceling statement due to statement timeout'), { code: '57014' });
+        }
+        return { rowCount: 0, rows: [] };
+      },
+      release: () => { failReleases += 1; },
+    };
+    const failSvc = new HealthService({ pool: { connect: async () => failClient } } as never);
+    const captured: string[] = [];
+    const origWarn = console.warn;
+    console.warn = (l?: unknown) => { captured.push(String(l)); };
+    let outB: Awaited<ReturnType<HealthService['sseNotifyReady']>>;
+    try {
+      outB = await failSvc.sseNotifyReady();
+    } finally {
+      console.warn = origWarn;
+    }
+    A('T-8e 57014 → unknown（不单独 503 语义零变）', outB === 'unknown', outB);
+    A('T-8f 失败路径 ROLLBACK 归还（ROLLBACK issued + release×1）',
+      failCalls.some((s) => /^ROLLBACK$/i.test(s.trim())) && failReleases === 1, failCalls.join(' | '));
+    A('T-8g 降级结构化日志（HEALTH_PROBE_DEGRADED probe/outcome/code=57014/elapsed）',
+      captured.some((l) =>
+        /^HEALTH_PROBE_DEGRADED probe=sse_notify_catalog outcome=unknown code=57014 elapsed_ms=\d+$/.test(l)),
+      captured);
+    A('T-8h 日志卫生：error message 与 trigger 名零落日志',
+      captured.every((l) => !l.includes('canceling statement') && !l.includes(SSE_NOTIFY_TRIGGER_NAME)),
+      captured);
+
+    // ③ 挂起查询：客户端竞速契约仍在（unknown ≤2.5s 返回）；服务端取消由 T-8b 装填面承担
+    // （真 PG 上 statement_timeout 到点 57014 → probeCatalogQuery finally 归还连接）。
+    const hangClient = {
+      query: () => new Promise<never>(() => {}),
+      release: () => undefined,
+    };
+    const hangSvc = new HealthService({ pool: { connect: async () => hangClient } } as never);
+    const t0 = Date.now();
+    const outC = await hangSvc.sseNotifyReady();
+    const dt = Date.now() - t0;
+    A('T-8i 挂起查询 → unknown 且响应 ≤2.5s（客户端竞速守响应契约）',
+      outC === 'unknown' && dt <= 2_500, `${dt}ms`);
+
+    // ④ apiReady SELECT 1 失败 → db_unreachable + 结构化日志（code-only）。
+    const apiCaptured: string[] = [];
+    const origWarn2 = console.warn;
+    console.warn = (l?: unknown) => { apiCaptured.push(String(l)); };
+    let outD: Awaited<ReturnType<HealthService['apiReady']>>;
+    try {
+      outD = await new HealthService({
+        pool: { query: async () => { throw Object.assign(new Error('econn refused'), { code: 'ECONNREFUSED' }); } },
+      } as never).apiReady();
+    } finally {
+      console.warn = origWarn2;
+    }
+    A('T-8j apiReady SELECT 1 失败 → db_unreachable（语义零变）', outD === 'db_unreachable', outD);
+    A('T-8k apiReady 降级结构化日志（probe=select_1 outcome=db_unreachable code=ECONNREFUSED）',
+      apiCaptured.some((l) =>
+        /^HEALTH_PROBE_DEGRADED probe=select_1 outcome=db_unreachable code=ECONNREFUSED /.test(l)),
+      apiCaptured);
   }
 } finally {
   await app.close().catch(() => undefined);
