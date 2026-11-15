@@ -228,6 +228,7 @@ DoD：标"已 wired"的每条都是 CI 里真实运行、真能卡住合并的 j
 | S10 | #263 0143 SSE NOTIFY trigger 缺失或禁用时 readiness fail-closed（隔离 PG） | `pnpm sse-notify-trigger-health:prove` | 未入 CI，本地手跑（第二批合入后补挂） |
 | S11 | #257 擦除流覆盖 interview_job 明文 + 投影物理 purge（0232，隔离 PG） | `pnpm erasure-job-projection:prove` | 未入 CI，本地手跑（第二批合入后补挂） |
 | S12 | ha6 scripts digest / 治理锚（改根 package.json scripts 后须重登；t1660u：不进主 CI） | `pnpm ha6:prove` | 仅 nightly（t1660u 协调者代决 · 改 scripts 的 PR 本地必跑） |
+| S13 | PI 同意闸覆盖面（用户裁定 2026-11-15「隐私只要同意就行」=consent 闸即 bar；登记/撤回端点 + resume_processing 双臂 + voice_capture 闸静态钉面·闸摘除变异可红） | `pnpm pi-consent-gates:prove` | 未入 CI，本地手跑（verify:local 尾） |
 
 ### 8.3 nightly 只放少量关键 prove（建议与理由）
 
