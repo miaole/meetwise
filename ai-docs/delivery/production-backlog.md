@@ -213,7 +213,7 @@ Pins 不变：NOT_HA · releaseEvidence=false。
 | C 端 PI 同意 + 简历静态加密 + 删除级联 + 境外 egress 守卫 | 🟡 部分在 data-model，需机制化 |
 | 密钥治理 + 泄露 IR（Langfuse key 待轮换） | ❌ `rules/security/secrets-management.md` |
 | API/契约版本化与弃用 | ❌ `architecture/backend/api-versioning.md` |
-| 数据演进（embedding 蓝绿/记忆和解/prompt eval-gate，MVP 精简集） | 🟠 `.tmp/versioning` 提升 |
+| 数据演进（embedding 蓝绿/记忆和解/prompt eval-gate，MVP 精简集） | ✅ `architecture/backend/data-evolution.md`（世代蓝绿/记忆状态机/注册表+台账按实现成文；自动 eval 门标未实现） |
 
 ## P2 — 规模化才咬人
 
@@ -295,7 +295,7 @@ Pins 不变：NOT_HA · releaseEvidence=false。
 
 ## 自驱执行顺序
 
-1. land 孤儿：可观测 spec（🟠）；提升 versioning（🟠）。
+1. land 孤儿：可观测 spec（🟠）；提升 versioning（✅ data-evolution.md 已成文）。
 2. 补 P0 从零：ingestion-pipeline、ADR、ci-cd、安全纵深、factuality 歪曲门、agent-runtime 8 洞收口；已识别的多题域面试先按 `PRD-TEST-016` 建 metadata 数据面隔离、**自动**岗位路由快照和 clean no-result 的同桶 LLM fallback，再按 `PRD-TEST-017` 在其他自由文本入口复用分类漏斗，不能为每题无条件堆叠分类模型。
 3. 已决未成文：题库生命周期、语音、自主研究、密钥治理、API 版本化。
 4. 行走骨架 S0→S6（动代码）。
