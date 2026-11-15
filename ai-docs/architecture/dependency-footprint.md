@@ -122,7 +122,7 @@ related:
 
 ### 历史规划、未安装（曾被写成在用）
 
-`@nestjs/config`、`@nestjs/swagger`、`@nestjs/schedule`、`@nestjs/terminus`、`@nestjs/event-emitter`、`nestjs-zod`、`zod-openapi`、`@prisma/client`、`ioredis`、`nestjs-i18n`、`nestjs-pino` / `pino` / `pino-http`（直接依赖）、`@opentelemetry/*`（api 包内）、`@aws-sdk/*`、`argon2`、`jose`、`@fastify/csrf-protection`、`@fastify/cookie`、`@fastify/helmet`、`@fastify/cors`、`nanoid`、`ulid`、`nodemailer`、`@nestjs/cli` / `@nestjs/schematics` / `@nestjs/testing`、`ts-node` / `tsconfig-paths`、`@swc/cli`、`vitest` / `supertest`、`vite-tsconfig-paths`、`@testcontainers/*`、`testcontainers`。
+从未安装：`@nestjs/config`、`@nestjs/swagger`、`@nestjs/schedule`、`@nestjs/terminus`、`@nestjs/event-emitter`、`nestjs-zod`、`zod-openapi`、`@prisma/client`、`ioredis`、`nestjs-i18n`、`nestjs-pino` / `pino` / `pino-http`（直接依赖）、`@opentelemetry/*`（api 包内）、`@aws-sdk/*`、`argon2`、`jose`、`@fastify/csrf-protection`、`@fastify/cookie`、`@fastify/helmet`、`@fastify/cors`、`nanoid`、`ulid`、`nodemailer`、`@nestjs/cli` / `@nestjs/schematics` / `@nestjs/testing`、`ts-node` / `tsconfig-paths`、`@swc/cli`、`vitest` / `supertest`、`vite-tsconfig-paths`、`@testcontainers/*`、`testcontainers`。
 
 **小计（package.json）：deps 16，devDeps 1。**
 
@@ -150,7 +150,7 @@ related:
 
 ### 历史规划、未安装（曾被写成 worker 在用）
 
-`@langchain/langgraph-checkpoint`（抽象包不在 worker 的 dependencies；只在 `packages/db` 的 devDependencies，供证明使用）、`@langchain/core`（worker 未直接声明）、`@langchain/openai`、`@langchain/textsplitters`、`langfuse` / `langfuse-langchain`（现行是 `@langfuse/*` v5，在 `ai-runtime`）、`@prisma/client`、`zod-to-json-schema`、`@aws-sdk/client-s3`、`pino`（直接依赖）、`@opentelemetry/*`（worker 包内）、`nanoid`、`p-retry`（非直接依赖）、`gpt-tokenizer`、`pgvector`（npm 包；向量能力是 Postgres 扩展，见下）、`unpdf`、`mammoth` / `pdf-parse`（在 `packages/domain`，不在 worker）、`cheerio`。
+未安装：`@langchain/langgraph-checkpoint`（抽象包不在 worker 的 dependencies；只在 `packages/db` 的 devDependencies，供证明使用）、`@langchain/core`（worker 未直接声明）、`@langchain/openai`、`@langchain/textsplitters`、`langfuse` / `langfuse-langchain`（现行是 `@langfuse/*` v5，在 `ai-runtime`）、未采用：`@prisma/client`、`zod-to-json-schema`、`@aws-sdk/client-s3`、`pino`（直接依赖）、`@opentelemetry/*`（worker 包内）、`nanoid`、`p-retry`（非直接依赖）、`gpt-tokenizer`、`pgvector`（npm 包；向量能力是 Postgres 扩展，见下）、`unpdf`、`mammoth` / `pdf-parse`（在 `packages/domain`，不在 worker）、`cheerio`。
 
 从队列表领取任务用 `pg` + `SKIP LOCKED` 与 `LISTEN/NOTIFY`（ADR-0023），不是 BullMQ。
 

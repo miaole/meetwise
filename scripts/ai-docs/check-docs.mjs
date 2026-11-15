@@ -26,11 +26,17 @@ function listMarkdownFiles(absDir, acc = []) {
 // stay legal). Redis-as-current-queue-or-ratelimiter is checked only in the
 // current-architecture documents that are supposed to state runtime fact.
 const REJECTED_STACK_PATTERNS = [
-  { id: "bullmq", re: /@nestjs\/bullmq|bullmq/gi },
-  { id: "pg-boss", re: /pg-boss|pgboss/gi },
+  { id: "bullmq", re: /bull[\s_-]?mq/gi },
+  { id: "pg-boss", re: /pg[\s_-]?boss/gi },
   { id: "throttler-storage-redis", re: /throttler-storage-redis/gi },
+  // #265 P2 收口（A-23）：四个已否决/已被实现取代的栈纳入同门——写成现在时事实即红，
+  // 带 否决/勘误/无 标记的对照提及合法（LOCAL_REJECTION 判定·与 bullmq 同形）。
+  { id: "ts-rest", re: /ts[\s_-]?rest/gi },
+  { id: "zod-openapi", re: /zod[\s_-]?openapi/gi },
+  { id: "prisma", re: /prisma/gi },
+  { id: "vercel", re: /vercel/gi },
 ];
-const LOCAL_REJECTION = /无|不是|并非|未采用|未安装|未引用|不在|不以|不把|不要|不得|禁止|已否决|被否|已退役|已删|不再|不换|零码|零 import|仍写|曾写|曾用|原写|旧定论|旧叙事|旧文|历史|草稿|残留|勘误|目标态|仅设计|未接线|已取代|superseded|候选|已砍|砍除|勿把|作废/;
+const LOCAL_REJECTION = /无|不是|并非|未采用|未安装|未引用|不在|不以|不把|不要|不得|不上|不用|未采用|原定|规划稿|禁止|已否决|被否|已退役|已删|不再|不换|零码|零 import|仍写|曾写|曾用|原写|旧定论|旧叙事|旧文|历史|草稿|残留|勘误|目标态|仅设计|未接线|已取代|superseded|候选|已砍|砍除|勿把|作废|弃用|已淘汰|若用|若启用|rejected|误装|未进|不赌|无 @|没有 zod-openapi/;
 const REDIS_FACT_FILES = new Set([
   "ai-docs/architecture/dependency-footprint.md",
   "ai-docs/architecture/system-blueprint.md",

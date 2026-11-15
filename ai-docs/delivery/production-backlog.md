@@ -225,7 +225,7 @@ Pins 不变：NOT_HA · releaseEvidence=false。
 
 | # | 步 | 退出准则 |
 |---|---|---|
-| S0 | monorepo + compose.dev + Prisma 初始 schema + RLS 原语 + CAS 原语 + 事件日志表 | 🟡 进行中：**四原语已 code-validated**（`packages/db`，`pnpm db:prove` 对真 Postgres 全 PASS：CAS 恰一个赢 / 幂等去重 / RLS 越权=0 fail-closed / 事件 seq 单调）；Prisma schema + monorepo 应用层待续 |
+| S0 | monorepo + compose.dev + RLS 原语 + CAS 原语 + 事件日志表（勘误：Prisma 初始 schema 未采用·现行手写 SQL 迁移） | 🟡 进行中：**四原语已 code-validated**（`packages/db`，`pnpm db:prove` 对真 Postgres 全 PASS：CAS 恰一个赢 / 幂等去重 / RLS 越权=0 fail-closed / 事件 seq 单调）；Prisma schema 方案已弃用（现行手写 SQL 迁移·见 ADR-0002 勘误）+ monorepo 应用层待续 |
 | S1 | zod4 契约 + demo 登录 + principalContext 全路径注入 | 🟡 请求路径 code-validated（`apps/api`，`pnpm api:validate` 7/7：无principal→401、越权→404 不泄露存在性、HTTP 幂等）；zod4 契约 + 真登录待补 |
 | S2 | 简历上传 → 摄取清洗 → 结构化 ResumeProfile（PII 闸+加密） | ✅ **code-validated**（`packages/db` + `domain.ingestResume`，2026-08-10 的 `pnpm resume:prove` 在 64 个迁移后的隔离 PostgreSQL（关系型数据库）通过 32/32，`releaseEvidence=false`，**经安全审计修 PII-strip 漏网/裸 sha 预言机/fail-open 密钥/FK 绕 RLS 等 P0-P1**）：原文 `pgp_sym_encrypt` 加密落 blob、结构化 profile 永不含明文 PII（NFKC 归一 + 行内/+86/全角脱敏 + ≥11 位数字 fail-closed 兜底）、注入拦截、状态机 CAS 原子完成、HMAC 去重、复合 FK 强制同 owner、RLS 越权=0、越权解密被拒。PDF/多模态抽取适配器层待补（本期 text；不代表全格式 RAG 或完整删除权）。|
 | S3 | ai-runtime invoke 管线（catalog+PII 区域门+双校验+重试封顶+幂等键） | ✅ 内核 code-validated（`pnpm runtime:prove`：schema 失败重试/幻觉拦截/确定性拒绝不重试/幂等 exactly-once）；catalog+PII 区域门待补 |

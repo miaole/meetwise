@@ -46,7 +46,7 @@ E0=用户确认/已验证仓库事实；E1=据 E0 合理推断；E2=猜测；E3=
 1. **需求门（所有任务）**：证据只用 E0/E1；范围（做/不做/禁改）；非目标。
 2. **设计门（按相关触发 checklist）**：
    - 领域/状态机：显式枚举、转换表、服务端再校验、审计字段。
-   - 契约：共享 zod4 schema（ZodValidationPipe + zod-openapi），不臆造、不漂移，有契约测试。
+   - 契约：共享 zod4 schema（ZodValidationPipe + 自研 OpenAPI 生成·无 zod-openapi 包），不臆造、不漂移，有契约测试。
    - DB：约束、索引、**RLS + `SET LOCAL` + 事务级连接池**、迁移/回滚。
    - **LangGraph 可恢复**：checkpoint 落 Postgres（非内存/非 Redis）、`threadId` 纪律、无内存 session map、有"中断→恢复"测试。
    - AI-runtime：state/output schema、模型调用 harness、`ValidateResumeFactuality`、结构化输出、golden（含真实模型）、cost 预算、fallback、"可恢复非可重放"。
