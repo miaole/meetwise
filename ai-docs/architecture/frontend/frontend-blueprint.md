@@ -98,7 +98,7 @@ apps/web/
 
 ## 5. 数据获取：契约先行
 
-`packages/contracts` 用 **zod4 schema** 定义所有接口的请求/响应，前端只消费类型化封装，**禁止手写 fetch 路径**（杜绝审计里前后端漂移的 8+ 缺口接口）。后端用同一份 schema 过 `ZodValidationPipe` 校验、出 `zod-openapi` 文档。
+`packages/contracts` 用 **zod4 schema** 定义所有接口的请求/响应，前端只消费类型化封装，**禁止手写 fetch 路径**（杜绝审计里前后端漂移的 8+ 缺口接口）。后端用同一份 schema 过 `ZodValidationPipe` 校验、出 OpenAPI 文档（自研 zod4 原生 `z.toJSONSchema` 生成·无 zod-openapi 包）。
 
 ```ts
 // lib/api/client.ts —— 类型化 fetch 封装，请求/响应都用契约 schema 校验

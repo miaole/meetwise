@@ -195,7 +195,7 @@ pnpm -C apps/web dev
 
 **测试基建**：全仓 Vitest projects（按文件后缀切分 `*.test/.contract.test/.graph.test/.int.test/.eval`）；api/worker 走 `unplugin-swc`；CI 复用 compose 库(`TEST_PG_URL` 切换，不双供库)；**库隔离默认事务 ROLLBACK**，模板库仅 DDL/迁移套件；**单一 root globalSetup** 供库(幂等守门)；testkit 提供 `FakeChatModel`(按调用序号脚本：正常/重试/拒绝/幻觉)。覆盖率差异化(核心域 domain/validators/contracts 卡严，apps/* 初期不设地板)。
 
-**过渡纪律**：旧 5 脚本 job 与新 Vitest job **并存**，某 gate 断言全搬完且 CI 绿再删旧；`api:validate` 翻向真 Nest **必须先有 AppModule + validate 子命令移植完**(期间 spike 续 tsx 保绿)。db 迁移本来就是手写 SQL（`packages/db/migrations`），没有 Prisma schema 落地步骤。RLS 与 pgvector 扩展都走手写 migration SQL。
+**过渡纪律**：旧 5 脚本 job 与新 Vitest job **并存**，某 gate 断言全搬完且 CI 绿再删旧；`api:validate` 翻向真 Nest **必须先有 AppModule + validate 子命令移植完**(期间 spike 续 tsx 保绿)。db 迁移本来就是手写 SQL（勘误：未采用 Prisma——`packages/db/migrations`），没有 Prisma schema 落地步骤。RLS 与 pgvector 扩展都走手写 migration SQL。
 
 **must-smoke #3**（规划稿原文写 PrismaClient 工厂）：现行没有 Prisma。主体上下文与越权读=0 的证明走 `asPrincipal` + 手写 SQL / RLS，不得再把 PrismaClient 写成现行门。
 

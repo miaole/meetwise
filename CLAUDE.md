@@ -24,7 +24,7 @@ docker compose -f docker/compose.dev.yml up   # Dev infra only (Postgres+pgvecto
 The workflow is documentation-first, structure-first, contract-first, test-first (`AGENTS.md`). Concretely:
 
 - **Start from `ai-docs/meta/index.md`**, then route to the right doc via its task table before touching anything.
-- **Do not invent interfaces.** Frontend and backend must be driven by a shared contract (`packages/contracts` — shared zod4 schemas + `zod-openapi`; ts-rest was rejected, see ADR-0004). Meetwise locks contracts from day one to prevent frontend/backend drift.
+- **Do not invent interfaces.** Frontend and backend must be driven by a shared contract (`packages/contracts` — shared zod4 schemas + built-in OpenAPI generation via zod4 native toJSONSchema, no zod-openapi package; ts-rest 已否决, see ADR-0004). Meetwise locks contracts from day one to prevent frontend/backend drift.
 - **Before writing code/DB/API/LangGraph/payment/AI tasks**, produce the pre-generation gate (`AGENTS.md` "生成前门禁"): task scope, source evidence, explicit non-goals, domain objects, state-machine impact, contract impact, DB impact, test plan, verification command. For complex tasks follow the pre-generation gate fields in `AGENTS.md` "生成前门禁".
 - **One conclusion lives in one place** (`ai-docs/meta/directory-boundaries.md`). Long-term product truth → `product/`; this-iteration scope → `requirements/`; tech design → `architecture/`; hard constraints → `rules/`; one-off tickets/evidence → `.tmp/` (gitignored, never committed to `ai-docs`).
 
@@ -60,7 +60,7 @@ These are the non-negotiable deltas that define Meetwise's engineering:
 
 - LangGraph Postgres checkpoint for all run-time state — **no in-memory session maps** (durable, resumable, multi-instance safe).
 - Postgres + migrations + constraints — **no scattered schemaless models**.
-- Shared zod4 contracts front/back (`packages/contracts` + ZodValidationPipe + zod-openapi; ts-rest rejected per ADR-0004) — **no hand-written, drifting API calls**.
+- Shared zod4 contracts front/back (`packages/contracts` + ZodValidationPipe + built-in toJSONSchema OpenAPI, no zod-openapi package; ts-rest 已否决 per ADR-0004) — **no hand-written, drifting API calls**.
 - Structured output + double validation (schema, then business) — **no bare JSON parsing**.
 - Next.js App Router frontend.
 

@@ -68,7 +68,7 @@ apps/
   api/        NestJS API、认证与应用服务
   worker/     异步任务、LangGraph 面试编排与后台处理
 packages/
-  contracts/  共享 zod4 契约（前后端同源，zod-openapi 生成多端契约）
+  contracts/  共享 zod4 契约（前后端同源，OpenAPI 由自研 zod4 原生 toJSONSchema 生成——无 zod-openapi 包）
   domain/     领域规则与显式状态机
   db/         迁移、约束、RLS 与数据库访问层
   ai-runtime/ 模型调用与可观测性（统一模型出口，唯一模型调用关口）

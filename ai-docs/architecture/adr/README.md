@@ -23,14 +23,14 @@ related:
 ### ADR-0001 技术栈 · accepted
 **背景**：纯 AI 驱动的可恢复长会话面试系统。**决定**：Next.js App Router(web) + NestJS(api) + LangGraphJS(worker) + Postgres(+pgvector) + Redis/Tair + S3/MinIO。Redis/Tair 用于 RAG 热缓存、嵌入计算缓存与单飞锁（及默认关闭的 Streams 唤醒原型），不是耐久任务队列（队列见 ADR-0023）；限流当前落 PG 共享桶表，Redis 限流未接线。**被否**：Nuxt/Vue（前端定 Next）；纯 serverless（长会话+队列不适）。**后果**：单语言 TS 全栈，monorepo。
 
-### ADR-0002 ORM = Prisma · accepted
-**背景**：需迁移 + 约束 + 类型安全。**决定**：Prisma。**被否**：Drizzle（生态/迁移成熟度权衡后否）；裸 SQL（失类型安全）。**后果**：迁移用 Prisma Migrate；RLS 用 client extension 注入 `SET LOCAL`。
+### ADR-0002 ORM = Prisma · accepted（勘误：已被实现取代——数据面现行 pg + 手写 SQL 迁移·无 @prisma/client/prisma，见 dependency-footprint.md）
+**背景**：需迁移 + 约束 + 类型安全。**决定**：Prisma（勘误：已被实现取代·现行无）。**被否**：Drizzle（生态/迁移成熟度权衡后否）；裸 SQL（失类型安全）。**后果**：迁移用 Prisma Migrate（勘误：未采用·现行手写 SQL 迁移）；RLS 用 client extension 注入 `SET LOCAL`。**勘误（2026-11-16）**：实现阶段未采用 Prisma——现行数据面 = `pg` + `packages/db/migrations` 手写 SQL 迁移，无 @prisma/client/prisma（ADR 决策留史，现行事实以 footprint 为准）。
 
 ### ADR-0003 运行时状态 = LangGraph Postgres checkpointer · accepted
 **背景**：可恢复长会话面试的运行态必须跨进程重启/多实例存活。**决定**：状态进 Postgres checkpointer，等待用户=持久 `waiting_user`。**被否**：内存 session map（进程重启/换实例即丢会话，不可恢复、不可多实例）。**后果**：durable/resumable/多实例安全；迁移需处理 checkpoint 结构（见 `runtime-migration.md`）。**这是项目的头号承重决策。**
 
-### ADR-0004 契约 = 共享 zod4 schema + ZodValidationPipe + zod-openapi（**取代 ts-rest**） · superseded→accepted
-**背景**：原定 ts-rest，但 must-smoke #2 实测 **ts-rest 稳定版(3.52) 只支持 zod3**，支持 zod4 的仅 3.53-**RC**；项目锁 zod4、要跑 10 年，承重契约层不赌 RC。**决定**：契约 = `packages/contracts` 的**共享 zod4 schema**（前后端 import 同一份拿类型，这才是"前后端共享"的本质）+ 后端**薄 `ZodValidationPipe`**（zod4 原生、零额外契约依赖）+ `zod-openapi`(zod^4) 按需生成 OpenAPI。**被否**：ts-rest（RC-only for zod4）、手写调用（漂移）、降级 zod3（zod4 是既定且更强）。**后果**：最少依赖、zod4 原生、十年稳定；已 must-smoke 验证（NestJS+Fastify+zod4 校验 3/3 通过）。契约变更走版本化（`api-versioning.md`，待补）。
+### ADR-0004 契约 = 共享 zod4 schema + ZodValidationPipe + 自研 OpenAPI 生成（**取代 ts-rest**·勘误：生成器已从 zod-openapi 改为包内 zod4 原生 toJSONSchema） · superseded→accepted
+**背景**：原定 ts-rest（未采用），但 must-smoke #2 实测 **ts-rest 稳定版(3.52) 只支持 zod3**，支持 zod4 的仅 3.53-**RC**；项目锁 zod4、要跑 10 年，承重契约层不赌 RC。**决定**：契约 = `packages/contracts` 的**共享 zod4 schema**（前后端 import 同一份拿类型，这才是"前后端共享"的本质）+ 后端**薄 `ZodValidationPipe`**（zod4 原生、零额外契约依赖）+ OpenAPI 按需生成（勘误 2026-11-16：实现为 `packages/contracts/src/openapi.ts` 的 zod4 原生 `z.toJSONSchema`，无 zod-openapi 包——零外部文档依赖）。**被否**：ts-rest（RC-only for zod4）、手写调用（漂移）、降级 zod3（zod4 是既定且更强）。**后果**：最少依赖、zod4 原生、十年稳定；已 must-smoke 验证（NestJS+Fastify+zod4 校验 3/3 通过）。契约变更走版本化（`api-versioning.md`，待补）。
 
 ### ADR-0005 模型 = 境内厂商 · accepted
 **背景**：PIPL，简历/PII 不出境。**决定**：境内厂商模型；embedding 与生成都受 `agent-runtime` 区域门约束。**被否**：境外模型（合规不可）。**后果**：模型 catalog 带 `region` 字段，PII 命中 `oversea` 即 fail-closed。

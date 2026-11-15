@@ -4,7 +4,7 @@
   "scope": "e2e/ test+assertion parity plus agreed critical prove scripts",
   "floors": {
     "testCount": 53,
-    "assertionCount": 544
+    "assertionCount": 558
   },
   "files": {
     "e2e/full.e2e.ts": {
@@ -2338,7 +2338,7 @@
     },
     "scripts/bounded-command.proof.mjs": {
       "testCount": 1,
-      "assertionCount": 80,
+      "assertionCount": 94,
       "tests": [
         {
           "kind": "implicit-suite",
@@ -2746,6 +2746,76 @@
           "kind": "assert.ok",
           "label": "removing ${spec.rule} must make its matrix items leak",
           "conditionDigest": "sha256:9991c6dff105bb406929cd39757feb725366a8cf36b90783e9e427111326fd95"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "① JSON 数组值形必须整体 redact",
+          "conditionDigest": "sha256:280c8addfbd664d45e157b35a4a5f853f8b88c84b9847a8a41866821fac44d8d"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "① 数组形 redact 落 [REDACTED]",
+          "conditionDigest": "sha256:91e4fe8a1dc0a29151ee2c584f0c7d591e212725926e7a0e595a3f9b3f4afdd5"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "② 转义引号形的值必须 redact",
+          "conditionDigest": "sha256:b253359a65d6cb7bdf22677241b00c812b9fe5541f212dae5a4a8c84190ba503"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "③ Unicode 转义键名必须被归一并 redact",
+          "conditionDigest": "sha256:178e9662b8cc2578881163cc3f55af165af5dce675a64ec799ff342c4696f4a8"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "④ 键名内侧空格形必须 redact",
+          "conditionDigest": "sha256:37d556b2a65b61f9897d42921116012208dca35272cc01b092830093707c1579"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "⑤ 非对齐多段 base64（拼接命中登记密钥）必须整组 redact",
+          "conditionDigest": "sha256:7f3ef94e8626a3847a306b418aee2ad1f420ee91ced1158ae28a6208890cd294"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "⑤ 拆段前缀不得残留",
+          "conditionDigest": "sha256:cb9cceadf9b397eb414bd381f3bd45e3d8a32f0ff722573330cdaf0256592be8"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "⑥ 双重 URL 编码的口令必须 redact",
+          "conditionDigest": "sha256:8ac4433353914fac0299347c00fde5773fec83f6ddc47801cb53c1a6d4d9cb1b"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "⑥ redact 落 *** 或 [REDACTED]",
+          "conditionDigest": "sha256:8b46ae687280ce2c6693100ee40d57273de8bff799d51871f9a5364a44a88845"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "⑦ 登记后裸值必须消除",
+          "conditionDigest": "sha256:b4dec3509be2a7ac59c3a902a63c796410794fc6dde662f57abbf9411ab90475"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "⑦ 登记值的 base64 形必须消除",
+          "conditionDigest": "sha256:8962f37efb64b79a258c68cc8bc2824713f7a82de1e36c06484e12d03ce12c60"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "⑦ 登记值的 URI 形必须消除",
+          "conditionDigest": "sha256:8dcf179082165c0ba53ad0280fded7e963cfadd6ad32251f3961046c248f88a1"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "否定臂：无逃逸触发器时普通文本字节保真",
+          "conditionDigest": "sha256:a84e9a050c4cf5a1b773835e8f8465276a33286784f2e2b9d8d58a8ee549d00b"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "性能臂：128KiB 病理输入 redact 必须 <2s（实测 ${ms}ms）",
+          "conditionDigest": "sha256:6be6dcc8ce3d776ad6c8e3c1a9795e01d76d497693807db5394a5d20c88515a6"
         }
       ]
     },

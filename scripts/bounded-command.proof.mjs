@@ -509,3 +509,76 @@ try {
   }
   if (runnerContainer) spawnSync('docker', ['rm', '-f', '-v', runnerContainer], { stdio: 'ignore' });
 }
+
+/* ── A-29 收口：七类泄漏形反证（redactFailureText 必须吃掉全部七类·否定臂同步）──────── */
+{
+  const R = (t) => redactFailureText(t, { knownSecrets: [] });
+  const SEC = 'SUP3RS3CRET-value';
+
+  // ① JSON 数组值形
+  const arr = JSON.stringify({ password: ['pw-one-AAAA', 'pw-two-BBBB'] });
+  assert.equal(R(arr).includes('pw-one'), false, '① JSON 数组值形必须整体 redact');
+  assert.equal(R(arr).includes('[REDACTED]'), true, '① 数组形 redact 落 [REDACTED]');
+
+  // ② 转义引号形（JSON-in-JSON）
+  const esc = '{"log":"{\\"password\\":\\"' + SEC + '\\"}"}';
+  assert.equal(R(esc).includes(SEC), false, '② 转义引号形的值必须 redact');
+
+  // ③ Unicode 转义键名（\u0070assword = password）
+  const uni = '{"\\u0070assword":"' + SEC + '"}';
+  assert.equal(R(uni).includes(SEC), false, '③ Unicode 转义键名必须被归一并 redact');
+
+  // ④ 键名内侧空格
+  const spaced = '{ " password " : "' + SEC + '" }';
+  assert.equal(R(spaced).includes(SEC), false, '④ 键名内侧空格形必须 redact');
+
+  // ⑤ 多段 base64（密钥拆两段·非对齐拆分——两半均不含任何登记形·单段 pass 与 knownValue 均
+  // 放行，唯组通道【解码拼接命中登记密钥】可关）：非对齐 16 位拆分使 noPad 前缀不落在任一半。
+  const raw = `${SEC}:${SEC}`;
+  const b64 = Buffer.from(raw, 'utf8').toString('base64');
+  const split = `${b64.slice(0, 16)} ${b64.slice(16)}`;
+  {
+    const prev = registerFailureRedactionSecrets([SEC]);
+    try {
+      const R5 = (t) => redactFailureText(t);
+      assert.equal(R5(split).includes('[REDACTED-MULTIPART]'), true, '⑤ 非对齐多段 base64（拼接命中登记密钥）必须整组 redact');
+      assert.equal(R5(split).includes(b64.slice(0, 16)), false, '⑤ 拆段前缀不得残留');
+    } finally {
+      registerFailureRedactionSecrets(prev);
+    }
+  }
+
+  // ⑥ 双重 URL 编码 userinfo
+  const dbl = 'postgres://u:' + encodeURIComponent(encodeURIComponent(SEC)) + '@h/db';
+  assert.equal(R(dbl).includes(encodeURIComponent(SEC)), false, '⑥ 双重 URL 编码的口令必须 redact');
+  assert.equal(/\/\/u:\*\*\*@|REDACTED/.test(R(dbl)), true, '⑥ redact 落 *** 或 [REDACTED]');
+
+  // ⑦ 运行侧登记面（knownValue 通道）：登记后的裸值+base64+URI 形全数消除
+  {
+    const prev = registerFailureRedactionSecrets([SEC]);
+    try {
+      const R7 = (t) => redactFailureText(t);
+      const bare = `err tail contains ${SEC} bare`;
+      assert.equal(R7(bare).includes(SEC), false, '⑦ 登记后裸值必须消除');
+      const b64 = Buffer.from(SEC, 'utf8').toString('base64');
+      assert.equal(R7(`tail ${b64}`).includes(b64), false, '⑦ 登记值的 base64 形必须消除');
+      const uri = encodeURIComponent(SEC);
+      assert.equal(R7(`tail ${uri}`).includes(uri), false, '⑦ 登记值的 URI 形必须消除');
+    } finally {
+      registerFailureRedactionSecrets(prev);
+    }
+  }
+
+  // 否定臂：归一预通不过触发器时普通文本字节保真（无逃逸=零改写）
+  const plain = 'ordinary failure text with "quotes" and unicode 汉字';
+  assert.equal(R(plain), plain, '否定臂：无逃逸触发器时普通文本字节保真');
+  // 性能臂：128KiB 病理输入（长 JSON 无闭值）必须在 2s 内完成（旧形约 10s）
+  {
+    const pathological = '{"password":"' + 'A'.repeat(128 * 1024) + '"}';
+    const t0 = Date.now();
+    R(pathological);
+    const ms = Date.now() - t0;
+    assert.equal(ms < 2000, true, `性能臂：128KiB 病理输入 redact 必须 <2s（实测 ${ms}ms）`);
+  }
+  console.log('PASS  A-29 七类泄漏形反证 + 否定/性能臂全部通过');
+}

@@ -29,7 +29,12 @@ const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');
 const linesOf = (rel) => read(rel).split('\n');
 const lineIs = (rel, n, needle) => String(linesOf(rel)[n - 1] ?? '').includes(needle);
 const GIT_OPTS = { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 };
-const git = (args) => { try { return execFileSync('git', args, GIT_OPTS); } catch { return ''; } };
+/** fail-closed（A-24a 收口）：git 失败必须红——旧形 catch 返回 '' 会把 diff 失败当成"零 diff"假绿。 */
+const git = (args) => {
+  const r = gitRun(args);
+  if (!r.ok) throw new Error(`git ${args.join(' ')} failed: ${r.out.slice(0, 200)}`);
+  return r.out;
+};
 /** fail-closed: 失败时 ok=false,不得把空输出当成零 diff。maxBuffer 放大以容纳对 20186718 的产品源码统一 diff。 */
 const gitRun = (args) => {
   try {
@@ -245,7 +250,14 @@ A('派发层双轨读源在位(qbank-track-local-retrieval Phase 1 → ForAdapti
   }
   for (const rel of scopedUntracked) {
     let text = '';
-    try { text = readFileSync(join(ROOT, rel), 'utf8'); } catch { continue; }
+    try {
+      text = readFileSync(join(ROOT, rel), 'utf8');
+    } catch (err) {
+      // A-24a 收口：git 刚枚举到的 untracked 文件读不出来=环境异常，必须红——旧形静默
+      // continue 会让扫描臂零覆盖空转假绿。
+      A(`untracked 文件可读(${rel})`, false, String(err).slice(0, 160));
+      continue;
+    }
     scanText(rel, text, hits);
   }
   A('markers=0(产品源码改动集新增行五类标记词零命中)', hits.length === 0, hits.join(' | '));

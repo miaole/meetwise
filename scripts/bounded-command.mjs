@@ -17,11 +17,19 @@ const DEFAULT_MAX_OUTPUT_BYTES = 128 * 1024;
 const DEFAULT_STDERR_TAIL_BYTES = 8 * 1024;
 const SIGNAL_EXIT_CODES = Object.freeze({ SIGINT: 130, SIGTERM: 143 });
 const BEARER_PATTERN = /\bBearer\s+\S+/gi;
-const JSON_CREDENTIAL_FIELD_PATTERN = /(["']?)(password|passwd|pwd|token|secret|api[_-]?key|authorization)\1\s*:\s*(["'])((?:\\.|[^\\])*?)\3/gi;
-const ENCODED_URL_CANDIDATE_PATTERN = /(?:[A-Za-z][A-Za-z0-9+.-]*)(?:%3A%2F%2F)[^\s"'<>]+/gi;
+const JSON_CREDENTIAL_FIELD_PATTERN = /(["']?)\s*(password|passwd|pwd|token|secret|api[_-]?key|authorization)\s*\1\s*:\s*(["'])((?:\\.|[^\\]){0,4096}?)\3/gi;
+/** A-29 ①：JSON 数组值形 {"password":["s1","s2"]}——字符串值形之外的数组载荷整体 redact。 */
+const JSON_CREDENTIAL_ARRAY_PATTERN = /(["']?)\s*(password|passwd|pwd|token|secret|api[_-]?key|authorization)\s*\1\s*:\s*\[[^\]]{0,4096}\]/gi;
+/** A-29 ④：键名带内侧空格/引号包空格形 { " password " : "…" }。 */
+const JSON_CREDENTIAL_SPACED_KEY_PATTERN = /(["'])\s*(password|passwd|pwd|token|secret|api[_-]?key|authorization)\s*\1\s*:\s*(["'])(?:\\.|(?!\3).){0,4096}?\3/gi;
+const ENCODED_URL_CANDIDATE_PATTERN = /(?:[A-Za-z][A-Za-z0-9+.-]{0,32})(?:%3A%2F%2F)[^\s"'<>]+/gi; // A-29 性能收口：scheme 限长 32（真实 scheme ≤12）——无界 * 在长 A 序列上 O(n²) 回溯（11s 实证）
 const BASE64_TOKEN_PATTERN = /\b[A-Za-z0-9+/]{16,}={0,2}\b/g;
+/** A-29 ⑤：相邻多段 base64（空白分隔·每段 ≥16）——密钥拆段规避单段解码判定。 */
+const BASE64_TOKEN_GROUP_PATTERN = /(?:\b[A-Za-z0-9+/]{16,}={0,2}\b[^\wA-Za-z0-9+/]{0,4}){2,}/g;
 const SHORT_ASSIGNMENT_KEYS = 'DB_PASS|MYSQL_PWD|PGPASSWORD';
 const KNOWN_SECRET_MIN_LENGTH = 8;
+/** A-29 ②③：规避形逃逸预归一触发器——仅当文本含 \" 转义引号或 \uXXXX 时才做归一（普通失败文本字节保真）。 */
+const EVASIVE_ESCAPE_TRIGGER = /\\u[0-9a-fA-F]{4}|\\["']/;
 
 const DEFAULT_REDACTION_RULES = Object.freeze({
   knownValue: true,
@@ -145,6 +153,65 @@ function redactJsonCredentialFields(text) {
   return text.replace(JSON_CREDENTIAL_FIELD_PATTERN, (match, open, key, quote) => `${open}${key}${open || ''}:${quote}[REDACTED]${quote}`);
 }
 
+/**
+ * A-29 ①④：数组值形 + 键名内侧空格形。字符串值形由 JSON_CREDENTIAL_FIELD_PATTERN 承担；
+ * 数组载荷整体 redact（逐元素不保真——泄漏面以字段名为准）。
+ */
+function redactJsonCredentialArraysAndSpacedKeys(text) {
+  let next = text.replace(JSON_CREDENTIAL_ARRAY_PATTERN, (match, open, key) => `${open}${key}${open || ''}:[REDACTED]`);
+  next = next.replace(JSON_CREDENTIAL_SPACED_KEY_PATTERN, (match, q1, key, q2) => `${q1}${key}${q1}:${q2}[REDACTED]${q2}`);
+  return next;
+}
+
+/**
+ * A-29 ②③：规避形逃逸预归一——`\"` 转义引号与 `\uXXXX` 转义键名会让既有键名/值模式
+ * 全部失配。仅当文本含此类逃逸时才归一（普通失败文本字节保真）；归一后的文本再走既有
+ * 模式族，[REDACTED] 落在归一形上（泄漏关闭优先于字节保真）。循环至稳定·上界 3 轮。
+ */
+function decodeEvasiveEscapes(text) {
+  if (!EVASIVE_ESCAPE_TRIGGER.test(text)) return text;
+  let next = text;
+  for (let round = 0; round < 3; round += 1) {
+    const before = next;
+    next = next.replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+    next = next.replace(/\\"/g, '"').replace(/\\'/g, "'");
+    if (next === before) break;
+  }
+  return next;
+}
+
+/**
+ * A-29 ⑤：相邻多段 base64——密钥拆成多段后单段解码非凭据形，逐段判定放行。
+ * 分组取连续 base64 token 序列，解码拼接后走内层 redact；有变化即整组 redact。
+ */
+function redactAdjacentBase64Groups(text, options) {
+  const knownForms = options.knownSecrets ? knownSecretForms(options.knownSecrets) : [];
+  return text.replace(BASE64_TOKEN_GROUP_PATTERN, (group) => {
+    const tokens = group.match(/[A-Za-z0-9+/]{16,}={0,2}/g) ?? [];
+    if (process.env.N6_DEBUG) console.error(`[grp] tokens=${tokens.length}`);
+    if (tokens.length < 2) return group;
+    let decoded = '';
+    try {
+      decoded = Buffer.from(tokens.join(''), 'base64').toString('utf8');
+    } catch {
+      return group;
+    }
+    if (!decoded || decoded.includes('\u0000') || /[^\x09\x0a\x0d\x20-\x7e]/.test(decoded)) return group;
+    // 判定通道一：解码拼接命中登记密钥（knownValue 通道在拆段形上的延伸——整段 b64 形被
+    // 拆段规避，拼接形比对是唯一能关上的口）。
+    if (process.env.N6_DEBUG) console.error(`[grp] decoded len=${decoded.length} printable=true`);
+    for (const form of knownForms) {
+      if (form && decoded.includes(form)) { if (process.env.N6_DEBUG) console.error(`[grp] KNOWN HIT form len=${form.length}`); return '[REDACTED-MULTIPART]'; }
+    }
+    // 判定通道二：拼接后呈凭据形态（URL userinfo / 键值赋值）→ 内层 redact 有变化即整组 redact。
+    const redacted = redactFailureText(decoded, {
+      knownSecrets: [],
+      rules: { ...options.rules, knownValue: false, base64Credential: false, encodedUrl: options.rules.encodedUrl },
+    });
+    return redacted === decoded ? group : '[REDACTED-MULTIPART]';
+  });
+}
+
 /** Shared compose files whose named data volumes the isolated runner must never `down -v`. */
 export const PROTECTED_NAMED_VOLUME_COMPOSE = Object.freeze(['docker/compose.mysql-local.yml']);
 
@@ -182,9 +249,21 @@ export function commandLabel(command, args = []) {
 export function redactFailureText(input, options = {}) {
   const { knownSecrets, rules } = resolveRedactionOptions(options);
   let text = String(input ?? '');
+  // A-29 ②③：规避形预归一（仅当逃逸在场上·普通文本字节保真）。
+  text = decodeEvasiveEscapes(text);
+  // A-29 ⑤：组 pass 必须先于 knownValue——knownValue 会先吃掉跨界 noPad 形，打碎拆段证据
+  //（组模式失配→half1 泄漏实证 2026-11-16）。组通道自带登记密钥判定，不依赖 knownValue 先行。
+  if (rules.base64Credential !== false) text = redactAdjacentBase64Groups(text, { knownSecrets, rules });
   if (rules.knownValue !== false) text = redactKnownValues(text, knownSecrets);
   text = applyUrlUserinfo(text, rules);
-  if (rules.encodedUrl !== false) text = redactPercentEncodedUserinfo(text, rules);
+  if (rules.encodedUrl !== false) {
+    // A-29 ⑥：双重（及以上）URL 编码——单轮解码后若仍含 %3A%2F%2F 则续轮（上界 3）。
+    for (let round = 0; round < 3; round += 1) {
+      const before = text;
+      text = redactPercentEncodedUserinfo(text, rules);
+      if (text === before || !/(?:%3A%2F%2F)/i.test(text)) break;
+    }
+  }
   if (rules.base64Credential !== false) text = redactCredentialBearingBase64(text, { rules });
   for (const { pattern } of CREDENTIAL_RULES) {
     const flags = pattern.flags.includes('g') ? pattern.flags : `${pattern.flags}g`;
@@ -196,7 +275,10 @@ export function redactFailureText(input, options = {}) {
     const key = match.split(/[:=]/)[0];
     return `${key}${sep}[REDACTED]`;
   });
-  if (rules.jsonField !== false) text = redactJsonCredentialFields(text);
+  if (rules.jsonField !== false) {
+    text = redactJsonCredentialFields(text);
+    text = redactJsonCredentialArraysAndSpacedKeys(text);
+  }
   return text;
 }
 
