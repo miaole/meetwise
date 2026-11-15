@@ -2096,6 +2096,11 @@
     },
     {
       "name": "MODEL_API_KEY",
+      "source": "scripts/postcss-css-regression.proof.mjs",
+      "class": "env-schema-documentation"
+    },
+    {
+      "name": "MODEL_API_KEY",
       "source": "packages/ai-runtime/test/invoke-model-delta.proof.ts",
       "class": "test-fixture"
     },
