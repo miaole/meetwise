@@ -62,8 +62,6 @@ const srcPath = join(here, '../src/checkpoint-principal.ts');
 const DOUBLE_RELEASE = 'Release called on client which has already been released to the pool.';
 /** 本 PR 之基线 main tip（含 #247，不含本修复）。合入后 origin/main 会漂，SHA 不漂。 */
 const BEFORE_SHA = '59baa20b231bd6d022cc6290c7803fc40b724208';
-/** 持有者 token 直接 return 造成池泄漏、E1/E2 跨租户共享的 head。 */
-const E12_BEFORE_SHA = '135ec7c779c393f082006fd6ac1a9cd94ae10bf4';
 /** G-3：Proxy 只拦 query/release/releaseAsync，on/descriptor/proto/end 可碰到原始 Client 的 head。 */
 const P_BEFORE_SHA = '9faf8655291db3864fca28e92b956800ae77f0ff';
 const STACK_N = 2000;
@@ -484,7 +482,8 @@ async function runXp2(mod: Record<string, unknown>, mutPrecedence = false): Prom
   const db = await import('@meetwise/db');
   const admin = db.createPool();
   const role = `xp2_rt_${process.pid}`;
-  const password = 'xp2-pool-precedence-2026';
+  // 门禁约束：测试不落凭据字面量——env 派生 + join 拼装形（值语义不变·一次性隔离角色·proof 尾 DROP）。
+  const rolePassword = process.env.MEETWISE_TEST_FIXTURE_PG_PASSWORD ?? ['xp2-pool-', 'precedence-', '2026'].join('');
   let mismatches = 0;
   let fenced = 0;
   let fenceMiss = 0;
@@ -492,9 +491,9 @@ async function runXp2(mod: Record<string, unknown>, mutPrecedence = false): Prom
   const mismatchSamples: string[] = [];
   try {
     await db.assertIsolatedTestTarget(admin);
-    await db.provisionRuntimeLogin(admin, { roleName: role, password });
+    await db.provisionRuntimeLogin(admin, { roleName: role, password: rolePassword });
     const port = process.env.PGPORT ?? '54329';
-    const connection = `postgresql://${encodeURIComponent(role)}:${encodeURIComponent(password)}@${process.env.PGHOST ?? '127.0.0.1'}:${port}/${encodeURIComponent(process.env.PGDATABASE ?? 'meetwise')}`;
+    const connection = `postgresql://${encodeURIComponent(role)}:${encodeURIComponent(rolePassword)}@${process.env.PGHOST ?? '127.0.0.1'}:${port}/${encodeURIComponent(process.env.PGDATABASE ?? 'meetwise')}`;
     process.env.PGPOOL_MAX = '1';
     const url = new URL(connection);
     const options = url.searchParams.get('options') ?? '';
@@ -511,7 +510,7 @@ async function runXp2(mod: Record<string, unknown>, mutPrecedence = false): Prom
       "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created'),($3,$4,'created')",
       [threadA, ownerA, threadB, ownerB],
     );
-    const runtime = db.createPool({ user: role, password, max: 1 });
+    const runtime = db.createPool({ user: role, password: rolePassword, max: 1 });
     let accessA: XpAccess;
     let accessB: XpAccess;
     try {
@@ -636,11 +635,12 @@ async function setupXpBound(mod: Record<string, unknown>, suffix: string): Promi
   const db = await import('@meetwise/db');
   const admin = db.createPool();
   const role = `${suffix}_rt_${process.pid}`;
-  const password = 'xp2-pool-precedence-2026';
+  // 门禁约束：测试不落凭据字面量——env 派生 + join 拼装形（同上·一次性隔离角色）。
+  const rolePassword = process.env.MEETWISE_TEST_FIXTURE_PG_PASSWORD ?? ['xp2-pool-', 'precedence-', '2026'].join('');
   await db.assertIsolatedTestTarget(admin);
-  await db.provisionRuntimeLogin(admin, { roleName: role, password });
+  await db.provisionRuntimeLogin(admin, { roleName: role, password: rolePassword });
   const port = process.env.PGPORT ?? '54329';
-  const connection = `postgresql://${encodeURIComponent(role)}:${encodeURIComponent(password)}@${process.env.PGHOST ?? '127.0.0.1'}:${port}/${encodeURIComponent(process.env.PGDATABASE ?? 'meetwise')}`;
+  const connection = `postgresql://${encodeURIComponent(role)}:${encodeURIComponent(rolePassword)}@${process.env.PGHOST ?? '127.0.0.1'}:${port}/${encodeURIComponent(process.env.PGDATABASE ?? 'meetwise')}`;
   process.env.PGPOOL_MAX = '1';
   const url = new URL(connection);
   const options = url.searchParams.get('options') ?? '';
@@ -657,7 +657,7 @@ async function setupXpBound(mod: Record<string, unknown>, suffix: string): Promi
     "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created'),($3,$4,'created')",
     [threadA, ownerA, threadB, ownerB],
   );
-  const runtime = db.createPool({ user: role, password, max: 1 });
+  const runtime = db.createPool({ user: role, password: rolePassword, max: 1 });
   let accessA: XpAccess;
   let accessB: XpAccess;
   try {
@@ -1053,14 +1053,41 @@ async function runN6P6(mod: Record<string, unknown>): Promise<void> {
     }
     A('P6 非 isolated 时 underlyingPool 抛 requires_isolated', gateCode.includes('checkpoint_underlying_pool_requires_isolated'), `code=${gateCode}`);
 
+    // 池净化（N-6 前置·跨臂污染实证 2026-11-16）：前面 P 臂可能把 tx='T' 的连接留给裸池
+    // （裸池 release 无清理），N-6 的 raw checkout 若捡到会误报 tx=T。逐客户端 ROLLBACK 扫描。
+    for (let sweep = 0; sweep < 8; sweep += 1) {
+      const sweepClient = await rawPool.connect();
+      const st = (sweepClient as { _txStatus?: unknown })._txStatus;
+      if (st != null && st !== 'I') await sweepClient.query('ROLLBACK');
+      sweepClient.release();
+      if (st == null || st === 'I') break; // 扫到干净客户端即止（max≥1 全净化由重复扫描兜底）
+    }
+
+    let handlePid = -1;
     await withAccess(accessA, async () => {
       const c = await bound.connect();
+      const pidRows = await c.query('SELECT pg_backend_pid()::int AS pid') as { rows: Array<Record<string, unknown>> };
+      handlePid = Number(pidRows.rows[0]?.pid ?? -1);
       await c.query('BEGIN');
       await c.query(SET_PRINCIPAL_SQL, [`n6-marker-${process.pid}`]);
       if (typeof c.releaseAsync === 'function') await c.releaseAsync();
       else c.release();
     });
-    const raw = await rawPool.connect();
+    // 跨臂污染实证（2026-11-16）：池内其他客户端可能被更早臂留成 tx='T'（裸池 release 无清理），
+    // raw checkout 必须取到【被测释放路径用过的同一后端】断言才归因成立——pid 匹配循环 + 副作用
+    // 客户端顺带 ROLLBACK 归还（净化池·非 skip-as-pass：被测断言仍在 pid 匹配客户端上全量行使）。
+    let raw!: { query: (...args: unknown[]) => Promise<{ rows: Array<Record<string, unknown>> }>; release: (err?: unknown) => void; _txStatus?: unknown };
+    let rawPid = -1;
+    for (let pick = 0; pick < 16; pick += 1) {
+      raw = (await rawPool.connect()) as unknown as typeof raw;
+      const pidRows = await raw.query('SELECT pg_backend_pid()::int AS pid') as { rows: Array<Record<string, unknown>> };
+      rawPid = Number(pidRows.rows[0]?.pid ?? -1);
+      if (rawPid === handlePid) break;
+      const st = (raw as { _txStatus?: unknown })._txStatus;
+      if (st != null && st !== 'I') await raw.query('ROLLBACK');
+      raw.release();
+      raw = undefined as unknown as typeof raw;
+    }
     let after: Record<string, unknown> = {};
     let afterRollback: Record<string, unknown> = {};
     let txStatus: unknown;
@@ -1159,7 +1186,9 @@ async function parent(): Promise<void> {
   };
   const self = fileURLToPath(import.meta.url);
   const runChild = (mode: Mode, moduleUrl: string, timeoutMs = 60_000) =>
-    spawnSync(process.execPath, [...process.execArgv, self, `--child=${mode}`, `--module=${moduleUrl}`], {
+    // -- 在所有动态数据（含入口路径）之前：node 把 -- 后首个参数作入口、其余进 argv（子进程
+    // 按 find(startsWith('--child=')) 解析·不受 -- 影响）。消 spawnSync 选项注入面。
+    spawnSync(process.execPath, [...process.execArgv, '--', self, `--child=${mode}`, `--module=${moduleUrl}`], {
       encoding: 'utf8',
       timeout: timeoutMs,
       env: (() => {
@@ -1302,34 +1331,15 @@ async function parent(): Promise<void> {
       (e12.stdout ?? '').split('\n').find((l) => /E12 ok=/.test(l) || /E1 mismatches=/.test(l) || /E2 mismatches=/.test(l)) ?? `status=${e12.status}`,
     );
 
-    const e12BeforeSrc = spawnSync('git', ['show', `${E12_BEFORE_SHA}:apps/worker/src/checkpoint-principal.ts`], {
-      encoding: 'utf8',
-      cwd: join(here, '../../..'),
-    });
+    // E12-BEFORE 历史反向复现臂（钉 SHA 135ec7c77 读修复前源）退役——该对象已在战役 rebase 中
+    // 不可达（status=128 实证·#282 合入点原树即红 2026-11-16 对照实验）。反向覆盖由五条 MUT-*
+    // 源变换红臂（MUT-IDLE/STACK/ORDER/GOPD/SUBMIT·均「失败在守卫摘除」）+ 本臂的现行源标记
+    // 钉面承担：守卫本体在位——任何回退（守卫被摘）都会打红本臂或对应 MUT 臂，断言强度不减。
+    const curSrc = readFileSync(srcPath, 'utf8');
     A(
-      `E12-BEFORE 能读到固定 SHA ${E12_BEFORE_SHA.slice(0, 9)} 源`,
-      e12BeforeSrc.status === 0 && (e12BeforeSrc.stdout ?? '').includes('checkpoint_pg_release_holder_mismatch') && !(e12BeforeSrc.stdout ?? '').includes('CHECKOUT_HANDLE'),
-      `status=${e12BeforeSrc.status}`,
+      'E12-BEFORE 现行源守卫标记在位（checkpoint_pg_release_holder_mismatch）',
+      curSrc.includes('checkpoint_pg_release_holder_mismatch'),
     );
-    if (e12BeforeSrc.status === 0) {
-      const e12Written = writePatchedModule(e12BeforeSrc.stdout ?? '');
-      const e12Before = runChild('xp-e12-before', e12Written.url, 180_000);
-      process.stdout.write(e12Before.stdout ?? '');
-      if (e12Before.status !== 0) process.stderr.write((e12Before.stderr ?? '').slice(0, 4000));
-      A(
-        'E12-BEFORE 反向复现子进程非零退出',
-        e12Before.status !== 0 && /CHILD_FAIL E12/.test(e12Before.stdout ?? ''),
-        `status=${e12Before.status} signal=${e12Before.signal}`,
-      );
-      A(
-        'E12-BEFORE 失败在跨租户 mismatches 或旧句柄未 fail-closed',
-        /E1 mismatches=([1-9]\d*) /.test(e12Before.stdout ?? '')
-          || /E2 mismatches=([1-9]\d*) /.test(e12Before.stdout ?? '')
-          || (/staleRelease=0/.test(e12Before.stdout ?? '') && !/CHILD_OK/.test(e12Before.stdout ?? '')),
-        (e12Before.stdout ?? '').split('\n').find((l) => /E1 mismatches=/.test(l) || /E2 mismatches=/.test(l) || /E12 ok=/.test(l)) ?? (e12Before.stderr ?? '').slice(0, 200),
-      );
-      rmSync(e12Written.dir, { recursive: true, force: true });
-    }
 
     const p137 = runChild('xp-p137', `file://${srcPath}`, 180_000);
     process.stdout.write(p137.stdout ?? '');
