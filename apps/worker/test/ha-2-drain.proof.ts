@@ -12,7 +12,7 @@ import { drainWithDeadline, wireSignalShutdown, type NamedStop } from '../src/dr
 
 let fail = 0;
 let pass = 0;
-const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); c ? pass++ : fail++; };
+const A = (n: string, c: boolean, extra?: string) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}${extra ? `  [${extra}]` : ''}`); c ? pass++ : fail++; };
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // ── 1) A.3 deadline race：自然完退（drained 胜出） ─────────────────────────────
@@ -175,12 +175,93 @@ function phaseSourceAssertions() {
   A('main.ts 超时日志行含 phase= 相位要素', /worker_drain_timeout signal=\$\{signal\} phase=\$\{phase\}/.test(src));
 }
 
+// ── 7) A.4-b 清单闭集（A-26）：旧形只查「必须出现」的开放集——bootstrap 新起 loop/listener 漏
+// 登记 drainStops 仍绿。本臂反方向闭合：从 main.ts bootstrap 源枚举全部启动点（run*/start*/
+// create*/initialize*/X.connect 赋值形），逐一对账三本账（drainStops 具名项 / shutdownWorker
+// 排水前置停 / 显式豁免表带理由）。枚举集 ≡ 账面集双向相等：任何新启动点漏登记即红。
+function drainClosureSourceAssertions() {
+  console.log('--- A.4-b 清单闭集（bootstrap 启动点逐一对账·A-26） ---');
+  const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+  const src = readFileSync(join(root, 'src/main.ts'), 'utf8');
+  const boot = src.slice(src.indexOf('async function bootstrap()'));
+  const drainBlock = boot.slice(boot.indexOf('const drainStops'), boot.indexOf('let workerShuttingDown'));
+  const shutdownBlock = boot.slice(boot.indexOf('const shutdownWorker'), boot.indexOf('wireSignalShutdown(['));
+  // 启动点枚举：const/let 声明形（含跨行三元）+ 裸 await 赋值形（jobWakeupRedisClient）。
+  // `.connect(` 只收大写类名静态形（RedisQbankRetrievalCache.connect）；枚举集与账面集
+  // 双向相等兜住一切新形——新启动形状漏账即红，人工过账后才可扩表。
+  const started = new Map<string, string>();
+  const enumRe = [
+    /(?:const|let) +(\w+) *=[^;]*?\b(?:run|start|create|initialize)[A-Z]\w*\(/g,
+    /(?:const|let) +(\w+) *=[^;]*?\b[A-Z]\w*\.connect\(/g,
+    /(\w+) *=\s*await\s*[^;]*?\b(?:create|initialize|run|start)[A-Z]\w*\(/g,
+  ];
+  for (const re of enumRe) {
+    for (const m of boot.matchAll(re)) {
+      if (m[1] && !started.has(m[1])) started.set(m[1], '');
+    }
+  }
+  // 账面集：how=drainStops（name=drainStops 具名项）/preDrain（shutdownWorker 排水前置停）/exempt（豁免+理由）。
+  const EXPECTED: Record<string, { how: 'drainStops' | 'preDrain' | 'exempt'; name?: string; why: string }> = {
+    pool: { how: 'exempt', why: 'worker 主池·loop 相排空后 process.exit(0) 终态收口（无逐池 end 句柄）' },
+    cp: { how: 'exempt', why: 'checkpoint saver（PostgresSaver 内部池）·在飞 job 由 loop 相排空后 exit(0) 收口' },
+    safeFetch: { how: 'exempt', why: '纯 fetch 包装（web allowlist+超时）·无 drain 句柄语义' },
+    ragCache: { how: 'drainStops', name: 'rag-cache', why: 'Redis/Tair 连接 close' },
+    langfuse: { how: 'drainStops', name: 'langfuse', why: 'OTel 导出器 shutdown' },
+    privacyPool: { how: 'drainStops', name: 'privacy-pool', why: '专用擦除池 end' },
+    qbankControlPool: { how: 'drainStops', name: 'qbank-control-pool', why: 'qbank 控制面池 end' },
+    ragControlPool: { how: 'drainStops', name: 'rag-control-pool', why: 'rag 控制面池 end' },
+    reportLoop: { how: 'drainStops', name: 'report', why: '报告消费 loop' },
+    interviewLoop: { how: 'drainStops', name: 'interview', why: '面试消费 loop' },
+    quizLoop: { how: 'drainStops', name: 'quiz', why: 'quiz 消费 loop' },
+    diagnosisLoop: { how: 'drainStops', name: 'diagnosis', why: '诊断消费 loop' },
+    routeClassifyLoop: { how: 'drainStops', name: 'route-classify', why: '路由分类 loop' },
+    commerceLoop: { how: 'drainStops', name: 'commerce', why: '商务对账 loop' },
+    modelInvocationReconcileLoop: { how: 'drainStops', name: 'model-invocation-reconcile', why: '模型调用对账 loop' },
+    traceReconLoop: { how: 'drainStops', name: 'trace-recon', why: 'trace recon loop' },
+    usageCalibrationReconcileLoop: { how: 'drainStops', name: 'usage-calibration-reconcile', why: '用量校准对账 loop' },
+    usageCalibrationRetentionLoop: { how: 'drainStops', name: 'usage-calibration-retention', why: '用量校准保留 loop' },
+    commerceOutboxRetentionLoop: { how: 'drainStops', name: 'commerce-outbox-retention', why: 'outbox 保留 loop' },
+    interviewEventRetentionLoop: { how: 'drainStops', name: 'interview-event-retention', why: '面试事件保留 loop' },
+    qbankReleaseSweepLoop: { how: 'drainStops', name: 'qbank-release-sweep', why: 'qbank 释放清扫 loop' },
+    privacyErasureLoop: { how: 'drainStops', name: 'privacy-erasure', why: 'privacy 擦除 loop' },
+    vectorPlaneErasureLoop: { how: 'drainStops', name: 'vector-plane-erasure', why: '向量面擦除 loop' },
+    gaugeLoop: { how: 'drainStops', name: 'gauge', why: 'gauge 刷新 loop' },
+    stubLoop: { how: 'drainStops', name: 'stub-tick', why: 'HA-2 排水 stub（env-gated 条件展开）' },
+    jobWakeupListener: { how: 'preDrain', why: 'PG LISTEN 唤醒源·排水前置停（先断新工作入队再排空）' },
+    jobWakeupRedisListener: { how: 'preDrain', why: 'Redis Streams 唤醒源·排水前置停' },
+    jobWakeupRedisClient: { how: 'preDrain', why: 'Redis 唤醒客户端 close·排水前置' },
+    metricsServer: { how: 'exempt', why: 'metrics 端点·排水后 2s race close（既有专臂断言）' },
+  };
+  const startedKeys = [...started.keys()].sort();
+  const expectedKeys = Object.keys(EXPECTED).sort();
+  A(`闭集双向相等：bootstrap 启动点 ≡ 账面集（实得 ${startedKeys.length} 枚举/${expectedKeys.length} 账面）`,
+    startedKeys.length === expectedKeys.length && startedKeys.every((k, i) => k === expectedKeys[i]),
+    `枚举独有=[${startedKeys.filter((k) => !EXPECTED[k]).join(',')}] 账面独有=[${expectedKeys.filter((k) => !started.has(k)).join(',')}]`);
+  let accounted = true;
+  const misses: string[] = [];
+  for (const [v, e] of Object.entries(EXPECTED)) {
+    if (e.how === 'drainStops') {
+      const hit = new RegExp(`\\{ name: '${e.name}', stop: \\(\\) => ${v}\\??\\.(stop|close|end|shutdown)\\(`).test(drainBlock);
+      if (!hit) { accounted = false; misses.push(`${v}→drainStops:${e.name}`); }
+    } else if (e.how === 'preDrain') {
+      const hit = new RegExp(`${v}\\??\\.(stop|close)\\(`).test(shutdownBlock);
+      if (!hit) { accounted = false; misses.push(`${v}→preDrain`); }
+    }
+  }
+  A('账面逐项落位：drainStops 具名项/preDrain 前置停全部实接线', accounted, misses.join(' | '));
+  // 排水前置停区块恰为三唤醒件（顺序：listener→redisListener→client·不得夹带其他 stop）。
+  A('preDrain 区块恰 3 个 stop/close（唤醒源三件·顺序在 drainWithDeadline 之前）',
+    (shutdownBlock.match(/\.(stop|close)\(\)/g) ?? []).length === 3
+      && shutdownBlock.indexOf('jobWakeupListener.stop()') < shutdownBlock.indexOf('drainWithDeadline'));
+}
+
 async function main() {
   await drainedWins();
   await deadlineWins();
   signalWiring();
   await phaseDrainArms();
   drainChecklistSourceAssertions();
+  drainClosureSourceAssertions();
   phaseSourceAssertions();
   console.log(`\n===== ha2-drain.proof(worker) PASS=${pass} FAIL=${fail} =====`);
   if (fail > 0) process.exitCode = 1;

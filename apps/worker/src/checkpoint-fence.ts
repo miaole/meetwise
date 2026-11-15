@@ -29,9 +29,10 @@
  * 可外溢的 rejected promise）；锁存后写缝零续写（fail-closed：不落任何后续 checkpoint），读缝
  * getTuple/list 直接抛锁存错；runContained 结束时原样抛锁存错（码不改→consumer 既有分类器：
  * 42501 确定性终态、graph_fence_lost/连接族 transient requeue）。
- * 锁存优先级：不可重试（42501 / 其他非瞬时码）覆盖更早锁存的可重试错（如
- * checkpoint_connection_lost）；同级（都可重试或都不可重试）仍首个获胜——避免权限拒绝被当成
- * 可重试反复 requeue。pg 连接族无 code 的错
+ * 锁存优先级：带 code 的不可重试错（42501 / 其他非瞬时码）覆盖更早锁存的可重试错（如
+ * checkpoint_connection_lost）；normalize 后仍无 code 的未知形状错不得覆盖（A-18：同窗内
+ * 更可能是断连下游症状，覆盖会把可恢复 job 推成终态）；同级（都可重试或都不可重试）仍
+ * 首个获胜——避免权限拒绝被当成可重试反复 requeue。pg 连接族无 code 的错
  * （Connection terminated/Query read timeout/pool connect timeout）折算为
  * `checkpoint_connection_lost`（cause 保原错）——下一次 claim 由 pg-pool 新建连接=重连。
  * 作用域外（直调 put/putWrites）语义零变：原样上抛。
@@ -67,9 +68,10 @@ export const CHECKPOINT_CONNECTION_LOST = 'checkpoint_connection_lost';
 /**
  * 与 interview-consumer.TRANSIENT_INTERVIEW_JOB_ERROR_CODES 同集（08* 另计）。
  * 不从 consumer 引用，避免 checkpoint-fence ↔ interview-consumer 循环依赖；
- * 集合变更时两边必须一起改（worker-inflight-crash.proof L-sync 对拍）。
+ * 集合变更时两边必须一起改（worker-inflight-crash.proof L-sync 对拍——proof 逐码双向
+ * 对拍本导出集与 consumer 集，单向漏改即红）。
  */
-const RETRYABLE_CHECKPOINT_LATCH_CODES: ReadonlySet<string> = new Set([
+export const RETRYABLE_CHECKPOINT_LATCH_CODES: ReadonlySet<string> = new Set([
   'graph_fence_lost', '57014', '57P01', '57P02', '57P03', 'ECONNRESET', 'EPIPE', 'ETIMEDOUT',
   'model_circuit_open', 'model_circuit_half_open', 'model_concurrency_exhausted',
   'cost_budget_exhausted', 'model_admission_timeout', 'model_admission_failed',
@@ -177,9 +179,16 @@ export class FenceCheckpointSaver extends BaseCheckpointSaver<number> {
       // 经 currentLatch() 读：本方法开头 `if (this.latched) return/throw` 会把字段收窄成
       // undefined，但并发写可在检查之后才锁存，窄化不成立。
       const prev = this.currentLatch();
-      const next = (!prev || (isRetryableCheckpointLatchError(prev.error) && !isRetryableCheckpointLatchError(error)))
-        ? error
-        : prev.error;
+      // A-18：覆盖需要正证据——新错必须有 code 且判不可重试，才允许覆盖已锁存的可重试错。
+      // normalize 后仍无 code 的未知形状错（连接族消息表之外）不得覆盖：同一收容窗内它更可能是
+      // 断连的下游症状（pg 断连后写可以任意形状失败），无证据覆盖会把可恢复（requeue）的 job
+      // 推成确定性终态；保留 connection_lost 让下一 claim 重连，终态错会在无断连的新窗内再浮出。
+      // 同级（都可重试/都不可重试/prev 已不可重试）仍首个获胜。
+      const overrides = prev !== undefined
+        && isRetryableCheckpointLatchError(prev.error)
+        && !isRetryableCheckpointLatchError(error)
+        && errCode(error) !== undefined;
+      const next = (!prev || overrides) ? error : prev.error;
       this.latched = { error: next };
       try { this.abortCurrent?.abort(next); } catch { /* abort 监听器异常不得外溢 */ }
       return fallback;
