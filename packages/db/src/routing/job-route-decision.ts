@@ -414,6 +414,13 @@ export async function snapshotInterviewRoute(c: Client, candidate: string, inter
 export interface InterviewRouteSnapshotView {
   interviewId: string; jobId: string; revision: number; decisionId: string;
   routeDigest: string; allocations: JobRouteAllocation[];
+  /**
+   * #279 ④（planner raw-role 闸·additive）：candidate 面决策的 targetRole 采纳位
+   * （0233 `candidate_profile_route_decision.target_role_applied`，经 candidate fallback 读带出）。
+   * `false` = 仲裁未采纳 payload 原文岗位（简历证据胜）→ 消费面不得把原文岗位喂 role/planner/CRAG。
+   * 缺省 undefined = 闸不适用（job 面读形 / 旧行无列），行为与既有逐字节一致。
+   */
+  targetRoleApplied?: boolean;
 }
 
 /** 图内 planner 读取 snapshot 的合法 leaf 集合（服务端校验 planner 输出必须属于它）。 */

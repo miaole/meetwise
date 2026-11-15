@@ -120,16 +120,23 @@ export async function supplyCandidateProfileRoute(c: Client, owner: string, inte
 export async function getInterviewRouteSnapshotForAdaptiveRole(c: Client, candidate: string, interviewId: string): Promise<InterviewRouteSnapshotView | null> {
   const primary = await getInterviewRouteSnapshot(c, candidate, interviewId);
   if (primary) return primary;
+  // #279 ④（planner raw-role 闸）：LEFT JOIN decision 带出 target_role_applied——消费面
+  // （interview-consumer）据此丢弃「未被采纳」的 payload 原文岗位（#279 规则①简历胜出），
+  // 未采纳原文不再经 roleFromUserInput 优先序漏进 planner/CRAG。LEFT JOIN：snapshot.decision_id
+  // 有 FK（0142），但保留 null-容错形（targetRoleApplied 缺省 undefined=闸不适用）。
   const r = await c.query(
-    `SELECT s.interview_id, s.decision_id, s.leaf_track_id, s.allocation_bps, s.input_digest
+    `SELECT s.interview_id, s.decision_id, s.leaf_track_id, s.allocation_bps, s.input_digest,
+            d.target_role_applied
        FROM candidate_profile_route_snapshot s
+       LEFT JOIN candidate_profile_route_decision d ON d.id = s.decision_id
       WHERE s.interview_id=$1 AND s.candidate_user_id=$2`,
     [interviewId, candidate],
   );
   if (r.rowCount === 0) return null;
   const row = r.rows[0] as {
     interview_id: string; decision_id: string; leaf_track_id: string; allocation_bps: number; input_digest: string;
-  };
+  } & Record<string, unknown>;
+  const targetRoleAppliedRaw = (row as Record<string, unknown>)['target_role_applied'];
   return {
     interviewId: row.interview_id,
     jobId: '',
@@ -137,5 +144,6 @@ export async function getInterviewRouteSnapshotForAdaptiveRole(c: Client, candid
     decisionId: row.decision_id,
     routeDigest: row.input_digest,
     allocations: [{ leafTrackId: String(row.leaf_track_id), allocationBps: Number(row.allocation_bps) }],
+    ...(typeof targetRoleAppliedRaw === 'boolean' ? { targetRoleApplied: targetRoleAppliedRaw } : {}),
   };
 }
