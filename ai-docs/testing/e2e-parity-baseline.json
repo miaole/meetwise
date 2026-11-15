@@ -3,8 +3,8 @@
   "releaseEvidence": false,
   "scope": "e2e/ test+assertion parity plus agreed critical prove scripts",
   "floors": {
-    "testCount": 53,
-    "assertionCount": 558
+    "testCount": 55,
+    "assertionCount": 560
   },
   "files": {
     "e2e/full.e2e.ts": {
@@ -2820,8 +2820,8 @@
       ]
     },
     "scripts/local-e2e-receipt.proof.mjs": {
-      "testCount": 13,
-      "assertionCount": 45,
+      "testCount": 15,
+      "assertionCount": 47,
       "tests": [
         {
           "kind": "test",
@@ -2887,6 +2887,16 @@
           "kind": "test",
           "label": "复杂边界：源码摘要覆盖客户端、helpers、编排器和隔离器，迁移清单不为空",
           "conditionDigest": "sha256:cec5bb22187b996631773c78031a43c431ad4c552aa3c614d0820529ec58bd62"
+        },
+        {
+          "kind": "test",
+          "label": "复杂边界：源码摘要覆盖客户端、helpers、编排器、隔离器与被测生产管线件，迁移清单不为空",
+          "conditionDigest": "sha256:fc0af2579e144455d413bf965a36ceab70b1cef7128b3ab51b2628283f84b384"
+        },
+        {
+          "kind": "test",
+          "label": "正常：原子回执包含退出码、时长、断言数、源码与迁移清单摘要",
+          "conditionDigest": "sha256:580d87ed98bd90a9c2cedb48dc31a637cba7a72ae245256725fb124ce197fdf1"
         }
       ],
       "assertions": [
@@ -3114,6 +3124,16 @@
           "kind": "assert.equal",
           "label": "",
           "conditionDigest": "sha256:c46d64d766ecc419af7f7c5ee1e7f960572d9ad8af3dc6aae6492c42052785db"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:42c1c42e51a382a1aec4f40e99339af62aae6c8189421da406de5a1897e6b705"
+        },
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:e0c56768c4834c6490881b966dcab556183b528e6cfb1a7d10560ec50b23e8a8"
         }
       ]
     }

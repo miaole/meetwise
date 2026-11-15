@@ -94,13 +94,22 @@ function tsLineResiduals(src) {
 const A6_TABLE = 'interview_route_snapshot';
 const A6_INSERT_RE = /INSERT INTO interview_route_snapshot\s*\(/;
 const A6_FROM_RE = /FROM interview_route_snapshot/;
+// A-33：SQL 必须绑在真实执行调用上——`.query(` 后紧跟模板串起始（允许跨行空白），模板内含表名。
+// 字符串/模板字面量诱饵（未传给 query(）顶替真 SQL 的旧残面由此闭合。绑定正则跑在注释剔除后的
+// 残码拼接上——注释里的诱饵形不构成绑定。残余披露：能同时伪造 hits=2+关键字+绑定形的文本基本
+// 即真实调用形状，无意漂移/桩替换面已闭合，对抗式伪造不在本静态门威胁模型内。
+const A6_QUERY_BOUND_INSERT_RE = /\.query\(\s*`[^`]*INSERT INTO interview_route_snapshot\s*\(/;
+const A6_QUERY_BOUND_SELECT_RE = /\.query\(\s*`[^`]*FROM interview_route_snapshot/;
 const A6_FILE = 'packages/db/src/routing/job-route-decision.ts';
 function evalA6(src) {
   const residuals = tsLineResiduals(src);
+  const residualText = residuals.join('\n');
   const hits = residuals.map((code, i) => (code.includes(A6_TABLE) ? i + 1 : 0)).filter(Boolean);
   const hasInsert = hits.some((n) => A6_INSERT_RE.test(residuals[n - 1] ?? ''));
   const hasSelect = hits.some((n) => A6_FROM_RE.test(residuals[n - 1] ?? ''));
-  return { ok: hits.length === 2 && hasInsert && hasSelect, hits };
+  const insertBound = A6_QUERY_BOUND_INSERT_RE.test(residualText);
+  const selectBound = A6_QUERY_BOUND_SELECT_RE.test(residualText);
+  return { ok: hits.length === 2 && hasInsert && hasSelect && insertBound && selectBound, hits, insertBound, selectBound };
 }
 
 
@@ -131,10 +140,17 @@ function evalA6(src) {
 {
   // A6 内容门（#259 P1 / 对等 ha6 A1）：只扫非注释残码，且 INSERT/SELECT 必须落在命中行上，
   // 不得用全文 test(src)（注释或删 SQL 只留关键词会假绿）。行号只作读数。
+  // A-33 收口：追加执行绑定闸（query( + 模板内表名）、git-tracked 闸与生产消费面闸——
+  // 字符串/模板诱饵与「改名+未跟踪桩文件」残面闭合。
   const src = read(A6_FILE);
   const a6 = evalA6(src);
-  A('A6 interview_route_snapshot 在 job-route-decision 恰 2 处（非注释行 INSERT 写 + SELECT 读·内容门·行号非门读数）',
-    a6.ok, a6.hits.join(','));
+  A('A6 interview_route_snapshot 在 job-route-decision 恰 2 处（非注释行 INSERT 写 + SELECT 读·执行绑定·内容门·行号非门读数）',
+    a6.ok, `hits=${a6.hits.join(',')} bound=${a6.insertBound}/${a6.selectBound}`);
+  const tracked = gitRun(['ls-files', '--', A6_FILE]);
+  A('A6 文件 git-tracked（未跟踪桩文件即红·fail-closed）', tracked.ok && tracked.out.trim() === A6_FILE, tracked.out.trim().slice(0, 80));
+  const importers = gitRun(['grep', '-l', 'job-route-decision', '--', 'apps', 'packages']);
+  const importerFiles = importers.ok ? importers.out.split('\n').map((s) => s.trim()).filter((s) => s && s !== A6_FILE) : [];
+  A('A6 生产消费面在位（≥2 个产品文件 import 引用·改名断链即红）', importerFiles.length >= 2, importerFiles.join(',').slice(0, 120));
   if (a6.hits.length) {
     const commented = src.split('\n').map((l, i) => (a6.hits.includes(i + 1) ? l.replace(/^(\s*)/, '$1// ') : l)).join('\n');
     const c = evalA6(commented);
@@ -144,6 +160,23 @@ function evalA6(src) {
     wiped.splice((a6.hits[0] ?? 1) - 1, 0, '  /* INSERT INTO interview_route_snapshot(', '       FROM interview_route_snapshot */');
     const k = evalA6(wiped.join('\n'));
     A('A6 反证：删除真实 SQL、只在注释块保留关键词必须红', !k.ok, `hits=${k.hits.join(',') || '0'}`);
+    // A-33 反证：字符串诱饵——真 SQL 换名+纯字符串关键字顶位。旧形（hits+关键字面）假绿、
+    // 新形（执行绑定闸）红——绑定闸对诱饵残面可验、非永真。
+    const oldEvalA6 = (s) => {
+      const r = tsLineResiduals(s);
+      const hs = r.map((code, i) => (code.includes(A6_TABLE) ? i + 1 : 0)).filter(Boolean);
+      return hs.length === 2 && hs.some((n) => A6_INSERT_RE.test(r[n - 1] ?? '')) && hs.some((n) => A6_FROM_RE.test(r[n - 1] ?? ''));
+    };
+    const decoy = src
+      .replace('INSERT INTO interview_route_snapshot(', 'INSERT INTO a6_kill_table(')
+      .replace('FROM interview_route_snapshot s', 'FROM a6_kill_table s')
+      .replace('export const JOB_SEMANTIC_REVISION_STATUSES',
+        "const A6_DECOY_INSERT = 'INSERT INTO interview_route_snapshot(a,b)';\n"
+        + "const A6_DECOY_SELECT = 'SELECT * FROM interview_route_snapshot';\n"
+        + 'export const JOB_SEMANTIC_REVISION_STATUSES');
+    const d = evalA6(decoy);
+    A('A6 反证：字符串诱饵（真 SQL 换名+纯串关键字）旧形假绿、新形红（执行绑定闸可验）',
+      oldEvalA6(decoy) && !d.ok, `old=${oldEvalA6(decoy)} new=${d.ok}`);
   }
 }
 {

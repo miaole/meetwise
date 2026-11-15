@@ -24,6 +24,11 @@ const SOURCE_PATHS = Object.freeze([
   'e2e/ocr-fixture.ts',
   'scripts/run-e2e.mjs',
   'scripts/run-e2e-isolated.mjs',
+  // A-35 P2-3：被测生产管线件入摘要面——收据不再只钉测试 harness，生产文件改动即换据。
+  'apps/api/src/platform/principal.guard.ts',
+  'apps/worker/src/adaptive-lifecycle.ts',
+  'apps/worker/src/score-writer.ts',
+  'packages/ai-graphs/src/adaptive-interview/nodes/evaluate-answer.ts',
 ]);
 
 const sha256 = (value) => `sha256:${createHash('sha256').update(value).digest('hex')}`;
