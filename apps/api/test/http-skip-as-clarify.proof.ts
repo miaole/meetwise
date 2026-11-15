@@ -26,6 +26,7 @@
  */
 import 'reflect-metadata';
 import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
 import { createHash, randomUUID } from 'node:crypto';
 
 import {
@@ -333,6 +334,14 @@ async function main(): Promise<void> {
       unresolved.length === 1 && Number(unresolved[0]!.payload?.score) === 0, evaluated.map((e) => e.payload));
     A('H1 前提条件：/turn 路径不产 score_request，故跳过后 score_card=0（非已证「跳过不供卡」属性）', (await scoreCards(owner, sess.id)) === 0);
     A('H1 跳过当澄清不调用评估模型（H1 单独证不了 isSkip 分流；isSkip 判别力在 H2）', modelCalls.evaluate === evalBeforeH1);
+    // A-35 P2-1 收口：分流供位缝静态锚——生产节点真调用 isSkip(answer)/isNonAnswer(answer)，
+    // 分类器判别力（恒 false 变异可判别）由 packages/domain adaptive-interview proof 敏感性/特异性
+    // 两臂承担；本锚钉住消费侧不脱钩（isSkip 改名/摘除即红）。
+    {
+      const nodeSrc = readFileSync(new URL('../../../packages/ai-graphs/src/adaptive-interview/nodes/evaluate-answer.ts', import.meta.url), 'utf8');
+      A('isSkip 分流供位缝：evaluate-answer 生产节点真调用 isSkip(answer)+isNonAnswer(answer)',
+        /const skipped = isSkip\(answer\);/.test(nodeSrc) && /isNonAnswer\(answer\)/.test(nodeSrc));
+    }
     const qr2 = lastEv(ev2, 'question_ready');
     const next = await issued(owner, sess.id);
     A('H1 跳过后发出下一题 question_ready', !!qr2 && evKinds(ev2, 'question_ready').length >= 2);

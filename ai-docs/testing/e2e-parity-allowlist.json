@@ -426,6 +426,38 @@
       "removedFile": false,
       "testCountDelta": 0,
       "assertionCountDelta": -4
+    },
+    {
+      "id": "E2E-PARITY-20261116-a35-p2-3-receipt-production-digests",
+      "path": "scripts/local-e2e-receipt.proof.mjs",
+      "reason": "A-35 P2-3 retarget: receipt sourceDigests surface extended with 4 production pipeline files (principal.guard/adaptive-lifecycle/score-writer/evaluate-answer); the two renamed test labels and two changed assertion digests no longer match the current proof body.",
+      "removedTests": [
+        {
+          "kind": "test",
+          "label": "正常：原子回执包含退出码、时长、断言数、源码与迁移清单摘要",
+          "conditionDigest": "sha256:ed8082c05058054b1b46a328e842dca86d6f757fb66ad758d079b100274665a3"
+        },
+        {
+          "kind": "test",
+          "label": "复杂边界：源码摘要覆盖客户端、helpers、编排器和隔离器，迁移清单不为空",
+          "conditionDigest": "sha256:cec5bb22187b996631773c78031a43c431ad4c552aa3c614d0820529ec58bd62"
+        }
+      ],
+      "removedAssertions": [
+        {
+          "kind": "assert.deepEqual",
+          "label": "",
+          "conditionDigest": "sha256:371222491933f5bfd471abdbcff0c644cd39906eb548bb04231eabdea66fe98f"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:c46d64d766ecc419af7f7c5ee1e7f960572d9ad8af3dc6aae6492c42052785db"
+        }
+      ],
+      "removedFile": false,
+      "testCountDelta": -2,
+      "assertionCountDelta": -2
     }
   ]
 }

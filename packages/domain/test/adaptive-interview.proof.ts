@@ -1,6 +1,6 @@
 /** 自适应面试大脑证明(纯,确定性):感知→更新能力模型→策略决策(追问/换题/调难度/收尾)。 pnpm adaptive:prove */
 import { initMind, ingestAssessment, decideNext, withCurrent, isSkip, isNonAnswer, stripScoringManipulation, classifyTurn, markClarify, markUnresolved, clarifyHint } from '../src/index.ts';
-let fail = 0; const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
+let fail = 0; const A = (n: string, c: boolean, extra?: string) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}${extra ? `  [${extra}]` : ''}`); if (!c) fail++; };
 
 // 三个目标能力,预算 8 轮
 let m = initMind(['并发', '系统设计', '数据库'], 8);
@@ -43,6 +43,24 @@ A('绝对杀开关触顶 → safety_ceiling', decideNext(locked).kind === 'concl
 // 非作答检测:空/跳过/过短/整句套话 命中;真实长答案不误伤(即便含"不会"等词)
 A('空答=非作答(且=skip)', isNonAnswer('') && isSkip(''));
 A('"跳过"=skip(显式放弃)', isSkip('跳过') && isSkip(' 跳过 ') && isSkip('skip'));
+// A-35 P2-1：isSkip 分流判别力——恒 false 变异必须可被判别。敏感性=skip 语料逐条与变异分歧
+// （变异不可察觉则下游 H1/H2 分流臂失去判据·旧形「isSkip-恒 false 使 H1 绿」的残面）；特异性=
+// 真实作答语料与变异同判 false（零过杀）。classifyTurn 只吃 skipped 布尔位（生产供位=
+// ai-graphs evaluate-answer.ts:54 `isSkip(answer)`·消费缝锚在 http-skip-as-clarify H1 段）。
+{
+  const SKIP_CORPUS = ['', '跳过', ' 跳过 ', 'skip', 'SKIP', 'pass', '不答', '不答了', '下一题', '换一题', 'next', '跳过。'];
+  const REAL_CORPUS = [
+    '我不会在生产直接删库,而是先灰度再回滚,通过开关控制流量',
+    '我用读写分离加本地缓存扛住峰值并权衡一致性与延迟',
+    '为了抗缓存击穿,我先用互斥锁保证只有一个请求回源,再配合逻辑过期让热点数据平滑过渡',
+  ];
+  const mutant = (_answer: string): boolean => false;   // isSkip-恒 false 变异
+  const diverged = SKIP_CORPUS.filter((s) => isSkip(s) !== mutant(s));
+  A('isSkip 判别力·敏感性：skip 语料逐条与恒 false 变异分歧（变异必可被分流察觉）',
+    diverged.length === SKIP_CORPUS.length, `${diverged.length}/${SKIP_CORPUS.length} 分歧`);
+  A('isSkip 判别力·特异性：真实作答语料生产判 false 与变异同判（零过杀）',
+    REAL_CORPUS.every((s) => isSkip(s) === mutant(s)));
+}
 A('"不知道""我不会""没做过"=非作答(整句套话)', isNonAnswer('不知道') && isNonAnswer('我不会') && isNonAnswer('没做过') && isNonAnswer('不清楚'));
 A('过短(<8 有意义字符)=非作答', isNonAnswer('就那样') && isNonAnswer('用Redis'));
 A('复读/乱敲规避(堆长度但字符多样性极低)=非作答', isNonAnswer('不知道不知道不知道') && isNonAnswer('啊啊啊啊啊啊啊啊') && isNonAnswer('不会不会不会不会'));
