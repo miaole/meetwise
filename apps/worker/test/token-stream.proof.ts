@@ -396,6 +396,109 @@ async function main() {
     }
   }
 
+  /* ── A-19p 行为臂：report/adaptive/critique 三面 withdrawn 实流（#262 P2 残余收口）──
+   * 修前：report/adaptive 对 withdrawn 只有静态断言（R3 静态臂 pin 接线）、critique 面零臂。
+   * 本段补三面真业务流行为臂（flag=1·真 LISTEN 收帧·真业务结果联动），flag 本身缺省 OFF
+   * 不改（C-19 代决保持）。quiz 面行为臂=N-13 臂(1) 既有。 */
+  {
+    const prevFlag = process.env.TOKEN_STREAM_WITHDRAW_PREVIEW;
+    process.env.TOKEN_STREAM_WITHDRAW_PREVIEW = '1';
+    try {
+      // ① report 面：schema 过、业务闸拒（sections 逐字节重复 → report_duplicate_section）→
+      //   withdrawRejected 实发 withdrawn 帧（sections 空在 schema 层就拒·够不到业务闸）。
+      const RID = `s4br-rej-${Date.now()}`;
+      await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')", [RID, OWNER]);
+      const reportKey = `${RID}:report`;
+      const rawReport = '{"sections":[{"title":"S","body":"B"},{"title":"S","body":"B"}]}';
+      let threwReport = false;
+      let reportErrMsg = '';
+      try {
+        await reportGenerator(pool, OWNER, reportKey, streamingModel({ 'report.generate': rawReport }), RID)({
+          interviewId: RID, questionCount: 1, scores: [80], owner: OWNER,
+        });
+      } catch (e) {
+        threwReport = true;
+        reportErrMsg = e instanceof Error ? e.message : String(e);
+      }
+      await sleep(300);
+      const reportFrames = framesFor(RID, reportKey);
+      const rw = reportFrames.find((f) => f.withdrawn === true);
+      A('A-19p report 行为臂：业务闸拒实发 withdrawn（reason=report_duplicate_section）',
+        threwReport && reportErrMsg === 'report:business:report_duplicate_section' && rw !== undefined
+        && rw.v === 1 && rw.streamKey === RID && rw.attemptKey === reportKey && rw.reason === 'business:report_duplicate_section',
+        { threwReport, reportErrMsg, frames: reportFrames.length });
+
+      // ② adaptive 面：grounded-refs 专闸（refs 不在选定事实内）→ rejectPreview 实发 withdrawn；
+      //   业务终态= canned 模板回退（闸判死不 re-roll·业务连续性照常）。
+      const GID = `s4bg-${Date.now()}`;
+      await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')", [GID, OWNER]);
+      const depsBad = buildAdaptiveDeps({
+        pool, owner: OWNER, threadId: GID, model: streamingModel({ 'interviewer.ask': '{"q":"高并发限流的令牌桶与漏桶在突发流量下的行为差异","refs":["完全不相关的事实子串"]}' }),
+        competencies: ['并发'], resumeFacts: ['主导过日均亿级请求的高并发网关系统设计'],
+        localRetrieve: async () => [], webExplore: async () => [],
+      });
+      const genBad = await depsBad.retrieveAndGenerate('并发', 2, 0, 0, [], 'grounded');
+      await sleep(300);
+      const gFrames = framesFor(GID, `${GID}:ask:t0:0`);
+      const gw = gFrames.find((f) => f.withdrawn === true);
+      const genBadOk = genBad && 'ok' in genBad && genBad.ok === true && typeof genBad.question === 'string';
+      A('A-19p adaptive 行为臂：grounded-refs 闸拒实发 withdrawn（reason=business:grounded_refs_not_in_facts）+ canned 回退终态',
+        gw !== undefined && gw.reason === 'business:grounded_refs_not_in_facts' && genBadOk,
+        { gw: gw?.reason, genBadOk, frames: gFrames.length });
+
+      // ③ critique 面：seamCritique 判重失败 → rejectPreview('question_critique_failed') 实发 withdrawn
+      //   + 有界 re-roll 后第二 roll 通过（撤回帧与成功帧同 proof 可见·asked 由调用方传入）。
+      const CID = `s4bc-${Date.now()}`;
+      await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')", [CID, OWNER]);
+      const dupQ = '高并发系统设计中的令牌桶算法是如何防止突发流量的';
+      const goodQ = '请设计一个支持水平扩展的分布式限流服务并说明其中的一致性取舍';
+      let askCalls = 0;
+      const statefulModel: ModelClient = {
+        async complete(req: CompletionRequest) {
+          const raw = askCalls === 0
+            ? JSON.stringify({ q: dupQ, refs: ['高并发'] })
+            : JSON.stringify({ q: goodQ, refs: ['高并发'] });
+          return { ok: true, raw: JSON.parse(raw) as unknown } as ModelResult;
+        },
+        prepare: (req: CompletionRequest) => ({
+          ready: true as const,
+          execute: async (_signal?: AbortSignal, onDelta?: (d: { text: string }) => void) => {
+            const n = askCalls;
+            askCalls += 1;
+            const raw = n === 0
+              ? JSON.stringify({ q: dupQ, refs: ['高并发'] })
+              : JSON.stringify({ q: goodQ, refs: ['高并发'] });
+            if (onDelta) { onDelta({ text: raw.slice(0, 4) }); onDelta({ text: raw.slice(4) }); }
+            return { ok: true, raw: JSON.parse(raw) as unknown } as ModelResult;
+          },
+        }),
+      };
+      const depsCri = buildAdaptiveDeps({
+        pool, owner: OWNER, threadId: CID, model: statefulModel,
+        competencies: ['并发'], resumeFacts: ['主导过日均亿级请求的高并发网关系统设计'],
+        localRetrieve: async () => [], webExplore: async () => [],
+      });
+      const genCri = await depsCri.retrieveAndGenerate('并发', 2, 0, 0, [], 'grounded', [dupQ]);
+      await sleep(300);
+      const critFrames = framesFor(CID, `${CID}:ask:t0:0`);
+      const cw = critFrames.find((f) => f.withdrawn === true);
+      const criOk = genCri && 'ok' in genCri && genCri.ok === true && typeof genCri.question === 'string';
+      // re-roll 帧与撤回帧同键（sink 帧内 attemptKey 恒为包装层注册键·adaptive-interview-service:608
+      // 头注亲证）；行为面=拒稿文本被撤下（首 roll pending 不冲出）+ 第二 roll 全文照常出流。
+      const criAll = captured.filter((f) => f.streamKey === CID);
+      const goodRaw = JSON.stringify({ q: goodQ, refs: ['高并发'] });
+      const textOut = criAll.filter((f) => f.withdrawn !== true).map((f) => f.text ?? '').join('');
+      A('A-19p critique 行为臂：判重失败实发 withdrawn（reason=question_critique_failed）+ 拒稿文本被撤下·re-roll 全文在流',
+        cw !== undefined && cw.reason === 'question_critique_failed'
+        && askCalls === 2 && criOk && (genCri as { question: string }).question === goodQ
+        && textOut === goodRaw && !textOut.includes(dupQ),
+        { cw: cw?.reason, askCalls, criOk, textLen: textOut.length });
+    } finally {
+      if (prevFlag === undefined) delete process.env.TOKEN_STREAM_WITHDRAW_PREVIEW;
+      else process.env.TOKEN_STREAM_WITHDRAW_PREVIEW = prevFlag;
+    }
+  }
+
   /* ── R7 worker 侧：断开不取消+流中失败禁自动重 invoke ── */
   {
     // (i) 无听众（无 LISTEN 订阅者注册）生成照常至终态——delta 无听众=廉价 no-op·终态权威照落。
