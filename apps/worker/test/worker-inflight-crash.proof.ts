@@ -23,7 +23,9 @@
  *  静态锚：adaptive-lifecycle.ts 零裸 `await g.invoke(`、4 处 invokeWithCheckpointContainment。
  *  锁存优先级臂（#247 N-1）：先并发打入可重试（Connection terminated → checkpoint_connection_lost），
  *  再打入 42501，最终必须判不可重试；其他不可重试码同理覆盖；同级仍首个获胜；L-sync 与
- *  isTransientInterviewJobError 对拍。修前 `??=` 形本臂 EXIT 1，修后 EXIT 0。
+ *  isTransientInterviewJobError 对拍（A-18 起双向：fence 导出集 ≡ consumer 集）。修前 `??=` 形
+ *  本臂 EXIT 1，修后 EXIT 0。A-18 行（L-7）：无 code 未知错不得覆盖 connection_lost 窗
+ *  （覆盖需正证据=带 code 的不可重试错；proof 内重建旧形规则断言分歧=反证非永真）。
  *  pnpm worker-inflight-crash:prove */
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -231,11 +233,13 @@ async function latchPriorityArm(A: (n: string, c: boolean, extra?: string) => vo
   A('L-sync isRetryableCheckpointLatchError 已导出', typeof isLatchRetryable === 'function');
   if (typeof isLatchRetryable === 'function') {
     let syncOk = true;
+    const latchSet = fenceMod.RETRYABLE_CHECKPOINT_LATCH_CODES;
     const codes = [
       ...consumer.TRANSIENT_INTERVIEW_JOB_ERROR_CODES,
+      ...(latchSet ? [...latchSet] : []),
       '42501', 'checkpoint_privacy_fenced', '23514', '08006', '08001', 'some_terminal_code',
     ];
-    for (const code of codes) {
+    for (const code of new Set(codes)) {
       const a = isLatchRetryable({ code });
       const b = consumer.isTransientInterviewJobError(code);
       if (a !== b) { syncOk = false; A(`L-sync 码 ${code} 锁存口径≠consumer`, false, `latch=${a} consumer=${b}`); }
@@ -243,6 +247,20 @@ async function latchPriorityArm(A: (n: string, c: boolean, extra?: string) => vo
     const noCode = isLatchRetryable(new Error('Connection terminated')) === false
       && consumer.isTransientInterviewJobError(undefined) === false;
     A('L-sync 瞬时白名单 ∪ 08* ∪ 42501 等与 isTransientInterviewJobError 对拍', syncOk && noCode);
+    // A-18 L-sync 双向：旧臂只枚举 consumer 集，fence 侧单独加/漏码不可见（单向）。本臂并枚举
+    // fence 导出集，任一侧单独漂移（成员不等 → 口径必不等）即红。
+    let setSyncOk = latchSet instanceof Set;
+    if (latchSet instanceof Set) {
+      for (const code of new Set([...latchSet, ...consumer.TRANSIENT_INTERVIEW_JOB_ERROR_CODES])) {
+        const inLatch = latchSet.has(code);
+        const inConsumer = consumer.TRANSIENT_INTERVIEW_JOB_ERROR_CODES.has(code);
+        if (inLatch !== inConsumer) {
+          setSyncOk = false;
+          A(`L-sync 集合成员 ${code} 单侧漂移`, false, `latchSet=${inLatch} consumerSet=${inConsumer}`);
+        }
+      }
+    }
+    A('L-sync 集合双向对拍（fence 导出集 ≡ consumer 集·单向漏改即红）', setSyncOk);
   }
 
   const r1 = await latchConcurrent(makeTerminated(), makeFenced());
@@ -275,6 +293,26 @@ async function latchPriorityArm(A: (n: string, c: boolean, extra?: string) => vo
   const c6 = latchErrCode(r6.error);
   A('L-6 先 08006（08 族可重试）后 42501 → 覆盖为 42501',
     !r6.ok && c6 === '42501' && !consumer.isTransientInterviewJobError(c6), `code=${c6}`);
+
+  // A-18：normalize 后仍无 code 的未知形状错不得覆盖已锁存的可重试错——connection_lost 窗
+  // 保持 transient（requeue 重连），不被断连下游症状推成确定性终态。
+  const r7 = await latchConcurrent(makeTerminated(), new Error('totally unknown no-code shape'));
+  const c7 = latchErrCode(r7.error);
+  A('L-7 先 connection_lost 后未知无 code 错 → 保持 checkpoint_connection_lost（不覆盖）',
+    !r7.ok && c7 === 'checkpoint_connection_lost' && latchErrCauseMessage(r7.error) === 'Connection terminated', `code=${c7}`);
+  A('L-7c 最终分类=transient（未知错未把可恢复窗口推成终态）',
+    !r7.ok && c7 === 'checkpoint_connection_lost' && consumer.isTransientInterviewJobError(c7));
+
+  // A-18 反证：把修前旧形规则在 proof 内重建，断言它与现行规则在 A-18 行分歧（本臂可红、
+  // 非永真假绿），且在带 code 不可重试行同判（L-1/L-4/L-5 语义未被本刀削弱）。
+  const oldRuleNext = (prevErr: unknown, newErr: unknown): unknown =>
+    (!prevErr || (isLatchRetryable(prevErr) && !isLatchRetryable(newErr))) ? newErr : prevErr;
+  const connLostErr = Object.assign(new Error('Connection terminated'), { code: 'checkpoint_connection_lost' });
+  const unknownErr = new Error('totally unknown no-code shape');
+  A('A-18 反证：旧形规则在（connection_lost, 未知无码）行覆盖为未知错（与新形分歧=本刀可验）',
+    oldRuleNext(connLostErr, unknownErr) === unknownErr, `old=${latchErrCode(oldRuleNext(connLostErr, unknownErr))}`);
+  A('A-18 反证：旧形与新形在带 code 不可重试行同判（42501 仍覆盖）',
+    latchErrCode(oldRuleNext(connLostErr, makeFenced())) === '42501');
 }
 
 async function parent(): Promise<void> {
