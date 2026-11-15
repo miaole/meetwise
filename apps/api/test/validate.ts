@@ -282,21 +282,31 @@ async function validate() {
   };
   let fails = 0; const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fails++; };
   let r;
-  const probePool = db.pool as unknown as { query: (...args: any[]) => Promise<any> };
+  // A-20 后计数 seam：pool.query + pool.connect 双面（目录读改走 probeCatalogQuery 专用连接——
+  // 事务内 set_config(statement_timeout,2s,is_local)，连接内 BEGIN/set_config/目录读/COMMIT 四命令
+  // 固定形由 sse-notify-trigger-health.proof T-8b 序列臂在证）。计数=池 .query 次数+连接获取次数；
+  // 注意 pool.query 内部走 this.connect（callback 形）→ 每次 .query 计 2。每拍实测 4=
+  // SELECT 1(2) + 网关账本连接(1) + 目录短超时连接(1)。DB 失败臂只计 SELECT 1 的一次 throw
+  // （controller 在 database!=='ok' 时短路 SSE 目录读——health.controller apiReady 尾注）。
+  const probePool = db.pool as unknown as { query: (...args: any[]) => Promise<any>; connect: (...args: any[]) => Promise<any> };
   const originalProbeQuery = probePool.query.bind(probePool);
+  const originalProbeConnect = probePool.connect.bind(probePool);
   let readinessQueryCount = 0;
   probePool.query = async (...args: any[]) => { readinessQueryCount++; return originalProbeQuery(...args); };
+  probePool.connect = async (...args: any[]) => { readinessQueryCount++; return originalProbeConnect(...args); };
   r = await req('GET', '/livez'); A('存活探针公开且不读 DB → 200 + 固定 ok', r.status === 200 && r.body.status === 'ok' && readinessQueryCount === 0);
-  // 审计 #92 + 0143 trigger 门：readyz 探针恒**有界只读**（池面 SELECT 1 + 0143 pg_trigger
-  // 目录读；账本 max 经 0225 网关函数、不经池 .query）。仍不触任何业务表；db_unreachable
-  // 时在 SELECT 1 短路，不追加 trigger 目录读。网关读不经池 .query 面，故池面计数=每拍恰 2 条。
-  r = await req('GET', '/readyz/api'); A('API 就绪探针 → 200 + 有界只读(池面 2 条+网关函数 1 读) + 迁移位 ok + sse.notify 非 trigger_missing', r.status === 200 && r.body.status === 'ok' && r.body.schema?.migration === 'ok' && (r.body.sse?.notify === 'ok' || r.body.sse?.notify === 'listen_down') && readinessQueryCount === 2);
-  r = await req('GET', '/health'); A('旧 /health 兼容映射 API 就绪探针', r.status === 200 && r.body.status === 'ok' && r.body.schema?.migration === 'ok' && (r.body.sse?.notify === 'ok' || r.body.sse?.notify === 'listen_down') && readinessQueryCount === 4);
+  // 审计 #92 + 0143 trigger 门 + A-20 短超时连接：readyz 探针恒**有界只读**（池面 SELECT 1 +
+  // 专用连接 2 条=0225 网关账本读 + 0143 目录读短超时连接）。仍不触任何业务表；db_unreachable
+  // 时在 SELECT 1 短路。每拍计数=1(pool.query)+2(connect)=3。
+  r = await req('GET', '/readyz/api'); A(`API 就绪探针 → 200 + 有界只读(池面 SELECT 1 + 专用连接 2：网关账本+目录短超时) + 迁移位 ok + sse.notify 非 trigger_missing [count=${readinessQueryCount}]`, r.status === 200 && r.body.status === 'ok' && r.body.schema?.migration === 'ok' && (r.body.sse?.notify === 'ok' || r.body.sse?.notify === 'listen_down') && readinessQueryCount === 4)
+  r = await req('GET', '/health'); A(`旧 /health 兼容映射 API 就绪探针 [count=${readinessQueryCount}]`, r.status === 200 && r.body.status === 'ok' && r.body.schema?.migration === 'ok' && (r.body.sse?.notify === 'ok' || r.body.sse?.notify === 'listen_down') && readinessQueryCount === 8)
   probePool.query = async () => { readinessQueryCount++; throw new Error('simulated_probe_dependency_failure'); };
-  r = await req('GET', '/readyz/api'); A('DB 失败时 readyz/api → 503 最小降级体(短路 1 条,迁移位 unknown, sse.notify=unknown)', r.status === 503 && r.body.status === 'degraded' && r.body.error === undefined && r.body.schema?.migration === 'unknown' && r.body.sse?.notify === 'unknown' && readinessQueryCount === 5);
-  r = await req('GET', '/livez'); A('DB 失败不误杀 livez，且不额外读 DB', r.status === 200 && r.body.status === 'ok' && readinessQueryCount === 5);
-  r = await req('GET', '/health'); A('DB 失败时旧 /health 同样 fail-closed → 503', r.status === 503 && r.body.status === 'degraded' && r.body.error === undefined);
+  // 只断池 .query（模拟真 DB 宕机）。目录连接无需断——controller 在 database!=='ok' 时本就短路 SSE 目录读（health.controller apiReady 尾注）；connect stub 会误伤请求路径的 principal 上下文连接（守卫也要 connect）→ /health 变 500 非 503。
+  r = await req('GET', '/readyz/api'); A(`DB 失败时 readyz/api → 503 最小降级体(SELECT 1 与目录连接双双短路,迁移位 unknown, sse.notify=unknown) [count=${readinessQueryCount}]`, r.status === 503 && r.body.status === 'degraded' && r.body.error === undefined && r.body.schema?.migration === 'unknown' && r.body.sse?.notify === 'unknown' && readinessQueryCount === 9)
+  r = await req('GET', '/livez'); A(`DB 失败不误杀 livez，且不额外读 DB [count=${readinessQueryCount}]`, r.status === 200 && r.body.status === 'ok' && readinessQueryCount === 9);
+  r = await req('GET', '/health'); A(`DB 失败时旧 /health 同样 fail-closed → 503 [status=${r.status} body=${JSON.stringify(r.body).slice(0,80)}]`, r.status === 503 && r.body.status === 'degraded' && r.body.error === undefined);
   probePool.query = originalProbeQuery;
+  probePool.connect = originalProbeConnect;
   const corsRes = await fetch(base + '/livez', { headers: { origin: 'http://localhost:3000' } });
   A('CORS:跨域请求返回 Access-Control-Allow-Origin(浏览器前端可调)', !!corsRes.headers.get('access-control-allow-origin'));
   r = await req('GET', '/interview/R1'); A('无 principal → 401（fail-closed）', r.status === 401);
