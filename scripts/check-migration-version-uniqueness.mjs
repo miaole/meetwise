@@ -163,6 +163,18 @@ function countPercentS(template) {
   return count;
 }
 
+/**
+ * A-21 P1-2：%s 之外的 s 型格式说明符形（位置式 %1$s、宽度 %10s、旗标 %-5s、组合 %1$-5s）
+ * 与裸 %s 同为 format() 文本插值面——旧 countPercentS 只认裸 %s，这些形整只逃出白名单。
+ * 先剥 %% 转义（'%%s' 是字面 '%s' 输出、非说明符），再全形匹配。
+ */
+const S_TYPED_SPECIFIER_RE = /%([0-9]+\$)?-?[0-9]*s/gi;
+function countSTypedSpecifiers(template) {
+  const unescaped = template.replace(/%%/g, '\u0000');
+  const matches = unescaped.match(S_TYPED_SPECIFIER_RE);
+  return matches ? matches.length : 0;
+}
+
 function lineAt(sql, pos) {
   return sql.slice(0, pos).split('\n').length;
 }
@@ -228,10 +240,46 @@ function extractFormatSSites(sql, file) {
     j += 1;
     while (j < sql.length && /[ \t\n\r]/.test(sql[j] ?? '')) j += 1;
     let template;
-    if (sql[j] === "'") {
+    if (sql[j] === "'" || ((sql[j] === 'e' || sql[j] === 'E') && sql[j + 1] === "'")) {
+      // A-21 P1-2：E'' 首参（转义串可藏任意形）——一律按未登记复合面报，需显式处置后才可入迁移。
+      if (sql[j] !== "'") {
+        sites.push({ file, line: lineAt(sql, i), template: '<e-string-first-arg>' });
+        i = j + 1;
+        continue;
+      }
       const parsed = parseSqlString(sql, j);
       template = parsed.value;
       j = parsed.end;
+      // A-21 P1-2：相邻字面量/|| 拼接首参——整段拼接视为同一模板（续段夹带 %s 不再逃出白名单）。
+      let dynamicConcat = false;
+      for (;;) {
+        let k = j;
+        while (k < sql.length && /[ \t\n\r]/.test(sql[k] ?? '')) k += 1;
+        if (sql[k] === "'") {
+          const cont = parseSqlString(sql, k);
+          template += cont.value;
+          j = cont.end;
+          continue;
+        }
+        if (sql[k] === '|' && sql[k + 1] === '|') {
+          let h = k + 2;
+          while (h < sql.length && /[ \t\n\r]/.test(sql[h] ?? '')) h += 1;
+          if (sql[h] === "'") {
+            const cont = parseSqlString(sql, h);
+            template += cont.value;
+            j = cont.end;
+            continue;
+          }
+          dynamicConcat = true;   // || 非字面量操作数：动态模板，静态门不可记账 → 标记位（未登记即红）
+          break;
+        }
+        break;
+      }
+      if (dynamicConcat) {
+        sites.push({ file, line: lineAt(sql, i), template: `${template} <dynamic-concat-first-arg>` });
+        i = j;
+        continue;
+      }
     } else if (sql[j] === '$') {
       const parsed = parseDollarQuote(sql, j);
       if (parsed !== undefined) {
@@ -239,7 +287,7 @@ function extractFormatSSites(sql, file) {
         j = parsed.end;
       }
     }
-    if (template !== undefined && countPercentS(template) > 0) {
+    if (template !== undefined && (countPercentS(template) > 0 || countSTypedSpecifiers(template) > 0)) {
       sites.push({ file, line: lineAt(sql, i), template });
     }
     i = j;
@@ -319,6 +367,34 @@ function checkFormatSAllowlist(filesByName, errors) {
   }
 }
 
+/**
+ * A-21 P1-1：0229/0230 的 INVOKER 钉只看两文件自身头部——新迁移可用
+ * `CREATE OR REPLACE FUNCTION <pinned> ... SECURITY DEFINER` 或
+ * `ALTER FUNCTION <pinned> ... SECURITY DEFINER` 把运行期函数翻成 DEFINER 绕门。
+ * 本扫描闭全迁移集：钉名函数出现在任何其他迁移的 DEFINER 头/ALTER 里即红
+ * （翻转须安全评审+登记新钉，不得静默）。
+ */
+const INVOKER_FUNCTION_NAMES = new Set(Object.values(EXPECTED_INVOKER_FUNCTIONS).flat());
+const ALTER_FUNCTION_RE = /ALTER\s+FUNCTION\s+(?:[A-Za-z_][A-Za-z0-9_]*\.)?([A-Za-z_][A-Za-z0-9_]*)\s*\([^;]*?;/gi;
+function checkInvokerFlipInOtherMigrations(filesByName, errors) {
+  for (const [file, sql] of [...filesByName.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1))) {
+    if (file === FILE_0230 || file === FILE_0229) continue;   // 钉文件自面已由 checkPinnedFile 覆盖
+    for (const header of createFunctionHeaders(sql)) {
+      if (INVOKER_FUNCTION_NAMES.has(header.name) && /\bSECURITY\s+DEFINER\b/i.test(header.header)) {
+        errors.push(`migration_invoker_flip_create_replace file=${file} function=${header.name} — 0229/0230 INVOKER 原语不得经新迁移翻成 DEFINER（需安全评审并登记新钉）`);
+      }
+    }
+    let m;
+    const alt = new RegExp(ALTER_FUNCTION_RE.source, 'gi');
+    while ((m = alt.exec(sql)) !== null) {
+      const fn = m[1];
+      if (INVOKER_FUNCTION_NAMES.has(fn) && /\bSECURITY\s+DEFINER\b/i.test(m[0])) {
+        errors.push(`migration_invoker_flip_alter file=${file} function=${fn} — 0229/0230 INVOKER 原语不得经新迁移 ALTER 翻成 DEFINER（需安全评审并登记新钉）`);
+      }
+    }
+  }
+}
+
 function runErratumSelfCheck(filesByName, errors) {
   const sql0230 = filesByName.get(FILE_0230);
   const sql0229 = filesByName.get(FILE_0229);
@@ -347,6 +423,47 @@ function runErratumSelfCheck(filesByName, errors) {
   checkFormatSAllowlist(injected, formatFail);
   if (!formatFail.some((e) => e.startsWith('migration_format_s_unregistered'))) {
     errors.push('migration_erratum_selfcheck_new_percent_s_should_fail');
+  }
+
+  // A-21 反证组：四个绕过形各自必须红（撤闸即这些自检臂可红——闸非永真）。
+  const posFail = [];
+  const posInjected = new Map(filesByName);
+  posInjected.set(FILE_0230, `${sql0230}\nSELECT format('%1$s and %10s', $1, $2);\n`);
+  checkFormatSAllowlist(posInjected, posFail);
+  if (!posFail.some((e) => e.startsWith('migration_format_s_unregistered'))) {
+    errors.push('migration_erratum_selfcheck_positional_width_s_should_fail');
+  }
+
+  const compositeFail = [];
+  const compositeInjected = new Map(filesByName);
+  compositeInjected.set(FILE_0230, `${sql0230}\nSELECT format('%s' ' %s hidden', $1, $2);\n`);
+  checkFormatSAllowlist(compositeInjected, compositeFail);
+  if (!compositeFail.some((e) => e.startsWith('migration_format_s_unregistered'))) {
+    errors.push('migration_erratum_selfcheck_composite_first_arg_should_fail');
+  }
+
+  const eStringFail = [];
+  const eStringInjected = new Map(filesByName);
+  eStringInjected.set(FILE_0230, `${sql0230}\nSELECT format(E'%s \\\\x65', $1);\n`);
+  checkFormatSAllowlist(eStringInjected, eStringFail);
+  if (!eStringFail.some((e) => e.startsWith('migration_format_s_unregistered'))) {
+    errors.push('migration_erratum_selfcheck_e_string_first_arg_should_fail');
+  }
+
+  const flipFail = [];
+  const flipInjected = new Map(filesByName);
+  flipInjected.set('0231_selfcheck_flip_fixture.sql', 'CREATE OR REPLACE FUNCTION mw_admin_grant_role() RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $fn$ BEGIN END $fn$;\n');
+  checkInvokerFlipInOtherMigrations(flipInjected, flipFail);
+  if (!flipFail.some((e) => e.startsWith('migration_invoker_flip_create_replace'))) {
+    errors.push('migration_erratum_selfcheck_invoker_flip_should_fail');
+  }
+
+  const alterFlipFail = [];
+  const alterFlipInjected = new Map(filesByName);
+  alterFlipInjected.set('0231_selfcheck_alter_fixture.sql', 'ALTER FUNCTION mw_admin_revoke_exec_fn(text) SECURITY DEFINER;\n');
+  checkInvokerFlipInOtherMigrations(alterFlipInjected, alterFlipFail);
+  if (!alterFlipFail.some((e) => e.startsWith('migration_invoker_flip_alter'))) {
+    errors.push('migration_erratum_selfcheck_invoker_alter_flip_should_fail');
   }
 }
 
@@ -565,6 +682,7 @@ if (isRepoMigrationsDir) {
   checkPinnedFile(filesByName, FILE_0230, PRIMITIVES_0230_CHECKSUM, erratumErrors);
   checkPinnedFile(filesByName, FILE_0229, ADMIN_GRANTS_0229_CHECKSUM, erratumErrors);
   checkFormatSAllowlist(filesByName, erratumErrors);
+  checkInvokerFlipInOtherMigrations(filesByName, erratumErrors);
   runErratumSelfCheck(filesByName, erratumErrors);
   for (const error of erratumErrors) console.error(error);
   console.log(`migration_definer_erratum dir=${migrationsDir} violations=${erratumErrors.length} format_s_sites=${REGISTERED_FORMAT_S_SITES.length}`);

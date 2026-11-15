@@ -3,21 +3,26 @@
  *
  * 跑在 run-e2e-isolated.mjs 起的临时 Postgres 上（本 target 不预迁移 —— prove 自管两段式）：
  *   Stage A：runMigrations(≤0143 全部) → 快照 SA + 行为矩阵 BA（0143 基线）
- *   Stage B：runMigrations(全部) → 仅应用 0144 → 快照 SB + 行为矩阵 BB
- *   P1 catalog 差分：100→85 挂接点（pg_trigger 全行集）零变 · Tier-1 十四行
+ *   Stage B：runMigrations(全部·链含 0145+·A-28 退役「恰只 0144」截断窗钉) → 快照 SB + 行为矩阵 BB
+ *   P1 catalog 差分：Tier-1 十四行
  *      prosecdef/proconfig/proacl/proowner/provolatile/prorettype 全等（含 proconfig 断言）·
- *      SD 函数计数仅 public +1（tf_assert N3 单例）· tf_ 库 13 员 + interview_derived_score 在位 ·
+ *      tf_ 库 13 员 + interview_derived_score 在位 ·
  *      簇① 六员 PUBLIC 可达镜像 · 规则表 5 种子行
+ *      （A-28 退役：挂接点 85→93 全行集 A≡B 与 public SD 恰 +1 两钉——链延展后差分基已变，
+ *      审查实证 315→317=0232 新增 2 SD·非新红；保护由迁移链门+0196 执行面门承担）
  *   P2 状态机回归（0082 终端语义逐轴 + 0046:162-166 partial_confirmed 逐字节保形）：
  *      BA≡BB≡钉死字面量
  *   P3 公式对齐：interview_derived_score(双参 D5) ≡ 0051 字面重放（含 0/100 边界、150 越界、
  *      malformed、unresolved、空流、跨 owner 隔离）
- *   P4 伴族回归：erasure（负例+replay+已知 F1 潜伏面差分保形）· gateway 六臂+未知 work ·
+ *   P4 伴族回归：erasure（负例+replay+fresh=OK·A-28 修订：F1 潜伏面已由后续刀修复）·
+ *      gateway（job_route+未知 work·A-28 退役六臂 A≡B 差分钉）·
  *      definer 双角色布尔 · ann_search 空语料+tf_ 直调 · ai_cost 全链（reserve/held/unknown/release 拒）
  *   P5 既有 prove 复跑（七项 · 各自净容器）：privacy-authorization · uc052-checkpoint-physical ·
  *      qbank-control-role · rag-control-role · recruiter · migrate（runner 各起一净容器）+
  *      ai-cost（prove 自起一次性容器 · 包内自 0033 基线）—— privacy 席增补项
- *   P6 静态契约门：0001–0143 零字节（对 48dee7a2）· 改动面白名单 · 0144 顶层语句白名单
+ *      （A-28 起豁免期结束：F1/F3 已修复·姊妹 prove 一律须绿 exit=0）
+ *   P6 静态契约门：工作树净（姊妹 prove 先行闸）· 0144 顶层语句白名单
+ *   （A-28 退役：0001–0143 零字节与改动面白名单两 git-diff 截断窗钉——0144 PR 已收官）
  *      （零 DROP/UPDATE/DELETE/TRIGGER/RLS/事务控制）· GRANT 仅镜像类
  *   P7 库形状门：薄壳/tf_/种子 INSERT 三类计数钉死 + 薄壳 pg_get_functiondef 仅委托
  *
@@ -342,25 +347,28 @@ async function main() {
   const SA = await snapshot('A');
   const BA = await behaviorMatrix('a');
 
-  // ── Stage B（+0144）──
+  // ── Stage B（+0144 及之后全链）──
+  // A-28 退役「恰只应用 0144」钉：该钉是 0144 截断窗专属（当时链止于 0144），现链已延展至
+  // 0232+，StageB 本就应应用全部后续迁移。A/B 差分语义=≤0143 基线 vs 全链终态；仍成立的
+  // A≡B 差分臂保留，不再成立的差分臂在本文件内逐臂退役注释（非删除历史）。
   const rB = await runMigrations(pool, all);
-  if (rB.applied.length !== 1 || rB.applied[0] !== '0144_db_trigfam_unify') {
-    A('StageB 恰只应用 0144', false, JSON.stringify(rB.applied));
-  } else {
-    A('StageB 恰只应用 0144', true);
-  }
+  A('StageB 全链应用且 0144 在已应用集内（A-28 退役「恰只 0144」截断窗钉）',
+    rB.applied.includes('0144_db_trigfam_unify'), JSON.stringify(rB.applied.slice(0, 3)));
   const SB = await snapshot('B');
   const BB = await behaviorMatrix('b');
 
   // ── P1 catalog 差分 ──
   {
-    A('P1 挂接点零变（pg_trigger 全行集 A≡B）', SA.triggers.join('\n') === SB.triggers.join('\n'), `A=${SA.triggers.length} B=${SB.triggers.length}`);
+    // A-28 退役「P1 挂接点零变」钉：B 集现含 0145+ 触发器（0173/0196 等），A≡B 全行集差分
+    // 只在截断窗内成立；挂接点保护由迁移链门（check-migration-version-uniqueness）与
+    // 0196 trigfam_execute_least_privilege 既有臂承担。
+    // A-28 退役「P1 SD 计数 public 恰 +1」钉：审查实证 315→317 差值=0232 新增 2 个 SD
+    // （清扫函数+jti feed）· 非新红；SD 面保护由 P1 非 public 全等 + 0196 执行面门承担。
     A('P1 Tier-1 十四行元数据全等（sd/proconfig/acl/owner/volatile/rettype）', SA.tier1.join('\n') === SB.tier1.join('\n'));
     const sdA = SA.sdCounts, sdB = SB.sdCounts;
     const othersEqual = Object.keys(sdA).every((ns) => ns === 'public' || sdA[ns] === (sdB[ns] ?? 0))
       && Object.keys(sdB).every((ns) => ns === 'public' || sdB[ns] === (sdA[ns] ?? 0));
     A('P1 SD 计数：非 public schema 全等（封印面零扰）', othersEqual, JSON.stringify({ sdA, sdB }));
-    A('P1 SD 计数：public 恰 +1（tf_assert N3 单例）', (sdB.public ?? 0) - (sdA.public ?? 0) === 1, `A=${sdA.public} B=${sdB.public}`);
     const tfRows = await pool.query(
       `SELECT p.proname FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
         WHERE n.nspname='public' AND p.proname IN (${TF_MEMBERS.map((_, i) => `$${i + 1}`).join(',')}) ORDER BY 1`, [...TF_MEMBERS]);
@@ -452,12 +460,13 @@ async function main() {
 
   // ── P4 伴族：BA≡BB + 字面量 ──
   {
-    A('P4 erasure 行为 A≡B（负例/replay/F1 潜伏面差分保形）', JSON.stringify(BA.erasure) === JSON.stringify(BB.erasure), `A=${JSON.stringify(BA.erasure)} B=${JSON.stringify(BB.erasure)}`);
+    // A-28 退役「erasure/gateway A≡B」两钉：全链 B 集含后续刀对 erasure/gateway 面的真实
+    // 演进（0232 清扫/jti feed 等），差分不再逐字节成立；行为面保护由下方字面量臂 +
+    // 0195/0232 各自的刀内 prove 承担。
     A('P4 erasure 负例 22023', BB.erasure.invalid_input === '22023|privacy_erasure_request_invalid', BB.erasure.invalid_input);
     A('P4 erasure replay OK', BB.erasure.replay === 'OK', BB.erasure.replay);
-    A('P4 erasure fresh=F1 已知潜伏面（0143 引入 uuidv7 ACL × privacy_api_owner · 登记 DBID-1 残留另刀 · 非本刀回归）',
-      String(BB.erasure.fresh_known_F1).startsWith('42501|permission denied for function uuidv7'), String(BB.erasure.fresh_known_F1));
-    A('P4 gateway 六臂 A≡B', BA.gateway.arms === BB.gateway.arms, `A=${String(BA.gateway.arms)} B=${String(BB.gateway.arms)}`);
+    A('P4 erasure fresh=OK（A-28 修订：F1 潜伏面已由后续刀修复——0143 uuidv7 ACL × privacy_api_owner 的 42501 不再发生）',
+      BB.erasure.fresh_known_F1 === 'OK', String(BB.erasure.fresh_known_F1));
     A('P4 gateway job_route 臂内含夹具 owner', String(BB.gateway.arms).includes('dbtf-X-w2'), String(BB.gateway.arms));
     A('P4 gateway 未知 work 22023', BB.gateway.unknown_work === "22023|gateway_dispatch_unknown_work", BB.gateway.unknown_work);
     A('P4 definer 双角色 A≡B', JSON.stringify(BA.definer) === JSON.stringify(BB.definer));
@@ -469,41 +478,25 @@ async function main() {
   }
 
   // ── P5 既有 prove 复跑（七腿 · privacy 席增补 privacy-authorization · ai-cost→model-cost F2 替代）──
+  // A-28 修订：F1（uuidv7 DEFAULT × privacy SD owner）/F3（interview_event_raw_answer_fenced）
+  // 潜伏面已由后续刀修复（2026-11-16 实跑 privacy-authorization/recruiter exit=0 亲证）——
+  // 三条「基线同红差分豁免」臂退役，姊妹 prove 现一律须绿（exit=0）。
   {
     const siblings = await p5Siblings();
     for (const [name, result] of Object.entries(siblings)) {
-      if (name === 'privacy-authorization:prove:raw' || name === 'uc052:checkpoint-physical:prove:raw') {
-        A(`P5 ${name} = 基线同红差分豁免（F1：uuidv7 DEFAULT × privacy SD owner · 0143 引入 · 0144 移出后同红亲证（uc052 经临时回退提交探得）· DBID-1 残留另刀）`,
-          result.startsWith('exit=1') && result.includes('sig_uuidv7=true'), result);
-      } else if (name === 'recruiter:prove:raw') {
-        A(`P5 ${name} = 基线同红差分豁免（F3：interview_event_raw_answer_fenced · 0144 stash 后同红亲证 · 在册既有）`,
-          result.startsWith('exit=1') && result.includes('sig_fence=true'), result);
-      } else {
-        A(`P5 复跑 ${name}`, result.startsWith('exit=0'), result);
-      }
+      A(`P5 复跑 ${name}（A-28 起豁免期结束·F1/F3 已修复·姊妹 prove 须绿）`, result.startsWith('exit=0'), result.slice(0, 220));
     }
   }
 
   // ── P6 静态契约门 ──
+  // A-28 退役「历史迁移 0001–0143 零字节」与「改动面白名单」两钉：二者都是 0144 刀 PR 面
+  // 专属 git-diff 钉（基点 48dee7a2），该 PR 已合并收官、迁移链已延展——保护由
+  // check-migration-version-uniqueness（迁移面唯一性/钉文件 checksum）承担。
+  // 「工作树净」保留：它是姊妹 prove 脏树拒绝门的先行闸，环境语义仍有效。
   {
-    const diff = spawnSync('git', ['diff', '--name-only', '48dee7a2..HEAD', '--', 'packages/db/migrations'], { cwd: ROOT, encoding: 'utf8' });
-    const migChanged = (diff.stdout ?? '').trim().split('\n').filter(Boolean);
-    A('P6 历史迁移 0001–0143 零字节（迁移面唯一新增=0144）', migChanged.length === 1 && migChanged[0] === 'packages/db/migrations/0144_db_trigfam_unify.sql', JSON.stringify(migChanged));
-    const diffHead = spawnSync('git', ['diff', '--name-only', '48dee7a2..HEAD'], { cwd: ROOT, encoding: 'utf8' });
     const status = spawnSync('git', ['status', '--porcelain'], { cwd: ROOT, encoding: 'utf8' });
-    const changed = (diffHead.stdout ?? '').trim().split('\n').filter(Boolean);
     const dirty = (status.stdout ?? '').trim();
     A('P6 工作树净（EXEC 已提交 · 姊妹 prove 脏树拒绝门可过）', dirty === '', dirty.slice(0, 200));
-    const allowed = new Set([
-      'packages/db/migrations/0144_db_trigfam_unify.sql', 'packages/db/test/db-trigfam-unify.proof.ts',
-      'package.json', 'packages/db/package.json', 'scripts/run-e2e-isolated.mjs',
-      'ai-docs/delivery/harness/db-trigfam-unify.md', 'ai-docs/delivery/db-trigfam-unify.slice.md',
-      'ai-docs/delivery/reviews/REQUEST-2026-10-07-dbtf1-mw-model-op.md',
-      'ai-docs/delivery/reviews/REQUEST-2026-10-07-dbtf1-mw-privacy-int.md',
-      'packages/db/test/migrate.proof.ts', 'ai-docs/delivery/harness/db-trigfam-unify.exec.md',
-    ]);
-    const unexpected = changed.filter((p) => !allowed.has(p));
-    A('P6 改动面白名单（零产品码 · principal.ts/调用面零改）', unexpected.length === 0, unexpected.join(','));
     const sql0144 = readFileSync(`${ROOT}/${MIGRATION_0144}`, 'utf8');
     const stmts = topLevelStatements(sql0144);
     const head = (s: string) => s.replace(/\s+/g, ' ').split(' ').slice(0, 4).join(' ').toUpperCase();
