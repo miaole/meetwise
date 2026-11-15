@@ -82,14 +82,17 @@ jobs:
       - name: 架构边界（无环 / 依赖向下 / ai-graphs 纯 / ai-runtime 关口）
         run: pnpm arch
 
-      # #96 typecheck 门（CI-WIRING 收窄裁形·零错域先点亮→清债刀五债包 strict 清零点亮·Ban 例外授权扩容）：执行面 EXIT=0 + dry=json 选择面双向断言。
-      # 选择面恰 = //#typecheck(root e2e) + web + contracts + api/worker/db/ai-runtime/domain 五债包 = 八任务（五债包 typecheck script 已点亮且 tsc 错数 0 后纳门·扩容随清债先后·禁预扩未点亮包）。
+      # #96 typecheck 门（零错域点亮→清债后扩容·Ban 预扩未点亮包）：执行面 EXIT=0 + dry=json 选择面双向断言。
+      # 选择面恰 11 任务 = //#typecheck(root e2e) + web + contracts + api/worker/db/ai-runtime/domain
+      # + ai-graphs/errors/qdrant-store（#L7 云前 A-P0-TSC：三包 proof 类型债清零后纳门）。
+      # 仍未纳门（如实列债，不假绿）：apps/worker/smoke、apps/web/test（见 scripts/tsc-remaining-debt.proof.mjs）。
       # 选择面漂移（任务增减·零错域被摘除）= 红 = fail-loud。
       - name: typecheck gate (turbo zero-error domains · #96 narrowed)
         run: |
           pnpm turbo run typecheck --dry=json > /tmp/turbo-typecheck-dry.json
-          node -e "const d=require('/tmp/turbo-typecheck-dry.json');const lit=d.tasks.filter((t)=>t.task==='typecheck'&&t.command!=='<NONEXISTENT>').map((t)=>t.taskId).sort();const expect=['//#typecheck','@meetwise/ai-runtime#typecheck','@meetwise/api#typecheck','@meetwise/contracts#typecheck','@meetwise/db#typecheck','@meetwise/domain#typecheck','@meetwise/web#typecheck','@meetwise/worker#typecheck'];if(JSON.stringify(lit)!==JSON.stringify(expect)){console.error('typecheck selection-face drift: '+lit.join(','));process.exit(1);}console.log('typecheck selection-face OK (zero-error domains + five strict-debt packages lit): '+lit.join(', '));"
+          node -e "const d=require('/tmp/turbo-typecheck-dry.json');const lit=d.tasks.filter((t)=>t.task==='typecheck'&&t.command!=='<NONEXISTENT>').map((t)=>t.taskId).sort();const expect=['//#typecheck','@meetwise/ai-graphs#typecheck','@meetwise/ai-runtime#typecheck','@meetwise/api#typecheck','@meetwise/contracts#typecheck','@meetwise/db#typecheck','@meetwise/domain#typecheck','@meetwise/errors#typecheck','@meetwise/qdrant-store#typecheck','@meetwise/web#typecheck','@meetwise/worker#typecheck'];if(JSON.stringify(lit)!==JSON.stringify(expect)){console.error('typecheck selection-face drift: '+lit.join(','));process.exit(1);}console.log('typecheck selection-face OK (11 zero-error workspaces): '+lit.join(', '));"
           pnpm turbo typecheck
+          node scripts/tsc-remaining-debt.proof.mjs
 
       # #96 LINT S3-S5 点亮（lint-design §1.5·四规则 warn 态零修复点亮）：turbo lint 全量绿 = per-workspace
       # "lint": "eslint . --max-warnings N"（N=现行预算·点亮日 dlx dry-run 基线随清债刀上调·与各 workspace

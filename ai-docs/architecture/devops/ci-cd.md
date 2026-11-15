@@ -120,7 +120,7 @@ DoD：标"已 wired"的每条都是 CI 里真实运行、真能卡住合并的 j
 | 12 | 模型供应商出站静态清单（observe-only，非发布证据） | `pnpm provider-egress:inventory` ; `pnpm provider-egress:prove` | 保留（PR/main · PR243 复审补回） |
 | 13 | 公开预览写门禁清单与围栏（非发布证据） | `pnpm public-preview-write:inventory` ; `pnpm public-preview-write:prove` ; `pnpm public-preview-write-gate:prove` | 保留（PR/main · PR243 复审补回） |
 | 14 | 架构边界（无环 / 依赖向下 / ai-graphs 纯 / ai-runtime 关口） | `pnpm arch` | 保留（PR/main） |
-| 15 | typecheck gate (turbo zero-error domains · | `pnpm turbo run typecheck --dry=json > /tmp/turbo-typecheck-dry.json` ; `pnpm turbo typecheck` | 保留（PR/main） |
+| 15 | typecheck gate (turbo zero-error domains · | `pnpm turbo run typecheck --dry=json > /tmp/turbo-typecheck-dry.json` ; `pnpm turbo typecheck` ; `node scripts/tsc-remaining-debt.proof.mjs` | 保留（PR/main） |
 | 16 | lint gate (turbo lint · | `pnpm turbo lint` | 保留（PR/main） |
 | 17 | interview dispatch fairness (no database) | `pnpm interview-dispatch:unit:prove` | 保留（PR/main） |
 | 18 | interview dispatch wrapper gate (no database, not remote SQL) | `pnpm interview-dispatch:gate:prove` | 保留（PR/main） |
