@@ -454,13 +454,13 @@ async function main() {
       const goodQ = '请设计一个支持水平扩展的分布式限流服务并说明其中的一致性取舍';
       let askCalls = 0;
       const statefulModel: ModelClient = {
-        async complete(req: CompletionRequest) {
+        async complete(_req: CompletionRequest) {
           const raw = askCalls === 0
             ? JSON.stringify({ q: dupQ, refs: ['高并发'] })
             : JSON.stringify({ q: goodQ, refs: ['高并发'] });
           return { ok: true, raw: JSON.parse(raw) as unknown } as ModelResult;
         },
-        prepare: (req: CompletionRequest) => ({
+        prepare: (_req: CompletionRequest) => ({
           ready: true as const,
           execute: async (_signal?: AbortSignal, onDelta?: (d: { text: string }) => void) => {
             const n = askCalls;
