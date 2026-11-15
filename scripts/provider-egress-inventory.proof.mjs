@@ -58,6 +58,14 @@ const checks = {
     candidate.environmentReferences = candidate.environmentReferences.filter((entry) => !(entry.name === 'MODEL_BACKUP_API_KEY' && entry.source === 'apps/worker/src/interview-service.ts'));
     expectError(candidate, 'environment_reference_unregistered:MODEL_BACKUP_API_KEY:apps/worker/src/interview-service.ts');
   },
+  'TC-MODEL-002-E3-inventory-env-class-closed-set': () => {
+    // #237 P2 / A-40(b) 收口反证：environmentReference.class 超出闭集 → 校验红（原 nonEmptyString 形下该变异仍绿）。
+    const candidate = clone(manifest);
+    const entry = candidate.environmentReferences.find((e) => e.name === 'MODEL_API_KEY' && e.source === 'scripts/ha/ha-sandbox.mjs');
+    if (entry == null) throw new Error('fixture_env_entry_missing');
+    entry.class = 'anything-goes';
+    expectError(candidate, 'environment_reference_class_invalid:MODEL_API_KEY:scripts/ha/ha-sandbox.mjs');
+  },
   'TC-MODEL-002-E3-inventory-unregistered-transport': () => {
     const candidate = clone(manifest);
     candidate.transportSources = candidate.transportSources.filter((source) => source !== 'packages/ai-runtime/src/voice-stream.ts');

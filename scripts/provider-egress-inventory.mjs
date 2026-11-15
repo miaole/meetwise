@@ -19,6 +19,23 @@ const PROVIDER_LITERAL_PATTERN = /(?:https?|wss?):\/\/[^\s"'`]*dashscope\.aliyun
 const ALLOWED_TRANSPORTS = new Set(['https', 'websocket', 'provider-signed-download']);
 const ALLOWED_MODES = new Set(['observe-only']);
 const REQUIRED_CLASSES = new Set(['production-runtime', 'manual-live-smoke', 'manual-evaluation', 'local-adapter-test']);
+// #237 P2 / A-40(b) 收口：environmentReferences[].class 从「仅 nonEmptyString」升级为闭集校验——
+// class 是出网面的消费语义标记（生产运行时/冒烟/评测/夹具…），任一超出闭集的值都必须显式
+// 改本集合并过审，防止文档性标记漂移成「什么都行」。
+const ENVIRONMENT_REFERENCE_CLASSES = new Set([
+  'adapter',
+  'adapter-configuration',
+  'deployment-contract',
+  'env-schema-documentation',
+  'live-test-launcher',
+  'manual-evaluation',
+  'manual-live-smoke',
+  'production-runtime',
+  'runtime-configuration',
+  'test-fixture',
+  'test-isolation',
+  'test-only-guard',
+]);
 const INVENTORY_TOOL_SOURCES = new Set([
   'scripts/provider-egress-inventory.mjs',
   'scripts/provider-egress-inventory.proof.mjs',
@@ -221,7 +238,7 @@ export function validateProviderEgressInventory(manifest, { repoRoot } = {}) {
     const declaredSources = new Set(manifest.environmentReferences.filter((entry) => entry?.name === envName).map((entry) => entry.source));
     for (const entry of manifest.environmentReferences.filter((item) => item?.name === envName)) {
       append(errors, isObject(entry) && fileInside(repoRoot, entry.source), `environment_reference_source_invalid:${envName}:${entry?.source}`);
-      append(errors, isObject(entry) && nonEmptyString(entry.class), `environment_reference_class_invalid:${envName}:${entry?.source}`);
+      append(errors, isObject(entry) && ENVIRONMENT_REFERENCE_CLASSES.has(entry.class), `environment_reference_class_invalid:${envName}:${entry?.source}`);
     }
     for (const source of stable([...actualSources].filter((path) => !declaredSources.has(path)))) errors.push(`environment_reference_unregistered:${envName}:${source}`);
     for (const source of stable([...declaredSources].filter((path) => !actualSources.has(path)))) errors.push(`environment_reference_not_found:${envName}:${source}`);
