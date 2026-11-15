@@ -11,13 +11,16 @@ import {
 import { ingestResume, extractResumeText, parseSealedOcrProvenance } from '@meetwise/domain';
 import { bindResumeOcr, visionOcr, type ModelClient } from '@meetwise/ai-runtime';
 import type { UploadResumeDto, UploadResumeFileDto } from '@meetwise/contracts';
+import { RESUME_MAX_FILE_BYTES } from '@meetwise/contracts';
 import { DbService } from '../../platform/db.service';
 import { RateLimitService } from '../../platform/rate-limit.service';
 import { UUID_RE } from '../../platform/uuid.ts';   // #85 单源化(5E 2026-10-12):通用形正则+404 语义表见单源头注
 import { isOcrFeatureEnabled } from './ocr-model-client.ts';
 import { resumeDisplayName } from './resume-display.ts';
 
-const MAX_RESUME_BYTES = 8 * 1024 * 1024;   // 8MB 上限(防大文件 DoS)
+// #280 P3-3：8MiB 上限改引契约常量（原本地 `8 * 1024 * 1024` 双写——改契约不会自动打红服务层）。
+// 服务层解码后字节闸与 zod contentBase64 字符闸（RESUME_MAX_FILE_BASE64_CHARS）同源单值。
+const MAX_RESUME_BYTES = RESUME_MAX_FILE_BYTES;
 const MAX_RESUME_TEXT = 60_000;             // 提取文本末线(对齐文本路径契约;防解压炸弹/超大文档提取出 MB 级文本无界落库+喂模型,安全审计 F3)。r5:域层子进程按此帽截断回传(帽+1 字),本判定语义不变
 const PARSE_MAX = Number(process.env.RESUME_PARSE_MAX ?? 6);   // 全站同时解析上限(安全审计 F2 纵深:并发炸弹不堆积压垮事件循环)
 // r5 排队与公平(证伪路 P2:单账号突发 15 次可独占两槽约 100s):每用户同时最多 1 个解析
