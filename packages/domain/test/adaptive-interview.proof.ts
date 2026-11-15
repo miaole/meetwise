@@ -1,6 +1,6 @@
 /** 自适应面试大脑证明(纯,确定性):感知→更新能力模型→策略决策(追问/换题/调难度/收尾)。 pnpm adaptive:prove */
 import { initMind, ingestAssessment, decideNext, withCurrent, isSkip, isNonAnswer, stripScoringManipulation, classifyTurn, markClarify, markUnresolved, clarifyHint } from '../src/index.ts';
-let fail = 0; const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
+let fail = 0; const A = (n: string, c: boolean, extra?: string) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}${extra ? `  [${extra}]` : ''}`); if (!c) fail++; };
 
 // 三个目标能力,预算 8 轮
 let m = initMind(['并发', '系统设计', '数据库'], 8);
