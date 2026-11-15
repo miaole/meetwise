@@ -28,7 +28,7 @@ const BASE64_TOKEN_PATTERN = /\b[A-Za-z0-9+/]{16,}={0,2}\b/g;
 const BASE64_TOKEN_GROUP_PATTERN = /(?:\b[A-Za-z0-9+/]{16,}={0,2}\b[^\wA-Za-z0-9+/]{0,4}){2,}/g;
 const SHORT_ASSIGNMENT_KEYS = 'DB_PASS|MYSQL_PWD|PGPASSWORD';
 const KNOWN_SECRET_MIN_LENGTH = 8;
-/** A-29 ②③：规避形逃逸预归一触发器——仅当文本含 \" 转义引号或 \uXXXX 时才做归一（普通失败文本字节保真）。 */
+/** A-29 ②③：规避形逃逸预归一触发器——仅当文本含 \" 转义引号或 \uHHHH 转义时才做归一（普通失败文本字节保真）。 */
 const EVASIVE_ESCAPE_TRIGGER = /\\u[0-9a-fA-F]{4}|\\["']/;
 
 const DEFAULT_REDACTION_RULES = Object.freeze({
@@ -164,7 +164,7 @@ function redactJsonCredentialArraysAndSpacedKeys(text) {
 }
 
 /**
- * A-29 ②③：规避形逃逸预归一——`\"` 转义引号与 `\uXXXX` 转义键名会让既有键名/值模式
+ * A-29 ②③：规避形逃逸预归一——`\"` 转义引号与 `\uHHHH` 转义键名会让既有键名/值模式
  * 全部失配。仅当文本含此类逃逸时才归一（普通失败文本字节保真）；归一后的文本再走既有
  * 模式族，[REDACTED] 落在归一形上（泄漏关闭优先于字节保真）。循环至稳定·上界 3 轮。
  */
