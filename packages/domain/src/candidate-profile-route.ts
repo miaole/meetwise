@@ -10,6 +10,11 @@
  * v4（#270 增量面·LEDGER :247 裁定并 #201）：general+单叶为 qa/ai_ml 时须**岗位自述级强证据**
  * 才取该叶（CANDIDATE_ROUTE_LEAF_PROFESSION_TOKENS 证据分级闸）——裸泛词（如「自动化测试」）
  * 不再压过 general 静默改道；词典本体/降级臂/409 防御面/语言叶优先序零改（零 409 现状不改）。
+ * v5（#281·taxonomy v2 非技术叶 + #279 规则①③并线）：词典扩 v2 非技术叶（business/*·两级
+ * token：词典级含弱词、强证据级=岗位自述）；降级臂按 #279 规则①重写——**简历唯一 specific 叶
+ * 胜出，弱命中只进消歧集**：非技术叶把裁决拉离技术面须命中岗位自述级强证据（同 qa/ai_ml 闸），
+ * 纯弱词（「写过 prd」「用户故事」）不得把技术简历降进 business/general（mw-rag-route BLOCK
+ * 修复·反向隔离）；技术+强非技术并存或多非技术叶歧义 → business/general（0234 发布且已播种）。
  *
  * HARD（G7S REQUEST 77989c49 · pre-exec dual BOTH PASS d43787e0 + 83b90a3d · C-MO-S1/S2）：
  *  - Ban 冒用 job 维度 `job_route_decision`/`job_semantic_revision`（岗位语义 ≠ 能力语义）；
@@ -26,10 +31,12 @@
  * releaseEvidence=false · Not HA · ≠ R4 topic isolation closed · ≠ R1。
  */
 import { createHash } from 'node:crypto';
-import { TAXONOMY_V1_LEAVES, type TaxonomyLeaf } from './job-route-classifier.ts';
+import { TAXONOMY_V2_LEAVES, isBusinessTaxonomyLeaf, type TaxonomyLeaf, type TaxonomyBusinessLeaf } from './job-route-classifier.ts';
 
-/** 候选人面与 job 面共用同一叶分类法（面试 track 域一致），taxonomy 版本沿 v1。 */
+/** 候选人面与 job 面共用同一叶分类法。纯技术叶沿 v1；非技术叶由 taxonomyVersionForLeaves 写 v2。 */
 export const CANDIDATE_ROUTE_TAXONOMY_VERSION = 'v1';
+export const CANDIDATE_ROUTE_TAXONOMY_V2 = 'v2';
+export const CANDIDATE_ROUTE_POLICY_VERSION_V2 = 'candidate-route-2026-11-frozen:v5';
 /** 冻结策略版本：改词典/优先序 = 改路由语义，必须升版本。v3 = #133 rev3（词典收紧 + 409 退役降级臂）。
  *  v4 = #270 增量面（general+单叶为 qa/ai_ml 的更强证据闸·词典本体零改，仲裁面收窄）。 */
 export const CANDIDATE_ROUTE_POLICY_VERSION = 'candidate-route-2026-10-frozen:v4';
@@ -58,6 +65,24 @@ export const CANDIDATE_ROUTE_LEAF_RE = /^[a-z][a-z0-9_]*(?:\/[a-z][a-z0-9_]*){0,
 /** #201(#270 同域·planner 能力-叶子相关性)导出：leaf→领域证据词表（与上方路由表同源单源，零复制）。
  *  消费面=worker planner businessValidate 相关性闸（competencyMatchesLeafDomain）；表语义零改——
  *  只是加 export，路由决策面(classifyCandidateProfileByRule)与 decisionHash 链零触。 */
+
+function leafSignalRecord<K extends string>(
+  entries: ReadonlyArray<readonly [K, readonly string[]]>,
+): Record<K, readonly string[]> {
+  const out = {} as Record<K, readonly string[]>;
+  for (const [leaf, tokens] of entries) out[leaf] = tokens;
+  return out;
+}
+
+const BUSINESS_CANDIDATE_PROFILE_SIGNALS = leafSignalRecord([
+  ['business/product', ['产品经理', '产品负责人', 'product manager', 'product owner', 'prd', '用户故事', '产品路线图']],
+  ['business/design', ['产品设计师', 'ui 设计师', 'ux 设计师', '视觉设计师', '交互设计师', 'ui designer', 'ux designer']],
+  ['business/operations', ['用户运营', '内容运营', '活动运营', '社区运营', '增长运营']],
+  ['business/sales', ['销售经理', '客户成功', '商务拓展', 'account executive', 'customer success']],
+  ['business/hr', ['人力资源', 'hrbp', '招聘经理', '人事经理', '人才发展']],
+  ['business/general', ['通用职场', '商务沟通']],
+] satisfies ReadonlyArray<readonly [TaxonomyBusinessLeaf, readonly string[]]>);
+
 export const CANDIDATE_PROFILE_SIGNALS: Record<TaxonomyLeaf, readonly string[]> = {  'backend/general': [
     '后端工程师', '后端开发', '服务端', 'backend engineer',
     'redis', 'mysql', 'postgresql', '消息队列', '消息中间件', '分布式锁', '分库分表',
@@ -83,6 +108,7 @@ export const CANDIDATE_PROFILE_SIGNALS: Record<TaxonomyLeaf, readonly string[]> 
   // #133 §1.1 #7：裸 '算法' 移除（任何工程师「基础算法/数据结构」即中）→ 收窄为职位/专精 token。
   //（'机器学习算法' 冗余——必中 '机器学习' 子串，rev2 D3 登记留删随意，此处保留以显文档意图。）
   'ai_ml/applied': ['机器学习', '深度学习', '大模型', 'llm', 'rag', 'nlp', '人工智能', 'pytorch', 'tensorflow', 'embedding', 'langchain', '算法工程师', '算法专家', '机器学习算法'],
+  ...BUSINESS_CANDIDATE_PROFILE_SIGNALS,
 };
 
 /**
@@ -92,9 +118,18 @@ export const CANDIDATE_PROFILE_SIGNALS: Record<TaxonomyLeaf, readonly string[]> 
  * 命中不足以压过 general 直取该叶，须命中本表强证据 token 才取；裸 token 单独在场（该叶为唯一命中）
  * 仍走单叶臂=强证据（v3 g6 形零翻）。纯数据面·0 次模型外发·同输入同决策（C-HA-2）。
  */
+const BUSINESS_CANDIDATE_PROFESSION_TOKENS = leafSignalRecord([
+  ['business/product', ['产品经理', '产品负责人', 'product manager', 'product owner']],
+  ['business/design', ['产品设计师', 'ui 设计师', 'ux 设计师', '视觉设计师', '交互设计师', 'ui designer', 'ux designer']],
+  ['business/operations', ['用户运营', '内容运营', '活动运营', '社区运营', '增长运营']],
+  ['business/sales', ['销售经理', '客户成功', '商务拓展', 'account executive', 'customer success']],
+  ['business/hr', ['人力资源', 'hrbp', '招聘经理', '人事经理', '人才发展']],
+] satisfies ReadonlyArray<readonly [TaxonomyBusinessLeaf, readonly string[]]>);
+
 export const CANDIDATE_ROUTE_LEAF_PROFESSION_TOKENS: Partial<Record<TaxonomyLeaf, readonly string[]>> = {
   'qa/quality_engineering': ['qa', '质量工程', 'sdet', '测试开发', '测试工程师', '软件测试'],
   'ai_ml/applied': ['机器学习', '深度学习', '人工智能', 'pytorch', 'tensorflow', 'langchain', '算法工程师', '算法专家', '机器学习算法'],
+  ...BUSINESS_CANDIDATE_PROFESSION_TOKENS,
 };
 
 const normalize = (t: string) => t.normalize('NFKC').trim();
@@ -138,7 +173,7 @@ export type CandidateProfileRouteDegradedFrom = 'ambiguous_language_evidence' | 
  */
 export type CandidateProfileRouteRuleResult =
   | { decided: true; leafTrackId: TaxonomyLeaf; allocationBps: typeof CANDIDATE_ROUTE_ALLOCATION_BPS; degraded: false; degradedFrom?: undefined }
-  | { decided: true; leafTrackId: 'backend/general'; allocationBps: typeof CANDIDATE_ROUTE_ALLOCATION_BPS; degraded: true; degradedFrom: CandidateProfileRouteDegradedFrom }
+  | { decided: true; leafTrackId: 'backend/general' | 'business/general'; allocationBps: typeof CANDIDATE_ROUTE_ALLOCATION_BPS; degraded: true; degradedFrom: CandidateProfileRouteDegradedFrom }
   | { decided: false; reason: 'profile_empty' };
 
 /**
@@ -153,11 +188,12 @@ export type CandidateProfileRouteRuleResult =
  *    兜底 @10000bps + degraded 信号（不再 409，「绝不多桶推断」冻结条款经用户决策凌驾解除）；
  *  - 空输入 → profile_empty（db 侧 profile_unavailable → 409 防御面保留，R3-3）。
  */
-/** 归一化后的简历/岗位文本命中的叶集合（与 classify 同源词典·供 targetRole 消歧闭集使用）。 */
+/** 归一化后的简历/岗位文本命中的叶集合（与 classify 同源词典·供 targetRole 消歧闭集使用）。
+ *  v5 起扫 v2 全叶：business/* 弱命中也入闭集（#279 规则③·targetRole 只能在简历已命中叶内消歧）。 */
 export function candidateProfileSignalHits(raw: string): TaxonomyLeaf[] {
   const text = normalize(raw);
   if (!text) return [];
-  return TAXONOMY_V1_LEAVES.filter((leaf) => CANDIDATE_PROFILE_SIGNALS[leaf].some((t) => signalMatches(text, t)));
+  return TAXONOMY_V2_LEAVES.filter((leaf) => CANDIDATE_PROFILE_SIGNALS[leaf].some((t) => signalMatches(text, t)));
 }
 
 /**
@@ -174,20 +210,29 @@ export function targetRoleSatisfiesProfessionGate(roleText: string, leaf: Taxono
 export function classifyCandidateProfileByRule(raw: string): CandidateProfileRouteRuleResult {
   const text = normalize(raw);
   if (!text) return { decided: false, reason: 'profile_empty' };
-  const hits = candidateProfileSignalHits(text);
+  const hits = TAXONOMY_V2_LEAVES.filter((leaf) => CANDIDATE_PROFILE_SIGNALS[leaf].some((t) => signalMatches(text, t)));
   if (hits.length === 1) return { decided: true, leafTrackId: hits[0]!, allocationBps: CANDIDATE_ROUTE_ALLOCATION_BPS, degraded: false };
-  const specific = hits.filter((l) => l !== 'backend/general');
-  if (hits.includes('backend/general') && specific.length === 1) {
-    // v4 #270 更强证据闸（specific 过滤语义零改，闸只落在「取该叶」决定点上）：qa/ai_ml 单叶在 general
-    // 并存时须强证据 token 才取；语言叶不列本表=不受闸（优先序零翻）。弱证据不在此 return → 落歧义降级臂。
+  const specific = hits.filter((l) => l !== 'backend/general' && l !== 'business/general');
+  if ((hits.includes('backend/general') || hits.includes('business/general')) && specific.length === 1) {
+    // v4 #270 更强证据闸（v5 扩 business/*；specific 过滤语义零改，闸只落在「取该叶」决定点上）：
+    // qa/ai_ml/business 单叶在 general 并存时须强证据 token 才取；语言叶不列本表=不受闸（优先序零翻）。
+    // 弱证据不在此 return → 落降级臂（技术面兜底，弱词不抢道）。
     const only = specific[0]!;
     const profession = CANDIDATE_ROUTE_LEAF_PROFESSION_TOKENS[only as TaxonomyLeaf];
     if (!profession || profession.some((t) => signalMatches(text, t)))
       return { decided: true, leafTrackId: only, allocationBps: CANDIDATE_ROUTE_ALLOCATION_BPS, degraded: false };
   }
-  // v3 降级臂：多桶不可判定（≥2 specific）与零命中均选最大覆盖面桶（general）并携带 degraded。
+  // v3 降级臂：多桶不可判定（≥2 specific）与零命中选最大覆盖面桶并携带 degraded。
+  // v5 #281（mw-rag-route BLOCK 修复·#279 规则①）：非技术降级须任一非技术叶命中**岗位自述级强证据**
+  // token（同 qa/ai_ml 闸）；纯弱命中（「写过 prd」「用户故事」）不得把技术简历降进 business/general
+  // （修前任一非技术 specific 命中即降级 = 反向隔离失败，技术候选人进无种子的空题库）。技术证据在场
+  // → 兜底桶仍 backend/general；弱命中仅留在消歧闭集（candidateProfileSignalHits）供 targetRole 臂。
   if (hits.length === 0)
     return { decided: true, leafTrackId: 'backend/general', allocationBps: CANDIDATE_ROUTE_ALLOCATION_BPS, degraded: true, degradedFrom: 'no_signal_hit' };
+  const businessStrong = specific.filter((l) => isBusinessTaxonomyLeaf(l)
+    && (CANDIDATE_ROUTE_LEAF_PROFESSION_TOKENS[l] ?? []).some((t) => signalMatches(text, t)));
+  if (businessStrong.length > 0)
+    return { decided: true, leafTrackId: 'business/general', allocationBps: CANDIDATE_ROUTE_ALLOCATION_BPS, degraded: true, degradedFrom: 'ambiguous_language_evidence' };
   return { decided: true, leafTrackId: 'backend/general', allocationBps: CANDIDATE_ROUTE_ALLOCATION_BPS, degraded: true, degradedFrom: 'ambiguous_language_evidence' };
 }
 
@@ -236,29 +281,31 @@ function canonicalCandidateProfileTargetRoleDigest(raw: string, targetRole: stri
 export function arbitrateCandidateRouteWithTargetRole(raw: string, targetRole?: string): CandidateRouteArbitration {
   const resumeRule = classifyCandidateProfileByRule(raw ?? '');
   if (!resumeRule.decided) return resumeRule;
+  const baselinePolicy = isBusinessTaxonomyLeaf(resumeRule.leafTrackId) ? CANDIDATE_ROUTE_POLICY_VERSION_V2 : CANDIDATE_ROUTE_POLICY_VERSION;
   const baseline: CandidateRouteArbitration = {
     decided: true, leafTrackId: resumeRule.leafTrackId, allocationBps: resumeRule.allocationBps,
     targetRoleApplied: false, ...(resumeRule.degraded ? { resumeDegradedFrom: resumeRule.degradedFrom } : {}),
-    policyVersion: CANDIDATE_ROUTE_POLICY_VERSION, inputDigest: canonicalCandidateProfileDigest(raw ?? ''),
+    policyVersion: baselinePolicy, inputDigest: canonicalCandidateProfileDigest(raw ?? ''),
   };
   const role = normalize(targetRole ?? '');
   if (!role) return baseline;
   const roleRule = classifyCandidateProfileByRule(role);
-  if (!roleRule.decided || roleRule.degraded || roleRule.leafTrackId === 'backend/general') return baseline;
+  if (!roleRule.decided || roleRule.degraded || roleRule.leafTrackId === 'backend/general' || roleRule.leafTrackId === 'business/general') return baseline;
   if (!targetRoleSatisfiesProfessionGate(role, roleRule.leafTrackId)) return baseline;
-  // 简历已锁定唯一 specific 叶（含 general+唯一 specific 过闸）→ 简历证据胜。
-  if (!resumeRule.degraded && resumeRule.leafTrackId !== 'backend/general') return baseline;
-  // 歧义降级：只允许在简历已命中的 specific 叶集合内消歧。
+  // 简历已锁定唯一 specific 叶（含 general+唯一 specific 过闸）→ 简历证据胜（#279 规则①）。
+  if (!resumeRule.degraded && resumeRule.leafTrackId !== 'backend/general' && resumeRule.leafTrackId !== 'business/general') return baseline;
+  // 歧义降级：只允许在简历已命中的 specific 叶集合内消歧（#279 规则③·弱命中也在闭集内）。
   if (resumeRule.degraded && resumeRule.degradedFrom === 'ambiguous_language_evidence') {
-    const specificHits = candidateProfileSignalHits(raw ?? '').filter((leaf) => leaf !== 'backend/general');
+    const specificHits = candidateProfileSignalHits(raw ?? '').filter((leaf) => leaf !== 'backend/general' && leaf !== 'business/general');
     if (!specificHits.includes(roleRule.leafTrackId)) return baseline;
   }
-  // 其余可采纳：零命中降级，或 general-only 简历被 targetRole 专向。
+  // 其余可采纳：零命中降级，或 general-only（两 面）简历被 targetRole 专向。
+  const policyBase = isBusinessTaxonomyLeaf(roleRule.leafTrackId) ? CANDIDATE_ROUTE_POLICY_VERSION_V2 : CANDIDATE_ROUTE_POLICY_VERSION;
   return {
     decided: true, leafTrackId: roleRule.leafTrackId, allocationBps: roleRule.allocationBps,
     targetRoleApplied: true,
     ...(resumeRule.degraded ? { resumeDegradedFrom: resumeRule.degradedFrom } : {}),
-    policyVersion: `${CANDIDATE_ROUTE_POLICY_VERSION}${CANDIDATE_ROUTE_TARGET_ROLE_POLICY_SUFFIX}`,
+    policyVersion: `${policyBase}${CANDIDATE_ROUTE_TARGET_ROLE_POLICY_SUFFIX}`,
     inputDigest: canonicalCandidateProfileTargetRoleDigest(raw ?? '', role),
   };
 }

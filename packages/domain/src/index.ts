@@ -240,13 +240,15 @@ export type { ScoreCardStatus, ScoreRequestStatus, QuestionRubricStatus } from '
 // 岗位意图路由（RAG-FUNNEL-03 / ROUTE-01）纯域原语：canonical digest + 冻结校准策略 + rule 分类 +
 // 模型输出双重校验 + 图内 planner 校验 + weighted-deficit scheduler。零 IO、零模型、零 db。
 export {
-  TAXONOMY_V1_LEAVES, JOB_ROUTE_TAXONOMY_VERSION, JOB_ROUTE_POLICY_VERSION,
+  TAXONOMY_V1_LEAVES, TAXONOMY_V2_LEAVES, TAXONOMY_V2_BUSINESS_LEAVES,
+  JOB_ROUTE_TAXONOMY_VERSION, JOB_ROUTE_TAXONOMY_V2, JOB_ROUTE_POLICY_VERSION, JOB_ROUTE_POLICY_VERSION_V2,
+  isBusinessTaxonomyLeaf, taxonomyVersionForLeaves, isServingTaxonomyForLeaf, policyVersionForLeaves,
   JOB_ROUTE_MAX_LEAVES, JOB_ROUTE_MIN_ALLOCATION_BPS, JOB_ROUTE_CONFIDENCE_THRESHOLD_BPS, JOB_ROUTE_MARGIN_THRESHOLD_BPS, JOB_ROUTE_TOTAL_BPS,
   canonicalJobSemanticDigest, classifyJobByRule, validateModelRouteOutput, jobRouteDecisionHash,
   validatePlannerOutput, nextWeightedDeficitLeaf, planWeightedDeficitRounds, planInterviewTurn,
 } from './job-route-classifier.ts';
 export type {
-  TaxonomyLeaf, JobRouteAllocation, JobRouteModelOutput, ValidateJobRouteOutputResult, InterviewPlannerOutput,
+  TaxonomyLeaf, TaxonomyV1Leaf, TaxonomyBusinessLeaf, JobRouteAllocation, JobRouteModelOutput, ValidateJobRouteOutputResult, InterviewPlannerOutput,
   PlanInterviewTurnResult,
 } from './job-route-classifier.ts';
 
@@ -255,7 +257,7 @@ export type {
 // canonical digest + leaf 领域证据词表（#201 planner 相关性闸同源消费面）。与 job 面（岗位要求语义）
 // 刻意分离，零 IO 零模型零 db。
 export {
-  CANDIDATE_ROUTE_TAXONOMY_VERSION, CANDIDATE_ROUTE_POLICY_VERSION, CANDIDATE_ROUTE_REVISION,
+  CANDIDATE_ROUTE_TAXONOMY_VERSION, CANDIDATE_ROUTE_TAXONOMY_V2, CANDIDATE_ROUTE_POLICY_VERSION, CANDIDATE_ROUTE_POLICY_VERSION_V2, CANDIDATE_ROUTE_REVISION,
   CANDIDATE_ROUTE_ALLOCATION_BPS, CANDIDATE_ROUTE_LEAF_RE,
   CANDIDATE_PROFILE_SIGNALS, CANDIDATE_ROUTE_LEAF_PROFESSION_TOKENS,
   canonicalCandidateProfileDigest, candidateRouteDecisionHash, classifyCandidateProfileByRule,

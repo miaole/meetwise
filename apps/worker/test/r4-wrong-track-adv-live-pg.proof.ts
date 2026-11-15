@@ -34,6 +34,8 @@ import {
   startApplicationInterview,
   classifyJobRoute,
   getInterviewRouteSnapshot,
+  getInterviewRouteSnapshotForAdaptiveRole,
+  supplyCandidateProfileRoute,
   ingestQuestionBankArtifacts,
   ingestQbank,
   activeQbankGeneration,
@@ -47,8 +49,9 @@ import {
   type InterviewRouteSnapshotView,
 } from '@meetwise/db';
 import {
-  JOB_ROUTE_TAXONOMY_VERSION,
+  JOB_ROUTE_TAXONOMY_VERSION, JOB_ROUTE_TAXONOMY_V2,
   assembleValidatedRetrievalPlan,
+  validatePlannerOutput,
   degradedRetrieval,
 } from '@meetwise/domain';
 import {
@@ -159,6 +162,7 @@ const NODEJS_LEAF = 'backend/nodejs';
 const JAVA_LEAF = 'backend/java';
 const NODEJS_QID = 'nodejs_q1';
 const JAVA_QID = 'java_q1';
+const GENERAL_QID = 'general_q1';
 const NODEJS_PROMPT = 'Explain how to avoid callback hell in Node.js event loops and async flows.';
 const NODEJS_RUBRIC = 'Candidate mentions async/await, Promise chaining, and error propagation.';
 const NODEJS_EXAMPLE = 'A refactor example converting nested callbacks into async/await.';
@@ -182,6 +186,34 @@ const javaArtifact: QbankQuestionArtifact = {
     { refId: 'java_prompt', text: JAVA_PROMPT, role: 'prompt', ordinal: 0, required: true },
     { refId: 'java_rubric', text: JAVA_RUBRIC, role: 'rubric', ordinal: 1, required: true },
     { refId: 'java_example', text: JAVA_EXAMPLE, role: 'example', ordinal: 2, required: false },
+  ],
+};
+
+const PRODUCT_LEAF = 'business/product';
+const PRODUCT_QID = 'product_q1';
+const PRODUCT_PROMPT = 'How do you turn a vague quarterly goal into a testable product requirement and a clear not-doing list?';
+const PRODUCT_RUBRIC = 'The answer names an acceptance metric, a trade-off, and an exit condition.';
+const PRODUCT_EXAMPLE = 'A discovery note that compares two bets and records the rejected option.';
+const productArtifact: QbankQuestionArtifact = {
+  id: PRODUCT_QID, competency: 'discovery', difficulty: 2,
+  taxonomyVersion: JOB_ROUTE_TAXONOMY_V2, servingScopeId: PRODUCT_LEAF, annotationSource: 'seed_v1_reviewed',
+  seniority: 'mid', questionKind: 'case', language: 'zh',
+  chunks: [
+    { refId: 'product_prompt', text: PRODUCT_PROMPT, role: 'prompt', ordinal: 0, required: true },
+    { refId: 'product_rubric', text: PRODUCT_RUBRIC, role: 'rubric', ordinal: 1, required: true },
+    { refId: 'product_example', text: PRODUCT_EXAMPLE, role: 'example', ordinal: 2, required: false },
+  ],
+};
+
+const GENERAL_PROMPT = 'Walk through a system design where a hot key throttles writes and a queue decouples the burst.';
+const generalArtifact: QbankQuestionArtifact = {
+  id: GENERAL_QID, competency: 'system design', difficulty: 3,
+  taxonomyVersion: JOB_ROUTE_TAXONOMY_VERSION, servingScopeId: 'backend/general', annotationSource: 'seed_v1_reviewed',
+  seniority: 'mid', questionKind: 'case', language: 'zh',
+  chunks: [
+    { refId: 'general_prompt', text: GENERAL_PROMPT, role: 'prompt', ordinal: 0, required: true },
+    { refId: 'general_rubric', text: 'The answer names capacity numbers, failure semantics, and one observable.', role: 'rubric', ordinal: 1, required: true },
+    { refId: 'general_example', text: 'A design note that picks Redis + queue and records the rejected alternative.', role: 'example', ordinal: 2, required: false },
   ],
 };
 
@@ -398,13 +430,13 @@ async function main() {
   A('L1 helper bans P-FAKEPLAN + fail-closed + no unscoped',
     /P-FAKEPLAN/.test(helper) && /fail-closed/.test(helper) && /no unscoped|never unscoped|question_ready/.test(helper));
 
-  section('0. fixture: dual-leaf qbank + active generation + nodejs interview snapshot');
+  section('0. fixture: dual-leaf qbank + product leaf + active generation + nodejs interview snapshot');
   await pool.query(
     "INSERT INTO resume(id, owner_user_id, status, content_sha) VALUES ($1,$2,'ingested',$3)",
     [resumeCand, cand, `${TAG}:${cand}`],
   );
-  const ingest = await ingestQuestionBankArtifacts(pool, [nodejsArtifact, javaArtifact], embedder);
-  A('ingest 2 questions / 6 chunks', ingest.questionCount === 2 && ingest.chunkCount === 6);
+  const ingest = await ingestQuestionBankArtifacts(pool, [nodejsArtifact, javaArtifact, productArtifact, generalArtifact], embedder);
+  A('ingest 4 questions / 12 chunks', ingest.questionCount === 4 && ingest.chunkCount === 12);
   const generationId = await buildActiveGeneration();
   A('active generation built', /^qgen-[0-9a-f-]{36}$/.test(generationId));
   const active = await asPrincipal(pool, cand, (c) => activeQbankGeneration(c));
@@ -612,7 +644,113 @@ async function main() {
   A('L4 degradedRetrieval observable (fail-closed helper)',
     degradedRetrieval('route_snapshot_missing').availability === 'degraded');
 
+  section('L8 non-tech job (产品经理) hard filter + metadata validation');
+  let v2MetaRejected = false;
+  try {
+    await ingestQuestionBankArtifacts(pool, [{
+      ...productArtifact,
+      id: 'product_q_bad_meta',
+      seniority: undefined,
+      questionKind: undefined,
+      language: undefined,
+      chunks: productArtifact.chunks.map((c) => ({ ...c, refId: `${c.refId}_bad` })),
+    }], embedder);
+  } catch (e) {
+    v2MetaRejected = /qbank_question_invalid_(seniority|question_kind|language)/.test((e as Error).message);
+  }
+  A('L8 v2 artifact missing seniority/kind/language is rejected', v2MetaRejected);
+
+  const recPm = `${TAG}_rec_pm`;
+  const candPm = `${TAG}_cand_pm`;
+  const resumePm = randomUUID();
+  await pool.query(
+    "INSERT INTO resume(id, owner_user_id, status, content_sha) VALUES ($1,$2,'ingested',$3)",
+    [resumePm, candPm, `${TAG}:${candPm}`],
+  );
+  const pmJob = await asPrincipal(pool, recPm, (c) => createJob(c, recPm, {
+    title: '产品经理', description: '负责 B 端需求与产品路线图', competencies: ['用户故事', 'prd'],
+  }));
+  const pmClassify = await classifyJobRoute(pool, recPm, pmJob.id, await maxRev(pmJob.id), {
+    modelClassify: async () => { throw new Error('product-manager rule path must never call model'); },
+  });
+  A('L8 产品经理 rule_decided business/product（0 次模型）',
+    pmClassify.status === 'route_decided' && pmClassify.attemptOutcome === 'rule_decided');
+  const pmApp = await asPrincipal(pool, candPm, (c) => applyToJob(c, candPm, pmJob.id));
+  const pmStarted = await asPrincipal(pool, candPm, (c) => startApplicationInterview(c, candPm, pmApp!.applicationId, resumePm));
+  const pmInterviewId = pmStarted.status === 'started' || pmStarted.status === 'reused' ? pmStarted.interviewId : undefined;
+  const pmSnapshot = await asPrincipal(pool, candPm, (c) => getInterviewRouteSnapshot(c, candPm, pmInterviewId!));
+  A('L8 snapshot leaf=business/product taxonomy=v2',
+    !!pmSnapshot && pmSnapshot.allocations.length === 1
+    && pmSnapshot.allocations[0]!.leafTrackId === PRODUCT_LEAF
+    && (pmSnapshot.taxonomyVersion ?? JOB_ROUTE_TAXONOMY_V2) === JOB_ROUTE_TAXONOMY_V2);
+
+  const pmDeficit = pmSnapshot!.allocations.map(() => 0);
+  const pmHappy = await retrieveViaDispatchTrackLocal({
+    pool, owner: candPm, snapshot: pmSnapshot, query: 'discovery 难度2', deficit: pmDeficit, deps: mkDeps(new MemoryQbankCache()),
+  });
+  A('L8 非技术岗正常出题且 wrong_track=0（只 product_q1，无 nodejs/java）',
+    pmHappy.refs.length >= 1
+    && !isDegraded(pmHappy.refs)
+    && onlyAllowedQidOrDegraded(pmHappy.refs, PRODUCT_QID)
+    && noCrossLeafServed(pmHappy.refs, NODEJS_QID)
+    && noCrossLeafServed(pmHappy.refs, JAVA_QID),
+    `refs=${pmHappy.refs.map((r) => r.ref).join(',')}`);
+
+  const crossLeaf = validatePlannerOutput(
+    { leafTrackId: NODEJS_LEAF, competencyId: 'discovery', difficulty: 2 },
+    pmSnapshot!.allocations,
+  );
+  A('L8 反证：产品岗 snapshot 上强制 nodejs leaf → planner 拒绝（不跨 track）',
+    crossLeaf.ok === false && (crossLeaf.ok === false ? crossLeaf.reason === 'leaf_not_in_snapshot' : false));
+
+  section('L8-R weak-hit reverse isolation (mw-rag-route BLOCK regression): tech resume + weak non-tech hit stays tech AND questions served');
+  const candR = `${TAG}_cand_l8r`;
+  const resumeR = randomUUID();
+  const rContentSha = createHash('sha256').update('Java Spring Boot，Redis，MySQL，写过 prd').digest('hex');
+  const rInterview = `h2q-l8r-${randomUUID().slice(0, 8)}`;
+  await pool.query(
+    "INSERT INTO resume(id, owner_user_id, status, content_sha) VALUES ($1,$2,'ingested',$3)",
+    [resumeR, candR, rContentSha],
+  );
+  // C 侧 supply 写侧真链（domain classify 已由 candidate-route:prove 覆盖·本臂证 DB 供给 + 检索有题）：
+  // blob 解密取钥形同 resume-reference-http 先形（pgp_sym_encrypt + key_version=1 dev 钥回落）。
+  const resumeKey = process.env.RESUME_ENC_KEY && process.env.RESUME_ENC_KEY.length >= 16
+    ? process.env.RESUME_ENC_KEY
+    : 'dev_resume_key_change_in_prod__x';
+  await pool.query(
+    'INSERT INTO resume_blob(resume_id,owner_user_id,ciphertext,key_version) VALUES ($1,$2,pgp_sym_encrypt($3,$4),1)',
+    [resumeR, candR, 'Java Spring Boot，Redis，MySQL，写过 prd', resumeKey],
+  );
+  const rEpoch = Number((await pool.query('SELECT privacy_epoch FROM resume WHERE id=$1', [resumeR])).rows[0]?.privacy_epoch ?? 0);
+  await pool.query(
+    "INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'created',$3,$4)",
+    [rInterview, candR, resumeR, rEpoch],
+  );
+  const rSupply = await asPrincipal(pool, candR, (c) => supplyCandidateProfileRoute(c, candR, rInterview, resumeR));
+  A('L8-R supply：技术简历 + 弱命中「写过 prd」→ route_decided·leaf=backend/general（修前误降 business/general 空题库）',
+    rSupply.status === 'supplied' && rSupply.leafTrackId === 'backend/general',
+    `status=${rSupply.status} leaf=${rSupply.status === 'supplied' ? rSupply.leafTrackId : '-'}`);
+  const rSnapshot = await asPrincipal(pool, candR, (c) => getInterviewRouteSnapshotForAdaptiveRole(c, candR, rInterview));
+  A('L8-R snapshot 读回：leaf=backend/general·taxonomy=v1（技术面零翻）',
+    !!rSnapshot && rSnapshot.allocations.length === 1
+    && rSnapshot.allocations[0]!.leafTrackId === 'backend/general'
+    && (rSnapshot.taxonomyVersion ?? JOB_ROUTE_TAXONOMY_VERSION) === JOB_ROUTE_TAXONOMY_VERSION,
+    `leaf=${rSnapshot?.allocations[0]?.leafTrackId} taxonomy=${rSnapshot?.taxonomyVersion}`);
+  const rDeficit = rSnapshot!.allocations.map(() => 0);
+  const rHappy = await retrieveViaDispatchTrackLocal({
+    pool, owner: candR, snapshot: rSnapshot, query: 'throttling 难度3', deficit: rDeficit, deps: mkDeps(new MemoryQbankCache()),
+  });
+  A('L8-R 技术面降级桶有题可出（general_q1·零跨叶零 business）',
+    rHappy.refs.length >= 1
+    && !isDegraded(rHappy.refs)
+    && onlyAllowedQidOrDegraded(rHappy.refs, GENERAL_QID)
+    && noCrossLeafServed(rHappy.refs, NODEJS_QID)
+    && noCrossLeafServed(rHappy.refs, JAVA_QID)
+    && noCrossLeafServed(rHappy.refs, PRODUCT_QID),
+    `refs=${rHappy.refs.map((r) => r.ref).join(',')}`);
+
   section('L5–L8 honesty pins');
+
   const harness = read(harnessPath);
   const status = read(statusPath);
   const matrix = read(matrixPath);
