@@ -253,16 +253,15 @@ function contentLength(headers: IncomingMessage['headers']): number | undefined 
   return parsed;
 }
 
-async function lookupPublicTtsAddress(hostname: string, lookup: TtsDnsLookup): Promise<LookupAddress> {
+async function lookupPublicTtsAddress(hostname: string, lookup: TtsDnsLookup): Promise<LookupAddress[]> {
   let records: LookupAddress[];
   try { records = await lookup(hostname); }
   catch { throw ttsDownloadError('dns_failed'); }
   if (!Array.isArray(records) || records.length === 0 || records.some((record) => isForbiddenTtsDownloadAddress(record.address)))
     throw ttsDownloadError('dns_address_rejected');
-  const selected = records[0]!;
-  if ((selected.family !== 4 && selected.family !== 6) || isForbiddenTtsDownloadAddress(selected.address))
+  if (records.some((record) => record.family !== 4 && record.family !== 6))
     throw ttsDownloadError('dns_address_rejected');
-  return selected;
+  return records;
 }
 
 /**
@@ -311,7 +310,7 @@ async function downloadDashscopeTtsAudioWithinAdmission(rawUrl: string, expiresA
       deps.signal.addEventListener('abort', abort, { once: true });
       removeAbortListener = () => deps.signal?.removeEventListener('abort', abort);
     });
-    const selected = await Promise.race([lookupPublicTtsAddress(url.hostname, lookup), deadline, callerAbort]);
+    const validated = await Promise.race([lookupPublicTtsAddress(url.hostname, lookup), deadline, callerAbort]);
     const transfer = new Promise<Uint8Array>((resolveResult, rejectResult) => {
       let settled = false;
       const rejectOnce = (error: Error) => {
@@ -336,7 +335,14 @@ async function downloadDashscopeTtsAudioWithinAdmission(rawUrl: string, expiresA
           servername: url.hostname,
           rejectUnauthorized: true,
           headers: { accept: 'audio/wav' },
-          lookup: (_hostname, _options, callback) => callback(null, selected.address, selected.family),
+          // node≥20 autoSelectFamily 默认开：net 层以 options.all=true 调 lookup 且要求数组形回写
+          // （单地址旧签名在数组契约下 ERR_INVALID_IP_ADDRESS → /speak 502 实证）。数组内全部记录
+          // 已过禁止名单校验（lookupPublicTtsAddress 逐条拒绝形）——Happy Eyeballs 依次尝试的
+          // 全是白名单地址，钉 IP 语义不弱化。
+          lookup: (_hostname, options, callback) => {
+            if (options.all) callback(null, validated);
+            else callback(null, validated[0]!.address, validated[0]!.family);
+          },
         }, (response) => {
           const status = response.statusCode ?? 0;
           if (status >= 300 && status < 400) {
