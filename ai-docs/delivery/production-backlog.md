@@ -204,11 +204,11 @@ Pins 不变：NOT_HA · releaseEvidence=false。
 
 | 条目 | 状态 |
 |---|---|
-| RAG 语料生命周期（双指针/蓝绿/隔离/被遗忘权） | 🟡 QBank generation serving 已接线；通用/全格式 RAG 仍只有控制面与本地合同、没有 rebuild/outbox worker 或请求热路径。见 `PRD-TEST-005`。 |
+| RAG 语料生命周期（双指针/蓝绿/隔离/被遗忘权） | 🟡 QBank generation serving 已接线；通用/全格式 RAG 控制面在位（0032/0073-0081·本地 proof 49 checks·`releaseEvidence=false`）· rebuild/outbox worker 与请求热路径未建——EXEC-07 裁决「不接 serving 即维持控制面边界」· 买云后按 `PRD-TEST-005`「若交付」条款建设（关闭要求真实请求进入受治理 serving path）。见 `PRD-TEST-005` 与 `architecture/backend/data-evolution.md` §1。 |
 | 可观测三账本 + 三支柱 | ✅ 策略成文 `observability/observability-strategy.md`；**成本/token 埋点已接线**（`invoke`→`ai_invocation_trace.service/input_tokens/output_tokens/latency_ms`，migration 0011，自库即成本真相，Langfuse 为分析层）。剩余埋点（OTel metrics 导出/告警下钻）随功能续接 |
 | 安全/护栏纵深（输入分类→策略→输出审核→升级→审计；危机/over-refusal/AIGC 备案） | ✅ `rules/ai/safety-defense-in-depth.md` |
 | 题库生命周期（org 私有/裸题富化/版本 pin/采纳双签/PII 泛化） | ❌ `product/question-bank-lifecycle.md` |
-| 人↔AI 语音管线（ASR/TTS/turn-taking/endpointing/延迟/录音同意/B 端不打分） | 🟡 批量 ASR、普通/流式 TTS 与本地取消合同已接线；流式 ASR、服务端 turn-taking、真实抢话与浏览器→API→供应商 E2E 未验证。生产/默认 fail-closed；预览须精确 `VOICE_STREAM_ASR_ENABLED=1`+`VOICE_STREAM_ASR_PREVIEW=1`，仍不接线 live stream、不编造转写。见 `architecture/ai/voice-capability-boundary.md` 与 `PRD-TEST-006`。 |
+| 人↔AI 语音管线（ASR/TTS/turn-taking/endpointing/延迟/录音同意/B 端不打分） | 🟡 批量 ASR、普通/流式 TTS 与本地取消合同已接线（七条 voice proof 在 verify:local 门内）；**批量全链 E2E spec 已存在但零绿回执**（`apps/web/e2e-ui/voice-duplex.spec.ts` 真百炼 TTS/ASR 三用例·历次均 capability skip——skip≠pass·真跑需真 Key=真计费，归 B-G7 买云后取证）；**流式 ASR/服务端 turn-taking 为产品面未建**（适配器+双旗门控+fake-seam 合同在 `voice-stream.ts`/`voice-stream-asr-honesty:prove`·API 无流式 ASR 端点·组合根恒 disabled·endpointing 无实现）——产品化属 MODEL-OP-02/UC-MODEL-002 准入链产品决策，真设备声学另走真机矩阵。生产/默认 fail-closed；预览须精确 `VOICE_STREAM_ASR_ENABLED=1`+`VOICE_STREAM_ASR_PREVIEW=1`，仍不接线 live stream、不编造转写。见 `architecture/ai/voice-capability-boundary.md` 与 `PRD-TEST-006`。 |
 | 自主研究 agent（异步/沙箱/有界预算/对抗核实/同意 gate） | ❌ `architecture/ai/research-agent.md` |
 | C 端 PI 同意 + 简历静态加密 + 删除级联 + 境外 egress 守卫 | 🟡 部分在 data-model，需机制化 |
 | 密钥治理 + 泄露 IR（Langfuse key 待轮换） | ❌ `rules/security/secrets-management.md` |

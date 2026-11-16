@@ -162,9 +162,9 @@ Next: Phase 0 item **2+**（serial COND / A-seed product rootcause still OPEN ·
 
 ## Phase 0 (after AO nail · local · no key/no cloud)
 1. ~~AO nail SSOT honesty~~ **DONE** · S · e2e · serial COND line · :35 A residual **OPEN** (57P01) · nail = honesty dual-pass ≠ CONDITION close ≠ A proven
-2. C-PERF-TEARDOWN :35 product rootcause next if A still needs prove · L · e2e+rag · Ban wash · Ban covered flip
+2. ~~C-PERF-TEARDOWN :35 product rootcause~~ **对齐（2026-11-16 台账对账刀）**：backlog `:35` **已 CLOSED（fixed）2026-10-07**（协调方授权全链闭合·根因两支均修：P 线 `845d357` 池 error 监听 + SS 刀 `f59c4d20` 双容器可达性 · prove EXIT=0 · post-dual BOTH PASS 亲证在案）——本行挂账时点早于该关闭，行体陈旧。**诚实保留**：A residual（Inject A 57P01/idle-in-txn pin path）按 AO-COND35-A-RESIDUAL-HONESTY CC-1..CC-6 保持 open（0 prove·Ban claim A proven 不变）· PERF/LOAD stays local partial · Ban wash · Ban covered flip 不变
 3. ~~GAP-RAG-03 :71 R3-HNSW-COMPLETENESS~~ **DONE** · AQ nail `post_prove_dual_pass` · M→L · rag+e2e · PROVE `19d69d72` · CODE `49cfce97` · POST `1894d04a`+`eb4131d5` · path-exercised + live plan + safety + honesty fields · **`:71` stays OPEN** · Ban production HNSW SLO / exact-K · Ban FULLTEXT/Qdrant · Ban wash rag03-route EXIT1 (=GAP-RAG-02) · Ban covered flip
-4. GAP-MOP-03 :76 successor cutover/independent review · M · model-op+e2e · Ban MODEL-OP closed · Ban Redis cutover · PG LISTEN retained
+4. GAP-MOP-03 :76 ~~successor cutover/independent review~~ **对齐（2026-11-16 台账对账刀）**：successor 立卷 + 独立审合同已立已 nail（`harness/gap-mop-03-successor.md` 六门准入合同 §2b · backlog `:233` post-dual BOTH PASS mw-model-op `e10df445`+mw-e2e-ha `abb04dbd`·立卷≠关闭不变）· 双 reconciler 已接线生产 worker（`apps/worker/src/main.ts:797`）· **cutover 本体留六门 REQUEST 后**（PG-retained 决策下合法无限期延后——显式「不切」即终态选项之一）· Ban MODEL-OP closed · Ban Redis cutover · PG LISTEN retained 不变
 5. ~~GAP-PRIV-EXTERNAL-SINK :64 async purge real knife~~ **DONE** · AR nail `post_prove_dual_pass` · L · privacy+e2e · PROVE `a49d712e` · CODE `111df857` · POST `3b1a136d`+`2197d93e` · local_isolated_stub PATH + N1–N3 · **`:64` stays OPEN** · stub≠cloud · cloudVendorDeleted=false · Ban count-as-erased · NB-3 · Ban wash ada604a · Ban covered flip · UC-052 partial · DELETE=503
 
 ## Phase 1 user-blocked
@@ -172,6 +172,8 @@ Next: Phase 0 item **2+**（serial COND / A-seed product rootcause still OPEN ·
 7. G7 Key/live/MODEL_API_KEY · Ban wash suite green
 
 ## Phase 2 matrix
+**对齐注（2026-11-16 台账对账刀·沿行 11 勘误先例形·逐行原文零洗）**：case 证据面现状——UC-018 case 级近满（`canHonestlyFlip=false` 评估在案·保持 partial）· UC-025 NEG 真接线 CLOSED（`interview.service.ts:209` stale_quiz 409）+四 case 全落（翻面决定留 evaluator+授权机制）· UC-011 ADV 面 CLOSED wired + 回调主口已接线（`payment-callback.controller.ts:26` 契约字面路径在位）· NHP case 47 具名登记·UC-004 FI-1/FI-3 已修已接线·**UC-004 A3（NHP-004-FAULT-01）与 UC-027（产品面未接线/blocked）为真剩余**——A3 走真工程案刀（沿批 B case-only 先例）· UC-027=产品决策项（静态诚实钉 `uc027:manual-review-appeal:prove` 在案·L 产品建设·同 PRD-TEST-005「先决定是否交付」类）· GAP-PRIV-AUTHZ flake 根因已 nail（backlog `:219`·可选 fixture 清理小刀）。矩阵行/coveredCount=8 零动·Ban invent covered 不变
+
 8. UC-018 stay partial · L · Ban invent covered
 9. UC-004 FAULT/A3 gap · L
 10. UC-025 row gap · M–L
@@ -180,19 +182,19 @@ Next: Phase 0 item **2+**（serial COND / A-seed product rootcause still OPEN ·
 13. GAP-PRIV-AUTHZ flake :68 low priority · Ban retry-to-green
 
 ## Phase 3 privacy
-DELETE=503 freeze · INT-TRANSCRIPT-01 · GAP-PRIV-01 tenant≠RLS · GAP-PRIV-04 vector erase
+**对齐（2026-11-16 台账对账刀）**：DELETE=503 freeze（代码钉在位 `privacy.service.ts:80` 恒 503·`interview_erasure_authorization_not_available`）· **GAP-PRIV-01**：PG-retained ⇒ RLS/asPrincipal 即常设授权根（`tenant-rls-isolation:prove` 绿·`MUST NOT abandon RLS` 持续满足）· **GAP-PRIV-04 本地面已完成**（0141 lease 绑定 DELETE 围栏+生产 sweep 步 `privacy-erasure-worker.ts:127`+`vector-plane-erasure:prove` 33/33·诚实保留 cloudVendorDeleted=false `:64` OPEN）· 擦除域由后续刀实质扩张：**0232（#257 interview_job 明文清除+投影物理 purge 接生产）· 0235（#297 N-1 feed 饿死闭合+N-2 残留台账+N-6 索引）· #291 同意闸入 verify:local**——本节诚实收缩为三件 **买云/gate-blocked**：INT-TRANSCRIPT-01 canonical cutover（真工程 L·被 00 闭合+生产 0091 签发器 gate）· 云 vendor 删除证据（cloudVendorDeleted）· 生产 0091 签发器实现+KMS 接线（=B-0091）
 
 ## Phase 4 RAG
 ~~GAP-RAG-02 fixture · GAP-RAG-05 semantic classifier late~~ **DONE（fixture 刀 + Stage S 结构面收官勘误 · 2026-10-07 落主线证据亲证）** · fixture knife `post_prove_dual_pass`（coding `263f3bcf4` main 祖先亲证 ≡ 台账 `d4d02e48` patch-id `1767357a` · nail docs `24612b3af` main 祖先亲证 ≡ `6afd8c8ff` patch-id `8909e15a` · backlog `:70` 已录 knife nail）· Stage S `post_prove_dual_pass`（nail = checklist Line RAG05 + backlog `:783` 登记 · POST dual `7d8d7d72d`+`77e9ac85e` main 祖先亲证 · coding 台账 `db7da1cd` ≡ 落地 `281128ce` patch-id `f7142630` 经 #108 `112e6d26f` 落 main · `SEMANTIC_ROUTE_PERF_BUDGET` 冻结在位）· **Route L residual stays**（量化面实测须 EXEC 再显式授权 · `actualSpendCny=null`）· **强制 caveat：翻 queue 行 ≠ `:70`/`:71`/`:73` 任一行 closed ≠ covered flip ≠ HA ≠ 语义质量冻结 ≠ 路由生产接线宣称** · coveredCount=8 · DELETE=503
 
 ## Phase 5 MOP
-GAP-MOP-01/BUG-NOTIFY-REC · GAP-MOP-02 claim
+**对齐（2026-11-16 台账对账刀）**：PG-retained 决策下 **PG claim/lease（FOR UPDATE SKIP LOCKED+advisory·`interview-jobs.ts:180` 等六锚）+ LISTEN/NOTIFY（`main.ts:684`）就是保留的生产机制**——GAP-MOP-01/BUG-NOTIFY-REC 的「强制周期 reconcile」代码面已实存（双 loop `main.ts:797`+Q4/Q5 prove）；GAP-MOP-02 的 MySQL/Redis 同语义 claim 在 PG-retained 下被架空（立卷刀 backlog `:237`/:239 已 post-dual，行 OPEN 维持·立卷≠关闭）。Redis 切流面属六门 REQUEST 永久可延后选项（Phase 0 item 4 同 gate）
 
 ## Phase 6 G7
 trio fresh green · R1 Disclosure · releaseEvidence=false until full
 
 ## Phase 7 product
-SCOR then P0-CB
+**对齐（2026-11-16 台账对账刀）**：盘点立卷刀已 nail（checklist `:1390`·`gap-scor-p0cb-inventory.md`）· **SCORE-WRITER S1 写入接线已落**（checklist `:2321` 19 文件 nail·createScoreRequest 绑 submit 同事务+crash 重放）· 剩余：S2（读侧切换·M）+ S-CB-1..3（L）——**全部被 S-SCOR-0 前置=INT-TRANSCRIPT-01 闭合 gate（买云 blocked）**· B 端 `assessment_unavailable` 暂停保持·BUG-SCORE-LEGACY 防回归不变
 
 ## Phase 8 HA
 local honest · buy cloud frozen until user yes
