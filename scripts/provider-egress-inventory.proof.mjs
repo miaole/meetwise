@@ -33,7 +33,10 @@ const checks = {
     // L10-p1 语音行第二刀（流式 ASR 产品回执）：asr live proof 进程内直连流式 TTS 运输合成真语音 PCM
     // （format=pcm→16k 重采样→产品管道 /listen/stream）→ 成为 dashscope-streaming-voice 直接调用方
     // （local-adapter-test consumer）→ 56→57 如实步进。
-    assert.equal(result.stats.registeredConsumerSourcePairCount, 57);
+    // L10-p1 语音行第三刀（服务端 turn-taking 产品回执）：turn live proof 进程内直连流式 TTS 运输合成
+    // 回声真语音 PCM（cosyvoice→paraformer 全环+RMS 端点）→ 成为 dashscope-streaming-voice 直接调用方
+    // （local-adapter-test consumer）→ 57→58 如实步进。
+    assert.equal(result.stats.registeredConsumerSourcePairCount, 58);
     assert.equal(result.stats.environmentReferenceCount, manifest.environmentReferences.length);
     assert.equal(result.stats.releaseEvidence, false);
   },

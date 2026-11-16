@@ -1,24 +1,31 @@
 /**
- * Streaming voice adapters and a fake-seam turn helper.
+ * Streaming voice adapters and the turn helper.
  *
  * Stream TTS and stream ASR are product-wired (preview): `createInterviewVoiceSeams`
  * constructs `dashscopeStreamingTts` / `dashscopeStreamingAsr` only when the matching
  * per-capability Key (`DASHSCOPE_STREAM_TTS_API_KEY` / `DASHSCOPE_STREAM_ASR_API_KEY`)
  * exists AND `voice.tts-stream.v1` / `voice.asr-stream.v1` are wired registry
- * operations; server turn-taking stays not product-wired. Both live adapters still
- * require the OCR-style dual preview flags (`VOICE_STREAM_ASR_ENABLED=1` +
- * `VOICE_STREAM_ASR_PREVIEW=1`) inside `synthesizeStream`/`transcribeStream`
- * and refuse production / enforce / public-preview. A capability Key alone
- * does not open a WebSocket. Real provider receipts over the product
- * `/interview/:id/speak/stream` and `/interview/:id/listen/stream` pipes are recorded
- * by the api live proofs; they are not releaseEvidence. Fake helpers exist only for
- * isolated proofs (`vstream:prove`). Failures must not invent a transcript.
- * `releaseEvidence=false`.
+ * operations. Both live adapters still require the OCR-style dual preview flags
+ * (`VOICE_STREAM_ASR_ENABLED=1` + `VOICE_STREAM_ASR_PREVIEW=1`) inside
+ * `synthesizeStream`/`transcribeStream` and refuse production / enforce /
+ * public-preview. A capability Key alone does not open a WebSocket.
+ * Server turn-taking is preview-composed (voice slice 3): deterministic RMS
+ * endpointing (`voice-endpointing.ts`) gates the user-audio side of
+ * `streamingVoiceTurn` — end_of_turn closes the audio iterable, the ASR
+ * sender finalizes the upstream task, and the loop advances on the real
+ * final transcript; it is a composition of the two wired stream seams under
+ * the composition-root triple gate (Key + dual flags + not production-locked),
+ * not a new provider operation and not a production SLO. Real provider receipts
+ * over the product `/interview/:id/speak/stream` and `/interview/:id/listen/stream`
+ * pipes are recorded by the api live proofs; they are not releaseEvidence. Fake
+ * helpers exist only for isolated proofs (`vstream:prove`). Failures must not
+ * invent a transcript. `releaseEvidence=false`.
  */
 import { rejectDashscopeNativeTransportOverride, resolveDashscopeNativeConfig } from './dashscope-native-config.ts';
 import { refuseVoiceStreamAsrUnlessPreview, STREAMING_ASR_NOT_CONFIGURED, STREAMING_TTS_NOT_CONFIGURED } from './voice-stream-preview.ts';
 import { VOICE_EGRESS_DISABLED_ID } from './voice.ts';
 import { assertG7UnguardedPathDisabled } from './g7-freetier-reprove-guard.ts';
+import { withRmsEndOfTurn, type EndOfTurnInfo, type RmsEndpointingConfig } from './voice-endpointing.ts';
 
 export interface AsrEvent { text: string; final: boolean }
 export interface StreamingAsr { readonly id: string; transcribeStream(chunks: AsyncIterable<Uint8Array>, signal?: AbortSignal): AsyncIterable<AsrEvent> }
@@ -246,17 +253,31 @@ export interface StreamTurnHooks {
   bargeIn?: Promise<void>;
   /** Called once when ASR observes user speech while assistant TTS is still playing. */
   onBargeIn?: () => void;
+  /** Called once when RMS endpointing closes the turn (deterministic; no transcript claim). */
+  onEndOfTurn?: (info: EndOfTurnInfo) => void;
+}
+
+export interface VoiceTurnResult {
+  transcript: string;
+  ttsInterrupted: boolean;
+  partials: number;
+  /** True only when server RMS endpointing closed the user-audio stream this turn. */
+  endedByEndpointing: boolean;
+  /** Endpointing receipt (frames), present only when endpointing fired. */
+  endOfTurn?: EndOfTurnInfo;
 }
 
 /**
  * 实时一回合:AI 流式播问题与用户流式 ASR **并行**运行；任一路 VAD/ASR 观察到
  * 用户开口立即中止 TTS。旧实现先完整 TTS 再开始 ASR，实质是半双工，无法覆盖电话
  * 中的抢话、重叠语音和“我先说”的行为。
- * 返回 { transcript(喂图), ttsInterrupted, partials }。
+ * 服务端端点检测(第三刀):deps.endpointing 在位时用户音频经 RMS endpointing 门
+ * ——见语音→连续静音 N 帧即收音频流，ASR 发送侧 finish-task，真 final 推进回合；
+ * 纯确定性零模型。返回 { transcript(喂图), ttsInterrupted, partials, endedByEndpointing }。
  */
 export async function streamingVoiceTurn(
-  deps: { asr: StreamingAsr; tts: StreamingTts }, question: string, userAudio: AsyncIterable<Uint8Array>, hooks: StreamTurnHooks = {},
-): Promise<{ transcript: string; ttsInterrupted: boolean; partials: number }> {
+  deps: { asr: StreamingAsr; tts: StreamingTts; endpointing?: RmsEndpointingConfig }, question: string, userAudio: AsyncIterable<Uint8Array>, hooks: StreamTurnHooks = {},
+): Promise<VoiceTurnResult> {
   const ttsAbort = new AbortController();
   let barged = false;
   const interruptTts = () => {
@@ -272,7 +293,12 @@ export async function streamingVoiceTurn(
   let transcript = '', partials = 0;
   let sawUserSpeech = false;
   let acceptedFinal = false; // 第一句可以是空字符串，不能靠 transcript 是否为空
-  for await (const ev of deps.asr.transcribeStream(userAudio)) {
+  let endedByEndpointing = false;
+  let endOfTurn: EndOfTurnInfo | undefined;
+  const audio = deps.endpointing
+    ? withRmsEndOfTurn(userAudio, deps.endpointing, (info) => { endedByEndpointing = true; endOfTurn = info; hooks.onEndOfTurn?.(info); })   // 端点检测:静音 N 帧即收流(确定性·零模型)
+    : userAudio;
+  for await (const ev of deps.asr.transcribeStream(audio)) {
     if (!sawUserSpeech && ev.text.trim()) { sawUserSpeech = true; interruptTts(); }
     if (ev.final) {
       if (!acceptedFinal) { transcript = ev.text; acceptedFinal = true; }
@@ -280,5 +306,5 @@ export async function streamingVoiceTurn(
     } else { partials++; hooks.onPartial?.(ev.text); }
   }
   await speak;
-  return { transcript, ttsInterrupted: ttsAbort.signal.aborted, partials };
+  return { transcript, ttsInterrupted: ttsAbort.signal.aborted, partials, endedByEndpointing, endOfTurn };
 }

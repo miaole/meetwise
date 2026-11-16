@@ -22,6 +22,7 @@
     "prove:interview-voice-seams": "tsx test/interview-voice-seams.proof.ts",
     "prove:asr-quality-declaration": "tsx test/asr-quality-declaration.proof.ts",
     "prove:voice-stream-preview": "tsx test/voice-stream-preview.proof.ts",
+    "prove:voice-endpointing": "tsx test/voice-endpointing.proof.ts",
     "smoke:tts-download-live": "tsx scripts/tts-download-live-smoke.ts",
     "prove:metrics": "tsx test/metrics.proof.ts",
     "prove:tools": "tsx test/tools.proof.ts",
