@@ -173,8 +173,8 @@ export {
   downloadDashscopeTtsAudio,
 } from './voice.ts';
 export type { Asr, Tts, TtsDownloadAdmission } from './voice.ts';
-export { createInterviewVoiceSeams } from './interview-voice-seams.ts';
-export type { InterviewVoiceSeams } from './interview-voice-seams.ts';
+export { createInterviewVoiceSeams, createInterviewVoiceTurnRunner } from './interview-voice-seams.ts';
+export type { InterviewVoiceSeams, InterviewVoiceTurnRunner } from './interview-voice-seams.ts';
 export {
   isProductionVoiceStreamLocked,
   isVoiceStreamAsrPreviewRequested,
@@ -228,7 +228,11 @@ export {
 // #74：fakeStreamingAsr/fakeStreamingTts 公共导出移 '@meetwise/ai-runtime/test-support'——
 // disabled*/dashscope*/streamingVoiceTurn 为生产面保留。
 export { disabledStreamingAsr, disabledStreamingTts, dashscopeStreamingAsr, dashscopeStreamingTts, streamingVoiceTurn } from './voice-stream.ts';
-export type { AsrEvent, StreamingAsr, StreamingTts, StreamTurnHooks } from './voice-stream.ts';
+export type { AsrEvent, StreamingAsr, StreamingTts, StreamTurnHooks, VoiceTurnResult } from './voice-stream.ts';
+
+// 服务端 RMS 端点检测(语音第三刀):纯确定性 end_of_turn,零模型零外呼;见 voice-endpointing.proof.ts。
+export { createRmsEndpointer, rmsOf, withRmsEndOfTurn, RMS_ENDPOINTING_DEFAULTS } from './voice-endpointing.ts';
+export type { RmsEndpointingConfig, RmsEndpointEvent, RmsEndpointer, RmsEndpointerOptions, EndOfTurnInfo } from './voice-endpointing.ts';
 
 export { createMetrics, setMetrics, getMetrics, registerBaselineMetrics, recordRagRetrievalAction, METRIC, type Metrics } from './metrics.ts';
 

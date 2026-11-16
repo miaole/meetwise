@@ -176,7 +176,7 @@ DoD：标"已 wired"的每条都是 CI 里真实运行、真能卡住合并的 j
 | 68 | 流式 token 进度接线（generation_started 先于业务结果落表+payload 白名单围栏） | `pnpm tokenstream:prove` | 移出 CI，本地手跑 |
 | 69 | 长上下文真实 v64 队列/图/报告链路（大答案截断+载荷净化+额度精确） | `pnpm stress:prove` | 移出 CI，本地手跑 |
 | 70 | UC003 i18n locale 结构断言（S1-S6+G3' 七查·raw 隔离口径） | `pnpm uc003:i18n-locale:prove` | 移出 CI，本地手跑 |
-| 71 | agent 模型可观测（token / 延迟 / 成本落库） | `pnpm metrics:prove` ; `pnpm model-output-limit:prove` ; `pnpm dashscope-native-config:prove` ; `pnpm voice-operation-policy:prove` ; `pnpm voice-stream-asr-honesty:prove` ; `pnpm interview-voice-seams:prove` ; `pnpm ocr-operation-policy:prove` | 移出 CI，本地手跑 |
+| 71 | agent 模型可观测（token / 延迟 / 成本落库） | `pnpm metrics:prove` ; `pnpm model-output-limit:prove` ; `pnpm dashscope-native-config:prove` ; `pnpm voice-operation-policy:prove` ; `pnpm voice-stream-asr-honesty:prove` ; `pnpm interview-voice-seams:prove` ; `pnpm voice-endpointing:prove` ; `pnpm ocr-operation-policy:prove` | 移出 CI，本地手跑 |
 | 72 | agent 语音自适应（modality-agnostic ≡ 文本路径） | `pnpm voice-adaptive:prove` | 移出 CI，本地手跑 |
 | 73 | agent 题库 generation（完整迁移 / 不可变 recipe / 完整工件 / 撤销） | `pnpm rag-generation:prove` | 移出 CI，本地手跑 |
 | 74 | agent 题库历史完整性升级（0068数据平面归零 → 0069隔离 → 0070–0072低权限 RLS） | `pnpm qbank-integrity-upgrade:prove` | 移到 nightly（PR243 复审补入 · verify:local 亦含） |

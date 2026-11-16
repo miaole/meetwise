@@ -132,9 +132,15 @@ const WIRED_VISION_OPERATIONS: readonly ModelOperationDefinition[] = [
  * (stream ASR product slice) are wired the same honest way: the interview
  * composition root constructs the cosyvoice / paraformer WS adapter only when
  * `DASHSCOPE_STREAM_TTS_API_KEY` / `DASHSCOPE_STREAM_ASR_API_KEY` exist and the
- * typed bindings resolve wired. `wired` here is not MODEL-OP-02 shared
- * admission (those rows stay blocked) and is not a production SLO, deletion
- * receipt, or turn-taking authorization (server turn-taking stays un-built).
+ * typed bindings resolve wired. Since voice slice 3 (2026-11-16) the preview
+ * server turn loop is a composition of exactly these two wired stream seams
+ * plus deterministic RMS endpointing (`voice-endpointing.ts`) under the
+ * composition-root triple gate (`createInterviewVoiceTurnRunner` re-asserts
+ * Key + dual flags + not production-locked per turn); no third provider
+ * operation is dispatched, so there is deliberately no `voice.turn-taking.v1`
+ * registry row. `wired` here is not MODEL-OP-02 shared admission (those rows
+ * stay blocked) and is not a production SLO, deletion receipt, or
+ * real-device-acoustics verification.
  */
 const WIRED_VOICE_OPERATIONS: readonly ModelOperationDefinition[] = [
   {

@@ -8,6 +8,9 @@
  * 超长转写 → answer_too_long（与文本入口逐值同码），先于 claim 拒收：不吃题、题目保持
  * issued 可重答、checkpoint/ledger/事件/计费/模型调用零副作用（零持久化）；流式空白守卫
  * （streaming_asr_malformed）恢复为 proof 断言臂。
+ * L10-p1 语音第三刀（③b 臂）：服务端 RMS 端点检测（voice-endpointing.ts·纯确定性零模型）—
+ * 无限假音频流被 end_of_turn 确定性收流（无端点将永久悬挂），每回合恰一次 end_of_turn、
+ * 提交语义零触碰。
  * 隔离 PG 投影面（runMigrations）+ MemorySaver + scripted ModelClient + fake ASR/TTS，零外呼。
  *   pnpm voice-adaptive:prove  (需 db:up)
  */
@@ -304,6 +307,41 @@ async function main() {
       && (await consStatus(iidVt)) === 'confirmed' && (await balanceOf()) === 7.0);
     A('③ 模型面 exactly-once:planner1+首题ask+每轮(evaluate+ask)=2N+1（零重放重评·零外呼）',
       calls - callsBeforeVt === 2 * vtTurns + 1);
+
+    // ════════ ③b 服务端 RMS 端点检测（第三刀）:无限假音频流被端点确定性收流（零模型）·回合照常收敛 ════════
+    section('③b RMS 端点检测:无限音频流端点即收（无端点将永久悬挂）·每回合恰一次 end_of_turn·endedByEndpointing 回执');
+    const iidEp = 'va32-ep-' + Date.now();
+    await seedInterview(iidEp);
+    const dEp = lifecycleDeps(iidEp);
+    const wEp = makeRealSubmit(dEp);
+    let epEvents = 0;
+    let epLast: { frame: number; speechFrames: number; silenceFrames: number } | undefined;
+    async function* infiniteEchoAudio() {
+      const chunkSamples = 1600;                       // 3200B=100ms@16k/16bit mono
+      let i = 0;
+      for (;;) {
+        const bytes = new Uint8Array(chunkSamples * 2);
+        const samples = new Int16Array(bytes.buffer);
+        if (i < 3) samples.fill(3000);                 // 前 3 块语音形(RMS≥阈)·其后无限纯静音
+        yield bytes;
+        i++;
+      }
+    }
+    const rvEp = await runVoiceAdaptiveInterview({
+      asr: fakeStreamingAsr(ANS), tts: fakeStreamingTts(4),
+      start: async () => await startAdaptiveInterview(dEp, ROLE, []),
+      submit: wEp.submit,
+      userAudioFor: () => infiniteEchoAudio(),         // 无限流:无端点检测则回合永不结束
+      endpointing: {},
+      onEndOfTurn: (info) => { epEvents++; epLast = { frame: info.frame, speechFrames: info.speechFrames, silenceFrames: info.silenceFrames }; },
+    });
+    A('③b 无限音频流被端点收流:整场收敛·每回合 endedByEndpointing=true·恰一次 end_of_turn(speechFrames>0)',
+      rvEp.concluded === true && rvEp.turns.length >= 2
+      && rvEp.turns.every((t) => t.endedByEndpointing === true)
+      && epEvents === rvEp.turns.length
+      && epLast !== undefined && epLast.speechFrames > 0 && epLast.silenceFrames >= 1);
+    A('③b 端点收流后提交同真路:每轮转写照常 claim（端点只收音频流·不碰提交语义）',
+      wEp.submitted.length === rvEp.turns.length && wEp.submitted.every((a) => a === ANS));
 
     // ════════ ⑤ AG-32 rev r1：语音缝内容闸等位面（空白/超长与文本入口逐值同码·不吃题可重答·零持久化） ════════
     section('AG-32 rev r1 语音缝内容闸:空白→invalid_turn·超长→answer_too_long（同码）·拒收零副作用·原题可重答');

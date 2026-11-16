@@ -409,6 +409,10 @@
         {
           "source": "apps/api/test/voice-stream-asr-live.proof.ts",
           "class": "local-adapter-test"
+        },
+        {
+          "source": "apps/api/test/voice-turn-live.proof.ts",
+          "class": "local-adapter-test"
         }
       ]
     }
@@ -2670,6 +2674,41 @@
     {
       "name": "DASHSCOPE_TEST_TRANSPORT_OVERRIDES",
       "source": "apps/api/test/voice-stream-asr-live.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/voice-turn-live.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "apps/api/test/voice-turn-live.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_API_KEY",
+      "source": "apps/api/test/voice-turn-live.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_ASR_API_KEY",
+      "source": "apps/api/test/voice-turn-live.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_MODEL",
+      "source": "apps/api/test/voice-turn-live.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_ASR_MODEL",
+      "source": "apps/api/test/voice-turn-live.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_TEST_TRANSPORT_OVERRIDES",
+      "source": "apps/api/test/voice-turn-live.proof.ts",
       "class": "test-isolation"
     },
     {

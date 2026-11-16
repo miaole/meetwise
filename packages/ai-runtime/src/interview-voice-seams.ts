@@ -20,22 +20,34 @@
  * resolves wired, the composition root constructs `dashscopeStreamingAsr` and
  * reports `streamAsrConfigured: true` — the dual preview flags still gate inside
  * `transcribeStream` and the product `/interview/:id/listen/stream` pipe, so a
- * Key alone never opens a WebSocket. Server turn-taking stays disabled even
- * when preview flags and stream Keys exist: PRD-TEST-006 turn-taking is not
- * built. This is not MODEL-OP-02 shared admission, durable attempt/unknown, or
- * a production SLO.
+ * Key alone never opens a WebSocket. Server turn-taking is preview-composed
+ * since 2026-11-16 (voice slice 3): `turnTakingConfigured` is true only under
+ * the triple gate — both stream seams wired (per-capability Keys + registry
+ * wired) AND the exact dual preview flags AND not production/enforce/
+ * public-preview locked; `createInterviewVoiceTurnRunner` is the only turn-loop
+ * entry and re-asserts the same gate fail-closed at every `runTurn` before any
+ * WebSocket. RMS endpointing (`voice-endpointing.ts`) closes each turn
+ * deterministically; no transcript is invented when a turn ends without an
+ * ASR final. This is not MODEL-OP-02 shared admission, durable attempt/unknown,
+ * real-device acoustics, or a production SLO.
  */
 import { createHash } from 'node:crypto';
 import { resolveDashscopeNativeConfig } from './dashscope-native-config.ts';
 import { resolveModelOperation } from './model-operation-registry.ts';
 import { resolveModelOperationBinding } from './operation-binding.ts';
 import {
+  assertVoiceTurnTakingPreviewAllowed, isVoiceStreamAsrPreviewEnabled,
+  VOICE_TURN_TAKING_NOT_CONFIGURED,
+} from './voice-stream-preview.ts';
+import {
   dashscopeAsr, dashscopeTts, disabledAsr, disabledTts, type Asr, type AsrQualityDeclaration, type Tts,
 } from './voice.ts';
 import {
   dashscopeStreamingAsr, dashscopeStreamingTts, disabledStreamingAsr, disabledStreamingTts,
-  type StreamingAsr, type StreamingTts,
+  streamingVoiceTurn, type StreamTurnHooks,
+  type StreamingAsr, type StreamingTts, type VoiceTurnResult,
 } from './voice-stream.ts';
+import type { RmsEndpointingConfig } from './voice-endpointing.ts';
 
 const COMPOSITION_REVISION = 'interview-voice-preview';
 const EMPTY_DIGEST = createHash('sha256').update('meetwise.interview-voice.composition', 'utf8').digest('hex');
@@ -49,6 +61,7 @@ export interface InterviewVoiceSeams {
   readonly ttsConfigured: boolean;
   readonly streamTtsConfigured: boolean;
   readonly streamAsrConfigured: boolean;
+  /** 三重门:双流缝 wired(各自能力 Key+registry wired) ∧ 精确双旗 ∧ 非生产锁。 */
   readonly turnTakingConfigured: boolean;
 }
 
@@ -199,6 +212,9 @@ export function createInterviewVoiceSeams(env: NodeJS.ProcessEnv = process.env):
       streamAsrConfigured = true;
     } catch { /* keep disabled: construction must not take down InterviewModule */ }
   }
+  // 服务端 turn-taking（预览·第三刀）：三重门齐（双流缝 wired ∧ 精确双旗 ∧ 非生产锁）才如实翻 true；
+  // 这是组合位不是新模型操作——回合推进消费的仍是两条已 wired 流缝，无第三个供应商调用类型。
+  const turnTakingConfigured = streamTtsConfigured && streamAsrConfigured && isVoiceStreamAsrPreviewEnabled(env);
   return Object.freeze({
     asr,
     tts,
@@ -208,6 +224,48 @@ export function createInterviewVoiceSeams(env: NodeJS.ProcessEnv = process.env):
     ttsConfigured,
     streamTtsConfigured,
     streamAsrConfigured,
-    turnTakingConfigured: false,
+    turnTakingConfigured,
   });
 }
+
+/** 真 seam 版一回合入口的只读面：configured 如实反映三重门；runTurn 每次调用前重新过门。 */
+export interface InterviewVoiceTurnRunner {
+  readonly configured: boolean;
+  readonly streamTts: StreamingTts;
+  readonly streamAsr: StreamingAsr;
+  /**
+   * Fail-closed turn: throws `voice_turn_taking_*` unless the triple gate
+   * (both stream seams wired + exact dual preview flags + not production-
+   * locked) passes; endpointing defaults to the deterministic RMS contract.
+   */
+  runTurn(question: string, userAudio: AsyncIterable<Uint8Array>, hooks?: StreamTurnHooks, endpointing?: RmsEndpointingConfig): Promise<VoiceTurnResult>;
+}
+
+/**
+ * Composition-root turn-taking entry (preview, voice slice 3). Product mains
+ * do not call this yet; isolated capability-gated proofs do. Every `runTurn`
+ * re-asserts `assertVoiceTurnTakingPreviewAllowed` and the seam wiring before
+ * any WebSocket — flags or Keys alone never run a turn. RMS endpointing
+ * (deterministic, zero model) closes each turn by default; a turn that ends
+ * without an ASR final still yields an empty transcript and is refused
+ * downstream (no invented answer).
+ */
+export function createInterviewVoiceTurnRunner(env: NodeJS.ProcessEnv = process.env): InterviewVoiceTurnRunner {
+  const seams = createInterviewVoiceSeams(env);
+  const tripleGate = seams.streamTtsConfigured && seams.streamAsrConfigured;
+  return Object.freeze({
+    configured: tripleGate && isVoiceStreamAsrPreviewEnabled(env),
+    streamTts: seams.streamTts,
+    streamAsr: seams.streamAsr,
+    async runTurn(question: string, userAudio: AsyncIterable<Uint8Array>, hooks: StreamTurnHooks = {}, endpointing?: RmsEndpointingConfig): Promise<VoiceTurnResult> {
+      assertVoiceTurnTakingPreviewAllowed(env);                    // 门 1+2:双旗 + 非生产锁(fail-closed)
+      if (!tripleGate) throw new Error(VOICE_TURN_TAKING_NOT_CONFIGURED);   // 门 3:双流缝 wired(构造期事实)
+      return await streamingVoiceTurn(
+        { asr: seams.streamAsr, tts: seams.streamTts, endpointing: endpointing ?? RMS_TURN_ENDPOINTING },
+        question, userAudio, hooks);
+    },
+  });
+}
+
+/** 回合默认端点形:16k/30ms 帧·连续静音 ~510ms 切回合(纯确定性;调用方可覆盖)。 */
+const RMS_TURN_ENDPOINTING: RmsEndpointingConfig = {};

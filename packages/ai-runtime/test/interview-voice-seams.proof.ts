@@ -5,7 +5,7 @@
  */
 import { createHash } from 'node:crypto';
 import {
-  createInterviewVoiceSeams, VOICE_EGRESS_DISABLED_ID, resolveModelOperation,
+  createInterviewVoiceSeams, createInterviewVoiceTurnRunner, VOICE_EGRESS_DISABLED_ID, resolveModelOperation,
 } from '../src/index.ts';
 
 let failures = 0;
@@ -25,6 +25,9 @@ const KEY_VARS = [
   'DASHSCOPE_STREAM_ASR_API_KEY', 'DASHSCOPE_STREAM_TTS_API_KEY',
   'DASHSCOPE_API_KEY', 'DASHSCOPE_COMPAT_BASE_URL', 'DASHSCOPE_TTS_URL',
   'VOICE_STREAM_ASR_ENABLED', 'VOICE_STREAM_ASR_PREVIEW',
+  // 生产锁三件一并摘除:回归 runner 会把仓根 .env 注入子进程 env(NODE_ENV/MODEL_COST_ENFORCEMENT/
+  // MEETWISE_PUBLIC_PREVIEW 在案),不摘则三重门臂会因继承锁而如实 false——确定性臂必须显式归零。
+  'NODE_ENV', 'MODEL_COST_ENFORCEMENT', 'MEETWISE_PUBLIC_PREVIEW',
 ] as const;
 
 async function main() {
@@ -99,12 +102,19 @@ async function main() {
     const wiredStream = createInterviewVoiceSeams();
     delete process.env.VOICE_STREAM_ASR_ENABLED;   // 先撤旗再调用：Key+wired 组合根上运行时双旗门仍在产品缝内（不触真实 WS）
     delete process.env.VOICE_STREAM_ASR_PREVIEW;
-    A('流式 TTS Key + registry wired → 组合根真接线（构造零外呼·撤旗后运行时门仍在产品缝内拒绝）',
+    A('流式 TTS Key + registry wired → 组合根真接线（构造零外呼·撤旗后运行时门仍在产品缝内拒绝）·构造时点三重门齐 → turnTakingConfigured 如实 true',
       wiredStream.streamTtsConfigured === true
       && wiredStream.streamTts.id === 'cosyvoice-v2'
       && wiredStream.streamAsrConfigured === true
-      && wiredStream.turnTakingConfigured === false
+      && wiredStream.turnTakingConfigured === true
       && await errorOf(() => wiredStream.streamTts.synthesizeStream('x')[Symbol.asyncIterator]().next()) === 'streaming_tts_not_configured'
+      && fetches === 0);
+    // 服务端 turn-taking（第三刀）turn runner fail-closed 面：撤旗 → configured=false 且 runTurn 在任何
+    // WebSocket 之前拒 voice_turn_taking_not_configured（构造零外呼）。
+    const closedRunner = createInterviewVoiceTurnRunner();
+    A('turn runner 撤旗后 fail-closed:configured=false·runTurn 拒 voice_turn_taking_not_configured·零外呼',
+      closedRunner.configured === false
+      && await errorOf(() => closedRunner.runTurn('q', (async function* () { yield new Uint8Array([1]); })())) === 'voice_turn_taking_not_configured'
       && fetches === 0);
     delete process.env.DASHSCOPE_STREAM_TTS_API_KEY;
     delete process.env.VOICE_STREAM_ASR_ENABLED;

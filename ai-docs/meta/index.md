@@ -36,7 +36,7 @@ tags:
 - `architecture/ai/full-format-rag-ingestion-and-chunking.md`：PDF/Office/图文/音视频的结构化摄取、切块、citation 回跳、题库关系与发布门。
 - `architecture/ai/human-review-design.md`：人工校验、申诉、审核授权、四眼与幂等副作用的当前边界和目标架构。
 - `architecture/ai/research-capability-gate.md`：面试 Agent 的 RAG、受限 Web/deep research 与内部 skills 实际能力边界。
-- `architecture/ai/voice-capability-boundary.md`：人机双向语音的当前边界；批量 ASR/TTS 与流式 ASR/TTS 预览接线（流式两管道有真供应商回执）；服务端 turn-taking 生产/默认 fail-closed，流式预览须精确双旗且不得编造转写。
+- `architecture/ai/voice-capability-boundary.md`：人机双向语音的当前边界；批量 ASR/TTS 与流式 ASR/TTS 预览接线（流式两管道有真供应商回执）；服务端 turn-taking 预览产品组合（三重门 `turnTakingConfigured` 如实翻+纯确定性 RMS 端点检测+`voice-turn-live:prove` 全环回执）且生产/默认 fail-closed，流式预览须精确双旗且不得编造转写。
 - `architecture/devops/local-demo-deployment.md`：Docker Compose 本地演示和部署策略。
 - `rules/global/ai-generated-review.md`：长期规则指针——AI 代码/输出必须审核并验证，不得默认信任；收束公式只维护在 `skills/testing/fail-closed-gate.md`。
 - `testing/strategy/test-strategy.md`：测试策略。业务全链路以隔离 HTTP fetch/SSE（`e2e:isolated`）为主层，Playwright 只覆盖浏览器次层；与 runtime 事实冲突时以 runtime 为准。

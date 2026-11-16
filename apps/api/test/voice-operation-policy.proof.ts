@@ -34,6 +34,8 @@ async function main() {
     'DASHSCOPE_STREAM_ASR_API_KEY', 'DASHSCOPE_STREAM_TTS_API_KEY',
     'VOICE_STREAM_ASR_ENABLED', 'VOICE_STREAM_ASR_PREVIEW',
     'DASHSCOPE_STREAM_TTS_MODEL', 'DASHSCOPE_STREAM_TTS_VOICE',
+    // 生产锁三件一并摘除:回归 runner 会把仓根 .env 注入子进程 env,不摘则三重门臂会因继承锁而如实 false。
+    'NODE_ENV', 'MODEL_COST_ENFORCEMENT', 'MEETWISE_PUBLIC_PREVIEW',
   ] as const;
   const saved = new Map<string, string | undefined>();
   for (const name of keyVars) saved.set(name, process.env[name]);
@@ -59,10 +61,24 @@ async function main() {
       await errorOf(() => streamAsr.transcribeStream((async function* () { yield new Uint8Array([1]); })())[Symbol.asyncIterator]().next()) === 'streaming_asr_not_configured');
     check('default API voice providers make zero provider fetches', fetches === 0);
     const seams = createInterviewVoiceSeams();
-    check('composition factory without Keys stays unconfigured',
+    check('composition factory without Keys stays unconfigured (turn-taking triple gate closed)',
       seams.asrConfigured === false && seams.ttsConfigured === false
       && seams.streamTtsConfigured === false
       && seams.streamAsrConfigured === false && seams.turnTakingConfigured === false);
+    // 服务端 turn-taking（第三刀·预览组合）honest 面：三重门齐（双流缝 Key+wired ∧ 精确双旗 ∧ 非生产锁）
+    // → turnTakingConfigured 如实翻 true；这是组合位不是新模型操作，零外呼零 socket。
+    process.env.DASHSCOPE_STREAM_TTS_API_KEY = 'preview-stream-tts-key';
+    process.env.DASHSCOPE_STREAM_ASR_API_KEY = 'preview-stream-asr-key';
+    process.env.VOICE_STREAM_ASR_ENABLED = '1';
+    process.env.VOICE_STREAM_ASR_PREVIEW = '1';
+    const tripleSeams = createInterviewVoiceSeams();
+    check('triple gate satisfied (both stream seams wired + dual flags + not locked) flips turnTakingConfigured true',
+      tripleSeams.streamTtsConfigured === true && tripleSeams.streamAsrConfigured === true
+      && tripleSeams.turnTakingConfigured === true && fetches === 0);
+    delete process.env.DASHSCOPE_STREAM_TTS_API_KEY;
+    delete process.env.DASHSCOPE_STREAM_ASR_API_KEY;
+    delete process.env.VOICE_STREAM_ASR_ENABLED;
+    delete process.env.VOICE_STREAM_ASR_PREVIEW;
     check('composition stream ASR stays fail-closed before transport',
       await errorOf(() => seams.streamAsr.transcribeStream((async function* () { yield new Uint8Array([1]); })())[Symbol.asyncIterator]().next()) === 'streaming_asr_not_configured');
     process.env.DASHSCOPE_API_KEY = 'legacy-broad-key';

@@ -295,6 +295,24 @@ const isolatedReceiptSources = {
     'packages/db/src/isolated-test-target.ts',
     'packages/db/src/principal.ts',
   ],
+  // L10-p1 语音行第三刀：服务端 turn-taking 产品回执（capability-gated live·真钥只本地·CI skip 臂）来源清单。
+  'voice-turn-live:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/voice-turn-live.proof.ts',
+    'apps/api/test/_neg-harness.ts',
+    'apps/api/src/main.ts',
+    'apps/api/src/modules/interview/interview.module.ts',
+    'apps/worker/src/voice-adaptive.ts',
+    'packages/ai-runtime/src/voice-stream.ts',
+    'packages/ai-runtime/src/voice-endpointing.ts',
+    'packages/ai-runtime/src/interview-voice-seams.ts',
+    'packages/ai-runtime/src/voice-stream-preview.ts',
+    'packages/ai-runtime/src/model-operation-registry.ts',
+    'packages/ai-runtime/src/operation-binding.ts',
+    'packages/ai-runtime/src/dashscope-native-config.ts',
+    'packages/db/src/isolated-test-target.ts',
+    'packages/db/src/principal.ts',
+  ],
   // UC-E2E-025 BOUND 隔离 PG/HTTP 收据（GAP-UC025-BOUND-ISOLATED-01 · 件①）：additive 注册镜像
   // fault-isolated 同形（同周 uc004/uc028/ttl 三先例=package.json 注册行+壳三条目同 commit）。
   // 来源清单=proof+harness+三守卫服务/控制器+隔离靶+0061 typed pin 迁移（BOUND 判据 schema 面）。
@@ -3014,6 +3032,8 @@ if (![
   'voice-stream-tts-live:prove', 'voice-stream-tts-live:prove:raw',
   // L10-p1 语音行第二刀：流式 ASR 产品回执（capability-gated live: .env 钥缺→honest skip·skip≠pass;真钥只在本地跑·CI 无钥走 skip 臂）。
   'voice-stream-asr-live:prove', 'voice-stream-asr-live:prove:raw',
+  // L10-p1 语音行第三刀：服务端 turn-taking 产品回执（capability-gated live 同形注册）。
+  'voice-turn-live:prove', 'voice-turn-live:prove:raw',
   // #232 G2 刀:押题列表扩投影隔离库证明(fixture 直插 resume+resume_quiz,绝不触碰开发库)。
   'quiz-list:prove',
   'qbank:prove:raw', 'privacy-erasure:prove:raw', 'erasure-job-projection:prove:raw', 'privacy-erasure:http:prove:raw', 'privacy-erasure-preview:prove:raw', 'unstube-erase:prove:raw', 'consent-min:prove:raw', 'privacy-erasure:pause-upgrade:prove:raw', 'resume-erasure:foundation:prove:raw', 'resume-derivative-reference:prove:raw', 'resume-reference:http:prove:raw', 'reqid:prove:raw', 'interview:prove:raw', 'role-input:prove:raw',
@@ -3837,6 +3857,8 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/api', 'prove:voice-stream-tts-live']]
   : target === 'voice-stream-asr-live:prove' || target === 'voice-stream-asr-live:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:voice-stream-asr-live']]
+  : target === 'voice-turn-live:prove' || target === 'voice-turn-live:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:voice-turn-live']]
   : target === 'graph:prove' || target === 'graph:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:resume']]
   : target === 'scoring-integrity:prove'
