@@ -40,6 +40,36 @@ if (process.env.E2E_SKIP_DOTENV !== '1' && env.E2E_ISOLATED !== '1') {
     }
   }
 }
+// L10-p1 语音行收尾刀(2026-11-16 用户授权·百炼一钥通用=文本/TTS/ASR 同钥):浏览器语音 E2E 的
+// 能力钥运行时注入。voice-duplex.spec 的 beforeEach 按集齐 DASHSCOPE_TTS_API_KEY+DASHSCOPE_ASR_API_KEY
+// 才开跑(缺→honest skip·skip≠pass);隔离包装器按 fail-closed allowlist 剥离操作壳层全部 DASHSCOPE_*,
+// 隔离形又零 .env 回灌(上行),浏览器链路 /speak+/transcribe 的批量 TTS/ASR 因此此前恒 capability skip。
+// 本块只从仓根 .env 运行时读 MODEL_API_KEY 的值并映射到这两个语音能力变量(已显式设则不覆盖):
+// 零钥字面量入仓/入日志/入回执·只进程内传递·CI 无 .env → 钥缺 → spec skip 臂不变。
+// E2E_SKIP_DOTENV='1' 全跳——g6-e2e-iso-blocked 行为门(Key-unset 快速失败)语义不变;
+// 不回灌其余任何 .env 键——ISO-DOTENV-ISOLATION(语义键不穿透隔离删单)约束零放宽。
+if (process.env.E2E_SKIP_DOTENV !== '1' && existsSync(ROOT + '.env')) {
+  const voiceEnvLines = readFileSync(ROOT + '.env', 'utf8').split('\n');
+  const universalVoiceKey = voiceEnvLines
+    .find((line) => /^MODEL_API_KEY=/.test(line))
+    ?.slice('MODEL_API_KEY='.length)
+    .replace(/^["']|["']$/g, '');
+  if (universalVoiceKey) {
+    for (const name of ['DASHSCOPE_TTS_API_KEY', 'DASHSCOPE_ASR_API_KEY']) {
+      if (!String(env[name] ?? '').trim()) env[name] = universalVoiceKey;
+    }
+  }
+  // 语音模型名(非密·配置面):批量/流式 TTS/ASR 模型与音色可由 .env 覆盖(适配器 env 钩既有语义),
+  // 隔离壳层剥 DASHSCOPE_* 时这些非密配置一并被剥——此处按同名单从 .env 运行时装回,零密钥值。
+  for (const name of [
+    'DASHSCOPE_TTS_MODEL', 'DASHSCOPE_ASR_MODEL', 'TTS_VOICE',
+    'DASHSCOPE_STREAM_TTS_MODEL', 'DASHSCOPE_STREAM_TTS_VOICE', 'DASHSCOPE_STREAM_ASR_MODEL',
+  ]) {
+    if (String(env[name] ?? '').trim()) continue;
+    const line = voiceEnvLines.find((l) => new RegExp(`^${name}=`).test(l));
+    if (line) env[name] = line.slice(name.length + 1).replace(/^["']|["']$/g, '');
+  }
+}
 if (env.E2E_ISOLATED === '1') {
   for (const key of [
     'DATABASE_URL', 'DATABASE_SSL_CA_PATH', 'REDIS_URL', 'RAG_REDIS_URL', 'RAG_REDIS_TEST_URL', 'RAG_QBANK_CACHE_HASH_KEY',
