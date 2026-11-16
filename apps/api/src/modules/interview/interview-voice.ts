@@ -5,7 +5,7 @@
  * 边缘 I/O(ASR/TTS)在 invoke 关口之外,api service 内同步请求-响应一次外呼(与 resume extractResumeText 同性质)。
  */
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { VOICE_EGRESS_DISABLED_ID, type Asr, type StreamingTts, type Tts } from '@meetwise/ai-runtime';
+import { isVoiceStreamAsrPreviewEnabled, VOICE_EGRESS_DISABLED_ID, type Asr, type StreamingAsr, type StreamingTts, type Tts } from '@meetwise/ai-runtime';
 import { asErr, rememberIssuedQuestionTranscript } from '@meetwise/db';
 import { VOICE_MAX_AUDIO_BYTES, type TranscribeDto } from '@meetwise/contracts';
 
@@ -50,6 +50,52 @@ export function prepareSpeakStreamText(streamTts: StreamingTts, text: string) {
   if (streamTts.id === VOICE_EGRESS_DISABLED_ID)
     throw new HttpException({ error: 'tts_unavailable', message: '语音播报暂不可用，将以文字显示题目' }, HttpStatus.SERVICE_UNAVAILABLE);
   return { text: text.slice(0, 2000) };   // 截断防超长 TTS(对齐非流式 speak)
+}
+
+/**
+ * 流式 ASR 前置尾段:配置校验(503·缺 Key/缺双旗/生产锁一律 streaming_asr_not_configured)。
+ * 调用方已完成 voiceGate → owner → 隐私围栏。双旗门在此 + transcribeStream 内双重强制
+ * (组合根接线不削弱运行时门);浏览器凭 503 干净回落批量 /transcribe(无死胡同)。
+ */
+export function prepareListenStream(streamAsr: StreamingAsr, env: NodeJS.ProcessEnv = process.env) {
+  if (streamAsr.id === VOICE_EGRESS_DISABLED_ID || !isVoiceStreamAsrPreviewEnabled(env))
+    throw new HttpException({ error: 'streaming_asr_not_configured' }, HttpStatus.SERVICE_UNAVAILABLE);
+  return { configured: true };
+}
+
+/** 流式 ASR 同意门(与批量 /transcribe 同款 CONSENT-MIN(#69) 查询):voice_capture 同意在先,音频出进程在后。 */
+export async function listenStreamConsent(
+  c: { query: (sql: string, params?: unknown[]) => Promise<{ rowCount?: number | null; rows: Array<Record<string, string | null>> }> },
+  interviewId: string,
+): Promise<string | undefined> {
+  const consent = await c.query(
+    `SELECT (
+       SELECT q.question_id FROM interview_question q
+        WHERE q.interview_id=$1 AND q.status='issued'
+        LIMIT 1
+     ) AS question_id
+       FROM consent_record
+      WHERE purpose='voice_capture'
+      LIMIT 1`,
+    [interviewId],
+  );
+  if ((consent.rowCount ?? 0) === 0) throw new HttpException({ error: 'consent_required', purpose: 'voice_capture' }, HttpStatus.FORBIDDEN);
+  const questionId = consent.rows[0]?.['question_id'];
+  return typeof questionId === 'string' && questionId.length > 0 ? questionId : undefined;
+}
+
+/**
+ * 流式收尾记账(与批量 /transcribe 同义):流结束时仍有发出的题 → final 原文记到那道题上。
+ * best-effort:流已交付,记账失败不再打断用户路径(调用方吞掉)。
+ */
+export async function rememberListenStreamFinal(
+  c: unknown,
+  owner: string,
+  interviewId: string,
+  issuedQuestionId: string,
+  finalText: string,
+): Promise<void> {
+  await rememberIssuedQuestionTranscript(c as never, owner, interviewId, issuedQuestionId, finalText, 'unavailable');
 }
 
 /**

@@ -192,7 +192,7 @@ async function main() {
 
   const db = createCountingDb();
   const rl = new RateLimitService();
-  const interviews = new InterviewService(db as unknown as DbService, rl, {} as never, {} as never, { id: 'disabled' } as never);
+  const interviews = new InterviewService(db as unknown as DbService, rl, {} as never, {} as never, { id: 'disabled' } as never, { id: 'disabled' } as never);
   const quizzes = new QuizService(db as unknown as DbService);
   const diagnoses = new DiagnosisService(db as unknown as DbService);
 

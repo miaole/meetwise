@@ -315,7 +315,7 @@ const startJobs = (id: string) =>
       fn({ query: async () => ({ rowCount: 1, rows: [] }) }),
   };
   const rl = new RateLimitService();
-  const interviews = new InterviewService(countingDb as unknown as DbService, rl, {} as never, {} as never, { id: 'disabled' } as never);
+  const interviews = new InterviewService(countingDb as unknown as DbService, rl, {} as never, {} as never, { id: 'disabled' } as never, { id: 'disabled' } as never);
   const slotCount = (key: string) => (rl as unknown as { slots: Map<string, number> }).slots.get(key) ?? 0;
   type Held = { ac: AbortController; reader: ReadableStreamDefaultReader<Uint8Array> | undefined };
   const openSse = async (base: string, user: string): Promise<{ status: number; ct: string; hold: Held | undefined; body: unknown }> => {

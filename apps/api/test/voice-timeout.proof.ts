@@ -24,6 +24,7 @@ async function main() {
     { transcribe: async () => { throw new AsrTimeoutError(35); } },
     { synthesize: async () => new Uint8Array() },
     { id: 'test-streaming-tts', synthesizeStream: async function* () { /* not reached */ } },
+    { id: 'test-streaming-asr', transcribeStream: async function* () { /* not reached */ } },
   );
 
   let status = 0;
@@ -49,6 +50,7 @@ async function main() {
     { transcribe: async () => { throw new AsrAbortedError(); } },
     { synthesize: async () => new Uint8Array() },
     { id: 'test-streaming-tts', synthesizeStream: async function* () { /* not reached */ } },
+    { id: 'test-streaming-asr', transcribeStream: async function* () { /* not reached */ } },
   );
   status = 0;
   payload = undefined;
@@ -69,6 +71,7 @@ async function main() {
     { transcribe: async () => { throw new DOMException('provider_reset', 'AbortError'); } },
     { synthesize: async () => new Uint8Array() },
     { id: 'test-streaming-tts', synthesizeStream: async function* () { /* not reached */ } },
+    { id: 'test-streaming-asr', transcribeStream: async function* () { /* not reached */ } },
   );
   status = 0;
   payload = undefined;
@@ -89,6 +92,7 @@ async function main() {
     structuredAsr(''),
     { synthesize: async () => { throw new Error('tts_download_capacity_exceeded'); } },
     { id: 'test-streaming-tts', synthesizeStream: async function* () { /* not reached */ } },
+    { id: 'test-streaming-asr', transcribeStream: async function* () { /* not reached */ } },
   );
   status = 0;
   payload = undefined;
@@ -133,6 +137,7 @@ async function main() {
     structuredAsr(''),
     { synthesize: async (_text: string, options?: { signal?: AbortSignal }) => { serviceSignal = options?.signal; return new Uint8Array([1]); } },
     { id: 'test-streaming-tts', synthesizeStream: async function* () { /* not reached */ } },
+    { id: 'test-streaming-asr', transcribeStream: async function* () { /* not reached */ } },
   );
   const serviceAbort = new AbortController();
   await forwardingService.speak('candidate-a', 'interview-a', { text: '停止' }, { signal: serviceAbort.signal });
@@ -156,6 +161,7 @@ async function main() {
     structuredAsr(transcript),
     { synthesize: async () => new Uint8Array() },
     { id: 'test-streaming-tts', synthesizeStream: async function* () { /* not reached */ } },
+    { id: 'test-streaming-asr', transcribeStream: async function* () { /* not reached */ } },
   );
   const stored = await storingService.transcribe('candidate-a', 'interview-a', {
     audioBase64: Buffer.from([1, 2, 3]).toString('base64'),

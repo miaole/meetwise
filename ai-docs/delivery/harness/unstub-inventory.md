@@ -10,7 +10,7 @@
 
 - **全量桩数 = 13**（协调方 8 桩全部确认，其中 1 桩改判归 ROUTE-DICT 非本战役；扩充 5 桩：流式 TTS、流式 ASR/turn-taking、计费/支付、OCR 生产准入、公开预览写关闭〔环境态〕）。
 - **删除三桩（简历单删/全量删/面试擦除）是重刀**：内部机械（授权签发 0091/checkpoint worker/投影 sweep/向量面 sweep/memory 各轨 sweep/fence 族/预览回执 0129）**已大量建成**，cutover 卡在 INT01 六门合同（harness `gap-int-transcript-01-cutover-contract.md` §2b）+ §4.2 未闭合缺口（user_memory/trace/备份/外部云端）。**不是「改一个 503」的工作量。**
-- **语音两桩半轻半重**：批式 TTS/ASR 链路（config→adapter→registry binding→service→controller→前端回落）**代码已全通**（`voice.tts.v1`/`voice.asr.v1` 均 `wired: true`），差的是**部署面**（per-capability DashScope key）+#69 服务端 consent 落账+持钥环境 live prove；**流式 TTS 自 2026-11-16 已部分翻桩（P-02→预览产品接线+产品管道真回执）**：registry `voice.tts-stream.v1` `wired: true`、组合根按 `DASHSCOPE_STREAM_TTS_API_KEY` 存在构造 cosyvoice-v2/longxiaochun_v2 适配器、`/speak/stream` 隔离环境真音频字节+abort 收尾回执（用户授权真钥·`releaseEvidence=false`）——残桩=前端 `ENABLE_STREAMING_TTS` 开关仍 false（真机「起播=出声」验证未做）+部署面 key；**流式 ASR/turn-taking（P-13）仍是真代码桩**（registry `wired: false` + 组合根 `streamAsrConfigured`/`turnTakingConfigured` 恒 false + 无端点三重禁用）。
+- **语音两桩半轻半重**：批式 TTS/ASR 链路（config→adapter→registry binding→service→controller→前端回落）**代码已全通**（`voice.tts.v1`/`voice.asr.v1` 均 `wired: true`），差的是**部署面**（per-capability DashScope key）+#69 服务端 consent 落账+持钥环境 live prove；**流式 TTS 自 2026-11-16 已部分翻桩（P-02→预览产品接线+产品管道真回执）**：registry `voice.tts-stream.v1` `wired: true`、组合根按 `DASHSCOPE_STREAM_TTS_API_KEY` 存在构造 cosyvoice-v2/longxiaochun_v2 适配器、`/speak/stream` 隔离环境真音频字节+abort 收尾回执（用户授权真钥·`releaseEvidence=false`）——残桩=前端 `ENABLE_STREAMING_TTS` 开关仍 false（真机「起播=出声」验证未做）+部署面 key；**流式 ASR 自 2026-11-16 已部分翻桩（P-13 后端半翻·第二刀）**：registry `voice.asr-stream.v1` `wired: true`、组合根按 `DASHSCOPE_STREAM_ASR_API_KEY` 存在构造 paraformer-realtime-v2 适配器、新端点 `/interview/:id/listen/stream`（PCM 流式上传→NDJSON partial/final）+ 真语音→真转写闭环回执（`voice-stream-asr-live:prove`·`releaseEvidence=false`）——残桩=前端 `ENABLE_STREAMING_ASR` 开关仍 false（真机声学验证未做·三重门控缺省全关）+部署面 key；**turn-taking（P-13 残半）仍是真代码桩**（组合根 `turnTakingConfigured` 恒 false + 无端点）。
 - **账户注销是零服务端面**：UI disabled 按钮之外全仓无任何账户删除 API——UNSTUB-ACCOUNT 是从设计到实现的全新刀。
 - **最大风险**：把「翻桩」做成「改返回码」。删除桩翻早=隐私谎言；语音桩翻而不做 #69=合规缺口；计费桩纯代码翻不了（需商户合同）。
 
@@ -32,7 +32,7 @@
 | P-10 | 计费/订单/支付（扩充） | 产品决策桩 | `apps/web/app/billing/actions.ts:5-8`（`createOrderAction` 恒 `{ok:false}`） | `billing/page.tsx:6/:12-21`（「当前不开放」卡） | UNSTUB-COMMERCE 或显式 scope-out |
 | P-11 | OCR 图片简历生产准入（扩充） | 预览旗标桩 | `apps/api/src/modules/resume/resume.service.ts:85`（`image_ocr_unavailable` 422） | `apps/web/lib/resume/ocr-preview-ui.ts:18/:61` | 配置面+G7 生产准入刀 |
 | P-12 | 公开预览写关闭（扩充） | 部署模式桩（非功能桩） | `apps/api/src/platform/public-preview.ts`（`MEETWISE_PUBLIC_PREVIEW=1` 时写 503 `public_preview_read_only`；触点含 `interview.service.ts:77-85`/`applications.service.ts:25-35`/`privacy.service.ts:99-102`） | billing/legal 页「预览环境」话术 | 部署决策（生产=0 自然退役）·非刀 |
-| P-13 | 流式 ASR+服务端 turn-taking（扩充） | 代码桩（更深一层） | `packages/ai-runtime/src/interview-voice-seams.ts:20-22`（注释钉死：`voice.asr-stream.v1` unwired+PRD-TEST-006 未验证）；registry `model-operation-registry.ts:162-166` `wired:false` | 前端未暴露该模式 | UNSTUB-VOICE 二阶段或 backlog |
+| P-13 | 流式 ASR+服务端 turn-taking（扩充） | 后端半翻（2026-11-16 第二刀·残=UI 开关+部署 key+真机声学）；turn-taking 仍真代码桩 | `packages/ai-runtime/src/interview-voice-seams.ts`（`voice.asr-stream.v1` wired·Key 在才构造 paraformer 适配器）；registry `model-operation-registry.ts` `voice.asr-stream.v1` `wired:true`；API `/interview/:id/listen/stream` 端点+真回执已建 | 前端 AudioWorklet 采集已接线但 `ENABLE_STREAMING_ASR=false` 三重门控缺省全关 | UNSTUB-VOICE 二阶段（真机声学+部署 key）或 backlog |
 
 **非桩面（明确排除·Ban 误翻误改）**——以下「暂不可用」是**运行时优雅降级/取数兜底**，不是功能桩，翻桩战役禁触碰：
 
@@ -134,7 +134,7 @@
 
 ### P-13 流式 ASR+服务端 turn-taking（扩充）
 
-- **现状证据**：`interview-voice-seams.ts:19-22`（「Streaming ASR and server turn-taking stay disabled even when `VOICE_STREAM_ASR_*` preview flags and stream Keys exist: `voice.asr-stream.v1` is unwired and PRD-TEST-006 is not verified」）+ `:127/130`（`streamAsr: disabledStreamingAsr()`/`streamAsrConfigured: false` 恒）；registry `:162-166` `wired: false`。前端无此模式入口。
+- **现状证据（2026-11-16 第二刀后端半翻后）**：组合根 `interview-voice-seams.ts`：`DASHSCOPE_STREAM_ASR_API_KEY` 存在且 `voice.asr-stream.v1` binding wired → 构造 `dashscopeStreamingAsr()`（缺省 `paraformer-realtime-v2`）、`streamAsrConfigured: true`（缺 Key 照旧 disabled）；registry：`voice.asr-stream.v1` `wired: true`；运行时双旗门仍在 `transcribeStream` 内（Key+wired 只是装配条件·撤旗零 WebSocket）。API 新端点 `/interview/:id/listen/stream`（octet-stream 直通 parser+privacy fence+同意门+限流+NDJSON 事件流·缺旗/缺 Key hijack 前 503 `streaming_asr_not_configured`）。真回执=隔离 runner API 子进程 + .env 真钥 + 双旗 → 进程内流式 TTS 合成真语音 PCM（format=pcm→16k 重采样）流式喂产品端点 → partial 事件+final 转写「你好/世界」字符级命中+abort 收尾（`pnpm voice-stream-asr-live:prove`·用户授权真钥 2026-11-16·`releaseEvidence=false`·skip≠pass 保留）。UI `VoiceCallPanel.tsx`（`ENABLE_STREAMING_ASR = false`）+ AudioWorklet 16k PCM 采集+fetch duplex 直传已接线但三重门控缺省全关——真机声学未验证故开关照旧关。turn-taking 仍不装配（`turnTakingConfigured` 恒 false·无端点）。
 - **定谳**：比 P-02 更深一层的代码桩（连预览旗标都不开）。建议归 UNSTUB-VOICE 二阶段或显式 backlog（PRD-TEST-006 验证是前置）；本战役登记防漏。
 
 ---
@@ -219,7 +219,7 @@
 | P-10 计费 | 商户合同+资金链路+e2e。**禁 mock 支付。** |
 | P-11 OCR | 生产双旗决策+G7 收敛+（欠账）视觉 token ledger。 |
 | P-12 预览写关 | 部署决策（=0 即退役）·非刀。 |
-| P-13 流式 ASR | PRD-TEST-006+适配器+wired。 |
+| P-13 流式 ASR | 后端半翻已兑现（PRD-TEST-006+适配器+wired+端点+真回执·残=UI 开关/部署 key/真机声学）；turn-taking 未动。 |
 
 **总纲**：诚实 503→真实可用的唯一合法路径=「能力真建成→prove 真证据→双审真通过→文案真退役」；任何「先翻 UI 再补能力」「改返回码当可用」「mock 充 provider」均为假可用，比诚实 503 更糟（隐私谎言/资金谎言禁令）。
 

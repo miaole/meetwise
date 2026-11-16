@@ -15,10 +15,15 @@
  * resolves wired, the composition root constructs `dashscopeStreamingTts` and
  * reports `streamTtsConfigured: true` — the runtime dual preview flags still
  * gate inside `synthesizeStream`, so a Key alone never opens a WebSocket.
- * Streaming ASR and server turn-taking stay disabled even when
- * `VOICE_STREAM_ASR_*` preview flags and stream Keys exist: `voice.asr-stream.v1`
- * is unwired and PRD-TEST-006 is not verified. This is not MODEL-OP-02 shared
- * admission, durable attempt/unknown, or a production SLO.
+ * Stream ASR is product-wired the same honest way since 2026-11-16: when the
+ * per-capability `DASHSCOPE_STREAM_ASR_API_KEY` exists AND `voice.asr-stream.v1`
+ * resolves wired, the composition root constructs `dashscopeStreamingAsr` and
+ * reports `streamAsrConfigured: true` — the dual preview flags still gate inside
+ * `transcribeStream` and the product `/interview/:id/listen/stream` pipe, so a
+ * Key alone never opens a WebSocket. Server turn-taking stays disabled even
+ * when preview flags and stream Keys exist: PRD-TEST-006 turn-taking is not
+ * built. This is not MODEL-OP-02 shared admission, durable attempt/unknown, or
+ * a production SLO.
  */
 import { createHash } from 'node:crypto';
 import { resolveDashscopeNativeConfig } from './dashscope-native-config.ts';
@@ -28,7 +33,7 @@ import {
   dashscopeAsr, dashscopeTts, disabledAsr, disabledTts, type Asr, type AsrQualityDeclaration, type Tts,
 } from './voice.ts';
 import {
-  dashscopeStreamingTts, disabledStreamingAsr, disabledStreamingTts,
+  dashscopeStreamingAsr, dashscopeStreamingTts, disabledStreamingAsr, disabledStreamingTts,
   type StreamingAsr, type StreamingTts,
 } from './voice-stream.ts';
 
@@ -80,6 +85,19 @@ function ttsStreamBindingOk(): boolean {
     voiceContract: 'voice.standard.v1',
     textRef: { kind: 'tts-text', digest: EMPTY_DIGEST },
     maxCharacters: 2000,
+    sessionRef: { kind: 'session', digest: EMPTY_DIGEST },
+  });
+  return bound.ok === true && bound.binding.wired === true;
+}
+
+/** 流式 ASR 与流式 TTS 同门：registry wired 位 + typed binding 全过才允许构造 live 适配器。 */
+function asrStreamBindingOk(): boolean {
+  const resolved = resolveModelOperation('voice.asr-stream.v1', COMPOSITION_REVISION);
+  if (!resolved.ok) return false;
+  const bound = resolveModelOperationBinding('voice.asr-stream.v1', {
+    inputKind: 'asr-stream',
+    mediaRef: { kind: 'audio', digest: EMPTY_DIGEST },
+    maxAudioSeconds: 120,
     sessionRef: { kind: 'session', digest: EMPTY_DIGEST },
   });
   return bound.ok === true && bound.binding.wired === true;
@@ -144,6 +162,7 @@ export function createInterviewVoiceSeams(env: NodeJS.ProcessEnv = process.env):
   const wantAsr = Boolean(native.keys.asr) && asrBindingOk();
   const wantTts = Boolean(native.keys.tts) && ttsBindingOk();
   const wantStreamTts = Boolean(native.keys.streamTts) && ttsStreamBindingOk();
+  const wantStreamAsr = Boolean(native.keys.streamAsr) && asrStreamBindingOk();
   let asr = disabledAsr();
   let tts = disabledTts();
   let asrConfigured = false;
@@ -170,15 +189,25 @@ export function createInterviewVoiceSeams(env: NodeJS.ProcessEnv = process.env):
       streamTtsConfigured = true;
     } catch { /* keep disabled: construction must not take down InterviewModule */ }
   }
+  // 流式 ASR 产品接线（预览，与流式 TTS 同形）：Key + registry wired 双门齐才构造 live 适配器；
+  // 运行时双旗门仍在 transcribeStream 内，不在此处削弱。构造零外呼。
+  let streamAsr: StreamingAsr = disabledStreamingAsr();
+  let streamAsrConfigured = false;
+  if (wantStreamAsr) {
+    try {
+      streamAsr = dashscopeStreamingAsr();
+      streamAsrConfigured = true;
+    } catch { /* keep disabled: construction must not take down InterviewModule */ }
+  }
   return Object.freeze({
     asr,
     tts,
-    streamAsr: disabledStreamingAsr(),
+    streamAsr,
     streamTts,
     asrConfigured,
     ttsConfigured,
     streamTtsConfigured,
-    streamAsrConfigured: false,
+    streamAsrConfigured,
     turnTakingConfigured: false,
   });
 }

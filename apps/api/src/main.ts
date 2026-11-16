@@ -201,6 +201,14 @@ export async function createApp(): Promise<NestFastifyApplication> {  // 审计 
     { logger: false, abortOnError: false },
   );
   const fastify = app.getHttpAdapter().getInstance() as any;
+  // 流式 ASR 请求体=浏览器 fetch duplex 直传的原始 PCM 二进制流(application/octet-stream):
+  // parser **直通不缓冲**(不设 parseAs,Fastify 默认把原始流作 payload 交给回调,原样交回)——
+  // 流仍由 /interview/:id/listen/stream 的 hijack handler 消费;缺此 parser Fastify 会在 handler
+  // 前抛 FST_ERR_CTP_INVALID_MEDIA_TYPE;缓冲解析则会把整段音频攒完才开始转写,消灭流式首字延迟。
+  // 15MiB 上传信封与 chunked 流计数封顶对该路由照常生效(见下方 UPLOAD_ROUTE_TEMPLATES / preParsing 钩子)。
+  fastify.addContentTypeParser('application/octet-stream', (_req: unknown, payload: unknown, done: (err: Error | null, parsed?: unknown) => void) => {
+    done(null, payload);
+  });
   // Public preview's method allowlist must be the first Fastify lifecycle
   // hook: no request body parsing, authentication, controller or queue work
   // occurs for a rejected method.
@@ -225,13 +233,13 @@ export async function createApp(): Promise<NestFastifyApplication> {  // 审计 
   // (payload_too_large / file_too_large / audio_too_large)。
   // 只用已解析的路由模板判定上传面，不用请求行原始 URL：`/auth/login#/resume/file` 这类后缀
   // 会落到 login，却被 /resume/file$ 误判成上传路由，从而按 15MiB 收体。
-  const UPLOAD_ROUTE_TEMPLATES: ReadonlySet<string> = new Set(['/resume/file', '/interview/:id/transcribe']);
+  const UPLOAD_ROUTE_TEMPLATES: ReadonlySet<string> = new Set(['/resume/file', '/interview/:id/transcribe', '/interview/:id/listen/stream']);
   const routeTemplate = (req: { routeOptions?: { url?: string } }): string => String(req.routeOptions?.url ?? '');
   const isUploadRoute = (req: { routeOptions?: { url?: string } }): boolean => UPLOAD_ROUTE_TEMPLATES.has(routeTemplate(req));
   const bodyLimitError = (req: { routeOptions?: { url?: string } }): 'file_too_large' | 'audio_too_large' | 'payload_too_large' => {
     const url = routeTemplate(req);
     if (url === '/resume/file') return 'file_too_large';
-    if (url === '/interview/:id/transcribe') return 'audio_too_large';
+    if (url === '/interview/:id/transcribe' || url === '/interview/:id/listen/stream') return 'audio_too_large';
     return 'payload_too_large';
   };
   // 只把十进制非负整数当有效 Content-Length。NaN / 科学计数 / 多值头若当 0 放行，

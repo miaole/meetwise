@@ -128,12 +128,13 @@ const WIRED_VISION_OPERATIONS: readonly ModelOperationDefinition[] = [
 /**
  * Preview interview voice: registry owns batch ASR/TTS node identity so the
  * composition factory can construct native adapters when capability Keys exist.
- * `voice.tts-stream.v1` is wired the same honest way since the stream TTS
- * product slice: the interview composition root constructs the cosyvoice WS
- * adapter only when `DASHSCOPE_STREAM_TTS_API_KEY` exists and this binding
- * resolves wired. `wired` here is not MODEL-OP-02 shared admission (those rows
- * stay blocked) and is not a production SLO, deletion receipt, or streaming
- * ASR / turn-taking authorization (`voice.asr-stream.v1` stays unwired).
+ * `voice.tts-stream.v1` (stream TTS product slice) and `voice.asr-stream.v1`
+ * (stream ASR product slice) are wired the same honest way: the interview
+ * composition root constructs the cosyvoice / paraformer WS adapter only when
+ * `DASHSCOPE_STREAM_TTS_API_KEY` / `DASHSCOPE_STREAM_ASR_API_KEY` exist and the
+ * typed bindings resolve wired. `wired` here is not MODEL-OP-02 shared
+ * admission (those rows stay blocked) and is not a production SLO, deletion
+ * receipt, or turn-taking authorization (server turn-taking stays un-built).
  */
 const WIRED_VOICE_OPERATIONS: readonly ModelOperationDefinition[] = [
   {
@@ -150,6 +151,11 @@ const WIRED_VOICE_OPERATIONS: readonly ModelOperationDefinition[] = [
     operationId: 'voice.tts-stream.v1', inputKind: 'tts-stream', capability: 'tts', maxDispatches: 1,
     wired: true, admission: { providerAccount: 'dashscope-native', region: 'cn-beijing', modelOrRecipe: 'tts-stream' },
     meter: 'tts-characters', fallbackAction: 'text_display',
+  },
+  {
+    operationId: 'voice.asr-stream.v1', inputKind: 'asr-stream', capability: 'asr', maxDispatches: 1,
+    wired: true, admission: { providerAccount: 'dashscope-native', region: 'cn-beijing', modelOrRecipe: 'asr-stream' },
+    meter: 'audio-seconds', fallbackAction: 'text_input',
   },
 ];
 
@@ -174,11 +180,6 @@ const UNWIRED_OPERATIONS: readonly ModelOperationDefinition[] = [
     operationId: 'qbank.rerank.v1', inputKind: 'rerank', capability: 'rerank', maxDispatches: 1,
     wired: false, admission: { providerAccount: 'dashscope-native', region: 'cn-beijing', modelOrRecipe: 'rerank' },
     meter: 'rerank-candidates', fallbackAction: 'keep_retrieval_order',
-  },
-  {
-    operationId: 'voice.asr-stream.v1', inputKind: 'asr-stream', capability: 'asr', maxDispatches: 1,
-    wired: false, admission: { providerAccount: 'dashscope-native', region: 'cn-beijing', modelOrRecipe: 'asr-stream' },
-    meter: 'audio-seconds', fallbackAction: 'text_input',
   },
   {
     operationId: 'voice.signed-download.v1', inputKind: 'signed-download', capability: 'signed-download', maxDispatches: 1,

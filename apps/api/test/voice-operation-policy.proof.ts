@@ -7,8 +7,8 @@ import 'reflect-metadata';
 import assert from 'node:assert/strict';
 import { MODULE_METADATA } from '@nestjs/common/constants';
 import { InterviewModule } from '../src/modules/interview/interview.module.ts';
-import { VOICE_ASR, VOICE_STREAM_TTS, VOICE_TTS } from '../src/modules/interview/interview.service.ts';
-import { createInterviewVoiceSeams, type Asr, type StreamingTts, type Tts } from '@meetwise/ai-runtime';
+import { VOICE_ASR, VOICE_STREAM_ASR, VOICE_STREAM_TTS, VOICE_TTS } from '../src/modules/interview/interview.service.ts';
+import { createInterviewVoiceSeams, type Asr, type StreamingAsr, type StreamingTts, type Tts } from '@meetwise/ai-runtime';
 
 let failures = 0;
 const check = (name: string, condition: boolean) => {
@@ -48,12 +48,15 @@ async function main() {
     const asr = providerFactory(VOICE_ASR)() as Asr;
     const tts = providerFactory(VOICE_TTS)() as Tts;
     const stream = providerFactory(VOICE_STREAM_TTS)() as StreamingTts;
+    const streamAsr = providerFactory(VOICE_STREAM_ASR)() as StreamingAsr;
     check('default API ASR provider is fail-closed before transport',
       await errorOf(() => asr.transcribe(new Uint8Array([1]))) === 'asr_not_configured');
     check('default API TTS provider is fail-closed before transport',
       await errorOf(() => tts.synthesize('synthetic text')) === 'tts_not_configured');
     check('default API streaming TTS provider is fail-closed before transport',
       await errorOf(() => stream.synthesizeStream('synthetic text')[Symbol.asyncIterator]().next()) === 'streaming_tts_not_configured');
+    check('default API streaming ASR provider is fail-closed before transport',
+      await errorOf(() => streamAsr.transcribeStream((async function* () { yield new Uint8Array([1]); })())[Symbol.asyncIterator]().next()) === 'streaming_asr_not_configured');
     check('default API voice providers make zero provider fetches', fetches === 0);
     const seams = createInterviewVoiceSeams();
     check('composition factory without Keys stays unconfigured',
@@ -80,6 +83,16 @@ async function main() {
       await errorOf(() => wiredStream.synthesizeStream('synthetic text')[Symbol.asyncIterator]().next()) === 'streaming_tts_not_configured'
       && fetches === 0);
     delete process.env.DASHSCOPE_STREAM_TTS_API_KEY;
+    // 流式 ASR 产品接线（预览）honest 面：Key 在 → 模块工厂给出 live 缝（id=paraformer-realtime-v2）；
+    // 双旗门仍在 transcribeStream 内 → 无旗照旧 streaming_asr_not_configured，零外呼。
+    process.env.DASHSCOPE_STREAM_ASR_API_KEY = 'preview-stream-asr-key';
+    const wiredAsrStream = providerFactory(VOICE_STREAM_ASR)() as StreamingAsr;
+    check('stream ASR Key wires the module factory to the paraformer adapter (id reflects default model)',
+      wiredAsrStream.id === 'paraformer-realtime-v2');
+    check('composed stream ASR without dual preview flags still refuses before transport',
+      await errorOf(() => wiredAsrStream.transcribeStream((async function* () { yield new Uint8Array([1]); })())[Symbol.asyncIterator]().next()) === 'streaming_asr_not_configured'
+      && fetches === 0);
+    delete process.env.DASHSCOPE_STREAM_ASR_API_KEY;
   } finally {
     globalThis.fetch = originalFetch;
     for (const [name, value] of saved) {

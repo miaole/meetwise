@@ -1,18 +1,18 @@
 /**
  * Streaming voice adapters and a fake-seam turn helper.
  *
- * Stream TTS is product-wired (preview): `createInterviewVoiceSeams`
- * constructs `dashscopeStreamingTts` only when the per-capability
- * `DASHSCOPE_STREAM_TTS_API_KEY` exists AND `voice.tts-stream.v1` is a wired
- * registry operation; `dashscopeStreamingAsr` / server turn-taking stay
- * not product-wired (`voice.asr-stream.v1` unwired). Both live adapters still
+ * Stream TTS and stream ASR are product-wired (preview): `createInterviewVoiceSeams`
+ * constructs `dashscopeStreamingTts` / `dashscopeStreamingAsr` only when the matching
+ * per-capability Key (`DASHSCOPE_STREAM_TTS_API_KEY` / `DASHSCOPE_STREAM_ASR_API_KEY`)
+ * exists AND `voice.tts-stream.v1` / `voice.asr-stream.v1` are wired registry
+ * operations; server turn-taking stays not product-wired. Both live adapters still
  * require the OCR-style dual preview flags (`VOICE_STREAM_ASR_ENABLED=1` +
  * `VOICE_STREAM_ASR_PREVIEW=1`) inside `synthesizeStream`/`transcribeStream`
  * and refuse production / enforce / public-preview. A capability Key alone
- * does not open a WebSocket. A real provider receipt over the product
- * `/interview/:id/speak/stream` pipe is recorded by the api live proof; it is
- * not releaseEvidence. Fake helpers exist only for isolated proofs
- * (`vstream:prove`). Failures must not invent a transcript.
+ * does not open a WebSocket. Real provider receipts over the product
+ * `/interview/:id/speak/stream` and `/interview/:id/listen/stream` pipes are recorded
+ * by the api live proofs; they are not releaseEvidence. Fake helpers exist only for
+ * isolated proofs (`vstream:prove`). Failures must not invent a transcript.
  * `releaseEvidence=false`.
  */
 import { rejectDashscopeNativeTransportOverride, resolveDashscopeNativeConfig } from './dashscope-native-config.ts';
@@ -67,9 +67,12 @@ export function fakeStreamingTts(chunk = 5): StreamingTts {
 }
 
 /**
- * DashScope realtime ASR adapter. Not product-wired: preview dual flags +
- * not production-locked are required before any WebSocket. Isolated handshake
- * notes are not browser→API→provider evidence or a production SLO.
+ * DashScope realtime ASR adapter (paraformer-realtime-v2 WS). Product-wired
+ * (preview): the interview composition root constructs it when the stream ASR
+ * capability Key exists and `voice.asr-stream.v1` resolves wired; preview dual
+ * flags + not production-locked are still required before any WebSocket inside
+ * `transcribeStream`. Isolated handshake notes are not browser→API→provider
+ * evidence or a production SLO.
  */
 export function dashscopeStreamingAsr(cfg: { apiKey?: string; url?: string; model?: string; sampleRate?: number } = {}): StreamingAsr {
   rejectDashscopeNativeTransportOverride(cfg.apiKey);
@@ -79,44 +82,73 @@ export function dashscopeStreamingAsr(cfg: { apiKey?: string; url?: string; mode
   const url = cfg.url ?? native.streamUrl;
   const model = cfg.model ?? process.env.DASHSCOPE_STREAM_ASR_MODEL ?? 'paraformer-realtime-v2';
   const sampleRate = cfg.sampleRate ?? 16000;
+  // 超时护栏(可调·与流式 TTS 同形):任何 await 都不得无界阻塞——否则 WS 连同 HTTP 连接一起悬挂。
+  const openMs = Number(process.env.STREAM_ASR_OPEN_MS) || 6000;     // 建连/握手
+  const startMs = Number(process.env.STREAM_ASR_START_MS) || 8000;   // 等 task-started
+  const idleMs = Number(process.env.STREAM_ASR_IDLE_MS) || 15000;    // 帧间空闲(防服务端中途静默)
   return {
     id: model,
     async *transcribeStream(chunks, signal) {
       assertG7UnguardedPathDisabled('asr_stream');
       refuseVoiceStreamAsrUnlessPreview(process.env, STREAMING_ASR_NOT_CONFIGURED);
       if (!apiKey) throw new Error(STREAMING_ASR_NOT_CONFIGURED);
+      if (signal?.aborted) return;
       const ws = new WebSocket(url, { headers: { Authorization: 'bearer ' + apiKey } } as any);
       const queue: AsrEvent[] = [];
-      let done = false, err: Error | null = null, notify: (() => void) | null = null;
+      let done = false, started = false, err: Error | null = null, notify: (() => void) | null = null;
       const wake = () => { const n = notify; notify = null; n?.(); };
       const taskId = 'asr-' + Math.random().toString(36).slice(2);
       let onStarted: (() => void) | null = null;
       const startedP = new Promise<void>((r) => { onStarted = r; });
+      const onAbort = () => { done = true; wake(); };                 // 挂断/取消:干净停(不抛),finally 关 WS
       ws.addEventListener('message', (e: any) => {
         if (typeof e.data !== 'string') return;
         let m: any; try { m = JSON.parse(e.data); } catch { return; }
         const ev = m.header?.event;
-        if (ev === 'task-started') onStarted?.();
+        if (ev === 'task-started') { started = true; onStarted?.(); }
         else if (ev === 'result-generated') { const sent = m.payload?.output?.sentence; if (sent?.text != null) { queue.push({ text: sent.text, final: !!sent.sentence_end }); wake(); } }
         else if (ev === 'task-finished') { done = true; wake(); }
         else if (ev === 'task-failed') { err = new Error('asr_task_failed:' + (m.header?.error_message ?? '')); done = true; wake(); }
       });
       ws.addEventListener('error', () => { err ??= new Error('ws_error'); done = true; wake(); });
       ws.addEventListener('close', () => { done = true; wake(); });
-      await new Promise<void>((res, rej) => { ws.addEventListener('open', () => res()); ws.addEventListener('error', () => rej(new Error('ws_open_failed'))); });
-      ws.send(JSON.stringify({ header: { action: 'run-task', task_id: taskId, streaming: 'duplex' }, payload: { task_group: 'audio', task: 'asr', function: 'recognition', model, parameters: { sample_rate: sampleRate, format: 'pcm' }, input: {} } }));
-      await startedP;
-      void (async () => {   // 并发发音频
-        try { for await (const ch of chunks) { if (signal?.aborted || done) break; ws.send(ch); } }
-        finally { if (!done) ws.send(JSON.stringify({ header: { action: 'finish-task', task_id: taskId, streaming: 'duplex' }, payload: { input: {} } })); }
-      })().catch(() => {});
-      while (!done || queue.length) {
-        if (queue.length) { yield queue.shift()!; continue; }
-        if (err) break;
-        await new Promise<void>((r) => { notify = r; });
+      try {
+        signal?.addEventListener('abort', onAbort);
+        // 1. 建连(带超时,防 TLS/WS 握手悬挂)
+        await new Promise<void>((res, rej) => {
+          const t = setTimeout(() => rej(new Error('ws_open_timeout')), openMs);
+          ws.addEventListener('open', () => { clearTimeout(t); res(); });
+          ws.addEventListener('error', () => { clearTimeout(t); rej(new Error('ws_open_failed')); });
+        });
+        if (signal?.aborted || done) return;
+        ws.send(JSON.stringify({ header: { action: 'run-task', task_id: taskId, streaming: 'duplex' }, payload: { task_group: 'audio', task: 'asr', function: 'recognition', model, parameters: { sample_rate: sampleRate, format: 'pcm' }, input: {} } }));
+        // 2. 等 task-started(带超时,防服务端接了连接却永不就绪)
+        await new Promise<void>((res) => {
+          if (started || done) return res();
+          const t = setTimeout(() => { err ??= new Error('asr_started_timeout'); done = true; res(); }, startMs);
+          startedP.then(() => { clearTimeout(t); res(); });
+        });
+        if (signal?.aborted || done) return;
+        void (async () => {   // 并发发音频
+          try { for await (const ch of chunks) { if (signal?.aborted || done) break; ws.send(ch); } }
+          finally { if (!done) ws.send(JSON.stringify({ header: { action: 'finish-task', task_id: taskId, streaming: 'duplex' }, payload: { input: {} } })); }
+        })().catch(() => {});
+        // 3. 边收边吐(空闲超时兜底:帧间静默超 idleMs → 收尾,绝不无界等)
+        while (!done || queue.length) {
+          if (queue.length) { yield queue.shift()!; continue; }
+          if (err) break;
+          await new Promise<void>((r) => {
+            let settled = false;
+            const fin = () => { if (settled) return; settled = true; clearTimeout(t); r(); };
+            notify = fin;
+            const t = setTimeout(() => { err ??= new Error('asr_idle_timeout'); done = true; fin(); }, idleMs);
+          });
+        }
+        if (err && !signal?.aborted) throw err;
+      } finally {
+        signal?.removeEventListener('abort', onAbort);
+        try { ws.close(); } catch { /* ignore */ }                    // **finally**:正常完成/throw/.return()(for-await break)/abort 都关 WS,不漏连接
       }
-      try { ws.close(); } catch { /* ignore */ }
-      if (err) throw err;
     },
   };
 }

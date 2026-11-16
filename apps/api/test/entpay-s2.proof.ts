@@ -46,7 +46,7 @@ const fakeDb = {
   asGateway: (fn: (c: any) => any) => Promise.resolve(fn(pool!)),
 } as any;
 
-const interviews = new InterviewService(fakeDb, { allow: () => true } as any, undefined as any, undefined as any, undefined as any);
+const interviews = new InterviewService(fakeDb, { allow: () => true } as any, undefined as any, undefined as any, undefined as any, undefined as never);
 const applications = new ApplicationsService(fakeDb);
 const commerce = new CommerceService(fakeDb);
 

@@ -39,7 +39,7 @@ related:
 | 视觉 OCR | `DASHSCOPE_VISION_MODEL` + 冻结 `resume.ocr.v1` typed binding（`bindResumeOcr`） | typed binding 与密封 provenance 已落地；**预览双旗**可走通 API `visionOcr`（失败不编造）。**不得**把用户图片 smoke 标成发布证据或视觉 SLO。生产/enforce 仍拒绝组合根。手动 `vl:smoke` 固定 fail-closed、不读凭据/图片、不发网。媒体预算、删除与脱敏回执仍开放。 |
 | rerank | `DASHSCOPE_API_KEY`、`DASHSCOPE_RERANK_*` | 代码适配器存在，但未接入当前 QBank serving 路径；默认保持禁用。 |
 | 批量 ASR/TTS | `DASHSCOPE_API_KEY`、`DASHSCOPE_ASR_MODEL`、`DASHSCOPE_TTS_*` | 适配器与本地取消合同存在，但 API 组合根和手工 live smoke 已统一 disabled；尚无 operation binding、媒体预算、attempt 或删除回执。 |
-| 流式 ASR/TTS | `DASHSCOPE_STREAM_*` + 精确双旗 `VOICE_STREAM_ASR_ENABLED`/`VOICE_STREAM_ASR_PREVIEW` | 适配器存在，但生产/默认 fail-closed；双旗+Key 仍不把 live stream 接到组合根。未形成受控流会话或真实端到端证据。不得编造转写。 |
+| 流式 ASR/TTS | `DASHSCOPE_STREAM_*` + 精确双旗 `VOICE_STREAM_ASR_ENABLED`/`VOICE_STREAM_ASR_PREVIEW` | 流式 TTS（2026-11-16 第一刀）与流式 ASR（同日第二刀）已预览产品接线：组合根按各自能力 Key 装配 cosyvoice-v2 / paraformer-realtime-v2 WS 适配器，`/speak/stream`·`/listen/stream` 两产品管道在双旗+Key 下有真实供应商回执（隔离 runner·`releaseEvidence=false`）。生产/默认 fail-closed；双旗+Key 只是装配条件，运行时门仍在适配器与管道内。UI 采集开关缺省全关（真机声学未验证）。不得编造转写。 |
 
 根目录存在被 Git 忽略的本地环境文件，但本清单不读取其内容，也不据此推断 Key、工作空间或模型已经配置成功。
 
@@ -73,7 +73,7 @@ related:
 | rerank | `gte-rerank-v2` | ◐ | 已授权；真实 serving 路径评测 + registry；当前运行时仍保持禁用 | 使用已授权的 dense/FTS/RRF 结果。 |
 | 批量 ASR | `qwen-audio-3.0-asr-flash` | ☐ | 现 API 默认 ASR 已 disabled；`qwen-audio-turbo-latest` 不能继续假定兼容文本 chat 协议。须先完成正确原生契约、音频时长、取消、费用与删除验收 | 文字输入。 |
 | 批量 TTS | `qwen-tts`（候选兜底 `qwen-audio-3.0-tts-flash`） | ☐ | API 与手工 smoke 均 disabled；下载边界、并发、取消、费用与删除验收后才可逐 operation 启用 | 文字展示。 |
-| 流式 ASR | `paraformer-realtime-v2`（候选 `qwen-audio-3.0-asr-flash-streaming`） | ☐ | 生产/默认 fail-closed。预览须精确双旗且非生产锁；组合根仍不接线。须有 browser→API→受控流会话、帧预算和取消回执后才可改称已验证 | 不启用语音回合，文字输入；不编造转写。 |
+| 流式 ASR | `paraformer-realtime-v2`（候选 `qwen-audio-3.0-asr-flash-streaming`） | ◐ | 后端已预览产品接线（2026-11-16 第二刀·组合根 Key 在才装配+`/listen/stream` 产品管道+真语音→真转写闭环回执·`releaseEvidence=false`）。生产/默认 fail-closed。预览须精确双旗且非生产锁；UI 采集三重门控缺省全关，真机 browser→API→供应商声学回执未做，帧预算与设备矩阵未验证——仍不改称已验证 | 不启用语音回合，文字输入；不编造转写。 |
 | 流式 TTS | `cosyvoice-v2`（voice `longxiaochun_v2`·v1 已死） | ◐ | 2026-11-16 预览产品接线：registry wired + 组合根按 `DASHSCOPE_STREAM_TTS_API_KEY` 装配 + `/speak/stream` 产品管道真音频回执（隔离 runner·用户授权真钥·`releaseEvidence=false`）；运行时双旗门仍在适配器内。下载/播放取消与费用验收、真机起播、UI 开关未做 | 预览版播题；失败回文字。 |
 | 评分 | 文本模型，不固定为默认/快模型 | ☐ | `SCOR-01…08`、rubric/coverage/校准/人工复核完成 | `unscored` 或 `review_required`；绝不写默认分数。 |
 | 长期记忆候选摘要 | 小文本模型，不固定 | ☐ | `MEM-00…14`、来源/删除/冲突/确认门完成 | 不写任何跨会话派生物。 |
