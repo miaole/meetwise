@@ -370,7 +370,7 @@ async function main() {
   });
   assert('合法 TTS 音频只经一次 HTTPS 固定公网地址连接、显式验证 TLS 并完整返回', validRequests === 1 && pinnedAddress === '8.8.8.8' && Buffer.from(validAudio).equals(Buffer.from([7, 8, 9])));
   assert('DNS 钉 IP 回调满足 node≥20 autoSelectFamily 数组契约（options.all=true → 已校验记录全量回写）',
-    pinnedAll.length === 1 && pinnedAll[0]!.address === '8.8.8.8' && pinnedAll[0]!.family === 4, JSON.stringify(pinnedAll));
+    pinnedAll.length === 1 && pinnedAll[0]!.address === '8.8.8.8' && pinnedAll[0]!.family === 4);
 
   let rejectedConnections = 0;
   const noConnectionRequest = fakeTtsRequest({ onRequest: () => { rejectedConnections++; } });
