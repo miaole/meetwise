@@ -144,6 +144,60 @@ export class InterviewController {
     try { reply.raw.end(); } catch { /* 已断开 */ }
   }
 
+  // 流式 ASR:浏览器 AudioWorklet 16k mono PCM 块经请求体流式上传(fetch duplex),服务端边收边转写,
+  // 响应=NDJSON 逐行 partial/final 事件(最后 final 转写)。paraformer WS。非 JSON 二进制流,不入 apiContract(对齐 SSE events / speak stream)。
+  // 校验/配置/同意失败 → prepare 在 hijack 前抛 404/410/403/503(经异常过滤正常返 JSON),前端凭 503 streaming_asr_not_configured 回落批量 /transcribe。
+  // 双旗门在 prepare 与 transcribeStream 内双重强制;组合根接线不削弱运行时门。进流后中断 → 写 error 行 + 收尾,前端就地回落。
+  @Post(':id/listen/stream')
+  async listenStream(@Param('id') id: string, @Req() req: any, @Res() reply: FastifyReply) {
+    const issuedQuestionId = await this.interviews.listenStreamPrepare(req.principal, id);   // 404/410/403/429/503 抛在 hijack 之前 → 异常过滤正常响应
+    const ac = new AbortController();
+    req.raw.on('close', () => ac.abort());                                                   // 客户端断开/挂断 → 停收 + 关上游 paraformer WS
+    // 请求体=octet-stream 原始流:content-type parser 直通不缓冲,读 parser 供给的流(经 preParsing 封顶包装,不绕 15MiB 上传信封)。
+    const source: unknown = req.body ?? req.raw;
+    const pcm = (async function* (): AsyncIterable<Uint8Array> {
+      for await (const chunk of source as AsyncIterable<Buffer>) yield new Uint8Array(chunk);
+    })();
+    const it = this.interviews.listenStreamEvents(pcm, ac.signal)[Symbol.asyncIterator]();
+
+    reply.hijack();
+    reply.raw.writeHead(200, { 'content-type': 'application/x-ndjson', 'cache-control': 'no-cache', 'x-accel-buffering': 'no', 'transfer-encoding': 'chunked' });
+    // 帧间看门狗:适配器已有 idleMs 兜底,这里是管道级双保险——上游彻底静默时响应绝不悬挂。
+    const IDLE_MS = Number(process.env.VOICE_LISTEN_IDLE_MS) || 15000;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const idleTimeout = () => new Promise<'listen_idle_timeout'>((resolve) => { timer = setTimeout(() => resolve('listen_idle_timeout'), IDLE_MS); });
+    let lastFinal = '';
+    let streamError = false;
+    try {
+      for (;;) {
+        if (ac.signal.aborted || reply.raw.destroyed) break;
+        const next = await Promise.race([it.next(), idleTimeout()]);
+        clearTimeout(timer); timer = undefined;
+        if (next === 'listen_idle_timeout') { streamError = true; ac.abort(); break; }   // 唤醒滞留的适配器 await → 生成器 finally 快速关上游 WS
+        if (next.done) break;
+        const ev = next.value;
+        if (!reply.raw.write(JSON.stringify({ type: ev.final ? 'final' : 'partial', text: ev.text }) + '\n')) {
+          // 背压写:等 drain,同时盯 close/error/abort——慢客户端断线不会让 drain 永不触发而挂起(对齐 /speak/stream 审计 高#5)。
+          await new Promise<boolean>((resolve) => {
+            const off = () => { reply.raw.off('drain', okFn); reply.raw.off('close', failFn); reply.raw.off('error', failFn); ac.signal.removeEventListener('abort', failFn); };
+            const okFn = () => { off(); resolve(true); };
+            const failFn = () => { off(); resolve(false); };
+            reply.raw.once('drain', okFn); reply.raw.once('close', failFn); reply.raw.once('error', failFn);
+            ac.signal.addEventListener('abort', failFn, { once: true });
+          });
+        }
+        if (ev.final && ev.text.trim()) lastFinal = ev.text;
+      }
+    } catch { streamError = true; }
+    try { await it.return?.(); } catch { /* noop */ }                       // 提前 break/throw 都触发生成器 finally → 关上游 WS
+    try { (source as { destroy?: () => void }).destroy?.(); } catch { /* noop */ }   // 收掉残余请求体流(hijack 后连接归本 handler 所有)
+    if (streamError && !reply.raw.destroyed) {
+      try { reply.raw.write(JSON.stringify({ type: 'error', error: 'asr_failed' }) + '\n'); } catch { /* 已断开 */ }
+    }
+    try { await this.interviews.listenStreamRemember(req.principal, id, issuedQuestionId, lastFinal); } catch { /* noop */ }
+    try { reply.raw.end(); } catch { /* 已断开 */ }
+  }
+
   // 题目反馈(赞/踩):收集人对 AI 生成题的质量信号,喂 eval/改进闭环。一题一反馈,可改(UPSERT)。
   @Post(':id/questions/:idx/feedback')
   @HttpCode(HttpStatus.OK)

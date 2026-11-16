@@ -47,6 +47,41 @@ function pickRecMime(): string {
 }
 const delay = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
+/** 流式 ASR 浏览器采集能力门:AudioWorklet + 麦克风 + 流式请求体三者齐才可走流式转写路(缺一回落批量)。 */
+function supportsStreamAsrCapture(): boolean {
+  return typeof window !== 'undefined'
+    && typeof (window as unknown as { AudioWorkletNode?: unknown }).AudioWorkletNode !== 'undefined'
+    && typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia
+    && typeof ReadableStream !== 'undefined';
+}
+
+/** NDJSON 事件流读取:逐行回调,返回 'stop' 即提前结束;解析失败/断流都静默收敛(调用方看已收事件)。 */
+async function readNdjsonEvents(
+  body: ReadableStream<Uint8Array>,
+  onEvent: (ev: { type: string; text?: string; error?: string }) => 'stop' | void,
+): Promise<void> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffered = '';
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) return;
+      buffered += decoder.decode(value, { stream: true });
+      for (;;) {
+        const idx = buffered.indexOf('\n');
+        if (idx < 0) break;
+        const line = buffered.slice(0, idx).trim();
+        buffered = buffered.slice(idx + 1);
+        if (!line) continue;
+        let ev: { type: string; text?: string; error?: string };
+        try { ev = JSON.parse(line) as { type: string; text?: string; error?: string }; } catch { continue; }
+        if (onEvent(ev) === 'stop') { try { await reader.cancel(); } catch { /* noop */ } return; }
+      }
+    }
+  } catch { /* 断流/abort:调用方凭已收事件决定出路 */ }
+}
+
 const WAVE_BARS = 28;        // 听音波形条数
 const TTS_FIRST_BYTE_MS = 4500;  // 流式 TTS 首块超时 → 回落非流式(避免连不上时干等)
 const TTS_STALL_MS = 8000;       // 起播后帧间静默超时 → 收尾进录音(防中途断流无限等)
@@ -90,10 +125,29 @@ const STATUS_LABEL: Record<CallStatus, string> = {
   report: '面试完成',
 };
 
-// Streaming TTS (MSE) is not device-verified. Stream ASR / server turn-taking
-// stay closed even if VOICE_STREAM_ASR_* preview flags are set: those flags
-// do not invent a browser stream path or a transcript. Batch /speak + /transcribe only.
+// Streaming TTS (MSE) is not device-verified. Streaming ASR capture
+// (AudioWorklet 16k mono PCM → fetch duplex body → /listen/stream NDJSON
+// events) is wired but NOT acoustically verified on real devices either: the
+// UI switch below stays false (wiring-only, no claims). The authoritative
+// gates are server-side on `/interview/:id/listen/stream` — per-capability
+// stream ASR Key + exact VOICE_STREAM_ASR dual preview flags + privacy fence +
+// voice-capture consent; any refusal falls back to batch /transcribe and no
+// failure invents a transcript. Server turn-taking stays un-built.
 const ENABLE_STREAMING_TTS = false;
+const ENABLE_STREAMING_ASR = false;
+
+// AudioWorklet 处理器(内联 Blob URL·零新静态文件):每个渲染量子把本轨单声道 Float32 原样转发主线程,
+// 由主线程统一降采样到 16k 并编码 int16 PCM(paraformer-realtime-v2 输入契约)。只读输入,零持久化。
+const PCM_CAPTURE_WORKLET_CODE = [
+  'class PcmStreamCapture extends AudioWorkletProcessor {',
+  '  process(inputs) {',
+  '    const ch = inputs[0] && inputs[0][0];',
+  '    if (ch) this.port.postMessage(ch.slice(0));',
+  '    return true;',
+  '  }',
+  '}',
+  "registerProcessor('pcm-stream-capture', PcmStreamCapture);",
+].join('\n');
 
 export function VoiceCallPanel({
   resultId, view, display, onSwitchToText,
@@ -119,6 +173,8 @@ export function VoiceCallPanel({
   const streamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const listenAbortRef = useRef<AbortController | null>(null);   // 流式 ASR fetch 中断(挂断/切走)
+  const workletRef = useRef<AudioWorkletNode | null>(null);
   const rafRef = useRef<number | null>(null);
   const manualStopRef = useRef<(() => void) | null>(null);
   const levelTsRef = useRef(0);
@@ -139,11 +195,16 @@ export function VoiceCallPanel({
     if (rafRef.current != null) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
     try { ttsAbortRef.current?.abort(); } catch { /* noop */ }     // 停流式 TTS 拉流
     ttsAbortRef.current = null;
+    try { listenAbortRef.current?.abort(); } catch { /* noop */ }  // 停流式 ASR 采集+拉流
+    listenAbortRef.current = null;
     try { if (recorderRef.current?.state !== 'inactive') recorderRef.current?.stop(); } catch { /* noop */ }
     recorderRef.current = null;
     manualStopRef.current = null;
     try { streamRef.current?.getTracks().forEach((t) => t.stop()); } catch { /* noop */ }
     streamRef.current = null;
+    try { workletRef.current?.disconnect(); } catch { /* noop */ }
+    try { workletRef.current?.port.close(); } catch { /* noop */ }
+    workletRef.current = null;
     try { audioCtxRef.current?.close(); } catch { /* noop */ }
     audioCtxRef.current = null;
     try { audioElRef.current?.pause(); } catch { /* noop */ }
@@ -385,6 +446,142 @@ export function VoiceCallPanel({
     return blob;
   }, []);
 
+  /**
+   * 流式 ASR 采集(预览·UI 开关缺省关):AudioWorklet 16k mono PCM → fetch duplex 请求体直传
+   * /listen/stream,边录边收 partial/final;VAD/手动「说完了」收流 → 服务端 finish-task → final 即回。
+   * 返回 final 文本('' = 未识别到语音);null = 失败(状态已置 mic_denied/consent_required/asr_down,
+   * 绝不编造转写)。服务端双旗/Key/同意/围栏是权威门;本函数只做能力门与采集。
+   */
+  const streamAnswer = useCallback(async (gen: number, onUserSpeech?: () => void): Promise<string | null> => {
+    if (!supportsStreamAsrCapture()) return null;
+    let stream: MediaStream;
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } }); }
+    catch { setStatus('mic_denied'); return null; }
+    if (gen !== genRef.current) { stream.getTracks().forEach((t) => t.stop()); return null; }
+    streamRef.current = stream;
+    const ac = new AbortController();
+    listenAbortRef.current = ac;
+    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    audioCtxRef.current = ctx;
+    let controller: ReadableStreamDefaultController<Uint8Array> | null = null;
+    let bodyClosed = false;
+    const closeBody = () => {                      // 收流口:VAD 静音/手动/上限/收尾统一走这里
+      if (bodyClosed) return;
+      bodyClosed = true;
+      try { controller?.close(); } catch { /* noop */ }
+    };
+    manualStopRef.current = closeBody;
+    let finalText = '';
+
+    try {
+      const workletUrl = URL.createObjectURL(new Blob([PCM_CAPTURE_WORKLET_CODE], { type: 'application/javascript' }));
+      try { await ctx.audioWorklet.addModule(workletUrl); } finally { URL.revokeObjectURL(workletUrl); }
+      const body = new ReadableStream<Uint8Array>({ start(c) { controller = c; } });
+      const worklet = new AudioWorkletNode(ctx, 'pcm-stream-capture');
+      workletRef.current = worklet;
+      ctx.createMediaStreamSource(stream).connect(worklet);
+      const mute = ctx.createGain();               // 处理器需有到 destination 的拉取路径;零增益静音回放
+      mute.gain.value = 0;
+      worklet.connect(mute); mute.connect(ctx.destination);
+      const downRatio = ctx.sampleRate / 16000;    // 设备采样率(常见 48k)→ 16k 最近邻抽取
+      let pos = 0;
+      worklet.port.onmessage = (e: MessageEvent<Float32Array>) => {
+        const data = e.data;
+        if (!data || bodyClosed || !controller) return;
+        const out = new Int16Array(Math.max(1, Math.ceil(data.length / downRatio)));
+        let oi = 0;
+        while (pos < data.length && oi < out.length) {
+          const v = data[Math.floor(pos)] ?? 0;
+          out[oi++] = Math.max(-32768, Math.min(32767, Math.round(v * 32767)));
+          pos += downRatio;
+        }
+        pos -= data.length;
+        if (oi > 0) { try { controller.enqueue(new Uint8Array(out.buffer, out.byteOffset, oi * 2)); } catch { /* closed */ } }
+      };
+      const res = await fetch(`/api/interview/${encodeURIComponent(resultId)}/listen/stream`, {
+        method: 'POST', headers: { 'content-type': 'application/octet-stream' }, body, duplex: 'half', signal: ac.signal,
+      } as RequestInit);
+      if (!res.ok) {
+        // 503 streaming_asr_not_configured / 404 / 403 consent_required → 干净出路,与批量 /transcribe 同语义。
+        const errBody = await res.json().catch(() => null) as { error?: unknown } | null;
+        if (res.status === 403 && errBody?.error === 'consent_required') {
+          if (gen === genRef.current) { setCaptureConsented(false); setStatus('consent_required'); }
+          return null;
+        }
+        if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写暂不可用,可切回打字继续'); }
+        return null;
+      }
+      if (!res.body) { if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写失败,可切回打字继续'); } return null; }
+
+      // VAD 电平循环 与 NDJSON 事件读取 并行;收流后服务端 finish-task → final 到达 → 读取循环自然结束。
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 2048;
+      ctx.createMediaStreamSource(stream).connect(analyser);
+      const buf = new Uint8Array(analyser.fftSize);
+      let speech = false, speechNotified = false, silenceStart = 0, hintShown = false;
+      const startedAt = Date.now();
+      const tick = () => {
+        if (gen !== genRef.current || bodyClosed) return;
+        analyser.getByteTimeDomainData(buf);
+        let sum = 0;
+        for (let i = 0; i < buf.length; i++) { const x = (buf[i] - 128) / 128; sum += x * x; }
+        const rms = Math.sqrt(sum / buf.length);
+        const now = Date.now();
+        if (now - levelTsRef.current > 80) {
+          levelTsRef.current = now;
+          setLevel(rms);
+          const norm = Math.min(1, rms / 0.35);
+          const next = waveRef.current.slice(1);
+          next.push(norm);
+          waveRef.current = next;
+          setWave(next);
+        }
+        if (rms > SPEECH_ON) {
+          speech = true; silenceStart = 0;
+          if (!speechNotified) { speechNotified = true; onUserSpeech?.(); }
+        } else if (speech) {
+          if (!silenceStart) silenceStart = now;
+          else if (now - silenceStart > SILENCE_MS) { closeBody(); return; }   // 静音够久 → 收流
+        }
+        if (!speech && !hintShown && now - startedAt > NO_SPEECH_HINT_MS) {
+          hintShown = true; setHint('没听到声音?对着麦克风说,或点「说完了」');
+        }
+        if (now - startedAt > MAX_REC_MS) { closeBody(); return; }             // 硬上限兜底
+        rafRef.current = requestAnimationFrame(tick);
+      };
+      rafRef.current = requestAnimationFrame(tick);
+
+      setStatus('listening');
+      setHint(null);
+      let sawError = false;
+      await readNdjsonEvents(res.body, (ev) => {
+        if (ev.type === 'final' && typeof ev.text === 'string' && ev.text.trim()) finalText = ev.text;
+        else if (ev.type === 'partial' && typeof ev.text === 'string' && ev.text.trim()) setHint(`听写中:${ev.text}`);
+        else if (ev.type === 'error') { sawError = true; return 'stop'; }
+        return undefined;
+      });
+      if (sawError) { if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写失败,可切回打字继续'); } return null; }
+      if (gen !== genRef.current) return null;
+      return finalText;
+    } catch {
+      if (gen === genRef.current && !ac.signal.aborted) { setStatus('asr_down'); toast.error('语音转写失败,可切回打字继续'); }
+      return null;
+    } finally {
+      closeBody();
+      if (rafRef.current != null) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
+      try { workletRef.current?.disconnect(); } catch { /* noop */ }
+      try { workletRef.current?.port.close(); } catch { /* noop */ }
+      workletRef.current = null;
+      try { stream.getTracks().forEach((t) => t.stop()); } catch { /* noop */ }
+      try { await ctx.close(); } catch { /* noop */ }
+      if (audioCtxRef.current === ctx) audioCtxRef.current = null;
+      if (streamRef.current === stream) streamRef.current = null;
+      if (listenAbortRef.current === ac) listenAbortRef.current = null;
+      manualStopRef.current = null;
+      setLevel(0);
+    }
+  }, [resultId]);
+
   /** 同一转写结果始终使用同一 answerId/body 重试，避免网络断在“服务端已收、客户端未收响应”时重复扣费或错题。 */
   const submitPending = useCallback(async (gen: number): Promise<void> => {
     const body = pendingSubmissionRef.current;
@@ -419,49 +616,61 @@ export function VoiceCallPanel({
     }
   }, [resultId]);
 
-  /** 一道题的完整回合:麦克风先接通并持续监听，AI 同时播题；用户一开口即停播。 */
+  /** 一道题的完整回合:麦克风先接通并持续监听，AI 同时播题；用户一开口即停播。
+   *  转写路二选一:流式 ASR(预览·UI 开关缺省关·真机声学未验证)或批量 MediaRecorder+/transcribe(既有·默认);
+   *  两路产出同一 `text` 后走同一提交尾段(同一 submitPending 幂等语义),失败出路一致(无死胡同)。 */
   const runTurn = useCallback(async (questionText: string) => {
     const gen = genRef.current;
-    const recording = recordAnswer(gen, interruptAssistantSpeech);  // 先开麦，避免用户抢话首字被截掉
-    await speak(questionText, gen);                                 // 与录音并行；barge-in 只中止播放
-    if (gen !== genRef.current) return;
-    setStatus('listening');
-    const blob = await recording;
-    if (gen !== genRef.current) return;
-    if (!blob) return;                                  // 无声/无权限:状态已置 mic_denied 或保持,等手动出路
-
-    setStatus('transcribing');
     let text = '';
-    try {
-      const b64 = await blobToBase64(blob);
-      const res = await fetch(`/api/interview/${encodeURIComponent(resultId)}/transcribe`, {
-        method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          audioBase64: b64,
-          mimeType: blob.type,
-          capture: { mode: 'single_local_microphone', consent: true, policyVersion: VOICE_CAPTURE_POLICY_VERSION },
-        }),
-      });
-      if (!res.ok) {
-        // CONSENT-MIN(#69):同意门 403 consent_required → 回协议卡重开(既有 consent_required 文案,零新增),
-        // 不误报 asr_down;其余(503/502)既有出路 byte 级不变。
-        const errBody = await res.json().catch(() => null) as { error?: unknown } | null;
-        if (res.status === 403 && errBody?.error === 'consent_required') {
-          if (gen === genRef.current) { setCaptureConsented(false); setStatus('consent_required'); }
+    if (ENABLE_STREAMING_ASR && supportsStreamAsrCapture()) {
+      const answering = streamAnswer(gen, interruptAssistantSpeech);   // 先开麦开流,抢话不截首字
+      await speak(questionText, gen);                                  // 与采集并行；barge-in 只中止播放
+      if (gen !== genRef.current) return;
+      const streamed = await answering;
+      if (gen !== genRef.current) return;
+      if (streamed === null) return;                                   // 失败:状态已置(mic_denied/consent_required/asr_down)
+      text = streamed;
+    } else {
+      const recording = recordAnswer(gen, interruptAssistantSpeech);  // 先开麦，避免用户抢话首字被截掉
+      await speak(questionText, gen);                                 // 与录音并行；barge-in 只中止播放
+      if (gen !== genRef.current) return;
+      setStatus('listening');
+      const blob = await recording;
+      if (gen !== genRef.current) return;
+      if (!blob) return;                                  // 无声/无权限:状态已置 mic_denied 或保持,等手动出路
+
+      setStatus('transcribing');
+      try {
+        const b64 = await blobToBase64(blob);
+        const res = await fetch(`/api/interview/${encodeURIComponent(resultId)}/transcribe`, {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            audioBase64: b64,
+            mimeType: blob.type,
+            capture: { mode: 'single_local_microphone', consent: true, policyVersion: VOICE_CAPTURE_POLICY_VERSION },
+          }),
+        });
+        if (!res.ok) {
+          // CONSENT-MIN(#69):同意门 403 consent_required → 回协议卡重开(既有 consent_required 文案,零新增),
+          // 不误报 asr_down;其余(503/502)既有出路 byte 级不变。
+          const errBody = await res.json().catch(() => null) as { error?: unknown } | null;
+          if (res.status === 403 && errBody?.error === 'consent_required') {
+            if (gen === genRef.current) { setCaptureConsented(false); setStatus('consent_required'); }
+            return;
+          }
+          if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写暂不可用,可切回打字继续'); }
+          return;
+        }   // 503/502 → 出路:切回打字
+        const body = await res.json().catch(() => null) as { text?: unknown } | null;
+        const transcribed = body?.text;
+        if (typeof transcribed !== 'string') {
+          if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写失败,可切回打字继续'); }
           return;
         }
-        if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写暂不可用,可切回打字继续'); }
-        return;
-      }   // 503/502 → 出路:切回打字
-      const body = await res.json().catch(() => null) as { text?: unknown } | null;
-      const transcribed = body?.text;
-      if (typeof transcribed !== 'string') {
-        if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写失败,可切回打字继续'); }
-        return;
-      }
-      text = transcribed;
-    } catch { if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写失败,可切回打字继续'); } return; }
-    if (gen !== genRef.current) return;
+        text = transcribed;
+      } catch { if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写失败,可切回打字继续'); } return; }
+      if (gen !== genRef.current) return;
+    }
 
     if (!text.trim()) {                                  // 没识别到 → 再听一次,不提交空答
       setHint('没听清,请再说一遍');
@@ -482,7 +691,7 @@ export function VoiceCallPanel({
       pendingSubmissionRef.current = body;
       await submitPending(gen);                          // 等下一题 question_ready / report_ready
     } catch { if (gen === genRef.current) { toast.error('回答身份生成失败，请切回打字后重试'); setStatus('question_unavailable'); } }
-  }, [recordAnswer, speak, interruptAssistantSpeech, submitPending, view.questionIdentity]);
+  }, [recordAnswer, streamAnswer, speak, interruptAssistantSpeech, submitPending, view.questionIdentity]);
 
   // 「再听一次」复用录音→转写→提交那段(不重读题),用 ref 解循环依赖
   const runTurnRetryRef = useRef<(() => Promise<void>) | null>(null);

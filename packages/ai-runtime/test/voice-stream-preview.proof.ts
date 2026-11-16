@@ -1,14 +1,15 @@
 /**
- * PRD-TEST-006 honesty: stream ASR + server turn-taking stay fail-closed
- * unless exact dual preview flags are set, and even then product composition
- * never wires a live ASR stream or turn-taking seam. Stream TTS is honestly
- * wired the other way: composition constructs the cosyvoice adapter when the
- * per-capability stream TTS Key exists and `voice.tts-stream.v1` is a wired
- * registry operation, while the runtime dual-flag gate still refuses inside
- * `synthesizeStream` — Key-only / production / enforce / public-preview never
- * invent audio. Key-absent behaviour is unchanged (fail-closed). Isolated
- * fake proofs are not product E2E; the product-pipe receipt lives in the api
- * live proof. pnpm prove:voice-stream-preview
+ * PRD-TEST-006 honesty: stream ASR + stream TTS stay fail-closed unless exact
+ * dual preview flags are set, production / enforce / public-preview stay
+ * refuse-closed even with both flags, and server turn-taking is never wired.
+ * Both stream seams are honestly wired the same way since their product
+ * slices: composition constructs the cosyvoice / paraformer adapter when the
+ * per-capability stream Key exists and the registry operation is wired, while
+ * the runtime dual-flag gate still refuses inside `synthesizeStream` /
+ * `transcribeStream` — Key-only / production / enforce / public-preview never
+ * invent audio or a transcript. Key-absent behaviour is unchanged
+ * (fail-closed). Isolated fake proofs are not product E2E; the product-pipe
+ * receipts live in the api live proofs. pnpm prove:voice-stream-preview
  */
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -123,18 +124,20 @@ async function main() {
     delete process.env.MEETWISE_PUBLIC_PREVIEW;
 
     delete process.env.DASHSCOPE_STREAM_TTS_API_KEY;
+    delete process.env.DASHSCOPE_STREAM_ASR_API_KEY;
     const closedSeams = createInterviewVoiceSeams();
-    A('composition root without stream TTS Key stays fail-closed (Key-absent behaviour unchanged)',
+    A('composition root without stream Keys stays fail-closed (Key-absent behaviour unchanged)',
       closedSeams.streamTtsConfigured === false
       && closedSeams.streamTts.id === VOICE_EGRESS_DISABLED_ID
       && await errorOf(() => closedSeams.streamTts.synthesizeStream('x')[Symbol.asyncIterator]().next()) === STREAMING_TTS_NOT_CONFIGURED
       && closedSeams.streamAsrConfigured === false
+      && closedSeams.streamAsr.id === VOICE_EGRESS_DISABLED_ID
       && closedSeams.turnTakingConfigured === false
       && fetches === 0 && sockets === 0);
     process.env.DASHSCOPE_STREAM_TTS_API_KEY = 'preview-stream-tts-key';
 
     const seams = createInterviewVoiceSeams();
-    A('composition root wires stream TTS with Key + wired registry; stream ASR / turn-taking stay disabled',
+    A('composition root wires stream TTS with Key + wired registry; stream ASR without its Key stays disabled',
       seams.streamTtsConfigured === true
       && seams.streamTts.id === 'cosyvoice-v2'
       && seams.streamAsrConfigured === false
@@ -143,19 +146,36 @@ async function main() {
       && await errorOf(() => seams.streamAsr.transcribeStream(emptyChunks())[Symbol.asyncIterator]().next()) === STREAMING_ASR_NOT_CONFIGURED
       && fetches === 0 && sockets === 0);
 
-    delete process.env.VOICE_STREAM_ASR_ENABLED;
+    // 流式 ASR 产品接线（预览）honest 面：Key 在 + registry wired → 组合根构造 paraformer 缝（构造零外呼）；
+    // 双旗门仍在 transcribeStream 内 → 撤旗照旧 streaming_asr_not_configured；turn-taking 照旧关闭。
+    process.env.DASHSCOPE_STREAM_ASR_API_KEY = 'preview-stream-asr-key';
+    const wiredAsr = createInterviewVoiceSeams();
+    delete process.env.VOICE_STREAM_ASR_ENABLED;   // 先撤旗再调用：Key+wired 组合根上运行时双旗门仍在产品缝内（不触真实 WS）
     delete process.env.VOICE_STREAM_ASR_PREVIEW;
-    A('composed stream TTS still refuses through the runtime preview gate (Key + wired registry are not enough)',
-      await errorOf(() => seams.streamTts.synthesizeStream('x')[Symbol.asyncIterator]().next()) === STREAMING_TTS_NOT_CONFIGURED
+    A('stream ASR Key wires the composition root to the paraformer adapter (construction is transport-free; turn-taking stays disabled)',
+      wiredAsr.streamAsrConfigured === true
+      && wiredAsr.streamAsr.id === 'paraformer-realtime-v2'
+      && await errorOf(() => wiredAsr.streamAsr.transcribeStream(emptyChunks())[Symbol.asyncIterator]().next()) === STREAMING_ASR_NOT_CONFIGURED
+      && wiredAsr.turnTakingConfigured === false
       && fetches === 0 && sockets === 0);
     process.env.VOICE_STREAM_ASR_ENABLED = '1';
     process.env.VOICE_STREAM_ASR_PREVIEW = '1';
-    A('fully unlocked composed stream TTS reaches exactly the transport layer; fabrication stub intercepts one socket, no invented audio',
-      await errorOf(() => seams.streamTts.synthesizeStream('x')[Symbol.asyncIterator]().next()) === 'unexpected_stream_websocket'
-      && fetches === 0 && sockets === 1);
 
-    A('voice.asr-stream.v1 stays unwired; voice.tts-stream.v1 is wired for the stream TTS product slice',
-      resolveModelOperation('voice.asr-stream.v1', 'interview-voice-preview').ok === false
+    delete process.env.VOICE_STREAM_ASR_ENABLED;
+    delete process.env.VOICE_STREAM_ASR_PREVIEW;
+    A('composed stream TTS + stream ASR still refuse through the runtime preview gate (Key + wired registry are not enough)',
+      await errorOf(() => seams.streamTts.synthesizeStream('x')[Symbol.asyncIterator]().next()) === STREAMING_TTS_NOT_CONFIGURED
+      && await errorOf(() => wiredAsr.streamAsr.transcribeStream(emptyChunks())[Symbol.asyncIterator]().next()) === STREAMING_ASR_NOT_CONFIGURED
+      && fetches === 0 && sockets === 0);
+    process.env.VOICE_STREAM_ASR_ENABLED = '1';
+    process.env.VOICE_STREAM_ASR_PREVIEW = '1';
+    A('fully unlocked composed stream seams reach exactly the transport layer; fabrication stub intercepts two sockets, no invented audio',
+      await errorOf(() => seams.streamTts.synthesizeStream('x')[Symbol.asyncIterator]().next()) === 'unexpected_stream_websocket'
+      && await errorOf(() => wiredAsr.streamAsr.transcribeStream(emptyChunks())[Symbol.asyncIterator]().next()) === 'unexpected_stream_websocket'
+      && fetches === 0 && sockets === 2);
+
+    A('voice.asr-stream.v1 and voice.tts-stream.v1 are wired for the stream product slices',
+      resolveModelOperation('voice.asr-stream.v1', 'interview-voice-preview').ok === true
       && resolveModelOperation('voice.tts-stream.v1', 'interview-voice-preview').ok === true
       && resolveModelOperation('voice.asr.v1', 'interview-voice-preview').ok === true);
 

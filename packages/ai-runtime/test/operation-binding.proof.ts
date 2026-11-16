@@ -61,7 +61,7 @@ const FIXTURES: Fixture[] = [
   {
     operationId: 'voice.asr-stream.v1',
     input: { inputKind: 'asr-stream', mediaRef: ref('audio', 'a1'), maxAudioSeconds: 120, sessionRef: ref('session', 's1') },
-    profileId: 'dashscope-cn-beijing', host: 'dashscope.aliyuncs.com', scheme: 'wss', wired: false,
+    profileId: 'dashscope-cn-beijing', host: 'dashscope.aliyuncs.com', scheme: 'wss', wired: true,
   },
   {
     operationId: 'voice.tts.v1',
@@ -86,9 +86,9 @@ async function main() {
     validateOperationBindingProfiles().length === 0);
   A('registry 静态不变量仍成立（resume.ocr.v1 翻 wired 后无破坏）',
     validateModelOperationRegistry().length === 0);
-  A('wired 计数：7 文本(含 job.route-classify) + 1 视觉(OCR) + 2 批量语音 + 1 流式 TTS = 11 wired，其余 5 native 仍 fail-closed',
-    MODEL_OPERATION_REGISTRY.filter((d) => d.wired).length === 11
-    && MODEL_OPERATION_REGISTRY.filter((d) => !d.wired).length === 5);
+  A('wired 计数：7 文本(含 job.route-classify) + 1 视觉(OCR) + 2 批量语音 + 2 流式(ASR/TTS) = 12 wired，其余 4 native 仍 fail-closed',
+    MODEL_OPERATION_REGISTRY.filter((d) => d.wired).length === 12
+    && MODEL_OPERATION_REGISTRY.filter((d) => !d.wired).length === 4);
 
   const bound: BoundModelOperation[] = [];
   for (const fixture of FIXTURES) {

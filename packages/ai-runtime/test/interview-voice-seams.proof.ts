@@ -50,17 +50,17 @@ async function main() {
       closed.streamTts.id === VOICE_EGRESS_DISABLED_ID
       && closed.streamTtsConfigured === false
       && await errorOf(() => closed.streamTts.synthesizeStream('x')[Symbol.asyncIterator]().next()) === 'streaming_tts_not_configured');
-    A('流式 ASR / 服务端 turn-taking 组合根始终关闭，不编造转写',
+    A('流式 ASR 无 Key 时组合根 fail-closed（缺 Key 行为不变）·服务端 turn-taking 始终关闭，不编造转写',
       closed.streamAsr.id === VOICE_EGRESS_DISABLED_ID
       && closed.streamAsrConfigured === false
       && closed.turnTakingConfigured === false
       && await errorOf(() => closed.streamAsr.transcribeStream((async function* () { yield new Uint8Array([1]); })())[Symbol.asyncIterator]().next()) === 'streaming_asr_not_configured');
 
-    A('voice.asr.v1 / voice.tts.v1 / voice.tts-stream.v1 已接线；流式 ASR 与签名下载仍 not_wired',
+    A('voice.asr.v1 / voice.tts.v1 / voice.tts-stream.v1 / voice.asr-stream.v1 已接线；签名下载仍 not_wired',
       resolveModelOperation('voice.asr.v1', 'interview-voice-preview').ok === true
       && resolveModelOperation('voice.tts.v1', 'interview-voice-preview').ok === true
       && resolveModelOperation('voice.tts-stream.v1', 'interview-voice-preview').ok === true
-      && resolveModelOperation('voice.asr-stream.v1', 'interview-voice-preview').ok === false
+      && resolveModelOperation('voice.asr-stream.v1', 'interview-voice-preview').ok === true
       && resolveModelOperation('voice.signed-download.v1', 'interview-voice-preview').ok === false);
 
     process.env.DASHSCOPE_API_KEY = 'legacy-broad-key';
@@ -81,13 +81,20 @@ async function main() {
     process.env.VOICE_STREAM_ASR_ENABLED = '1';
     process.env.VOICE_STREAM_ASR_PREVIEW = '1';
     process.env.DASHSCOPE_STREAM_ASR_API_KEY = 'preview-stream-asr-key';
-    const stillClosedStream = createInterviewVoiceSeams();
-    A('预览双旗 + 流式 ASR Key 仍不把流式 ASR / turn-taking 接到组合根',
-      stillClosedStream.streamAsrConfigured === false
-      && stillClosedStream.turnTakingConfigured === false
-      && stillClosedStream.streamAsr.id === VOICE_EGRESS_DISABLED_ID
-      && stillClosedStream.streamTtsConfigured === false
+    // 流式 ASR 产品接线（预览）honest 面：Key + registry wired → 组合根构造 paraformer 缝（构造零外呼）；
+    // 先撤旗再调用：运行时双旗门仍在产品缝内拒绝（不触真实 WS）。turn-taking 照旧关闭。
+    const wiredAsrStream = createInterviewVoiceSeams();
+    delete process.env.VOICE_STREAM_ASR_ENABLED;
+    delete process.env.VOICE_STREAM_ASR_PREVIEW;
+    A('流式 ASR Key + registry wired → 组合根真接线（构造零外呼·撤旗后运行时门仍在产品缝内拒绝）·turn-taking 照旧关闭',
+      wiredAsrStream.streamAsrConfigured === true
+      && wiredAsrStream.streamAsr.id === 'paraformer-realtime-v2'
+      && await errorOf(() => wiredAsrStream.streamAsr.transcribeStream((async function* () { yield new Uint8Array([1]); })())[Symbol.asyncIterator]().next()) === 'streaming_asr_not_configured'
+      && wiredAsrStream.turnTakingConfigured === false
+      && wiredAsrStream.streamTtsConfigured === false
       && fetches === 0);
+    process.env.VOICE_STREAM_ASR_ENABLED = '1';
+    process.env.VOICE_STREAM_ASR_PREVIEW = '1';
     process.env.DASHSCOPE_STREAM_TTS_API_KEY = 'preview-stream-tts-key';
     const wiredStream = createInterviewVoiceSeams();
     delete process.env.VOICE_STREAM_ASR_ENABLED;   // 先撤旗再调用：Key+wired 组合根上运行时双旗门仍在产品缝内（不触真实 WS）
@@ -95,7 +102,7 @@ async function main() {
     A('流式 TTS Key + registry wired → 组合根真接线（构造零外呼·撤旗后运行时门仍在产品缝内拒绝）',
       wiredStream.streamTtsConfigured === true
       && wiredStream.streamTts.id === 'cosyvoice-v2'
-      && wiredStream.streamAsrConfigured === false
+      && wiredStream.streamAsrConfigured === true
       && wiredStream.turnTakingConfigured === false
       && await errorOf(() => wiredStream.streamTts.synthesizeStream('x')[Symbol.asyncIterator]().next()) === 'streaming_tts_not_configured'
       && fetches === 0);

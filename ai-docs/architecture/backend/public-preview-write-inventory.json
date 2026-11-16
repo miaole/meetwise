@@ -49,9 +49,14 @@
       "path": "/interview",
       "source": "apps/api/src/modules/interview/interview.controller.ts",
       "handler": "create",
-      "writes": ["interview"],
+      "writes": [
+        "interview"
+      ],
       "stateClass": "interview",
-      "fences": ["http-method-ingress", "service-write-fence"],
+      "fences": [
+        "http-method-ingress",
+        "service-write-fence"
+      ],
       "disposition": "fenced"
     },
     {
@@ -62,9 +67,15 @@
       "path": "/interview/:id/begin",
       "source": "apps/api/src/modules/interview/interview.controller.ts",
       "handler": "begin",
-      "writes": ["interview", "interview_job"],
+      "writes": [
+        "interview",
+        "interview_job"
+      ],
       "stateClass": "interview",
-      "fences": ["http-method-ingress", "service-write-fence"],
+      "fences": [
+        "http-method-ingress",
+        "service-write-fence"
+      ],
       "disposition": "fenced"
     },
     {
@@ -75,9 +86,15 @@
       "path": "/interview/:id/turn",
       "source": "apps/api/src/modules/interview/interview.controller.ts",
       "handler": "turn",
-      "writes": ["interview_question", "interview_job"],
+      "writes": [
+        "interview_question",
+        "interview_job"
+      ],
       "stateClass": "interview-and-scoring",
-      "fences": ["http-method-ingress", "service-write-fence"],
+      "fences": [
+        "http-method-ingress",
+        "service-write-fence"
+      ],
       "disposition": "fenced"
     },
     {
@@ -90,7 +107,9 @@
       "handler": "transcribe",
       "writes": [],
       "stateClass": "egress-only",
-      "fences": ["http-method-ingress"],
+      "fences": [
+        "http-method-ingress"
+      ],
       "disposition": "fenced"
     },
     {
@@ -103,7 +122,9 @@
       "handler": "speak",
       "writes": [],
       "stateClass": "egress-only",
-      "fences": ["http-method-ingress"],
+      "fences": [
+        "http-method-ingress"
+      ],
       "disposition": "fenced"
     },
     {
@@ -116,7 +137,9 @@
       "handler": "speakStream",
       "writes": [],
       "stateClass": "egress-only",
-      "fences": ["http-method-ingress"],
+      "fences": [
+        "http-method-ingress"
+      ],
       "disposition": "fenced"
     },
     {
@@ -127,9 +150,14 @@
       "path": "/interview/:id/questions/:idx/feedback",
       "source": "apps/api/src/modules/interview/interview.controller.ts",
       "handler": "questionFeedback",
-      "writes": ["question_feedback"],
+      "writes": [
+        "question_feedback"
+      ],
       "stateClass": "interview",
-      "fences": ["http-method-ingress", "service-write-fence"],
+      "fences": [
+        "http-method-ingress",
+        "service-write-fence"
+      ],
       "disposition": "fenced"
     },
     {
@@ -140,9 +168,14 @@
       "path": "/interview/:id/abandon",
       "source": "apps/api/src/modules/interview/interview.controller.ts",
       "handler": "abandon",
-      "writes": ["interview"],
+      "writes": [
+        "interview"
+      ],
       "stateClass": "interview",
-      "fences": ["http-method-ingress", "service-write-fence"],
+      "fences": [
+        "http-method-ingress",
+        "service-write-fence"
+      ],
       "disposition": "fenced"
     },
     {
@@ -153,9 +186,14 @@
       "path": "/interview/:id/report/retry",
       "source": "apps/api/src/modules/interview/interview.controller.ts",
       "handler": "retryReport",
-      "writes": ["ai_report"],
+      "writes": [
+        "ai_report"
+      ],
       "stateClass": "interview",
-      "fences": ["http-method-ingress", "service-write-fence"],
+      "fences": [
+        "http-method-ingress",
+        "service-write-fence"
+      ],
       "disposition": "fenced"
     },
     {
@@ -166,9 +204,14 @@
       "path": "/interview/:id/assessment",
       "source": "apps/api/src/modules/interview/interview.controller.ts",
       "handler": "generateAssessment",
-      "writes": ["assessment_report"],
+      "writes": [
+        "assessment_report"
+      ],
       "stateClass": "scoring",
-      "fences": ["http-method-ingress", "service-write-fence"],
+      "fences": [
+        "http-method-ingress",
+        "service-write-fence"
+      ],
       "disposition": "fenced"
     },
     {
@@ -179,9 +222,14 @@
       "path": "/interview/:id/learning-plan",
       "source": "apps/api/src/modules/interview/interview.controller.ts",
       "handler": "generateLearningPlan",
-      "writes": ["learning_plan"],
+      "writes": [
+        "learning_plan"
+      ],
       "stateClass": "interview",
-      "fences": ["http-method-ingress", "service-write-fence"],
+      "fences": [
+        "http-method-ingress",
+        "service-write-fence"
+      ],
       "disposition": "fenced"
     },
     {
@@ -192,9 +240,14 @@
       "path": "/interview/:id/learning-plan/complete",
       "source": "apps/api/src/modules/interview/interview.controller.ts",
       "handler": "completeLearningItem",
-      "writes": ["learning_progress"],
+      "writes": [
+        "learning_progress"
+      ],
       "stateClass": "interview",
-      "fences": ["http-method-ingress", "service-write-fence"],
+      "fences": [
+        "http-method-ingress",
+        "service-write-fence"
+      ],
       "disposition": "fenced"
     },
     {
@@ -205,9 +258,14 @@
       "path": "/interview/:id/career-path",
       "source": "apps/api/src/modules/interview/interview.controller.ts",
       "handler": "generateCareerPath",
-      "writes": ["career_path"],
+      "writes": [
+        "career_path"
+      ],
       "stateClass": "interview",
-      "fences": ["http-method-ingress", "service-write-fence"],
+      "fences": [
+        "http-method-ingress",
+        "service-write-fence"
+      ],
       "disposition": "fenced"
     },
     {
@@ -218,9 +276,16 @@
       "path": "/interview/:id/answers",
       "source": "apps/api/src/modules/interview/interview.controller.ts",
       "handler": "submitPreviewAnswer",
-      "writes": ["interview_answer_submission", "interview_answer_artifact", "interview_answer_job"],
+      "writes": [
+        "interview_answer_submission",
+        "interview_answer_artifact",
+        "interview_answer_job"
+      ],
       "stateClass": "interview",
-      "fences": ["http-method-ingress", "preview-controlled-write"],
+      "fences": [
+        "http-method-ingress",
+        "preview-controlled-write"
+      ],
       "disposition": "fenced"
     },
     {
@@ -233,7 +298,10 @@
       "handler": "answer",
       "writes": [],
       "stateClass": "interview-and-scoring",
-      "fences": ["http-method-ingress", "disabled-no-write"],
+      "fences": [
+        "http-method-ingress",
+        "disabled-no-write"
+      ],
       "disposition": "fenced"
     },
     {
@@ -244,9 +312,15 @@
       "path": "/applications/:id/start",
       "source": "apps/api/src/modules/jobs/applications.controller.ts",
       "handler": "start",
-      "writes": ["interview", "job_application"],
+      "writes": [
+        "interview",
+        "job_application"
+      ],
       "stateClass": "interview",
-      "fences": ["http-method-ingress", "service-write-fence"],
+      "fences": [
+        "http-method-ingress",
+        "service-write-fence"
+      ],
       "disposition": "fenced"
     },
     {
@@ -257,9 +331,14 @@
       "path": "/applications/:id/finalize",
       "source": "apps/api/src/modules/jobs/applications.controller.ts",
       "handler": "finalize",
-      "writes": ["job_application"],
+      "writes": [
+        "job_application"
+      ],
       "stateClass": "scoring",
-      "fences": ["http-method-ingress", "service-write-fence"],
+      "fences": [
+        "http-method-ingress",
+        "service-write-fence"
+      ],
       "disposition": "fenced"
     },
     {
@@ -270,9 +349,14 @@
       "path": "/api/interview/:id/turn",
       "source": "apps/web/app/api/interview/[id]/turn/route.ts",
       "handler": "POST",
-      "writes": ["interview_question", "interview_job"],
+      "writes": [
+        "interview_question",
+        "interview_job"
+      ],
       "stateClass": "interview-and-scoring",
-      "fences": ["web-middleware"],
+      "fences": [
+        "web-middleware"
+      ],
       "disposition": "fenced"
     },
     {
@@ -285,7 +369,9 @@
       "handler": "POST",
       "writes": [],
       "stateClass": "egress-only",
-      "fences": ["web-middleware"],
+      "fences": [
+        "web-middleware"
+      ],
       "disposition": "fenced"
     },
     {
@@ -298,7 +384,9 @@
       "handler": "POST",
       "writes": [],
       "stateClass": "egress-only",
-      "fences": ["web-middleware"],
+      "fences": [
+        "web-middleware"
+      ],
       "disposition": "fenced"
     },
     {
@@ -311,7 +399,9 @@
       "handler": "POST",
       "writes": [],
       "stateClass": "egress-only",
-      "fences": ["web-middleware"],
+      "fences": [
+        "web-middleware"
+      ],
       "disposition": "fenced"
     },
     {
@@ -322,9 +412,13 @@
       "path": "/api/interview/:id/abandon",
       "source": "apps/web/app/api/interview/[id]/abandon/route.ts",
       "handler": "POST",
-      "writes": ["interview"],
+      "writes": [
+        "interview"
+      ],
       "stateClass": "interview",
-      "fences": ["web-middleware"],
+      "fences": [
+        "web-middleware"
+      ],
       "disposition": "fenced"
     },
     {
@@ -335,9 +429,13 @@
       "path": "/api/applications/:id/finalize",
       "source": "apps/web/app/api/applications/[id]/finalize/route.ts",
       "handler": "POST",
-      "writes": ["job_application"],
+      "writes": [
+        "job_application"
+      ],
       "stateClass": "scoring",
-      "fences": ["web-middleware"],
+      "fences": [
+        "web-middleware"
+      ],
       "disposition": "fenced"
     },
     {
@@ -348,9 +446,14 @@
       "path": "/interviews",
       "source": "apps/web/app/interviews/actions.ts",
       "handler": "startInterviewAction",
-      "writes": ["interview", "interview_job"],
+      "writes": [
+        "interview",
+        "interview_job"
+      ],
       "stateClass": "interview",
-      "fences": ["web-middleware"],
+      "fences": [
+        "web-middleware"
+      ],
       "disposition": "fenced"
     },
     {
@@ -361,9 +464,14 @@
       "path": "/jobs",
       "source": "apps/web/app/jobs/actions.ts",
       "handler": "startApplicationAction",
-      "writes": ["interview", "job_application"],
+      "writes": [
+        "interview",
+        "job_application"
+      ],
       "stateClass": "interview",
-      "fences": ["web-middleware"],
+      "fences": [
+        "web-middleware"
+      ],
       "disposition": "fenced"
     },
     {
@@ -374,9 +482,13 @@
       "path": "/report/:id",
       "source": "apps/web/app/report/[id]/actions.ts",
       "handler": "retryReportAction",
-      "writes": ["ai_report"],
+      "writes": [
+        "ai_report"
+      ],
       "stateClass": "interview",
-      "fences": ["web-middleware"],
+      "fences": [
+        "web-middleware"
+      ],
       "disposition": "fenced"
     },
     {
@@ -387,10 +499,44 @@
       "path": null,
       "source": "packages/db/src/scoring/scoring-aggregation.ts",
       "handler": "writeFinalScoreCard",
-      "writes": ["score_card"],
+      "writes": [
+        "score_card"
+      ],
       "stateClass": "scoring",
-      "fences": ["internal-not-public"],
+      "fences": [
+        "internal-not-public"
+      ],
       "disposition": "not-public"
+    },
+    {
+      "id": "api-interview-listen-stream",
+      "kind": "http-route",
+      "exposure": "public-reachable",
+      "method": "POST",
+      "path": "/interview/:id/listen/stream",
+      "source": "apps/api/src/modules/interview/interview.controller.ts",
+      "handler": "listenStream",
+      "writes": [],
+      "stateClass": "egress-only",
+      "fences": [
+        "http-method-ingress"
+      ],
+      "disposition": "fenced"
+    },
+    {
+      "id": "web-proxy-listen-stream",
+      "kind": "web-proxy",
+      "exposure": "public-reachable",
+      "method": "POST",
+      "path": "/api/interview/:id/listen/stream",
+      "source": "apps/web/app/api/interview/[id]/listen/stream/route.ts",
+      "handler": "POST",
+      "writes": [],
+      "stateClass": "egress-only",
+      "fences": [
+        "web-middleware"
+      ],
+      "disposition": "fenced"
     }
   ]
 }

@@ -176,7 +176,7 @@ function wrapEvents(svc: { events: (principal: string, id: string, lastEventId?:
 async function startMinimalModule(_principal: string) {
   const db = createCountingDb();
   const rl = new RateLimitService();
-  const interviews = new InterviewService(db as unknown as DbService, rl, {} as never, {} as never, { id: 'disabled' } as never);
+  const interviews = new InterviewService(db as unknown as DbService, rl, {} as never, {} as never, { id: 'disabled' } as never, { id: 'disabled' } as never);
   const quizzes = new QuizService(db as unknown as DbService);
   const diagnoses = new DiagnosisService(db as unknown as DbService);
   const catchUp = new Map<string, number>();
@@ -379,7 +379,7 @@ console.log('\n──────── B6 · 6×429 风暴（同构最小模块
 {
   const db6 = createCountingDb();
   const rl6 = new RateLimitService();
-  const interviews6 = new InterviewService(db6 as unknown as DbService, rl6, {} as never, {} as never, { id: 'disabled' } as never);
+  const interviews6 = new InterviewService(db6 as unknown as DbService, rl6, {} as never, {} as never, { id: 'disabled' } as never, { id: 'disabled' } as never);
   const slotCount6 = (key: string) => (rl6 as unknown as { slots: Map<string, number> }).slots.get(key) ?? 0;
   type Held6 = { ac: AbortController; reader: ReadableStreamDefaultReader<Uint8Array> | undefined };
   const openSse6 = async (user: string): Promise<{ status: number; ct: string; hold: Held6 | undefined; body: unknown }> => {

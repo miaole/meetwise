@@ -101,7 +101,7 @@ async function main() {
   process.env.MEETWISE_PUBLIC_PREVIEW = '1';
   let dbCalls = 0;
   const db = { asPrincipal: async () => { dbCalls += 1; throw new Error('db_should_not_run'); } };
-  const interviews = new InterviewService(db as any, { allow: () => true } as any, {} as any, {} as any, {} as any);
+  const interviews = new InterviewService(db as any, { allow: () => true } as any, {} as any, {} as any, {} as any, {} as never);
   const applications = new ApplicationsService(db as any);
   await previewWriteBlocked(() => interviews.generateAssessment('userA', 'iv-preview'), 'generateAssessment service fence');
   await previewWriteBlocked(() => interviews.turn('userA', 'iv-preview', { turn: 0, answer: 'x' } as any), 'turn service fence');

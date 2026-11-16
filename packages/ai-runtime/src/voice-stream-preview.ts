@@ -6,10 +6,15 @@
  * the read-only public site (`MEETWISE_PUBLIC_PREVIEW=1`) stay refuse-closed
  * even if both flags are set. A capability Key alone does not open a stream.
  *
- * Flags being set is not verification. `voice.asr-stream.v1` stays unwired;
- * product composition (`createInterviewVoiceSeams`) never constructs a live
- * stream ASR or turn-taking seam. Failures must not invent a transcript or
- * score. Not a production SLO. `releaseEvidence=false`.
+ * Flags being set is not verification. Since the stream ASR product slice
+ * `voice.asr-stream.v1` is a wired registry operation and product composition
+ * (`createInterviewVoiceSeams`) constructs the live stream ASR / stream TTS
+ * seams only when `DASHSCOPE_STREAM_ASR_API_KEY` / `DASHSCOPE_STREAM_TTS_API_KEY`
+ * exist — the dual-flag gate still refuses inside `transcribeStream` /
+ * `synthesizeStream` and the product `/interview/:id/listen/stream` /
+ * `/interview/:id/speak/stream` pipes, so flags-or-Key alone never open a
+ * WebSocket. Server turn-taking stays un-built. Failures must not invent a
+ * transcript or score. Not a production SLO. `releaseEvidence=false`.
  */
 export const VOICE_STREAM_ASR_UNCONFIGURED = 'voice_stream_asr_unconfigured';
 export const VOICE_TURN_TAKING_NOT_CONFIGURED = 'voice_turn_taking_not_configured';

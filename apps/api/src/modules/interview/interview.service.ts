@@ -4,7 +4,7 @@ import { assertInterviewPrivacyActive, reserveEntitlement, reserveEntitlementFor
 import { deriveCareerPath, requireTrustedPracticeOverall, resolveOverlongAnswerPolicy, judgeInterviewAnswerContent, type InterviewAnswerContentDecision } from '@meetwise/domain';
 import { runCareerPathGraph, selectCareerPathDerive, CAREER_PATH_GRAPH_NAME } from '@meetwise/ai-graphs';
 import type { InterviewAnswerPreviewSubmitDto, InterviewAnswerSubmitResult, TranscribeDto, TurnDto } from '@meetwise/contracts';
-import type { Asr, Tts, StreamingTts } from '@meetwise/ai-runtime';
+import type { Asr, Tts, StreamingTts, StreamingAsr } from '@meetwise/ai-runtime';
 import { DbService } from '../../platform/db.service';
 import { RateLimitService } from '../../platform/rate-limit.service';
 import { parseLastEventId } from '../../platform/last-event-id.ts';
@@ -20,7 +20,7 @@ import {
   ContentSafetyKillSwitchActiveError,
 } from '../../platform/content-safety';
 import { toInterviewView } from './interview-view.ts';
-import { synthesizeSpokenAudio, prepareSpeakStreamText, transcribeForIssuedQuestion } from './interview-voice.ts';
+import { synthesizeSpokenAudio, prepareSpeakStreamText, transcribeForIssuedQuestion, prepareListenStream, listenStreamConsent, rememberListenStreamFinal } from './interview-voice.ts';
 import { reportView, retryReportById, exportReportMd, transcriptView } from './interview-report.ts';
 import { generateAssessmentFor, getAssessmentFor, getCareerPathFor } from './interview-assessment.ts';
 import { generateLearningPlanFor, getLearningPlanFor, completeLearningItemFor } from './interview-learning.ts';
@@ -81,6 +81,7 @@ function careerPathFailSeamThreadId(): string | undefined {
 export const VOICE_ASR = Symbol.for('meetwise.VOICE_ASR');
 export const VOICE_TTS = Symbol.for('meetwise.VOICE_TTS');
 export const VOICE_STREAM_TTS = Symbol.for('meetwise.VOICE_STREAM_TTS');
+export const VOICE_STREAM_ASR = Symbol.for('meetwise.VOICE_STREAM_ASR');
 
 /** 面试隐私围栏事务内守卫（原 InterviewService.guardInterviewPrivacy 方法体·模块化抽取供 beginInterviewCore 同事务复用·语义逐字等价）。 */
 export async function guardInterviewPrivacyTx(c: any, id: string): Promise<void> {
@@ -355,6 +356,7 @@ export class InterviewService {
     @Inject(VOICE_ASR) private readonly asr: Asr,
     @Inject(VOICE_TTS) private readonly tts: Tts,
     @Inject(VOICE_STREAM_TTS) private readonly streamTts: StreamingTts,
+    @Inject(VOICE_STREAM_ASR) private readonly streamAsr: StreamingAsr,
   ) {}
 
   /**
@@ -657,6 +659,38 @@ export class InterviewService {
   /** 流式 TTS 音频块迭代器(MP3,signal 可中断:挂断/切走/barge-in 即停吐)。边缘 I/O,在 invoke 关口之外。 */
   speakStreamChunks(text: string, signal: AbortSignal): AsyncIterable<Uint8Array> {
     return this.streamTts.synthesizeStream(text, signal);
+  }
+
+  /** 流式 ASR 前置:归属校验(404)+ 隐私围栏(410)+ 同意门(403)+ 配置/双旗校验(503)。真正的 PCM 读取/NDJSON 写入是 Fastify raw 流胶水,留在 controller(对齐 /speak/stream 边界 F5)。 */
+  async listenStreamPrepare(principal: string, id: string): Promise<string | undefined> {
+    await this.voiceGate(principal);
+    const owner = requireOwnerUserId(principal, 'interview.listenStreamPrepare');   // PRIV01-C 第二层 E1(授权根仍 RLS;guard 0 行→404 fail-closed)
+    let issuedQuestionId: string | undefined;
+    await this.db.asPrincipal(owner, async (c) => {
+      await this.guardInterviewPrivacy(c, id);
+      // CONSENT-MIN(#69):与批量 /transcribe 同款同意门——voice_capture 同意在先,音频出进程在后。序钉:围栏(410)先判,同意门(403)只在其后。
+      issuedQuestionId = await listenStreamConsent(c, id);
+    });
+    prepareListenStream(this.streamAsr);
+    return issuedQuestionId;
+  }
+
+  /** 流式 ASR 事件迭代器(partial/final,signal 可中断:挂断/切走/barge-in 即停收)。边缘 I/O,在 invoke 关口之外。 */
+  listenStreamEvents(chunks: AsyncIterable<Uint8Array>, signal: AbortSignal): AsyncIterable<{ text: string; final: boolean }> {
+    return this.streamAsr.transcribeStream(chunks, signal);
+  }
+
+  /** 流式收尾记账(与批量 /transcribe 同义·best-effort):流结束时仍有发出的题 → final 原文记到那道题上;失败不打断已交付的流。 */
+  async listenStreamRemember(principal: string, id: string, issuedQuestionId: string | undefined, finalText: string): Promise<void> {
+    const text = finalText.trim();
+    if (!text || !issuedQuestionId) return;
+    try {
+      const owner = requireOwnerUserId(principal, 'interview.listenStreamRemember');
+      await this.db.asPrincipal(owner, async (c) => {
+        await this.guardInterviewPrivacy(c, id);
+        await rememberListenStreamFinal(c, owner, id, issuedQuestionId, text);
+      });
+    } catch { /* bookkeeping only: the transcript events were already delivered */ }
   }
 
   // 题目反馈(赞/踩):收集人对 AI 生成题的质量信号,喂 eval/改进闭环。一题一反馈,可改(UPSERT)。
