@@ -147,7 +147,7 @@ async function main() {
     DATABASE_URL: 'postgresql://preview:proof@db.invalid:5432/preview',
     // 本 proof 的 app 不触真库（db.invalid）——显式关 TLS，防外层 env（如 .env 合并的
     // DATABASE_SSL_MODE=verify-full + 失效 CA 路径）把 createPool 配置校验打炸
-    // （database_ssl_ca_unreadable 实证：外层 .env CA=/private/tmp/*.pem 被系统清理后链上即红）。
+    // （database_ssl_ca_unreadable 实证：外层 .env 的临时 CA 文件被系统清理后链上即红）。
     DATABASE_SSL_MODE: 'disable',
   });
   const app = await createApp();
