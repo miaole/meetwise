@@ -29,7 +29,12 @@ function providerFactory(token: symbol): () => unknown {
 }
 
 async function main() {
-  const keyVars = ['DASHSCOPE_ASR_API_KEY', 'DASHSCOPE_TTS_API_KEY', 'DASHSCOPE_API_KEY'] as const;
+  const keyVars = [
+    'DASHSCOPE_ASR_API_KEY', 'DASHSCOPE_TTS_API_KEY', 'DASHSCOPE_API_KEY',
+    'DASHSCOPE_STREAM_ASR_API_KEY', 'DASHSCOPE_STREAM_TTS_API_KEY',
+    'VOICE_STREAM_ASR_ENABLED', 'VOICE_STREAM_ASR_PREVIEW',
+    'DASHSCOPE_STREAM_TTS_MODEL', 'DASHSCOPE_STREAM_TTS_VOICE',
+  ] as const;
   const saved = new Map<string, string | undefined>();
   for (const name of keyVars) saved.set(name, process.env[name]);
   for (const name of keyVars) delete process.env[name];
@@ -53,6 +58,7 @@ async function main() {
     const seams = createInterviewVoiceSeams();
     check('composition factory without Keys stays unconfigured',
       seams.asrConfigured === false && seams.ttsConfigured === false
+      && seams.streamTtsConfigured === false
       && seams.streamAsrConfigured === false && seams.turnTakingConfigured === false);
     check('composition stream ASR stays fail-closed before transport',
       await errorOf(() => seams.streamAsr.transcribeStream((async function* () { yield new Uint8Array([1]); })())[Symbol.asyncIterator]().next()) === 'streaming_asr_not_configured');
@@ -64,6 +70,16 @@ async function main() {
       && await errorOf(() => poisonedTts.synthesize('synthetic text')) === 'tts_not_configured'
       && fetches === 0);
     delete process.env.DASHSCOPE_API_KEY;
+    // 流式 TTS 产品接线（预览）honest 面：Key 在 → 模块工厂给出 live 缝（id=cosyvoice-v2）；
+    // 双旗门仍在 synthesizeStream 内 → 无旗照旧 streaming_tts_not_configured，零外呼。
+    process.env.DASHSCOPE_STREAM_TTS_API_KEY = 'preview-stream-tts-key';
+    const wiredStream = providerFactory(VOICE_STREAM_TTS)() as StreamingTts;
+    check('stream TTS Key wires the module factory to the cosyvoice adapter (id reflects default model)',
+      wiredStream.id === 'cosyvoice-v2');
+    check('composed stream TTS without dual preview flags still refuses before transport',
+      await errorOf(() => wiredStream.synthesizeStream('synthetic text')[Symbol.asyncIterator]().next()) === 'streaming_tts_not_configured'
+      && fetches === 0);
+    delete process.env.DASHSCOPE_STREAM_TTS_API_KEY;
   } finally {
     globalThis.fetch = originalFetch;
     for (const [name, value] of saved) {

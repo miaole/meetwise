@@ -98,6 +98,7 @@
   "prove:voice-timeout": "node --import @swc-node/register/esm-register test/voice-timeout.proof.ts",
   "prove:voice-operation-policy": "tsx test/voice-operation-policy.proof.ts",
   "prove:voice-cancel-http": "tsx test/voice-cancel-http.proof.ts",
+  "prove:voice-stream-tts-live": "node --import @swc-node/register/esm-register test/voice-stream-tts-live.proof.ts",
   "prove:ocr-operation-policy": "tsx test/ocr-operation-policy.proof.ts",
   "prove:r2-p-api-route-classify": "tsx test/r2-p-api-route-classify.proof.ts",
   "prove:public-preview-write-gate": "node --import ./node_modules/@swc-node/register/esm/esm-register.mjs test/public-preview-write-gate.proof.ts",

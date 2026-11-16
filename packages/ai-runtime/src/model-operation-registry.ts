@@ -128,8 +128,12 @@ const WIRED_VISION_OPERATIONS: readonly ModelOperationDefinition[] = [
 /**
  * Preview interview voice: registry owns batch ASR/TTS node identity so the
  * composition factory can construct native adapters when capability Keys exist.
- * `wired` here is not MODEL-OP-02 shared admission (those rows stay blocked)
- * and is not a production SLO, deletion receipt, or streaming authorization.
+ * `voice.tts-stream.v1` is wired the same honest way since the stream TTS
+ * product slice: the interview composition root constructs the cosyvoice WS
+ * adapter only when `DASHSCOPE_STREAM_TTS_API_KEY` exists and this binding
+ * resolves wired. `wired` here is not MODEL-OP-02 shared admission (those rows
+ * stay blocked) and is not a production SLO, deletion receipt, or streaming
+ * ASR / turn-taking authorization (`voice.asr-stream.v1` stays unwired).
  */
 const WIRED_VOICE_OPERATIONS: readonly ModelOperationDefinition[] = [
   {
@@ -140,6 +144,11 @@ const WIRED_VOICE_OPERATIONS: readonly ModelOperationDefinition[] = [
   {
     operationId: 'voice.tts.v1', inputKind: 'tts', capability: 'tts', maxDispatches: 1,
     wired: true, admission: { providerAccount: 'dashscope-native', region: 'cn-beijing', modelOrRecipe: 'tts' },
+    meter: 'tts-characters', fallbackAction: 'text_display',
+  },
+  {
+    operationId: 'voice.tts-stream.v1', inputKind: 'tts-stream', capability: 'tts', maxDispatches: 1,
+    wired: true, admission: { providerAccount: 'dashscope-native', region: 'cn-beijing', modelOrRecipe: 'tts-stream' },
     meter: 'tts-characters', fallbackAction: 'text_display',
   },
 ];
@@ -170,11 +179,6 @@ const UNWIRED_OPERATIONS: readonly ModelOperationDefinition[] = [
     operationId: 'voice.asr-stream.v1', inputKind: 'asr-stream', capability: 'asr', maxDispatches: 1,
     wired: false, admission: { providerAccount: 'dashscope-native', region: 'cn-beijing', modelOrRecipe: 'asr-stream' },
     meter: 'audio-seconds', fallbackAction: 'text_input',
-  },
-  {
-    operationId: 'voice.tts-stream.v1', inputKind: 'tts-stream', capability: 'tts', maxDispatches: 1,
-    wired: false, admission: { providerAccount: 'dashscope-native', region: 'cn-beijing', modelOrRecipe: 'tts-stream' },
-    meter: 'tts-characters', fallbackAction: 'text_display',
   },
   {
     operationId: 'voice.signed-download.v1', inputKind: 'signed-download', capability: 'signed-download', maxDispatches: 1,

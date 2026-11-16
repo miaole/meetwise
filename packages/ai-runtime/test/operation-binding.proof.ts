@@ -71,7 +71,7 @@ const FIXTURES: Fixture[] = [
   {
     operationId: 'voice.tts-stream.v1',
     input: { inputKind: 'tts-stream', voiceContract: 'voice.standard.v1', textRef: ref('tts-text', 't1'), maxCharacters: 2000, sessionRef: ref('session', 's1') },
-    profileId: 'dashscope-cn-beijing', host: 'dashscope.aliyuncs.com', scheme: 'wss', wired: false,
+    profileId: 'dashscope-cn-beijing', host: 'dashscope.aliyuncs.com', scheme: 'wss', wired: true,
   },
   {
     operationId: 'voice.signed-download.v1',
@@ -86,9 +86,9 @@ async function main() {
     validateOperationBindingProfiles().length === 0);
   A('registry 静态不变量仍成立（resume.ocr.v1 翻 wired 后无破坏）',
     validateModelOperationRegistry().length === 0);
-  A('wired 计数：7 文本(含 job.route-classify) + 1 视觉(OCR) + 2 批量语音 = 10 wired，其余 6 native 仍 fail-closed',
-    MODEL_OPERATION_REGISTRY.filter((d) => d.wired).length === 10
-    && MODEL_OPERATION_REGISTRY.filter((d) => !d.wired).length === 6);
+  A('wired 计数：7 文本(含 job.route-classify) + 1 视觉(OCR) + 2 批量语音 + 1 流式 TTS = 11 wired，其余 5 native 仍 fail-closed',
+    MODEL_OPERATION_REGISTRY.filter((d) => d.wired).length === 11
+    && MODEL_OPERATION_REGISTRY.filter((d) => !d.wired).length === 5);
 
   const bound: BoundModelOperation[] = [];
   for (const fixture of FIXTURES) {

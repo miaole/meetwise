@@ -387,6 +387,10 @@
       ],
       "consumers": [
         {
+          "source": "packages/ai-runtime/src/interview-voice-seams.ts",
+          "class": "production-runtime"
+        },
+        {
           "source": "packages/ai-runtime/test/dashscope-native-config.proof.ts",
           "class": "local-adapter-test"
         },
@@ -905,6 +909,16 @@
       "class": "test-isolation"
     },
     {
+      "name": "DASHSCOPE_STREAM_ASR_API_KEY",
+      "source": "apps/api/test/voice-operation-policy.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_ASR_API_KEY",
+      "source": "apps/api/test/voice-stream-tts-live.proof.ts",
+      "class": "test-isolation"
+    },
+    {
       "name": "DASHSCOPE_STREAM_ASR_MODEL",
       "source": "packages/ai-runtime/src/voice-stream.ts",
       "class": "adapter"
@@ -965,6 +979,31 @@
       "class": "test-isolation"
     },
     {
+      "name": "DASHSCOPE_STREAM_TTS_API_KEY",
+      "source": "packages/ai-runtime/src/interview-voice-seams.ts",
+      "class": "adapter"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_API_KEY",
+      "source": "packages/ai-runtime/src/model-operation-registry.ts",
+      "class": "adapter"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_API_KEY",
+      "source": "packages/ai-runtime/src/voice-stream.ts",
+      "class": "adapter"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_API_KEY",
+      "source": "apps/api/test/voice-operation-policy.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_API_KEY",
+      "source": "apps/api/test/voice-stream-tts-live.proof.ts",
+      "class": "test-isolation"
+    },
+    {
       "name": "DASHSCOPE_STREAM_TTS_MODEL",
       "source": "packages/ai-runtime/src/voice-stream.ts",
       "class": "adapter"
@@ -978,6 +1017,41 @@
       "name": "DASHSCOPE_STREAM_TTS_MODEL",
       "source": "scripts/isolated-inherited-env.mjs",
       "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_MODEL",
+      "source": "packages/ai-runtime/test/voice-stream-preview.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_MODEL",
+      "source": "apps/api/test/voice-operation-policy.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_MODEL",
+      "source": "apps/api/test/voice-stream-tts-live.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_VOICE",
+      "source": "packages/ai-runtime/src/voice-stream.ts",
+      "class": "adapter"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_VOICE",
+      "source": "packages/ai-runtime/test/voice-stream-preview.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_VOICE",
+      "source": "apps/api/test/voice-operation-policy.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_VOICE",
+      "source": "apps/api/test/voice-stream-tts-live.proof.ts",
+      "class": "test-fixture"
     },
     {
       "name": "DASHSCOPE_STREAM_URL",
@@ -2525,6 +2599,11 @@
       "class": "test-isolation"
     },
     {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/voice-stream-tts-live.proof.ts",
+      "class": "test-isolation"
+    },
+    {
       "name": "MODEL_BACKUP_API_KEY",
       "source": "scripts/isolated-inherited-env.mjs",
       "class": "test-isolation"
@@ -2547,6 +2626,11 @@
     {
       "name": "DASHSCOPE_API_KEY",
       "source": "scripts/isolated-env-policy.proof.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "apps/api/test/voice-stream-tts-live.proof.ts",
       "class": "test-isolation"
     }
   ],

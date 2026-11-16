@@ -32,9 +32,9 @@ function chatInput(overrides: Record<string, unknown> = {}) {
 // ── 正常: registry invariants + wired/unwired split.
 A('registry 静态不变量：唯一 id、完整 admission、maxDispatches=1、确定性 fallback',
   validateModelOperationRegistry().length === 0);
-A('十个已接线操作(七文本含 job.route-classify + 一视觉 OCR+批量 ASR/TTS)与六个未接线 typed contract 全部登记',
-  MODEL_OPERATION_REGISTRY.filter((definition) => definition.wired).length === 10
-  && MODEL_OPERATION_REGISTRY.filter((definition) => !definition.wired).length === 6);
+A('十一个已接线操作(七文本含 job.route-classify + 一视觉 OCR+批量 ASR/TTS+流式 TTS)与五个未接线 typed contract 全部登记',
+  MODEL_OPERATION_REGISTRY.filter((definition) => definition.wired).length === 11
+  && MODEL_OPERATION_REGISTRY.filter((definition) => !definition.wired).length === 5);
 A('MODEL-OP-02 准入分区含 providerAccount+region+modelOrRecipe+operation 且不由调用方提供',
   new Set(MODEL_OPERATION_REGISTRY.map((definition) => [
     definition.admission.providerAccount, definition.admission.region, definition.admission.modelOrRecipe, definition.operationId,
@@ -69,13 +69,15 @@ A('businessRevision 含冒号时 isRegistryLogicalNodeKey 仍识别，空 revisi
 A('未登记 operation、未接线 operation 与非法 revision 均确定性拒绝',
   reject(resolveModelOperation('interview.unknown.v1', 'r1'), 'model_operation_unknown')
   && reject(resolveModelOperation('qbank.embedding-build.v1', 'r1'), 'model_operation_not_wired')
-  && reject(resolveModelOperation('voice.tts-stream.v1', 'r1'), 'model_operation_not_wired')
+  && reject(resolveModelOperation('voice.asr-stream.v1', 'r1'), 'model_operation_not_wired')
   && reject(resolveModelOperation('interview.question-generation.v1', ''), 'model_operation_revision_invalid')
   && reject(resolveModelOperation('interview.question-generation.v1', 'bad revision\n'), 'model_operation_revision_invalid')
-  // MODEL-OP-01: resume.ocr.v1 与批量 voice.asr/tts 已切 registry node identity → wired。
+  // MODEL-OP-01: resume.ocr.v1、批量 voice.asr/tts 与流式 voice.tts-stream.v1（语音产品接线刀）
+  // 已切 registry node identity → wired；流式 ASR 仍 unwired。
   && resolveModelOperation('resume.ocr.v1', 'r1').ok === true
   && resolveModelOperation('voice.asr.v1', 'r1').ok === true
   && resolveModelOperation('voice.tts.v1', 'r1').ok === true
+  && resolveModelOperation('voice.tts-stream.v1', 'r1').ok === true
   && resolveModelOperation('job.route-classify.v1', 'r1').ok === true);
 
 // ── typed input binding: 正常.

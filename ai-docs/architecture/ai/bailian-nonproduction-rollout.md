@@ -74,7 +74,7 @@ related:
 | 批量 ASR | `qwen-audio-3.0-asr-flash` | ☐ | 现 API 默认 ASR 已 disabled；`qwen-audio-turbo-latest` 不能继续假定兼容文本 chat 协议。须先完成正确原生契约、音频时长、取消、费用与删除验收 | 文字输入。 |
 | 批量 TTS | `qwen-tts`（候选兜底 `qwen-audio-3.0-tts-flash`） | ☐ | API 与手工 smoke 均 disabled；下载边界、并发、取消、费用与删除验收后才可逐 operation 启用 | 文字展示。 |
 | 流式 ASR | `paraformer-realtime-v2`（候选 `qwen-audio-3.0-asr-flash-streaming`） | ☐ | 生产/默认 fail-closed。预览须精确双旗且非生产锁；组合根仍不接线。须有 browser→API→受控流会话、帧预算和取消回执后才可改称已验证 | 不启用语音回合，文字输入；不编造转写。 |
-| 流式 TTS | `cosyvoice-v1` | ☐ | API 与手工 smoke 均 disabled；须有流会话、下载/播放取消与费用验收 | 文字展示。 |
+| 流式 TTS | `cosyvoice-v2`（voice `longxiaochun_v2`·v1 已死） | ◐ | 2026-11-16 预览产品接线：registry wired + 组合根按 `DASHSCOPE_STREAM_TTS_API_KEY` 装配 + `/speak/stream` 产品管道真音频回执（隔离 runner·用户授权真钥·`releaseEvidence=false`）；运行时双旗门仍在适配器内。下载/播放取消与费用验收、真机起播、UI 开关未做 | 预览版播题；失败回文字。 |
 | 评分 | 文本模型，不固定为默认/快模型 | ☐ | `SCOR-01…08`、rubric/coverage/校准/人工复核完成 | `unscored` 或 `review_required`；绝不写默认分数。 |
 | 长期记忆候选摘要 | 小文本模型，不固定 | ☐ | `MEM-00…14`、来源/删除/冲突/确认门完成 | 不写任何跨会话派生物。 |
 
