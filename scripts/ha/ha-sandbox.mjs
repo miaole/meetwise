@@ -509,6 +509,27 @@ if (tok) {
 writeFileSync(out, JSON.stringify({ mode, signup, profile, hasToken: Boolean(tok), token: tok, userId, at: new Date().toISOString() }, null, 2));
 `);
 
+const HELPER_LOAD = writeHelper('probe-load.mjs', `#!/usr/bin/env node
+// In-container HTTP load probe via LB: N sequential GETs with per-request latency; JSON out.
+import { writeFileSync } from 'node:fs';
+const count = Number(process.argv[2] || '30');
+const path = process.argv[3] || '/profile';
+const token = process.argv[4] || '';
+const out = process.argv[5] || '/app/.tmp/ha-sandbox/out-load.json';
+const latencies = []; const statuses = {}; let failures = 0;
+for (let i = 0; i < count; i++) {
+  const t0 = Date.now();
+  try {
+    const res = await fetch('http://lb:8787' + path, { headers: token ? { authorization: 'Bearer ' + token } : {}, signal: AbortSignal.timeout(8000) });
+    statuses[res.status] = (statuses[res.status] || 0) + 1;
+  } catch { failures += 1; }
+  latencies.push(Date.now() - t0);
+}
+latencies.sort((a, b) => a - b);
+const pct = (p) => latencies[Math.min(latencies.length - 1, Math.floor(latencies.length * p))];
+writeFileSync(out, JSON.stringify({ count, path, failures, statuses, p50: pct(0.5), p95: pct(0.95), max: latencies[latencies.length - 1], at: new Date().toISOString() }, null, 2));
+`);
+
 const HELPER_SSE = writeHelper('probe-sse.mjs', `#!/usr/bin/env node
 // In-container SSE probe via LB: attach or resume; streams events into an output JSON file.
 import { writeFileSync } from 'node:fs';
@@ -1103,9 +1124,127 @@ function cmdDown() {
 note('honesty banner', true, 'haStatus=NOT_HA; releaseEvidence=false; local sandbox ≠ production HA; est live=0');
 note('MEETWISE_HA_SANDBOX_AUTHORIZED', authorized, authorized ? 'set' : 'unset — refuse sandbox operations (fail-closed auth gate)');
 
-const handlers = { up: cmdUp, v2: cmdV2, v3: cmdV3, v4: cmdV4, v5: cmdV5, v6: cmdV6, down: cmdDown };
+// A-P0-RLS drill（production-backlog :188 P0 残余收口）：同构 compose HTTP+队列压测 + 故障恢复演练。
+// HTTP 面：K 用户经 LB 并发 /profile 负载两波，两波之间 SIGKILL api-a（LB failover + 重启策略自愈）。
+// 队列面：4 面试 × 7 行 interview_job（start 锚 + 6 answer·attempts=4·首败即 MAX 终态——重试梯子由
+// requeueOrTerminalizeExhausted 既有臂承担，本 drill 打吞吐/终态审计面）；interview status=created
+// （生产可产出初始态·失败收口白名单成员——active 形已证实为活锁反例，见 fixture 内注）；mid-drain
+// docker stop worker-b（排空容量减半）→ worker-a 独自消费。审计：28 行全部终态（done/failed）·
+// attempts ≤ MAX(5)·队列清零·HTTP 无 5xx（failover 窗连接错如实计数不藏）。
+// est live=0（模型端点 .invalid·零真实外呼）·local sandbox ≠ production HA。
+async function cmdV7() {
+  const USERS = 4;
+  const JOBS_PER = 6;
+  const MAX_ATTEMPTS = 5;
+  // ⓪ 幂等清场：上轮残留（如中途 crash 留下的半组 fixture）会混入 ha-iv7-% 终态审计计数
+  // （done+failed===totalRows 判据即被打脏）——每轮起跑前先清本轮前缀族（子表 FK ON DELETE CASCADE）。
+  psql(`DELETE FROM interview_job WHERE interview_id LIKE 'ha-iv7-%'; DELETE FROM interview WHERE id LIKE 'ha-iv7-%'; DELETE FROM resume WHERE content_sha LIKE 'v7-sha-%';`);
+  // ① 场布：4 用户 + 4 面试 + 28 行队列 job（start 锚 + answer 族·attempts=4=MAX-1·首败即终态）。
+  const users = [];
+  for (let i = 0; i < USERS; i++) {
+    const auth = signupViaLb(`out-auth7-${i}.json`);
+    if (!auth || !auth.token || !auth.userId) finish(1, { result: 'FAIL', gap: `signup via LB failed (user ${i})` });
+    const ivId = `ha-iv7-${Date.now()}-${i}`;
+    // resume+epoch 关联是 answer job 的 tf_interview_job_resume_reference 闸前提（0059 写 guard
+    // 族）——fixture 与 erasure-job-projection seedInterview 同形（resume ingested + epoch=1）。
+    const resumeR = psql(`INSERT INTO resume (id, owner_user_id, status, content_sha, privacy_epoch) VALUES (gen_random_uuid(), '${auth.userId}', 'ingested', 'v7-sha-${i}', 1) RETURNING id;`);
+    const resumeId = resumeR.stdout.trim().split('\n').filter(Boolean).pop();
+    if (!resumeId || resumeId.length < 30) finish(1, { result: 'FAIL', gap: `resume insert failed (user ${i})` });
+    // interview status 必须用 created（生产可产出的初始态）：失败收口 failInterviewAndRelease
+    // （commerce.ts）仅放行 created/waiting_user/migrating/paused→failed；active 不在白名单且
+    // 生产已不可写入（「active 非生产写入态·死成员已摘除」）——上轮 'active' fixture 使
+    // markJobFailed→failInterviewAndRelease 每拍抛 interview_failure_terminal_conflict:active
+    // 回滚（drain+reaper 双臂同抛），job 在 queued↔running 间活锁、done/failed 恒 0（715s 读数
+    // 24 queued@4 + 4 running@5）。created 形下既有失败臂单事务收口：markJobFailed→
+    // failInterviewAndRelease（created→failed）→failQueuedInterviewJobsOnAbandon 同拍把同面试
+    // 仍 queued 的兄弟行终态化 failed/abandoned——每面试一拍全终态，排空窗内可绿。
+    const ivR = psql(`INSERT INTO interview (id, owner_user_id, status, resume_id, resume_privacy_epoch) VALUES ('${ivId}', '${auth.userId}', 'created', '${resumeId}', 1) RETURNING id;`);
+    if (!ivR.stdout.trim().includes(ivId)) finish(1, { result: 'FAIL', gap: `interview insert failed (user ${i})` });
+    // reference_schema_version=64 合同：start 锚（携 resume_id+epoch）+ answer 族（locator NULL·
+    // epoch=1）必须同一 psql -c 隐式事务落库（psql 多语句单串=单事务，失败全回滚）。answer 行的
+    // v64 写闸（trg_interview_job_resume_reference）要求 start 锚 status IN ('queued','running','done')
+    // ——若 start 单条先行落库，worker 的 5000ms 对账拍可在 answer 落库前把它领走，本沙箱占位面试
+    // 无 route 快照 → adaptive_role_route_missing 秒败即终态（created 形失败臂单事务收口·锚 failed），
+    // 后续 answer INSERT 必撞 interview_job_v64_parent_resume_mismatch。同事务原子提交后 worker 才见全组行。
+    const vals = [
+      `('${auth.userId}', '${ivId}', 'start', 0, '{}', 4, now(), '${resumeId}', 1, 64)`,
+      ...Array.from({ length: JOBS_PER }, (_unused, j) => `('${auth.userId}', '${ivId}', 'answer', ${j + 1}, '{"v7load":true}', 4, now(), NULL, 1, 64)`),
+    ].join(', ');
+    const jr = psqlOwner(auth.userId, `INSERT INTO interview_job (owner_user_id, interview_id, kind, seq, payload, attempts, next_attempt_at, resume_id, resume_privacy_epoch, reference_schema_version) VALUES ${vals} RETURNING id, kind;`);
+    const fam = jr.stdout.trim().split('\n').filter(Boolean);
+    if (fam.length !== JOBS_PER + 1 || fam.filter((l) => l.endsWith('|start')).length !== 1) {
+      finish(1, { result: 'FAIL', gap: `job family insert failed (user ${i})`, note: jr.stderr.slice(0, 300) || `rows=${fam.length}` });
+    }
+    users.push({ token: auth.token, userId: auth.userId, ivId });
+  }
+  note('fixture ready', true, `${USERS} users × ${JOBS_PER + 1} jobs = ${USERS * (JOBS_PER + 1)} queued rows (attempts=4·首败即 MAX 终态·interview created 形=失败臂白名单成员)`);
+
+  // ② HTTP 负载波 1（并发 2×40 GET /profile·持 token）+ 波中 SIGKILL api-a → LB failover。
+  const b1 = execDetach('api-b', [HELPER_LOAD, '40', '/profile', users[0].token, '/app/.tmp/ha-sandbox/out-load1.json']);
+  const b2 = execDetach('api-b', [HELPER_LOAD, '40', '/profile', users[1].token, '/app/.tmp/ha-sandbox/out-load2.json']);
+  sleepSync(400);
+  const nameA = containerName('api-a');
+  const killed = crashReplica(nameA);
+  note('mid-load SIGKILL api-a', killed.status === 0, `container=${nameA}（重启策略自愈·LB 摘流）`);
+  let load1 = readOut('out-load1.json', 60, 500);
+  let load2 = readOut('out-load2.json', 60, 500);
+  note('HTTP 负载波 1 完成（含 failover 窗）', Boolean(load1 && load2), `failures=${load1 && load1.failures}/${load2 && load2.failures} p50=${load1 && load1.p50}/${load2 && load2.p50}ms`);
+
+  // ③ 队列排空容量减半：docker stop worker-b（worker-a 独自消费）。
+  const nameB0 = containerName('worker-b');
+  sh('docker', ['stop', nameB0]);
+  note('worker-b stopped mid-drain', true, `${nameB0}（排空容量减半·worker-a 独自消费）`);
+
+  // ④ HTTP 负载波 2（failover 后·走 api-b）。
+  const b3 = execDetach('api-b', [HELPER_LOAD, '40', '/profile', users[2].token, '/app/.tmp/ha-sandbox/out-load3.json']);
+  const load3 = readOut('out-load3.json', 60, 500);
+  note('HTTP 负载波 2 完成（failover 后）', Boolean(load3), `failures=${load3 && load3.failures} p50=${load3 && load3.p50}ms statuses=${JSON.stringify(load3 && load3.statuses)}`);
+
+  // ⑤ 队列终态审计：轮询至 24 行全部 done/failed（上限 720s），attempts ≤ 5，queued/running 清零。
+  const totalRows = USERS * (JOBS_PER + 1);   // start 锚 + answer 族
+  const auditSql = `SELECT status, count(*)::int AS n, coalesce(max(attempts), 0)::int AS max_attempts FROM interview_job WHERE interview_id LIKE 'ha-iv7-%' GROUP BY status ORDER BY status;`;
+  let audit = null;
+  let allTerminal = false;
+  const drainT0 = Date.now();
+  while (Date.now() - drainT0 < 720_000) {
+    const r = psql(auditSql);
+    const rows = r.stdout.trim().split('\n').map((l) => l.split('|')).filter((p2) => p2.length >= 3);
+    const byStatus = {};
+    for (const [status, n, maxA] of rows) byStatus[status.trim()] = { n: Number(n), maxAttempts: Number(maxA) };
+    const queued = (byStatus.queued ? byStatus.queued.n : 0) + (byStatus.running ? byStatus.running.n : 0);
+    const done = byStatus.done ? byStatus.done.n : 0;
+    const failed = byStatus.failed ? byStatus.failed.n : 0;
+    const maxAttempts = Math.max(0, ...rows.map((p2) => Number(p2[2])));
+    audit = { byStatus, queued, done, failed, maxAttempts, seconds: Math.round((Date.now() - drainT0) / 1000) };
+    if (done + failed === totalRows && queued === 0) { allTerminal = true; audit.byStatus = byStatus; break; }
+    sleepSync(15_000);
+  }
+  note('queue drained to all-terminal', allTerminal, JSON.stringify(audit));
+  const attemptsOk = Boolean(audit && audit.maxAttempts <= MAX_ATTEMPTS);
+  note('attempts ≤ MAX(5)（有界重试封顶在位）', attemptsOk, `maxAttempts=${audit && audit.maxAttempts}`);
+  const httpNo5xx = [load1, load2, load3].filter(Boolean).every((l) => Object.keys(l.statuses).every((code) => !code.startsWith('5')));
+  note('HTTP 全程无 5xx（failover 干净·连接错如实计数）', httpNo5xx, `statuses=${JSON.stringify([load1, load2, load3].filter(Boolean).map((l) => l.statuses))}`);
+  const recovered = waitContainerRestarted(nameA, 0, 90_000);
+  note('api-a 重启策略自愈复位', recovered, `container=${nameA}`);
+
+  const v7ok = allTerminal && attemptsOk && httpNo5xx && Boolean(load1 && load2 && load3) && killed.status === 0 && recovered;
+  const v7exit = v7ok ? 0 : 1;
+  writeReceipt('v7-load-drill.receipt.json', {
+    result: v7ok ? 'OK' : 'FAIL',
+    v: 'V7',
+    users: USERS, jobsPer: JOBS_PER, totalRows,
+    load1, load2, load3,
+    apiAKilled: killed.status === 0, apiARestarted: recovered, workerBStopped: nameB0,
+    queueAudit: audit, attemptsOk, httpNo5xx,
+    command: 'MEETWISE_HA_SANDBOX_AUTHORIZED=1 node scripts/ha/ha-sandbox.mjs v7',
+    note: 'A-P0-RLS drill: isomorphic compose HTTP+queue load with mid-load failover (api-a SIGKILL) and half drain capacity (worker-b stop); attempts=4 fixture = first-fail terminal (retry ladder owned by requeueOrTerminalizeExhausted existing arms); interview status=created (production-producible, failInterviewAndRelease whitelist member) — previous active-shape fixture livelocked on interview_failure_terminal_conflict (drain+reaper rollback loop, done/failed pinned 0); est live=0; local sandbox ≠ production HA; all predicates participate in EXIT',
+  }, v7exit);
+  finish(v7exit, { result: v7ok ? 'V7_LOAD_DRILL_OK' : 'FAIL' }, 'v7');
+}
+
+const handlers = { up: cmdUp, v2: cmdV2, v3: cmdV3, v4: cmdV4, v5: cmdV5, v6: cmdV6, v7: cmdV7, down: cmdDown };
 if (!handlers[cmd]) {
-  finish(2, { result: 'USAGE', gap: `unknown subcommand '${cmd}'`, note: 'up | v2 | v3 | v4 | v5 | v6 | down' });
+  finish(2, { result: 'USAGE', gap: `unknown subcommand '${cmd}'`, note: 'up | v2 | v3 | v4 | v5 | v6 | v7 | down' });
 }
 if (!authorized) {
   finish(1, { result: 'PREREQ_GAP', gap: 'MEETWISE_HA_SANDBOX_AUTHORIZED unset — sandbox bring-up / fault-inject refused' });
