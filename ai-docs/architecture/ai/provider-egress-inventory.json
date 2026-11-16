@@ -2745,6 +2745,41 @@
       "name": "DASHSCOPE_STREAM_ASR_API_KEY",
       "source": "packages/ai-runtime/src/model-operation-registry.ts",
       "class": "adapter"
+    },
+    {
+      "name": "DASHSCOPE_TTS_API_KEY",
+      "source": "scripts/run-e2e-ui.mjs",
+      "class": "live-test-launcher"
+    },
+    {
+      "name": "DASHSCOPE_ASR_API_KEY",
+      "source": "scripts/run-e2e-ui.mjs",
+      "class": "live-test-launcher"
+    },
+    {
+      "name": "DASHSCOPE_TTS_MODEL",
+      "source": "scripts/run-e2e-ui.mjs",
+      "class": "live-test-launcher"
+    },
+    {
+      "name": "DASHSCOPE_ASR_MODEL",
+      "source": "scripts/run-e2e-ui.mjs",
+      "class": "live-test-launcher"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_MODEL",
+      "source": "scripts/run-e2e-ui.mjs",
+      "class": "live-test-launcher"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_TTS_VOICE",
+      "source": "scripts/run-e2e-ui.mjs",
+      "class": "live-test-launcher"
+    },
+    {
+      "name": "DASHSCOPE_STREAM_ASR_MODEL",
+      "source": "scripts/run-e2e-ui.mjs",
+      "class": "live-test-launcher"
     }
   ],
   "deploymentReferences": [

@@ -9,9 +9,9 @@ test.beforeEach(({ }, testInfo) => {
   // Honest capability gate: TTS priming + ASR require the two DashScope voice
   // capability keys to be present in the process env (they are injected at
   // runtime by scripts/run-e2e-ui.mjs from the repo-root .env universal
-  // Bailian key — user-authorized 2026-11-16 for real voice verification;
-  // zero key literals enter the repo/logs/receipts). Absent keys → honest
-  // skip; skip is not pass (Ban假绿).
+  // Bailian key (MODEL_API_KEY) — user-authorized 2026-11-16 for real voice
+  // verification; zero key literals enter the repo/logs/receipts). Absent
+  // keys → honest skip; skip is not pass (Ban假绿).
   test.skip(!voiceKeysReady, 'DASHSCOPE_TTS_API_KEY/DASHSCOPE_ASR_API_KEY unset — voice duplex not provable');
 });
 
