@@ -1,0 +1,126 @@
+{
+  "result": "OK",
+  "v": "V7",
+  "users": 4,
+  "jobsPer": 6,
+  "totalRows": 28,
+  "load1": {
+    "count": 40,
+    "path": "/profile",
+    "failures": 0,
+    "statuses": {
+      "200": 40
+    },
+    "p50": 4,
+    "p95": 7,
+    "max": 35,
+    "at": "2026-11-16T02:22:55.664Z"
+  },
+  "load2": {
+    "count": 40,
+    "path": "/profile",
+    "failures": 0,
+    "statuses": {
+      "200": 40
+    },
+    "p50": 3,
+    "p95": 7,
+    "max": 33,
+    "at": "2026-11-16T02:22:55.831Z"
+  },
+  "load3": {
+    "count": 40,
+    "path": "/profile",
+    "failures": 0,
+    "statuses": {
+      "200": 40
+    },
+    "p50": 6,
+    "p95": 37,
+    "max": 68,
+    "at": "2026-11-15T22:49:04.175Z"
+  },
+  "apiAKilled": true,
+  "apiARestarted": true,
+  "workerBStopped": "meetwise-worker-b-1",
+  "queueAudit": {
+    "byStatus": {
+      "failed": {
+        "n": 28,
+        "maxAttempts": 5
+      }
+    },
+    "queued": 0,
+    "done": 0,
+    "failed": 28,
+    "maxAttempts": 5,
+    "seconds": 0
+  },
+  "attemptsOk": true,
+  "httpNo5xx": true,
+  "command": "MEETWISE_HA_SANDBOX_AUTHORIZED=1 node scripts/ha/ha-sandbox.mjs v7",
+  "note": "A-P0-RLS drill: isomorphic compose HTTP+queue load with mid-load failover (api-a SIGKILL) and half drain capacity (worker-b stop); attempts=4 fixture = first-fail terminal (retry ladder owned by requeueOrTerminalizeExhausted existing arms); interview status=created (production-producible, failInterviewAndRelease whitelist member) — previous active-shape fixture livelocked on interview_failure_terminal_conflict (drain+reaper rollback loop, done/failed pinned 0); est live=0; local sandbox ≠ production HA; all predicates participate in EXIT",
+  "exitCode": 0,
+  "cmd": "v7",
+  "steps": [
+    {
+      "step": "honesty banner",
+      "ok": true,
+      "detail": "haStatus=NOT_HA; releaseEvidence=false; local sandbox ≠ production HA; est live=0"
+    },
+    {
+      "step": "MEETWISE_HA_SANDBOX_AUTHORIZED",
+      "ok": true,
+      "detail": "set"
+    },
+    {
+      "step": "fixture ready",
+      "ok": true,
+      "detail": "4 users × 7 jobs = 28 queued rows (attempts=4·首败即 MAX 终态·interview created 形=失败臂白名单成员)"
+    },
+    {
+      "step": "mid-load SIGKILL api-a",
+      "ok": true,
+      "detail": "container=meetwise-api-a-1（重启策略自愈·LB 摘流）"
+    },
+    {
+      "step": "HTTP 负载波 1 完成（含 failover 窗）",
+      "ok": true,
+      "detail": "failures=0/0 p50=4/3ms"
+    },
+    {
+      "step": "worker-b stopped mid-drain",
+      "ok": true,
+      "detail": "meetwise-worker-b-1（排空容量减半·worker-a 独自消费）"
+    },
+    {
+      "step": "HTTP 负载波 2 完成（failover 后）",
+      "ok": true,
+      "detail": "failures=0 p50=6ms statuses={\"200\":40}"
+    },
+    {
+      "step": "queue drained to all-terminal",
+      "ok": true,
+      "detail": "{\"byStatus\":{\"failed\":{\"n\":28,\"maxAttempts\":5}},\"queued\":0,\"done\":0,\"failed\":28,\"maxAttempts\":5,\"seconds\":0}"
+    },
+    {
+      "step": "attempts ≤ MAX(5)（有界重试封顶在位）",
+      "ok": true,
+      "detail": "maxAttempts=5"
+    },
+    {
+      "step": "HTTP 全程无 5xx（failover 干净·连接错如实计数）",
+      "ok": true,
+      "detail": "statuses=[{\"200\":40},{\"200\":40},{\"200\":40}]"
+    },
+    {
+      "step": "api-a 重启策略自愈复位",
+      "ok": true,
+      "detail": "container=meetwise-api-a-1"
+    }
+  ],
+  "estLive": 0,
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false
+}
