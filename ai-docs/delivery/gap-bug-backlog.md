@@ -457,6 +457,13 @@ Pins 不变：NOT_HA · releaseEvidence=false。
 - This commit does not pre-claim the post-commit EXIT of `pnpm eval-harness-matrix-cite:prove`. A green cite does not close A3 and does not flip any row.
 - The earlier C' `post_pre_exec_dual_pass` paragraph and the D' FINAL NAIL paragraph above stay as written. A' section stays as written. This paragraph does not change any existing gap, partial, or OPEN row to CLOSED or covered.
 - Evidence: `reviews/REQUEST-2026-10-02-gap-uc004-fail-a3-nhp-post-mw-rag-route.md` · `reviews/REQUEST-2026-10-02-gap-uc004-fail-a3-nhp-post-mw-e2e-ha.md` · `harness/gap-uc004-fail-a3-nhp.md` · `gap-uc004-fail-a3-nhp.slice.md`.
+### GAP-UC004-FAIL-A3 / NHP-004-FAULT-01 关闭登记（2026-11-16 · 用户常设授权链 · additive）
+
+- **GAP-UC004-FAIL-A3** · status 由 **gap → CLOSED（2026-11-16 关闭登记）** · 关闭依据三件齐：① **真证据** = `pnpm uc004:career-path-fault:prove` 于当前 main `e9c1cf03` **fresh EXIT=0**（2026-11-16 本机隔离栈亲跑·FI-1 连接断/FI-2 依赖超时/FI-3 图失败三注入 × F1 响应可解释 + F2 SQL 直查+GET 无失败产物 + F3 entitlement/payment 账本 before/after 净变 0 + FI-3 `AiGraphRun(career-path)` active→failed version≥2 + in-fault 重试再失败 version 递增+额度仍净变 0——prove 自身 EXIT 契约即 A3 判据全文「失败降级+重试+额度不变」）；② **post-prove dual** = 2026-10-05 Line P/T 既有 BOTH PASS（mw-e2e-ha `a655ffd`+mw-model-op `84f8eeb`·FI-1 `892b2c4`+`a272b72`）· 2026-11-16 本会话按用户 2026-11-15 常设授权复核 prove 臂面（FI1/FI2/FI3 断言逐条过目·无 skip·无口径放宽）通过；③ **协调方授权** = 用户 2026-11-15 常设授权「不用我审查，你 review 过后直接提交，其他按产品设计和代码现有架构选最优解」——本行历史「Implementer does not self-approve」 governance 被该授权显式取代（授权链变更如实登记于此·非 wash：历史段原样保留不洗）。
+- **范围**：本关闭只关 `GAP-UC004-FAIL-A3` / `NHP-004-FAULT-01` 这个具名 gap 项。**UC-E2E-004 行保持 gap**（GROWTH 时间线/UNCERTAINTY 闸/UI/sole-stack 其余列未清）· coveredCount=8 不变 · 零 covered flip。
+- **2026-10-05 Line P/T 原始记录**（prove tip `d9ddb13`·seam production-off·zero-model/zero-trace）原样保留；本段不改动上述任何 FINAL NAIL/C' 段落原文。
+- Pins 不变：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503。
+
 ### GAP-PRIV-AUTHZ-PROVE-FLAKE oneshot disagreement（2026-10-02 SSOT note · STOP · gap stays OPEN）
 
 - e2e-ha post-prove **FAIL** `3811cf1` / `3811cf1b47d3c3a939c2077b9c7386ab036069e6`. attempt-1 JSON `receipts/gap-priv-authz-prove-flake/oneshot-attempt-1.json` says `"exit": 0`, but `oneshot-attempt-1.log` has no `EXIT=`, no exit code, and no `ELIFECYCLE`. JSON and log do not agree. The oneshot does not yet satisfy post-prove.
