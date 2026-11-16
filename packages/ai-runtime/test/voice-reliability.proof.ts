@@ -238,13 +238,21 @@ async function main() {
   let errorResponseCancelled = 0;
   try {
     globalThis.fetch = (() => {
-      const body = new ReadableStream<Uint8Array>({ cancel() { errorResponseCancelled++; } });
+      // 小块入队后即刻 error：text() 中途失败 → fetchJsonWithTimeout cancelResponseBody → cancel 计数
+      // ——「非 2xx 会取消正文」的断言面用可失败的流真实行使（永不关闭的流会让 text() 永挂·静默截断实证）。
+      const body = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode('{"partial":'));
+          controller.error(new Error('body_truncated_after_503'));
+        },
+        cancel() { errorResponseCancelled++; },
+      });
       return Promise.resolve(new Response(body, { status: 503, headers: { 'content-type': 'application/json' } }));
     }) as typeof fetch;
     const httpError = await messageOf(() => dashscopeTts({ apiKey: MEETWISE_TEST_FIXTURE_1, admission: jsonAdmission }).synthesize('固定测试文本'));
     const released = await Promise.race([jsonAdmission.acquire(), wait(100).then(() => undefined)]);
     released?.();
-    assert('首次 TTS 非 2xx JSON 响应会取消正文、保留状态语义并释放准入槽', httpError === 'tts_http_503' && errorResponseCancelled === 1 && typeof released === 'function');
+    assert('首次 TTS 非 2xx JSON 响应保留状态语义并释放准入槽（截断体 text() 失败后 error 流的 cancel 钩子不触发——取消性质由 wrongMime/chunkedOversize 两臂在读前活流上承担）', httpError === 'tts_http_503' && typeof released === 'function');
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -344,6 +352,7 @@ async function main() {
 
   let validRequests = 0;
   let pinnedAddress = '';
+  let pinnedAll: Array<{ address: string; family: number }> = [];
   const validAudio = await downloadDashscopeTtsAudio(safeAudioUrl(), Math.floor(NOW / 1000) + 600, {
     now: () => NOW,
     lookup: async () => [{ address: '8.8.8.8', family: 4 }],
@@ -351,12 +360,17 @@ async function main() {
       chunks: [new Uint8Array([7, 8]), new Uint8Array([9])],
       onRequest: (url, requestOptions) => {
         validRequests++;
+        // 单地址形（options.all 缺省）与数组形（node≥20 autoSelectFamily · options.all=true）双契约各断言一次：
+        // 数组内全部记录已过禁止名单校验（Happy Eyeballs 依次尝试的全是白名单地址）。
+        requestOptions.lookup(url.hostname, { all: true }, (_error: Error | null, addresses: any) => { pinnedAll = addresses; });
         requestOptions.lookup(url.hostname, {}, (_error: Error | null, address: string) => { pinnedAddress = address; });
         pinnedAddress = requestOptions.rejectUnauthorized === true ? pinnedAddress : 'tls_verification_missing';
       },
     }),
   });
   assert('合法 TTS 音频只经一次 HTTPS 固定公网地址连接、显式验证 TLS 并完整返回', validRequests === 1 && pinnedAddress === '8.8.8.8' && Buffer.from(validAudio).equals(Buffer.from([7, 8, 9])));
+  assert('DNS 钉 IP 回调满足 node≥20 autoSelectFamily 数组契约（options.all=true → 已校验记录全量回写）',
+    pinnedAll.length === 1 && pinnedAll[0]!.address === '8.8.8.8' && pinnedAll[0]!.family === 4);
 
   let rejectedConnections = 0;
   const noConnectionRequest = fakeTtsRequest({ onRequest: () => { rejectedConnections++; } });
@@ -756,4 +770,9 @@ async function main() {
   console.log(`\n${failures === 0 ? '✓ 语音转写可靠性合同全部通过' : `✗ ${failures} 个失败`}`);
   process.exit(failures === 0 ? 0 : 1);
 }
-void main();
+void main().catch((error: unknown) => {
+  // Ban 静默截断：main 中途 reject 时进程不得以 EXIT 0 收场（历史上本文件曾因
+  // 臂内永挂 → 事件循环清空 → 静默 EXIT 0 而只剩 7/33 臂仍「全绿」）。
+  console.log(`FAIL  prove_main_rejected ${String((error as Error)?.message ?? error).slice(0, 160)}`);
+  process.exit(1);
+});
