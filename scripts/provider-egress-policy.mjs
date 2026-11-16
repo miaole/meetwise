@@ -79,6 +79,7 @@ export const REQUIRED_PROVIDER_EGRESS_POLICY = Object.freeze({
     'DASHSCOPE_VISION_MODEL',
     'DASHSCOPE_STREAM_ASR_MODEL',
     'DASHSCOPE_STREAM_TTS_MODEL',
+    'DASHSCOPE_STREAM_TTS_VOICE',
   ]),
   directTransportSources: Object.freeze([
     'packages/ai-runtime/src/model-client.ts',

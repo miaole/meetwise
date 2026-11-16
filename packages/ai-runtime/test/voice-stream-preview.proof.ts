@@ -1,9 +1,14 @@
 /**
  * PRD-TEST-006 honesty: stream ASR + server turn-taking stay fail-closed
  * unless exact dual preview flags are set, and even then product composition
- * never wires a live stream. Key-only / production / enforce / public-preview
- * must not invent a transcript. Isolated fake proofs are not product E2E.
- * pnpm prove:voice-stream-preview
+ * never wires a live ASR stream or turn-taking seam. Stream TTS is honestly
+ * wired the other way: composition constructs the cosyvoice adapter when the
+ * per-capability stream TTS Key exists and `voice.tts-stream.v1` is a wired
+ * registry operation, while the runtime dual-flag gate still refuses inside
+ * `synthesizeStream` — Key-only / production / enforce / public-preview never
+ * invent audio. Key-absent behaviour is unchanged (fail-closed). Isolated
+ * fake proofs are not product E2E; the product-pipe receipt lives in the api
+ * live proof. pnpm prove:voice-stream-preview
  */
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -44,6 +49,7 @@ const FLAG_AND_KEY_VARS = [
   'VOICE_STREAM_ASR_ENABLED', 'VOICE_STREAM_ASR_PREVIEW',
   'NODE_ENV', 'MODEL_COST_ENFORCEMENT', 'MEETWISE_PUBLIC_PREVIEW',
   'DASHSCOPE_STREAM_ASR_API_KEY', 'DASHSCOPE_STREAM_TTS_API_KEY',
+  'DASHSCOPE_STREAM_TTS_MODEL', 'DASHSCOPE_STREAM_TTS_VOICE',
   'DASHSCOPE_API_KEY',
 ] as const;
 
@@ -115,18 +121,42 @@ async function main() {
     process.env.NODE_ENV = 'test';
     delete process.env.MODEL_COST_ENFORCEMENT;
     delete process.env.MEETWISE_PUBLIC_PREVIEW;
+
+    delete process.env.DASHSCOPE_STREAM_TTS_API_KEY;
+    const closedSeams = createInterviewVoiceSeams();
+    A('composition root without stream TTS Key stays fail-closed (Key-absent behaviour unchanged)',
+      closedSeams.streamTtsConfigured === false
+      && closedSeams.streamTts.id === VOICE_EGRESS_DISABLED_ID
+      && await errorOf(() => closedSeams.streamTts.synthesizeStream('x')[Symbol.asyncIterator]().next()) === STREAMING_TTS_NOT_CONFIGURED
+      && closedSeams.streamAsrConfigured === false
+      && closedSeams.turnTakingConfigured === false
+      && fetches === 0 && sockets === 0);
+    process.env.DASHSCOPE_STREAM_TTS_API_KEY = 'preview-stream-tts-key';
+
     const seams = createInterviewVoiceSeams();
-    A('product composition never marks stream ASR / turn-taking configured',
-      seams.streamAsrConfigured === false
+    A('composition root wires stream TTS with Key + wired registry; stream ASR / turn-taking stay disabled',
+      seams.streamTtsConfigured === true
+      && seams.streamTts.id === 'cosyvoice-v2'
+      && seams.streamAsrConfigured === false
       && seams.turnTakingConfigured === false
       && seams.streamAsr.id === VOICE_EGRESS_DISABLED_ID
-      && seams.streamTts.id === VOICE_EGRESS_DISABLED_ID
       && await errorOf(() => seams.streamAsr.transcribeStream(emptyChunks())[Symbol.asyncIterator]().next()) === STREAMING_ASR_NOT_CONFIGURED
       && fetches === 0 && sockets === 0);
 
-    A('voice.asr-stream.v1 / voice.tts-stream.v1 stay unwired',
+    delete process.env.VOICE_STREAM_ASR_ENABLED;
+    delete process.env.VOICE_STREAM_ASR_PREVIEW;
+    A('composed stream TTS still refuses through the runtime preview gate (Key + wired registry are not enough)',
+      await errorOf(() => seams.streamTts.synthesizeStream('x')[Symbol.asyncIterator]().next()) === STREAMING_TTS_NOT_CONFIGURED
+      && fetches === 0 && sockets === 0);
+    process.env.VOICE_STREAM_ASR_ENABLED = '1';
+    process.env.VOICE_STREAM_ASR_PREVIEW = '1';
+    A('fully unlocked composed stream TTS reaches exactly the transport layer; fabrication stub intercepts one socket, no invented audio',
+      await errorOf(() => seams.streamTts.synthesizeStream('x')[Symbol.asyncIterator]().next()) === 'unexpected_stream_websocket'
+      && fetches === 0 && sockets === 1);
+
+    A('voice.asr-stream.v1 stays unwired; voice.tts-stream.v1 is wired for the stream TTS product slice',
       resolveModelOperation('voice.asr-stream.v1', 'interview-voice-preview').ok === false
-      && resolveModelOperation('voice.tts-stream.v1', 'interview-voice-preview').ok === false
+      && resolveModelOperation('voice.tts-stream.v1', 'interview-voice-preview').ok === true
       && resolveModelOperation('voice.asr.v1', 'interview-voice-preview').ok === true);
 
     const workerMain = readFileSync(resolve(process.cwd(), '../../apps/worker/src/main.ts'), 'utf8');

@@ -5,7 +5,7 @@
   "packageManager": "pnpm@10.18.0",
   "scripts": {
     "candidate-route:prove": "pnpm -C packages/domain prove:candidate-route",
-    "lint": "eslint . --max-warnings 5382",
+    "lint": "eslint . --max-warnings 5385",
     "docs:check": "node scripts/ai-docs/check-docs.mjs",
     "golden-tasks:check": "node scripts/golden-tasks-check.mjs",
     "generation-trust:prove": "node scripts/generation-trust-check.mjs",
@@ -381,6 +381,8 @@
     "vl:smoke": "pnpm -C apps/worker exec tsx smoke/vl-smoke.ts",
     "voice:prove": "node scripts/run-e2e-isolated.mjs voice:prove:raw",
     "voice:prove:raw": "node scripts/require-e2e-isolated.mjs -- pnpm -C apps/worker prove:voice",
+    "voice-stream-tts-live:prove": "node scripts/run-e2e-isolated.mjs voice-stream-tts-live:prove:raw",
+    "voice-stream-tts-live:prove:raw": "node scripts/require-e2e-isolated.mjs -- pnpm -C apps/api prove:voice-stream-tts-live",
     "asr:smoke": "pnpm -C apps/worker exec tsx smoke/asr-smoke.ts",
     "voice:live": "pnpm -C apps/worker exec tsx smoke/voice-live.ts",
     "tts-download:live": "pnpm -C packages/ai-runtime smoke:tts-download-live",

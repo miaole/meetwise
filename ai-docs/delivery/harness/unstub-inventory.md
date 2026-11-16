@@ -10,7 +10,7 @@
 
 - **全量桩数 = 13**（协调方 8 桩全部确认，其中 1 桩改判归 ROUTE-DICT 非本战役；扩充 5 桩：流式 TTS、流式 ASR/turn-taking、计费/支付、OCR 生产准入、公开预览写关闭〔环境态〕）。
 - **删除三桩（简历单删/全量删/面试擦除）是重刀**：内部机械（授权签发 0091/checkpoint worker/投影 sweep/向量面 sweep/memory 各轨 sweep/fence 族/预览回执 0129）**已大量建成**，cutover 卡在 INT01 六门合同（harness `gap-int-transcript-01-cutover-contract.md` §2b）+ §4.2 未闭合缺口（user_memory/trace/备份/外部云端）。**不是「改一个 503」的工作量。**
-- **语音两桩半轻半重**：批式 TTS/ASR 链路（config→adapter→registry binding→service→controller→前端回落）**代码已全通**（`voice.tts.v1`/`voice.asr.v1` 均 `wired: true`），差的是**部署面**（per-capability DashScope key）+#69 服务端 consent 落账+持钥环境 live prove；流式 TTS/流式 ASR 是**真代码桩**（registry `wired: false` + 组合根硬 disabled + 前端开关 false 三重禁用）。
+- **语音两桩半轻半重**：批式 TTS/ASR 链路（config→adapter→registry binding→service→controller→前端回落）**代码已全通**（`voice.tts.v1`/`voice.asr.v1` 均 `wired: true`），差的是**部署面**（per-capability DashScope key）+#69 服务端 consent 落账+持钥环境 live prove；**流式 TTS 自 2026-11-16 已部分翻桩（P-02→预览产品接线+产品管道真回执）**：registry `voice.tts-stream.v1` `wired: true`、组合根按 `DASHSCOPE_STREAM_TTS_API_KEY` 存在构造 cosyvoice-v2/longxiaochun_v2 适配器、`/speak/stream` 隔离环境真音频字节+abort 收尾回执（用户授权真钥·`releaseEvidence=false`）——残桩=前端 `ENABLE_STREAMING_TTS` 开关仍 false（真机「起播=出声」验证未做）+部署面 key；**流式 ASR/turn-taking（P-13）仍是真代码桩**（registry `wired: false` + 组合根 `streamAsrConfigured`/`turnTakingConfigured` 恒 false + 无端点三重禁用）。
 - **账户注销是零服务端面**：UI disabled 按钮之外全仓无任何账户删除 API——UNSTUB-ACCOUNT 是从设计到实现的全新刀。
 - **最大风险**：把「翻桩」做成「改返回码」。删除桩翻早=隐私谎言；语音桩翻而不做 #69=合规缺口；计费桩纯代码翻不了（需商户合同）。
 
@@ -21,7 +21,7 @@
 | # | 桩 | 类型 | API 桩位 | UI 文案位 | 归刀 |
 |---|---|---|---|---|---|
 | P-01 | TTS 批式播报（配置缺失时 503） | 部署配置桩 | `apps/api/src/modules/interview/interview-voice.ts:33` | `apps/web/components/VoiceCallPanel.tsx:295` | UNSTUB-VOICE |
-| P-02 | TTS 流式播报（恒 503） | 代码桩（三重禁用） | `interview-voice.ts:47-51`（恒） | `VoiceCallPanel.tsx:95`（`ENABLE_STREAMING_TTS=false`）+ `:252-262` | UNSTUB-VOICE 二阶段 |
+| P-02 | TTS 流式播报（缺 Key 503·2026-11-16 起后端预览接线+真回执） | 残桩（部署 key+前端开关） | `interview-voice.ts:47-51`（缺 Key 时 503 回落语义不变） | `VoiceCallPanel.tsx:95`（`ENABLE_STREAMING_TTS=false`·真机验证后开）+ `:252-262` | 后端半已翻（语音流式 TTS 产品化刀）·残面=UNSTUB-VOICE 二阶段 |
 | P-03 | ASR 语音转写（配置缺失时 503） | 部署配置桩+#69 缺口 | `interview-voice.ts:78` | `VoiceCallPanel.tsx:84/:444/:493/:666` | UNSTUB-VOICE（+#69 同刀） |
 | P-04 | 简历单份删除 | never 503 桩 | `apps/api/src/modules/resume/resume.service.ts:277-281`；`resume.controller.ts:41-44`（`@Delete(':id')`） | `apps/web/app/resume/page.tsx:93-94`（disabled 按钮「删除功能暂未开放」） | UNSTUB-ERASE |
 | P-05 | 全量简历数据删除 | never 503 桩 | `apps/api/src/modules/privacy/privacy.service.ts:65-68`；`privacy.controller.ts:57-61`（`@HttpCode(503)`） | `resume/page.tsx:38/:47`、`faq/page.tsx:17-18`、`legal/page.tsx:44` | UNSTUB-ERASE |
@@ -55,9 +55,9 @@
 
 ### P-02 TTS 流式播报（扩充桩）
 
-- **现状证据**：API `interview-voice.ts:47-51`（`prepareSpeakStreamText`：`streamTts.id === VOICE_EGRESS_DISABLED_ID` **恒真**→恒 503 `tts_unavailable`，:49）。组合根 `interview-voice-seams.ts:128-129/131`：`streamTts: disabledStreamingTts()` **硬编码**、`streamTtsConfigured: false` 恒。registry `model-operation-registry.ts:167-171`：`voice.tts-stream.v1` `wired: false`。UI `VoiceCallPanel.tsx:95`（`ENABLE_STREAMING_TTS = false`）+ `:252-262` 注释「流式 MSE 播放（cosyvoice MP3）未经真机验证…默认走已验证的非流式 /speak；真机确认流式无声问题后再开此开关」。控制器 `interview.controller.ts:100-105`（`/speak/stream` 路由+raw 流胶水已建，异常抛在 hijack 前）。
+- **现状证据（2026-11-16 后端半翻后）**：组合根 `interview-voice-seams.ts`：`DASHSCOPE_STREAM_TTS_API_KEY` 存在且 `voice.tts-stream.v1` binding wired → 构造 `dashscopeStreamingTts()`、`streamTtsConfigured: true`（缺 Key 照旧 disabled+503 回落）；registry：`voice.tts-stream.v1` `wired: true`（流式 ASR `voice.asr-stream.v1` 仍 `wired: false`）；适配器缺省 `cosyvoice-v2`/`longxiaochun_v2`（env `DASHSCOPE_STREAM_TTS_MODEL`/`DASHSCOPE_STREAM_TTS_VOICE` 可覆盖·v1 已死）；运行时双旗门仍在 `synthesizeStream` 内（Key+wired 只是装配条件·撤旗零 WebSocket）。真回执=隔离 runner API 子进程 + .env 真钥 + 双旗 → `POST /interview/:id/speak/stream` 真音频字节（`pnpm voice-stream-tts-live:prove`·用户授权真钥 2026-11-16·`releaseEvidence=false`·skip≠pass 保留）。UI `VoiceCallPanel.tsx:95`（`ENABLE_STREAMING_TTS = false`）+ `:252-262` 注释「流式 MSE 播放（cosyvoice MP3）未经真机验证…默认走已验证的非流式 /speak；真机确认流式无声问题后再开此开关」——真机面未验证故开关照旧关。控制器 `/speak/stream` 路由+raw 流胶水已建，异常抛在 hijack 前。
 - **桩因考古**：`git log -S` 同 P-01 族。注释链（seams :19-22、interview-voice.ts:43-46「Disabled before hijack/headers: the browser can always fall back to text and no stream transport can be constructed from a broad provider key」）表明这是**有意的三重禁用**（registry 未接线+组合根 disabled+前端开关关），理由=未经真机验证+宽 key 不可构造流传输。
-- **可用化差距**：①registry `voice.tts-stream.v1` wired→true+binding 契约（现 `UNWIRED_OPERATIONS`）；②`voice-stream.ts` 的 `dashscopeStreamingTts` 真实现（cosyvoice WebSocket 首块 1-2s，现只有 `disabledStreamingTts`）；③`DASHSCOPE_STREAM_TTS_API_KEY` 部署；④真机「起播=出声」验证后开 `ENABLE_STREAMING_TTS`；⑤e2e（fake seam 流式断言+live 首音延迟）。
+- **可用化差距（残）**：①~~registry wired+binding~~（已翻 2026-11-16）；②~~cosyvoice WS 真实现~~（已有·v2 缺省）；③`DASHSCOPE_STREAM_TTS_API_KEY` 部署（仍差·部署面）；④真机「起播=出声」验证后开 `ENABLE_STREAMING_TTS`（仍差·UI 开关 false 保持）；⑤浏览器→API→供应商全链 e2e（fake seam 流式断言已有·live 首音延迟经隔离回执部分补·真机矩阵未做）。
 - **依赖链定谳**：与 P-01 独立（前端默认非流式，P-01 先行）；前置=流式适配器实现+PRD-TEST-006 同族验证。
 - **翻桩前置条件红线**：**禁只开前端开关**（后端恒 503 会造成「流式假可用=每次静默回落」）；禁在未经真机验证时宣称低延迟。
 

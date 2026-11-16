@@ -1,13 +1,19 @@
 /**
  * Streaming voice adapters and a fake-seam turn helper.
  *
- * Product composition never wires these live. `dashscopeStreamingAsr` /
- * `dashscopeStreamingTts` require the OCR-style dual preview flags
- * (`VOICE_STREAM_ASR_ENABLED=1` + `VOICE_STREAM_ASR_PREVIEW=1`) and refuse
- * production / enforce / public-preview. A capability Key alone does not
- * open a WebSocket. Fake helpers exist only for isolated proofs
- * (`vstream:prove`); they are not browser→API→provider evidence.
- * Failures must not invent a transcript. `releaseEvidence=false`.
+ * Stream TTS is product-wired (preview): `createInterviewVoiceSeams`
+ * constructs `dashscopeStreamingTts` only when the per-capability
+ * `DASHSCOPE_STREAM_TTS_API_KEY` exists AND `voice.tts-stream.v1` is a wired
+ * registry operation; `dashscopeStreamingAsr` / server turn-taking stay
+ * not product-wired (`voice.asr-stream.v1` unwired). Both live adapters still
+ * require the OCR-style dual preview flags (`VOICE_STREAM_ASR_ENABLED=1` +
+ * `VOICE_STREAM_ASR_PREVIEW=1`) inside `synthesizeStream`/`transcribeStream`
+ * and refuse production / enforce / public-preview. A capability Key alone
+ * does not open a WebSocket. A real provider receipt over the product
+ * `/interview/:id/speak/stream` pipe is recorded by the api live proof; it is
+ * not releaseEvidence. Fake helpers exist only for isolated proofs
+ * (`vstream:prove`). Failures must not invent a transcript.
+ * `releaseEvidence=false`.
  */
 import { rejectDashscopeNativeTransportOverride, resolveDashscopeNativeConfig } from './dashscope-native-config.ts';
 import { refuseVoiceStreamAsrUnlessPreview, STREAMING_ASR_NOT_CONFIGURED, STREAMING_TTS_NOT_CONFIGURED } from './voice-stream-preview.ts';
@@ -115,9 +121,12 @@ export function dashscopeStreamingAsr(cfg: { apiKey?: string; url?: string; mode
   };
 }
 /**
- * DashScope realtime TTS adapter. Same preview dual-flag + production lock
- * as stream ASR. Not wired into interview composition. Isolated byte notes
- * are not a production SLO or cancellation/deletion receipt.
+ * DashScope realtime TTS adapter (cosyvoice WS). Preview dual-flag +
+ * production lock unchanged; the interview composition root wires this when
+ * the stream TTS capability Key exists. Defaults track the provider catalogue
+ * the account actually serves (`cosyvoice-v2` + `longxiaochun_v2`; the v1
+ * model id is dead on this account). A real receipt over the product
+ * /speak/stream pipe is not a production SLO or deletion receipt.
  */
 export function dashscopeStreamingTts(cfg: { apiKey?: string; url?: string; model?: string; voice?: string; format?: string } = {}): StreamingTts {
   rejectDashscopeNativeTransportOverride(cfg.apiKey);
@@ -125,8 +134,8 @@ export function dashscopeStreamingTts(cfg: { apiKey?: string; url?: string; mode
   const native = resolveDashscopeNativeConfig();
   const apiKey = cfg.apiKey ?? native.keys.streamTts;  // 只取流式 TTS 能力 Key；缺失即 streaming_tts_not_configured
   const url = cfg.url ?? native.streamUrl;
-  const model = cfg.model ?? process.env.DASHSCOPE_STREAM_TTS_MODEL ?? 'cosyvoice-v1';
-  const voice = cfg.voice ?? 'longxiaochun';
+  const model = cfg.model ?? process.env.DASHSCOPE_STREAM_TTS_MODEL ?? 'cosyvoice-v2';
+  const voice = cfg.voice ?? process.env.DASHSCOPE_STREAM_TTS_VOICE ?? 'longxiaochun_v2';
   const format = cfg.format ?? 'mp3';
   // 超时护栏(可调):任何 await 都不得无界阻塞——否则 WS 连同 HTTP 连接一起悬挂(审计 致命#1/#2)。
   const openMs = Number(process.env.STREAM_TTS_OPEN_MS) || 6000;     // 建连/握手

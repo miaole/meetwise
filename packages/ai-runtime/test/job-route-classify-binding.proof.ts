@@ -31,9 +31,9 @@ const DIGEST = createHash('sha256').update('job-route-classify-proof', 'utf8').d
 A('registry 静态不变量仍成立（含 job.route-classify.v1）',
   validateModelOperationRegistry().length === 0);
 
-A('十个已接线操作(七文本含 job.route-classify + 一视觉 OCR + 批量 ASR/TTS)与六个未接线 typed contract',
-  MODEL_OPERATION_REGISTRY.filter((d) => d.wired).length === 10
-  && MODEL_OPERATION_REGISTRY.filter((d) => !d.wired).length === 6
+A('十一个已接线操作(七文本含 job.route-classify + 一视觉 OCR + 批量 ASR/TTS + 流式 TTS)与五个未接线 typed contract',
+  MODEL_OPERATION_REGISTRY.filter((d) => d.wired).length === 11
+  && MODEL_OPERATION_REGISTRY.filter((d) => !d.wired).length === 5
   && MODEL_OPERATION_REGISTRY.some((d) => d.operationId === JOB_ROUTE_CLASSIFY_OPERATION_ID && d.wired));
 
 const resolved = resolveModelOperation(JOB_ROUTE_CLASSIFY_OPERATION_ID, 'rev-1');
