@@ -28,7 +28,9 @@ const checks = {
     assert.equal(result.valid, true, result.errors.join('\n'));
     assert.equal(result.stats.adapterCount, 5);
     assert.equal(result.stats.operationCount, 10);
-    assert.equal(result.stats.registeredConsumerSourcePairCount, 55);
+    // L10-p1 语音流式 TTS 产品接线刀：组合根 interview-voice-seams.ts 成为 dashscope-streaming-voice
+    // 直接调用方（production-runtime consumer）→ 55→56 如实步进。
+    assert.equal(result.stats.registeredConsumerSourcePairCount, 56);
     assert.equal(result.stats.environmentReferenceCount, manifest.environmentReferences.length);
     assert.equal(result.stats.releaseEvidence, false);
   },
