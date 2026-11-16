@@ -6,14 +6,26 @@ const MEETWISE_TEST_FIXTURE_PASSWORD_VDX = 'strongpw123';
 const voiceKeysReady = Boolean(String(process.env.DASHSCOPE_TTS_API_KEY ?? '').trim())
   && Boolean(String(process.env.DASHSCOPE_ASR_API_KEY ?? '').trim());
 test.beforeEach(({ }, testInfo) => {
-  // Honest capability gate: TTS priming + ASR require dedicated DashScope voice keys.
-  // Text MODEL_API_KEY must never impersonate voice credentials (Ban假绿).
+  // Honest capability gate: TTS priming + ASR require the two DashScope voice
+  // capability keys to be present in the process env (they are injected at
+  // runtime by scripts/run-e2e-ui.mjs from the repo-root .env universal
+  // Bailian key — user-authorized 2026-11-16 for real voice verification;
+  // zero key literals enter the repo/logs/receipts). Absent keys → honest
+  // skip; skip is not pass (Ban假绿).
   test.skip(!voiceKeysReady, 'DASHSCOPE_TTS_API_KEY/DASHSCOPE_ASR_API_KEY unset — voice duplex not provable');
 });
 
 const API = process.env.E2E_API_BASE ?? 'http://127.0.0.1:8787';
 const PASSWORD = MEETWISE_TEST_FIXTURE_PASSWORD_VDX;
 const VOICE_RESUME_FACT = '负责 Redis 限流与幂等订单改造';
+
+/**
+ * 「第 N 题」在页面上有两处如实渲染（顶部进度徽标 interview-progress-badge 与回合正文
+ * interview-turn）；形制漂移修 spec 不修产品：断言锚定回合正文，避免 strict mode 双命中。
+ */
+function turnQuestion(page: Page, label: RegExp) {
+  return page.getByTestId('interview-turn').getByText(label);
+}
 
 async function signUp(page: Page, email: string) {
   await page.goto('/login');
@@ -175,7 +187,7 @@ test('本机人机双向回合：AI 播报、用户语音作答、ASR 提交并�
   test.setTimeout(360_000);
   await installProviderBackedVoiceInput(page);
   const interviewId = await startReadyInterview(page, request, 'voice-roundtrip');
-  await expect(page.getByText(/第 1 题/)).toBeVisible({ timeout: 120_000 });
+  await expect(turnQuestion(page, /第 1 题/)).toBeVisible({ timeout: 120_000 });
   // Text-mode question rendering uses a bounded typewriter animation.  Wait for
   // the complete source fact rather than reading a valid intermediate frame.
   await expect(page.getByText(VOICE_RESUME_FACT)).toBeVisible({ timeout: 5_000 });
@@ -202,7 +214,7 @@ test('本机人机双向回合：AI 播报、用户语音作答、ASR 提交并�
   expect(asr.ok(), `本机录音必须真的提交至 ASR 端点；HTTP=${asr.status()} body=${asr.ok() ? '' : await asr.text()}`).toBeTruthy();
   const turn = await turnResponse;
   expect(turn.ok(), `ASR 文本必须真的提交至同一面试 Agent 回合；HTTP=${turn.status()} body=${turn.ok() ? '' : await turn.text()}`).toBeTruthy();
-  await expect(page.getByText(/第 2 题/)).toBeVisible({ timeout: 120_000 });
+  await expect(turnQuestion(page, /第 2 题/)).toBeVisible({ timeout: 120_000 });
   await page.getByRole('button', { name: '结束语音' }).click();
 });
 
@@ -269,7 +281,7 @@ test('本机人机双工：麦克风先接通，用户抢话中止浏览器 TTS 
   await startReadyInterview(page, request, 'voice-duplex');
   // 语音 effect 只在服务端已发 question_ready 后申请设备；先同步到题目
   // 事实，避免把 worker 启动/模型出题的尾延迟误判为抢话能力失效。
-  await expect(page.getByText(/第 1 题/)).toBeVisible({ timeout: 120_000 });
+  await expect(turnQuestion(page, /第 1 题/)).toBeVisible({ timeout: 120_000 });
 
   await page.getByRole('button', { name: '语音模式', exact: true }).click();
   await expect(page.getByRole('heading', { name: /确认人机语音处理范围/ })).toBeVisible();
