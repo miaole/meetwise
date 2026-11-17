@@ -14,7 +14,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { VOICE_CAPTURE_POLICY_VERSION } from '@meetwise/contracts';
+import { VOICE_CAPTURE_POLICY_VERSION, appendAsrSentenceFinal } from '@meetwise/contracts';
 import { Loader2, Mic, PhoneOff, Keyboard, Volume2, Square, CheckCircle2, AlertTriangle, RotateCcw, Sparkles } from 'lucide-react';
 import type { InterviewView } from '@/lib/stream/interview-state';
 import type { Display } from '@/lib/view-model';
@@ -448,7 +448,8 @@ export function VoiceCallPanel({
 
   /**
    * 流式 ASR 采集(预览·UI 开关缺省关):AudioWorklet 16k mono PCM → fetch duplex 请求体直传
-   * /listen/stream,边录边收 partial/final;VAD/手动「说完了」收流 → 服务端 finish-task → final 即回。
+   * /listen/stream。浏览器半双工要等请求体结束才交出响应，所以不能边录边读 partial。
+   * VAD、60 秒上限和「说完了」必须在 fetch 还挂着时就开始，否则请求体永远关不上。
    * 返回 final 文本('' = 未识别到语音);null = 失败(状态已置 mic_denied/consent_required/asr_down,
    * 绝不编造转写)。服务端双旗/Key/同意/围栏是权威门;本函数只做能力门与采集。
    */
@@ -498,22 +499,8 @@ export function VoiceCallPanel({
         pos -= data.length;
         if (oi > 0) { try { controller.enqueue(new Uint8Array(out.buffer, out.byteOffset, oi * 2)); } catch { /* closed */ } }
       };
-      const res = await fetch(`/api/interview/${encodeURIComponent(resultId)}/listen/stream`, {
-        method: 'POST', headers: { 'content-type': 'application/octet-stream' }, body, duplex: 'half', signal: ac.signal,
-      } as RequestInit);
-      if (!res.ok) {
-        // 503 streaming_asr_not_configured / 404 / 403 consent_required → 干净出路,与批量 /transcribe 同语义。
-        const errBody = await res.json().catch(() => null) as { error?: unknown } | null;
-        if (res.status === 403 && errBody?.error === 'consent_required') {
-          if (gen === genRef.current) { setCaptureConsented(false); setStatus('consent_required'); }
-          return null;
-        }
-        if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写暂不可用,可切回打字继续'); }
-        return null;
-      }
-      if (!res.body) { if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写失败,可切回打字继续'); } return null; }
-
-      // VAD 电平循环 与 NDJSON 事件读取 并行;收流后服务端 finish-task → final 到达 → 读取循环自然结束。
+      // 半双工：fetch 在请求体关闭前不会把响应交给这里。电平、上限和「说完了」必须先跑，
+      // 否则没有人去 closeBody，响应永远等不到。partial 仍然要等上传结束后才能读到。
       const analyser = ctx.createAnalyser();
       analyser.fftSize = 2048;
       ctx.createMediaStreamSource(stream).connect(analyser);
@@ -541,21 +528,35 @@ export function VoiceCallPanel({
           if (!speechNotified) { speechNotified = true; onUserSpeech?.(); }
         } else if (speech) {
           if (!silenceStart) silenceStart = now;
-          else if (now - silenceStart > SILENCE_MS) { closeBody(); return; }   // 静音够久 → 收流
+          else if (now - silenceStart > SILENCE_MS) { closeBody(); return; }
         }
         if (!speech && !hintShown && now - startedAt > NO_SPEECH_HINT_MS) {
           hintShown = true; setHint('没听到声音?对着麦克风说,或点「说完了」');
         }
-        if (now - startedAt > MAX_REC_MS) { closeBody(); return; }             // 硬上限兜底
+        if (now - startedAt > MAX_REC_MS) { closeBody(); return; }
         rafRef.current = requestAnimationFrame(tick);
       };
       rafRef.current = requestAnimationFrame(tick);
-
       setStatus('listening');
       setHint(null);
+      const res = await fetch(`/api/interview/${encodeURIComponent(resultId)}/listen/stream`, {
+        method: 'POST', headers: { 'content-type': 'application/octet-stream' }, body, duplex: 'half', signal: ac.signal,
+      } as RequestInit);
+      if (!res.ok) {
+        // 503 streaming_asr_not_configured / 404 / 403 consent_required → 干净出路,与批量 /transcribe 同语义。
+        const errBody = await res.json().catch(() => null) as { error?: unknown } | null;
+        if (res.status === 403 && errBody?.error === 'consent_required') {
+          if (gen === genRef.current) { setCaptureConsented(false); setStatus('consent_required'); }
+          return null;
+        }
+        if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写暂不可用,可切回打字继续'); }
+        return null;
+      }
+      if (!res.body) { if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写失败,可切回打字继续'); } return null; }
+
       let sawError = false;
       await readNdjsonEvents(res.body, (ev) => {
-        if (ev.type === 'final' && typeof ev.text === 'string' && ev.text.trim()) finalText = ev.text;
+        if (ev.type === 'final' && typeof ev.text === 'string') finalText = appendAsrSentenceFinal(finalText, ev.text, 'final');
         else if (ev.type === 'partial' && typeof ev.text === 'string' && ev.text.trim()) setHint(`听写中:${ev.text}`);
         else if (ev.type === 'error') { sawError = true; return 'stop'; }
         return undefined;

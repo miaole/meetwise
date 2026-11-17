@@ -17,7 +17,10 @@
     "menu": "Menu",
     "recruiterJobs": "Jobs",
     "recruiterTalent": "Applications",
-    "recruiterNotes": "Notes"
+    "recruiterNotes": "Notes",
+    "quiz": "Practice questions",
+    "jobs": "Find jobs",
+    "roleMatch": "Role match"
   },
   "home": {
     "pill": "Preview",
@@ -209,7 +212,37 @@
     "helpStandard": "Supports PDF / Word (.docx) · ≤ 8MB. Image recognition is not available here; paste text or upload a PDF with a text layer.",
     "cardPreview": "Upload a PDF / Word file, or an image in preview environments. Image recognition failures never invent content.",
     "cardStandard": "Upload a PDF / Word file, or paste text directly. Image recognition is not enabled in this environment.",
-    "banner": "Preview image recognition, not a production visual-quality promise. Failures are reported as-is; resume text is never invented."
+    "banner": "Preview image recognition, not a production visual-quality promise. Failures are reported as-is; resume text is never invented.",
+    "extractUpload": "Extract and upload",
+    "orPaste": "or paste text",
+    "uploadResume": "Upload resume",
+    "pastePlaceholder": "Paste the resume text here (at least 20 characters)…",
+    "uploading": "Uploading…"
+  },
+  "resumePage": {
+    "title": "Resume",
+    "intro": "Resume content used for practice follows the storage and access limits that are already in place. Only the structured facts that are needed are extracted, and experience is not invented. Deletion takes effect immediately (processing and access stop). Cross-store purge receipts stay honest in the privacy notice and complete later.",
+    "consentTitle": "Agree to the privacy notice first",
+    "consentBody": "Uploading a resume processes personal information. Read and agree before uploading. Extraction is only for practice, and experience is not invented. Deletion takes effect immediately; cross-store purge receipts finish asynchronously.",
+    "personalization": "Allow interview personalization: resume points will be sent to the model provider to write questions. If you leave this unchecked, interviews use only the general question bank. You can withdraw this later.",
+    "consentButton": "I have read and agree to the privacy notice",
+    "consentPending": "Saving…",
+    "consentHint": "After you agree, resume upload is available. The ",
+    "privacyLink": "data boundary",
+    "consentHintAfter": " states what is available now and what is not yet open.",
+    "uploadTitle": "Upload a resume",
+    "personalizationOn": "Interview personalization: on (resume points will be sent to the model provider).",
+    "personalizationOff": "Interview personalization: off (interviews use only the general question bank).",
+    "withdraw": "Withdraw personalization",
+    "withdrawPending": "Withdrawing…",
+    "mine": "My resumes",
+    "listUnavailable": "The resume list is unavailable.",
+    "empty": "No resumes yet. Paste one to upload.",
+    "diagnose": "Diagnose",
+    "diagnosePending": "Starting…",
+    "reparse": "Parse again",
+    "reparsePending": "Parsing…",
+    "backHome": "Back to home"
   },
   "errorBoundary": {
     "title": "Something went wrong",

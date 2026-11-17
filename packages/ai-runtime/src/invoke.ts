@@ -18,7 +18,7 @@ import {
   markModelInvocationUnknown, reserveAiTextCost, settleAiTextCost, type Client, type DbPool,
 } from '@meetwise/db';
 import { errCode } from '@meetwise/errors';   // #174: 错误类叶子包,解出对 db 的耦合
-import { doubleValidate } from './validators/index.ts';
+import { classifyDoubleValidate } from './validators/index.ts';
 import { getPrompt } from './prompts.ts';
 import { getTracer, type ModelCallOutcome } from './trace.ts';
 import { getMetrics, METRIC } from './metrics.ts';
@@ -1260,12 +1260,14 @@ async function invokeExecuteAndSettlePhase<T>(args: InvokeExecuteArgs<T>): Promi
     getMetrics().inc(METRIC.modelEstimateUnderestimated);
   }
 
-  const validated = doubleValidate(spec.schema, spec.businessValidate, result.raw);
+  // 校验器抛错归一为 validator_internal_error。供应商已经返回，这里不再外派。
+  const classified = classifyDoubleValidate(spec.schema, spec.businessValidate, result.raw);
+  const validated = classified.ok ? { ok: true as const, value: classified.value } : { ok: false as const };
   // 返回给调用方的 error 保留业务 reason 可读性(`business:${reason}`)；落库的 error_code 必须是
   // 稳定 ASCII 机器码(0088 强约束 `^[A-Za-z0-9._:-]{1,120}$`，中文 reason 会触发
   // ai_model_terminalize_invalid_input、被 catch 误记为 unknown)。二者分离。
-  const error = validated.ok ? undefined : (validated.stage === 'schema' ? 'schema_validation_failed' : `business:${validated.reason}`);
-  const errorCode = validated.ok ? undefined : (validated.stage === 'schema' ? 'schema_validation_failed' : 'business_validation_failed');
+  const error = classified.ok ? undefined : classified.error;
+  const errorCode = classified.ok ? undefined : classified.errorCode;
   let stored: unknown;
   let value: T | undefined;
   let settledCost = 0;
@@ -1338,7 +1340,7 @@ async function invokeExecuteAndSettlePhase<T>(args: InvokeExecuteArgs<T>): Promi
     return { error: 'external_outcome_unknown' };
   }
   if (error) {
-    span(1, error.startsWith('business:') ? 'business_error' : 'schema_invalid', latencyMs, settledUsage);
+    span(1, error.startsWith('business:') || error === 'validator_internal_error' ? 'business_error' : 'schema_invalid', latencyMs, settledUsage);
     return { error };
   }
   // AG-24:终局 ok 臂携带真名+成本——model 优先序=裁决①(a):G7 供应商回显 actualModel 优先(在手时),

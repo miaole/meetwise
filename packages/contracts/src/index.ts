@@ -7,6 +7,19 @@
  */
 import { z } from 'zod';
 
+/** 流式 ASR 的句级 final 之间用换行拼接。partial 不入稿。连续重复的同一句不累计。 */
+export const ASR_SENTENCE_SEPARATOR = '\n';
+
+export function appendAsrSentenceFinal(current: string, text: string, kind: 'final' | 'partial'): string {
+  if (kind !== 'final') return current;
+  const sentence = text.trim();
+  if (!sentence) return current;
+  if (!current) return sentence;
+  const previous = current.split(ASR_SENTENCE_SEPARATOR);
+  if (previous[previous.length - 1] === sentence) return current;
+  return current + ASR_SENTENCE_SEPARATOR + sentence;
+}
+
 /* ───────────── auth ───────────── */
 // email 封 254(RFC 5321),password 封 128:上限防超长输入把 scrypt 变 CPU DoS 面 + 超长邮箱撑爆索引(负测抓到无上限)。
 export const Credentials = z.object({ email: z.string().email().max(254), password: z.string().min(8).max(128) });

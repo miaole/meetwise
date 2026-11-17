@@ -130,7 +130,7 @@ related:
 | TC-INT-02-queue | 集成 | 超容量→waiting_system 行 + queued 事件落库 |
 | TC-INT-02-E2 | graph-fake-model | fake 注入幻觉事实→业务校验拒、QA 未入库 |
 | TC-INT-02-E2a | graph | 空事实首问：生成依赖只收到 `fundamental`，interrupt/SSE 的 `qkind=fundamental`，无简历个性化前提 |
-| TC-INT-02-E2b | worker unit | 非空事实的接地首题逐字包含所选事实、没有模型调用、不能出现测试注入的虚构项目词 |
+| TC-INT-02-E2b | worker unit | 现行权威：approved 模板不逐字复述所选经历，模型调用为 0，也不出现测试注入的虚构项目词。旧「逐字包含所选事实」与该设计冲突，保留为历史 FAIL，不为此把简历原句重新放进首题。 |
 | TC-INT-02-E4 | 集成 | 注入超 maxWaitMs→降级或 failed+released（断言账本） |
 | TC-INT-02-E5 | ai-eval | 对抗集泄题率=0（真实境内模型） |
 

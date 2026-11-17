@@ -27,6 +27,9 @@ import { spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  V7_LOAD_COUNT, V7_LOAD_PATH, V7_MIN_SUCCESSES, acceptLoadArtifact, acceptV7Attempt, loadArtifactName,
+} from './v7-load-attribution.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '../..');
@@ -511,11 +514,19 @@ writeFileSync(out, JSON.stringify({ mode, signup, profile, hasToken: Boolean(tok
 
 const HELPER_LOAD = writeHelper('probe-load.mjs', `#!/usr/bin/env node
 // In-container HTTP load probe via LB: N sequential GETs with per-request latency; JSON out.
-import { writeFileSync } from 'node:fs';
+// 先落未完成标记，全部请求结束后原子换成 complete:true。读到旧文件或缺完成标记都不得当成功。
+import { renameSync, writeFileSync } from 'node:fs';
 const count = Number(process.argv[2] || '30');
 const path = process.argv[3] || '/profile';
 const token = process.argv[4] || '';
-const out = process.argv[5] || '/app/.tmp/ha-sandbox/out-load.json';
+const out = process.argv[5];
+const runId = process.argv[6] || '';
+if (!out || !runId) {
+  console.error('load probe requires output path and run id');
+  process.exit(2);
+}
+const startedAt = new Date().toISOString();
+writeFileSync(out, JSON.stringify({ runId, count, path, startedAt, complete: false }));
 const latencies = []; const statuses = {}; let failures = 0;
 for (let i = 0; i < count; i++) {
   const t0 = Date.now();
@@ -527,7 +538,13 @@ for (let i = 0; i < count; i++) {
 }
 latencies.sort((a, b) => a - b);
 const pct = (p) => latencies[Math.min(latencies.length - 1, Math.floor(latencies.length * p))];
-writeFileSync(out, JSON.stringify({ count, path, failures, statuses, p50: pct(0.5), p95: pct(0.95), max: latencies[latencies.length - 1], at: new Date().toISOString() }, null, 2));
+const finished = {
+  runId, count, path, failures, statuses, startedAt, finishedAt: new Date().toISOString(), complete: true,
+  p50: pct(0.5), p95: pct(0.95), max: latencies[latencies.length - 1],
+};
+const tmp = out + '.writing';
+writeFileSync(tmp, JSON.stringify(finished));
+renameSync(tmp, out);
 `);
 
 const HELPER_SSE = writeHelper('probe-sse.mjs', `#!/usr/bin/env node
@@ -625,6 +642,57 @@ function signupViaLb(outName, tries = 5) {
     if (i < tries) sleepSync(21000);
   }
   return null;
+}
+
+function waitLoadStarted(name, runId, timeoutMs) {
+  const out = join(SANDBOX_DIR, name);
+  const t0 = Date.now();
+  while (Date.now() - t0 < timeoutMs) {
+    if (existsSync(out)) {
+      try {
+        const parsed = JSON.parse(readFileSync(out, 'utf8'));
+        if (parsed && parsed.runId === runId && parsed.startedAt) return true;
+      } catch { /* 写入中，继续等 */ }
+    }
+    sleepSync(50);
+  }
+  return false;
+}
+
+function readAcceptedLoad(name, runId, attemptStartedAtMs, killedAtMs, requireOverlap) {
+  const out = join(SANDBOX_DIR, name);
+  let artifact = null;
+  const deadline = Date.now() + 30_000;
+  while (Date.now() < deadline) {
+    if (existsSync(out)) {
+      try { artifact = JSON.parse(readFileSync(out, 'utf8')); } catch { artifact = null; }
+      const verdict = acceptLoadArtifact(artifact, {
+        runId,
+        count: V7_LOAD_COUNT,
+        path: V7_LOAD_PATH,
+        minSuccesses: V7_MIN_SUCCESSES,
+        attemptStartedAtMs,
+        readAtMs: Date.now(),
+        killedAtMs,
+        requireOverlap,
+      });
+      if (verdict.ok) return { artifact, verdict };
+    }
+    sleepSync(250);
+  }
+  return {
+    artifact,
+    verdict: acceptLoadArtifact(artifact, {
+      runId,
+      count: V7_LOAD_COUNT,
+      path: V7_LOAD_PATH,
+      minSuccesses: V7_MIN_SUCCESSES,
+      attemptStartedAtMs,
+      readAtMs: Date.now(),
+      killedAtMs,
+      requireOverlap,
+    }),
+  };
 }
 
 function readOut(name, tries = 40, gapMs = 500) {
@@ -1179,26 +1247,32 @@ async function cmdV7() {
   }
   note('fixture ready', true, `${USERS} users × ${JOBS_PER + 1} jobs = ${USERS * (JOBS_PER + 1)} queued rows (attempts=4·首败即 MAX 终态·interview created 形=失败臂白名单成员)`);
 
-  // ② HTTP 负载波 1（并发 2×40 GET /profile·持 token）+ 波中 SIGKILL api-a → LB failover。
-  const b1 = execDetach('api-b', [HELPER_LOAD, '40', '/profile', users[0].token, '/app/.tmp/ha-sandbox/out-load1.json']);
-  const b2 = execDetach('api-b', [HELPER_LOAD, '40', '/profile', users[1].token, '/app/.tmp/ha-sandbox/out-load2.json']);
-  sleepSync(400);
+  // ② HTTP 负载波 1（2×40 GET /profile·持 token）+ 见到本轮 startedAt 后再 SIGKILL api-a。
+  // 输出文件名含本轮 run-id。固定 out-loadN.json 即使还在，也不再被读取。
+  const runId = randomUUID();
+  const attemptStartedAtMs = Date.now();
+  const loadNames = [1, 2, 3].map((slot) => loadArtifactName(slot, runId));
+  const containerOut = (name) => `/app/.tmp/ha-sandbox/${name}`;
+  const b1 = execDetach('api-b', [HELPER_LOAD, String(V7_LOAD_COUNT), V7_LOAD_PATH, users[0].token, containerOut(loadNames[0]), runId]);
+  const b2 = execDetach('api-b', [HELPER_LOAD, String(V7_LOAD_COUNT), V7_LOAD_PATH, users[1].token, containerOut(loadNames[1]), runId]);
+  const wave1Started = waitLoadStarted(loadNames[0], runId, 10_000) && waitLoadStarted(loadNames[1], runId, 10_000);
   const nameA = containerName('api-a');
+  const killedAtMs = Date.now();
   const killed = crashReplica(nameA);
-  note('mid-load SIGKILL api-a', killed.status === 0, `container=${nameA}（重启策略自愈·LB 摘流）`);
-  let load1 = readOut('out-load1.json', 60, 500);
-  let load2 = readOut('out-load2.json', 60, 500);
-  note('HTTP 负载波 1 完成（含 failover 窗）', Boolean(load1 && load2), `failures=${load1 && load1.failures}/${load2 && load2.failures} p50=${load1 && load1.p50}/${load2 && load2.p50}ms`);
+  note('mid-load SIGKILL api-a', killed.status === 0 && wave1Started, `container=${nameA} runId=${runId}（重启策略自愈·LB 摘流）`);
+  const load1 = readAcceptedLoad(loadNames[0], runId, attemptStartedAtMs, killedAtMs, true);
+  const load2 = readAcceptedLoad(loadNames[1], runId, attemptStartedAtMs, null, false);
+  note('HTTP 负载波 1 完成（含 failover 窗）', Boolean(load1.verdict.ok && load2.verdict.ok), `failures=${load1.artifact && load1.artifact.failures}/${load2.artifact && load2.artifact.failures}`);
 
   // ③ 队列排空容量减半：docker stop worker-b（worker-a 独自消费）。
   const nameB0 = containerName('worker-b');
   sh('docker', ['stop', nameB0]);
   note('worker-b stopped mid-drain', true, `${nameB0}（排空容量减半·worker-a 独自消费）`);
 
-  // ④ HTTP 负载波 2（failover 后·走 api-b）。
-  const b3 = execDetach('api-b', [HELPER_LOAD, '40', '/profile', users[2].token, '/app/.tmp/ha-sandbox/out-load3.json']);
-  const load3 = readOut('out-load3.json', 60, 500);
-  note('HTTP 负载波 2 完成（failover 后）', Boolean(load3), `failures=${load3 && load3.failures} p50=${load3 && load3.p50}ms statuses=${JSON.stringify(load3 && load3.statuses)}`);
+  // ④ HTTP 负载波 2（failover 后·走 api-b）。同样只接受本轮 run-id 的完成文件。
+  const b3 = execDetach('api-b', [HELPER_LOAD, String(V7_LOAD_COUNT), V7_LOAD_PATH, users[2].token, containerOut(loadNames[2]), runId]);
+  const load3 = readAcceptedLoad(loadNames[2], runId, attemptStartedAtMs, null, false);
+  note('HTTP 负载波 2 完成（failover 后）', load3.verdict.ok, `failures=${load3.artifact && load3.artifact.failures} statuses=${JSON.stringify(load3.artifact && load3.artifact.statuses)}`);
 
   // ⑤ 队列终态审计：轮询至 24 行全部 done/failed（上限 720s），attempts ≤ 5，queued/running 清零。
   const totalRows = USERS * (JOBS_PER + 1);   // start 锚 + answer 族
@@ -1222,22 +1296,37 @@ async function cmdV7() {
   note('queue drained to all-terminal', allTerminal, JSON.stringify(audit));
   const attemptsOk = Boolean(audit && audit.maxAttempts <= MAX_ATTEMPTS);
   note('attempts ≤ MAX(5)（有界重试封顶在位）', attemptsOk, `maxAttempts=${audit && audit.maxAttempts}`);
-  const httpNo5xx = [load1, load2, load3].filter(Boolean).every((l) => Object.keys(l.statuses).every((code) => !code.startsWith('5')));
-  note('HTTP 全程无 5xx（failover 干净·连接错如实计数）', httpNo5xx, `statuses=${JSON.stringify([load1, load2, load3].filter(Boolean).map((l) => l.statuses))}`);
   const recovered = waitContainerRestarted(nameA, 0, 90_000);
   note('api-a 重启策略自愈复位', recovered, `container=${nameA}`);
+  const loads = [load1, load2, load3].map((item) => item && item.artifact);
+  const attribution = acceptV7Attempt({
+    runId,
+    count: V7_LOAD_COUNT,
+    path: V7_LOAD_PATH,
+    minSuccesses: V7_MIN_SUCCESSES,
+    attemptStartedAtMs,
+    readAtMs: Date.now(),
+    killedAtMs,
+    startups: [b1 === true, b2 === true, b3 === true],
+    loads,
+  });
+  note('本轮负载回执归属（run-id/完成标记/启动结果/第一波重叠）', attribution.ok, attribution.reasons.join(',') || 'ok');
 
-  const v7ok = allTerminal && attemptsOk && httpNo5xx && Boolean(load1 && load2 && load3) && killed.status === 0 && recovered;
+  const v7ok = allTerminal && attemptsOk && attribution.ok && killed.status === 0 && recovered;
   const v7exit = v7ok ? 0 : 1;
   writeReceipt('v7-load-drill.receipt.json', {
     result: v7ok ? 'OK' : 'FAIL',
     v: 'V7',
+    runId,
     users: USERS, jobsPer: JOBS_PER, totalRows,
-    load1, load2, load3,
+    load1: load1.artifact, load2: load2.artifact, load3: load3.artifact,
+    loadVerdicts: [load1.verdict, load2.verdict, load3.verdict],
+    attribution,
     apiAKilled: killed.status === 0, apiARestarted: recovered, workerBStopped: nameB0,
-    queueAudit: audit, attemptsOk, httpNo5xx,
+    queueAudit: audit, attemptsOk,
+    historicalReceiptRevokedForAcceptance: 'receipts/ha-1/v7-load-drill.receipt.json',
     command: 'MEETWISE_HA_SANDBOX_AUTHORIZED=1 node scripts/ha/ha-sandbox.mjs v7',
-    note: 'A-P0-RLS drill: isomorphic compose HTTP+queue load with mid-load failover (api-a SIGKILL) and half drain capacity (worker-b stop); attempts=4 fixture = first-fail terminal (retry ladder owned by requeueOrTerminalizeExhausted existing arms); interview status=created (production-producible, failInterviewAndRelease whitelist member) — previous active-shape fixture livelocked on interview_failure_terminal_conflict (drain+reaper rollback loop, done/failed pinned 0); est live=0; local sandbox ≠ production HA; all predicates participate in EXIT',
+    note: 'Local failure-terminal drill only. Not business recovery and not production HA. Each wave must match this run-id, be atomically complete, and record at least one success; connection errors stay visible and are not an SLO. Wave 1 kill must fall inside that wave. The previously checked-in v7 receipt is historical and is not acceptance evidence. est live=0.',
   }, v7exit);
   finish(v7exit, { result: v7ok ? 'V7_LOAD_DRILL_OK' : 'FAIL' }, 'v7');
 }

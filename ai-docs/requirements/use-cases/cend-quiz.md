@@ -526,17 +526,17 @@ PII 字段清单（脱敏断言基线）：身份证号、手机号、邮箱、�
 异常/逃逸流（落机制）
 | flow | 场景 | 机制 |
 |---|---|---|
-| E1 | 主模型 503 | 熔断 + failover 备用（不直接 failed） |
+| E1 | 主模型 503 | 单次外派后记 unknown，不自动切备用、不重发。旧「503 切备用并成功」与 unknown 禁止盲目重发冲突，保留为历史 FAIL。 |
 | E2 | 全部不可用 | 有界重试耗尽→failed→released（退还），可解释 |
 
 验收
-- 主模型抛 503 → 走 fallback 分支、`model_failover` trace 存在、**不直接 failed**。
+- 主模型抛 503 → 只外派一次，结果为 unknown，备用次数为 0。不把 unknown 自动重发。
 - 主+备全挂 → 有界重试后 failed + released（余额复原）。
 
 关联：逃逸 熔断/降级；原语 事件日志(failover)/CAS(release)。
 
 测试用例
-- TC-quiz-071-failover〔graph-fake-model〕：主抛 503→断言切备用、`model_failover` 记录、生成成功。
+- TC-quiz-071-failover〔graph-fake-model〕：主抛 503→只 dispatch 一次、unknown、backup 为 0。旧备用成功预期作废，不开启盲目 failover。
 - TC-quiz-071-exhaust〔graph-fake-model〕：主+备全 503→有界重试后 failed、released。
 
 ---

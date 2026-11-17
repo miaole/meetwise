@@ -7,7 +7,7 @@ export async function LocaleSwitcher() {
   const locale = await getLocale();
   return (
     <span className="flex items-center gap-1 text-xs text-muted-foreground">
-      <LocaleSwitchButton action={setLocaleAction} value="zh" label="中" active={locale === 'zh'} />
+      <LocaleSwitchButton action={setLocaleAction} value="zh" label="ZH" active={locale === 'zh'} />
       <span>/</span>
       <LocaleSwitchButton action={setLocaleAction} value="en" label="EN" active={locale === 'en'} />
     </span>

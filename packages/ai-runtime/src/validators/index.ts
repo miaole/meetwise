@@ -21,3 +21,19 @@ export function doubleValidate<T>(
   if (bizErr) return { ok: false, stage: 'business', reason: bizErr };
   return { ok: true, value: parsed.data };
 }
+
+/** 校验器抛错是确定性本地失败，不是供应商 unknown，也不再外派。 */
+export function classifyDoubleValidate<T>(
+  schema: z.ZodType<T>,
+  businessValidate: (v: T) => string | null,
+  raw: unknown,
+): { ok: true; value: T } | { ok: false; error: string; errorCode: string } {
+  try {
+    const validated = doubleValidate(schema, businessValidate, raw);
+    if (validated.ok) return { ok: true, value: validated.value };
+    if (validated.stage === 'schema') return { ok: false, error: 'schema_validation_failed', errorCode: 'schema_validation_failed' };
+    return { ok: false, error: `business:${validated.reason}`, errorCode: 'business_validation_failed' };
+  } catch {
+    return { ok: false, error: 'validator_internal_error', errorCode: 'validator_internal_error' };
+  }
+}

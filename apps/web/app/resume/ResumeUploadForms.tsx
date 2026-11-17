@@ -10,10 +10,10 @@ import { resumeFileAccept, resumeFileHelpText, resumeOcrPreviewBanner, type Resu
 
 type UploadAction = (formData: FormData) => Promise<ResumeUploadActionResult>;
 
-function UploadButton({ pending, children, variant = 'default' }: { pending: boolean; children: string; variant?: 'default' | 'outline' }) {
+function UploadButton({ pending, children, variant = 'default', pendingLabel }: { pending: boolean; children: string; variant?: 'default' | 'outline'; pendingLabel: string }) {
   return (
     <Button type="submit" variant={variant} disabled={pending} aria-busy={pending}>
-      {pending ? <><Spinner className="size-4 border-current border-t-transparent" label="" />上传中…</> : children}
+      {pending ? <><Spinner className="size-4 border-current border-t-transparent" label="" />{pendingLabel}</> : children}
     </Button>
   );
 }
@@ -23,11 +23,15 @@ function UploadForm({
   action,
   children,
   button,
+  pendingLabel,
+  variant = 'default',
   className,
 }: {
   action: UploadAction;
   children: ReactNode;
   button: string;
+  pendingLabel: string;
+  variant?: 'default' | 'outline';
   className?: string;
 }) {
   const [pending, startTransition] = useTransition();
@@ -52,7 +56,7 @@ function UploadForm({
   return (
     <form onSubmit={submit} className={className} aria-describedby={message ? 'resume-upload-error' : undefined}>
       {children}
-      <UploadButton pending={pending} variant={button === '提取并上传' ? 'outline' : 'default'}>{button}</UploadButton>
+      <UploadButton pending={pending} pendingLabel={pendingLabel} variant={variant}>{button}</UploadButton>
       {message ? <p id="resume-upload-error" role="alert" className="w-full text-sm text-destructive">{message}</p> : null}
     </form>
   );
@@ -68,7 +72,7 @@ export function ResumeUploadForms({ ocrPreview }: { ocrPreview: boolean }) {
           {resumeOcrPreviewBanner(labels)}
         </p>
       ) : null}
-      <UploadForm action={uploadResumeFileAction} button="提取并上传" className="flex flex-wrap items-center gap-3 rounded-md border border-dashed border-border bg-secondary/40 p-4">
+      <UploadForm action={uploadResumeFileAction} button={tResumeUpload('extractUpload')} pendingLabel={tResumeUpload('uploading')} variant="outline" className="flex flex-wrap items-center gap-3 rounded-md border border-dashed border-border bg-secondary/40 p-4">
         <input
           type="file" name="file" accept={resumeFileAccept(ocrPreview)} required
           className="text-sm file:mr-3 file:rounded-md file:border file:border-input file:bg-background file:px-3 file:py-1.5 file:text-sm file:font-medium"
@@ -76,14 +80,14 @@ export function ResumeUploadForms({ ocrPreview }: { ocrPreview: boolean }) {
         <span className="w-full text-xs text-muted-foreground sm:w-auto">{resumeFileHelpText(ocrPreview, labels)}</span>
       </UploadForm>
 
-      <div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />或粘贴文本<span className="h-px flex-1 bg-border" /></div>
+      <div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />{tResumeUpload('orPaste')}<span className="h-px flex-1 bg-border" /></div>
 
-      <UploadForm action={uploadResumeAction} button="上传简历" className="space-y-4">
+      <UploadForm action={uploadResumeAction} button={tResumeUpload('uploadResume')} pendingLabel={tResumeUpload('uploading')} className="space-y-4">
         <Textarea
           name="text"
           required
           minLength={20}
-          placeholder="在此粘贴简历原文(至少 20 字)…"
+          placeholder={tResumeUpload('pastePlaceholder')}
           className="min-h-36"
         />
       </UploadForm>

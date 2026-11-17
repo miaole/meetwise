@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Param, Query, Req, Res, Headers, Body, UseGuards, HttpCode, HttpStatus, HttpException } from '@nestjs/common';
 import type { FastifyReply } from 'fastify';
-import { TranscribeDto, SpeakDto, TurnDto, FeedbackDto, LearningCompleteDto, InterviewAnswerPreviewSubmitDto } from '@meetwise/contracts';
+import { TranscribeDto, SpeakDto, TurnDto, FeedbackDto, LearningCompleteDto, InterviewAnswerPreviewSubmitDto, appendAsrSentenceFinal } from '@meetwise/contracts';
 import { InterviewService } from './interview.service';
 import { PrincipalGuard } from '../../platform/principal.guard';
 import { PublicPreviewControlledWriteGuard } from '../../platform/preview-controlled-write.guard';
@@ -152,7 +152,12 @@ export class InterviewController {
   async listenStream(@Param('id') id: string, @Req() req: any, @Res() reply: FastifyReply) {
     const issuedQuestionId = await this.interviews.listenStreamPrepare(req.principal, id);   // 404/410/403/429/503 抛在 hijack 之前 → 异常过滤正常响应
     const ac = new AbortController();
-    req.raw.on('close', () => ac.abort());                                                   // 客户端断开/挂断 → 停收 + 关上游 paraformer WS
+    // Node 16 起 IncomingMessage 的 close 表示请求体正常读完，不是断线。只在 aborted 时取消，
+    // 正常 EOF 要继续 finish-task，等句级 final。响应还没写完就断开，同样取消。
+    const abortIfGone = () => ac.abort();
+    if (req.raw.aborted) abortIfGone();
+    else req.raw.on('aborted', abortIfGone);
+    reply.raw.on('close', () => { if (!reply.raw.writableEnded) abortIfGone(); });
     // 请求体=octet-stream 原始流:content-type parser 直通不缓冲,读 parser 供给的流(经 preParsing 封顶包装,不绕 15MiB 上传信封)。
     const source: unknown = req.body ?? req.raw;
     const pcm = (async function* (): AsyncIterable<Uint8Array> {
@@ -186,7 +191,7 @@ export class InterviewController {
             ac.signal.addEventListener('abort', failFn, { once: true });
           });
         }
-        if (ev.final && ev.text.trim()) lastFinal = ev.text;
+        lastFinal = appendAsrSentenceFinal(lastFinal, typeof ev.text === 'string' ? ev.text : '', ev.final ? 'final' : 'partial');
       }
     } catch { streamError = true; }
     try { await it.return?.(); } catch { /* noop */ }                       // 提前 break/throw 都触发生成器 finally → 关上游 WS

@@ -17,7 +17,10 @@
     "menu": "菜单",
     "recruiterJobs": "岗位",
     "recruiterTalent": "投递",
-    "recruiterNotes": "笔记"
+    "recruiterNotes": "笔记",
+    "quiz": "押题",
+    "jobs": "找工作",
+    "roleMatch": "岗位匹配"
   },
   "home": {
     "pill": "预览版",
@@ -209,7 +212,37 @@
     "helpStandard": "支持 PDF / Word(.docx)· ≤ 8MB。图片识别未开放，请粘贴文本或上传带文字层的 PDF。",
     "cardPreview": "上传 PDF / Word，或在预览环境下上传图片。图片识别失败不会编造文字。",
     "cardStandard": "上传 PDF / Word，或直接粘贴文本。图片识别未在本环境开放。",
-    "banner": "预览版图片识别，不是生产视觉质量承诺。识别失败会原样提示，不会编造简历文字。"
+    "banner": "预览版图片识别，不是生产视觉质量承诺。识别失败会原样提示，不会编造简历文字。",
+    "extractUpload": "提取并上传",
+    "orPaste": "或粘贴文本",
+    "uploadResume": "上传简历",
+    "pastePlaceholder": "在此粘贴简历原文(至少 20 字)…",
+    "uploading": "上传中…"
+  },
+  "resumePage": {
+    "title": "简历 · 知面",
+    "intro": "用于练习的简历内容会经过当前已覆盖的存储与访问约束；只提取必要结构化事实，不编造经历。删除即时生效（立即停止处理与访问）；跨存储清除回执稍后在隐私边界说明中保持如实状态。",
+    "consentTitle": "先同意隐私政策(PIPL)",
+    "consentBody": "上传简历会处理个人信息。请阅读并同意后再上传——系统只用于练习所需的结构化提取，不编造经历。删除即时生效；跨存储清除回执异步完成。",
+    "personalization": "允许面试出题个性化：简历要点将发送给模型服务商用于出题（不勾选则面试仅使用通用题库，可随时撤回）。",
+    "consentButton": "我已阅读并同意隐私政策(PIPL)",
+    "consentPending": "记录中…",
+    "consentHint": "同意后可启用简历上传；",
+    "privacyLink": "数据边界说明",
+    "consentHintAfter": "会标明当前可用范围与未开放流程。",
+    "uploadTitle": "上传简历",
+    "personalizationOn": "面试出题个性化：已同意（简历要点将发送给模型服务商用于出题）",
+    "personalizationOff": "面试出题个性化：未同意（面试仅使用通用题库）",
+    "withdraw": "撤回出题个性化",
+    "withdrawPending": "撤回中…",
+    "mine": "我的简历",
+    "listUnavailable": "简历列表暂不可用。",
+    "empty": "还没有简历,粘贴上传。",
+    "diagnose": "诊断",
+    "diagnosePending": "启动中…",
+    "reparse": "重新解析",
+    "reparsePending": "解析中…",
+    "backHome": "← 返回首页"
   },
   "errorBoundary": {
     "title": "出错了",

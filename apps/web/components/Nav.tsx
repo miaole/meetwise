@@ -36,9 +36,9 @@ export async function Nav() {
     { href: '/growth', label: t('growth') },
     { href: '/resume', label: t('resume') },
     { href: '/interviews', label: t('interviews') },
-    { href: '/quiz', label: '押题' },
-    { href: '/jobs', label: '找工作' },
-    { href: '/roles', label: '岗位匹配' },   // #268 S2a 入口(标签循 :39-40 字面中文先例·零 i18n 键·EXEC 裁登记)
+    { href: '/quiz', label: t('quiz') },
+    { href: '/jobs', label: t('jobs') },
+    { href: '/roles', label: t('roleMatch') },
     { href: '/notifications', label: t('notifications') },
     { href: '/pricing', label: t('billing') },
     { href: '/settings', label: t('settings') },

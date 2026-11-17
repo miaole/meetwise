@@ -38,15 +38,14 @@ export default async function ResumePage() {
   const interviewPersonalized = interviewConsent?.consented === true;
   const ocrPreview = isOcrPreviewEnabled();
   const tResumeUpload = await getTranslations('resumeUpload');
+  const tPage = await getTranslations('resumePage');
   const resumeUploadLabels: ResumeUploadCopyLabels = (key) => tResumeUpload(key);
 
   return (
     <main className="mx-auto max-w-3xl space-y-6">
       <header className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">简历 · 知面</h1>
-        <p className="text-sm text-muted-foreground">
-          用于练习的简历内容会经过当前已覆盖的存储与访问约束；只提取必要结构化事实，不编造经历。删除即时生效（立即停止处理与访问）；跨存储清除回执稍后在隐私边界说明中保持如实状态。
-        </p>
+        <h1 className="text-2xl font-semibold tracking-tight">{tPage('title')}</h1>
+        <p className="text-sm text-muted-foreground">{tPage('intro')}</p>
       </header>
 
       {!consented ? (
@@ -55,24 +54,24 @@ export default async function ResumePage() {
         // 文案按审计附录 C E 项原文明示「简历要点将发送给模型服务商用于出题」。
         <Card>
           <CardHeader>
-            <CardTitle>先同意隐私政策(PIPL)</CardTitle>
-            <CardDescription>上传简历会处理个人信息。请阅读并同意后再上传——系统只用于练习所需的结构化提取，不编造经历。删除即时生效；跨存储清除回执异步完成。</CardDescription>
+            <CardTitle>{tPage('consentTitle')}</CardTitle>
+            <CardDescription>{tPage('consentBody')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <form action={grantConsentAction} className="space-y-3">
               <label className="flex items-start gap-2 text-sm">
                 <input type="checkbox" name="interview_personalization" className="mt-1" />
-                <span>允许面试出题个性化：简历要点将发送给模型服务商用于出题（不勾选则面试仅使用通用题库，可随时撤回）。</span>
+                <span>{tPage('personalization')}</span>
               </label>
-              <SubmitButton pendingLabel="记录中…">我已阅读并同意隐私政策(PIPL)</SubmitButton>
+              <SubmitButton pendingLabel={tPage('consentPending')}>{tPage('consentButton')}</SubmitButton>
             </form>
-            <p className="text-xs text-muted-foreground">同意后可启用简历上传；<Link href="/privacy" className="underline underline-offset-4">数据边界说明</Link>会标明当前可用范围与未开放流程。</p>
+            <p className="text-xs text-muted-foreground">{tPage('consentHint')}<Link href="/privacy" className="underline underline-offset-4">{tPage('privacyLink')}</Link>{tPage('consentHintAfter')}</p>
           </CardContent>
         </Card>
       ) : (
       <Card>
         <CardHeader>
-          <CardTitle>上传简历</CardTitle>
+          <CardTitle>{tPage('uploadTitle')}</CardTitle>
           <CardDescription>{resumeUploadCardDescription(ocrPreview, resumeUploadLabels)}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
@@ -80,20 +79,20 @@ export default async function ResumePage() {
           {/* G3/G4(RESUME-GROUNDING rev3)最小用途状态面:展示面试出题个性化同意态,可撤回(撤回=停止后续使用)。 */}
           <form action={withdrawInterviewPersonalizationAction} className="flex items-center justify-between gap-3 border-t pt-4">
             <span className="text-xs text-muted-foreground">
-              面试出题个性化：{interviewPersonalized ? '已同意（简历要点将发送给模型服务商用于出题）' : '未同意（面试仅使用通用题库）'}
+              {interviewPersonalized ? tPage('personalizationOn') : tPage('personalizationOff')}
             </span>
-            {interviewPersonalized && <SubmitButton variant="outline" size="sm" pendingLabel="撤回中…">撤回出题个性化</SubmitButton>}
+            {interviewPersonalized && <SubmitButton variant="outline" size="sm" pendingLabel={tPage('withdrawPending')}>{tPage('withdraw')}</SubmitButton>}
           </form>
         </CardContent>
       </Card>
       )}
 
       <section className="space-y-3">
-        <h2 className="text-lg font-medium">我的简历</h2>
+        <h2 className="text-lg font-medium">{tPage('mine')}</h2>
         {list === null ? (
-          <p className="text-sm text-destructive">简历列表暂不可用。</p>
+          <p className="text-sm text-destructive">{tPage('listUnavailable')}</p>
         ) : list.length === 0 ? (
-          <p className="text-sm text-muted-foreground">还没有简历,粘贴上传。</p>
+          <p className="text-sm text-muted-foreground">{tPage('empty')}</p>
         ) : (
           <ul className="space-y-3">
             {list.map((r) => (
@@ -108,10 +107,10 @@ export default async function ResumePage() {
                       {/* 一键据这份简历做诊断(隐藏 resumeId → Server Action startDiagnosisAction)。 */}
                       <form action={startDiagnosisAction}>
                         <input type="hidden" name="resumeId" value={r.id} />
-                        <SubmitButton variant="outline" size="sm" pendingLabel="启动中…">诊断</SubmitButton>
+                        <SubmitButton variant="outline" size="sm" pendingLabel={tPage('diagnosePending')}>{tPage('diagnose')}</SubmitButton>
                       </form>
                       <form action={reparseResumeAction.bind(null, r.id)}>
-                        <SubmitButton variant="outline" size="sm" pendingLabel="解析中…">重新解析</SubmitButton>
+                        <SubmitButton variant="outline" size="sm" pendingLabel={tPage('reparsePending')}>{tPage('reparse')}</SubmitButton>
                       </form>
                       <DeleteResumeButton resumeId={r.id} />
                     </div>
@@ -124,7 +123,7 @@ export default async function ResumePage() {
       </section>
 
       <p className="text-sm">
-        <Link href="/" className="text-muted-foreground hover:text-foreground">← 返回首页</Link>
+        <Link href="/" className="text-muted-foreground hover:text-foreground">{tPage('backHome')}</Link>
       </p>
     </main>
   );
