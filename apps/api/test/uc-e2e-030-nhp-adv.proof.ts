@@ -392,9 +392,8 @@ async function main(): Promise<void> {
     (await sessionRows(xu2b.userId)).find((r) => r['jti'] === xu2bJti)?.['revoked_at'] === null);
   const xu2Forged = signToken(xu2a.userId, AUTH_SECRET, 3600, Math.floor(Date.now() / 1000), 0, { jti: xu2bJti });
   const xu2ForgedMe = await profile(xu2Forged);
-  A('XU2 手签 uid=A + jti=B → GET /profile 200（会话活性查不绑 uid·fail-closed 不触发）', xu2ForgedMe.status === 200);
-  A('XU2 principal=A: 响应 id/email 恒 A（guard :100 principal 恒取签名 uid·B 数据零可达）',
-    xu2ForgedMe.body['id'] === xu2a.userId && xu2ForgedMe.body['email'] === xu2a.email);
+  A('XU2 手签 uid=A + jti=B → GET /profile 401（会话行按 uid 不可见，不升成 200）', xu2ForgedMe.status === 401);
+  A('XU2 伪造令牌没有读到 B 的资料', xu2ForgedMe.body['id'] !== xu2b.userId && xu2ForgedMe.body['email'] !== xu2b.email);
   const xu2bSnap1 = await snapFive(xu2b.userId);
   A('XU2 B 行零扰动: 五列（jti/user_id/pwd_epoch/revoked_at/created_at）前后比对恒等（admin 池读）',
     xu2bSnap0 === xu2bSnap1);

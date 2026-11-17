@@ -42,6 +42,7 @@ const { A, done } = mkAssert('report-retry:http');
 
 console.log('REPORT-RETRY (#229 D2) HTTP prove · releaseEvidence=false · Not HA');
 console.log('NOTE: 本绿≠全链路 E2E covered；HTTP retry 口 + 频控 + web 契约面；fixture=isolated PG + minimal privacy stub');
+console.log('NOTE: 成长旁路 SQL 42883 属于最小夹具缺少后续迁移函数，不在本证明范围内，也不能用本绿认领成长整链。完整迁移里的评分函数另证。');
 console.log('NOTE: D2 — 失败可重试、重试不重复扣费、不退款；频控 3 次/小时/份（S12 建议值待追认·常量可调）');
 
 // Minimal privacy-active stubs（0058 not in _neg-harness minimal mirror；owner match only）。

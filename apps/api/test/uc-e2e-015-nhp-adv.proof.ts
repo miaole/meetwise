@@ -239,7 +239,7 @@ const resumeCount = async (h: Awaited<ReturnType<typeof boot>>, principal: strin
     A('A5', 'A5 拒面零半写(恰 15 行 resume·第 16 次零行)', (await resumeCount(h, PA5)) === 15);
   }
 
-  // ── V1: 专用独立 principal + PARSE_MAX=1 窗 + N=3 并发真 PDF → 败者 ≥1 收 503 server_busy ──
+  // ── V1: 同一用户 FIFO。同用户并发不再假设必有 503。成功响应仍必须有正文，不能只看写库。
   {
     const pdfs = [realPdfFixture(`v1a-${S}`), realPdfFixture(`v1b-${S}`), realPdfFixture(`v1c-${S}`)];
     const rs = await Promise.all(pdfs.map((pdf, i) => uploadFile(h, PV1, {
@@ -247,16 +247,12 @@ const resumeCount = async (h: Awaited<ReturnType<typeof boot>>, principal: strin
       mimeType: 'application/pdf',
       contentBase64: pdf.toString('base64'),
     })));
-    const busy = rs.filter((r) => r.status === 503 && r.body?.error === 'server_busy');
-    const ingested = rs.filter((r) => r.status === 200 && r.body?.status === 'ingested');
-    console.log(`V1_HTTP  statuses=${JSON.stringify(rs.map((r) => ({ s: r.status, e: r.body?.error ?? r.body?.status })))} (window RESUME_PARSE_MAX=1)`);
-    A('V1', 'N=3 concurrent real-PDF uploads → 败者 ≥1 收 503 server_busy(全局解析槽 capacity=1)',
-      busy.length >= 1);
-    A('V1', '胜者(首请求)不受损 — 每个非 503 响应均 200 ingested 完整体(零半写零损伤)',
-      ingested.length === rs.length - busy.length && ingested.length >= 1
-      && ingested.every((r) => typeof r.body?.resumeId === 'string'));
+    const ingested = rs.filter((r) => r.status === 200 && r.body?.status === 'ingested' && typeof r.body?.resumeId === 'string');
+    console.log(`V1_HTTP  statuses=${JSON.stringify(rs.map((r) => ({ s: r.status, e: r.body?.error ?? r.body?.status, bytes: JSON.stringify(r.body ?? null).length })))} (same-user FIFO)`);
+    A('V1', '同一用户 3 个 PDF 按 FIFO 串行，成功响应必须带 ingested 正文',
+      rs.length === 3 && ingested.length === 3);
     A('V1', 'V1 拒面零消费', (await consumptionCount(h, PV1)) === 0);
-    A('V1', 'V1 落库恰=胜者数(503 败者零行)', (await resumeCount(h, PV1)) === ingested.length);
+    A('V1', 'V1 落库恰等于带正文的成功数', (await resumeCount(h, PV1)) === ingested.length);
   }
 
   // ── N: 对抗拒面全程零 entitlement 消费净账(422/429/503 全零扣) ──

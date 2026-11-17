@@ -26,11 +26,18 @@ export const SESSION_TTL_SEC = 7 * 24 * 3600;
 const SESSION_TTL_MS = 60_000;
 interface SessionState { active: boolean; exp: number }
 const sessionCache = new Map<string, SessionState>();
+function sessionCacheKey(uid: string, jti: string): string { return `${uid}\0${jti}`; }
+function dropSessionCache(jti: string): void {
+  for (const key of sessionCache.keys()) {
+    if (key.endsWith(`\0${jti}`)) sessionCache.delete(key);
+  }
+}
 /** 登出/吊销后调用 → 序自增+清本进程缓存,让吊销即时生效(不等 60s);跨实例由同语句 pg_notify 广播。 */
 export function evictSessionRevocation(jti: string): void { notePrincipalEvicted('jti', jti); }
 
 // 收播分派(sse-notify 第二通道):收播即清本进程会话缓存(注册面与 PrincipalGuard uid 侧同形)。
-onPrincipalEvict('jti', (jti) => { sessionCache.delete(jti); });
+// 负缓存按 uid+jti 成对。别人的 jti 查不到行时，不能写成该 jti 全局失效。
+onPrincipalEvict('jti', (jti) => { dropSessionCache(jti); });
 
 /**
  * 签发会话令牌并落会话行（同请求内原子先后：INSERT 成功才返回令牌——任何发出的 jti 令牌必有会话行，
@@ -71,15 +78,16 @@ export async function revokeSession(db: DbService, uid: string, jti: string): Pr
  * 回填代次比对：DB 读开始后序前进（广播/本地 evict）→ 该读可能早于远端 commit，放弃落缓存（仅本请求用）。
  */
 export async function isSessionActive(db: DbService, uid: string, jti: string, now: number): Promise<boolean> {
-  const c = sessionCache.get(jti);
+  const cacheKey = sessionCacheKey(uid, jti);
+  const c = sessionCache.get(cacheKey);
   if (c && c.exp > now) return c.active;
   const genBefore = principalEvictGeneration('jti', jti);
   const r = await db.asPrincipal(uid, (conn) => conn.query(
-    'SELECT 1 FROM auth_user_session WHERE jti=$1 AND revoked_at IS NULL',
-    [jti],
+    'SELECT 1 FROM auth_user_session WHERE jti=$1 AND user_id=$2 AND revoked_at IS NULL',
+    [jti, uid],
   ));
   const active = (r.rowCount ?? 0) > 0;
-  if (principalEvictGeneration('jti', jti) === genBefore) sessionCache.set(jti, { active, exp: now + SESSION_TTL_MS });
+  if (principalEvictGeneration('jti', jti) === genBefore) sessionCache.set(cacheKey, { active, exp: now + SESSION_TTL_MS });
   return active;
 }
 

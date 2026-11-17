@@ -268,7 +268,7 @@ GRANT EXECUTE ON FUNCTION assert_interview_privacy_active(text) TO app_role;
       return r;
     };
     try {
-      // ① begin 主链嘴: 202 扣额预留（typed 绑定+route 回读+reserve+入队 同事务·keyless）
+      // ① begin 主链嘴: 202 扣额预留。全局限流默认容量 60，不抬限流，也不把 429 从样本里删掉。
       await step('begin', h.post(`/interview/${interviewId}/begin`, { ...h.U(principal), 'resume-id': resumeId }, {}),
         202, (b) => b?.accepted === true && typeof b?.jobId === 'string' && b?.alreadyBegun !== true);
       // ② saga release 退还嘴(E1 语义 HTTP 面): 200 released

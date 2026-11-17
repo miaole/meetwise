@@ -296,7 +296,8 @@ GRANT EXECUTE ON FUNCTION assert_interview_privacy_active(text) TO app_role;
   A('PIN', 'anchor 404 not_found_or_forbidden(line-start throw predicate · §5.1)',
     !!uniqueHit(/^\s*throw new HttpException\(\{ error: 'not_found_or_forbidden' \}/));
   A('PIN', 'anchor stale_quiz(409 CONFLICT)', (() => { const l = uniqueHit(/'stale_quiz'/); return !!l && /CONFLICT/.test(l); })());
-  A('PIN', 'anchor toLowerCase compare', !!uniqueHit(/toLowerCase\(\)\s*!==\s*resumeId\.toLowerCase\(\)/));
+  A('PIN', 'anchor pinned resume toLowerCase compare', !!uniqueHit(/pinnedResumeId\.toLowerCase\(\) !== resumeId\.toLowerCase\(\)/));
+  A('PIN', 'anchor existing resume binding toLowerCase compare', !!uniqueHit(/existingResumeId\.toLowerCase\(\) !== resumeId\.toLowerCase\(\)/));
   A('PIN', 'anchor 409 resume_version_mismatch(CONFLICT)', (() => { const l = uniqueHit(/'resume_version_mismatch'/); return !!l && /CONFLICT/.test(l); })());
   A('PIN', 'anchor resume owner check in bind', !!uniqueHit(/r\.owner_user_id=\$2/));
   A('PIN', 'anchor reserveEntitlement', !!uniqueHit(/reserveEntitlement\(c, owner, id, 'mock_interview', 1\.0\)/));

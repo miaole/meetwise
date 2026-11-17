@@ -153,7 +153,7 @@ console.log('NOTE: 纯函数+静态源对账零 PG 零外呼零 key；EXIT0 = ca
 section('前置锚 · 方法级 scope（uploadGate+三方法）与映射单源键域');
 {
   A('锚 uploadGate 方法标记在场（scope 起点 :38）', /private async uploadGate\(principal: string\)/.test(svcSrc));
-  A('锚 uploadFile 方法标记在场（:44）', /async uploadFile\(principal: string, dto: UploadResumeFileDto\)/.test(svcSrc));
+  A('锚 uploadFile 方法标记在场（含断开 signal 第三参，不回退成两参）', /async uploadFile\(principal: string, dto: UploadResumeFileDto, options\?: \{ signal\?: AbortSignal \}\)/.test(svcSrc));
   A('锚 uploadImageViaOcr 方法标记在场（:95）', /private async uploadImageViaOcr\(/.test(svcSrc));
   A('锚 uploadInTransaction 方法标记在场（:206）', /private async uploadInTransaction\(/.test(svcSrc));
   A('锚 uploadGate 令牌桶 15/0.1 参数形在场（:39）', /this\.rl\.allow\(`resume-file:\$\{principal\}`, 15, 0\.1\)/.test(svcSrc));

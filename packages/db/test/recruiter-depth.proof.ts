@@ -426,8 +426,18 @@ async function main() {
 }
 
 async function cleanup() {
-  await pool.query('DELETE FROM interview_event WHERE stream_key = ANY($1::text[])', [[...createdInterviewIds]]);
-  await pool.query('DELETE FROM interview WHERE id = ANY($1::text[])', [[...createdInterviewIds]]);
+  // interview_event is append-only. DELETE is rejected and must not be swallowed.
+  console.log('CLEANUP_REPORT interview_event=skipped reason=append-only');
+  const interviews = await pool.query(
+    'SELECT count(*)::int AS n FROM interview_event WHERE stream_key = ANY($1::text[])',
+    [[...createdInterviewIds]],
+  );
+  if (Number(interviews.rows[0]?.n ?? 0) > 0) {
+    console.log(`CLEANUP_REPORT interview=left rows_with_events=${interviews.rows[0].n}`);
+  } else {
+    await pool.query('DELETE FROM interview WHERE id = ANY($1::text[])', [[...createdInterviewIds]]);
+    console.log('CLEANUP_REPORT interview=deleted');
+  }
   try { await pool.query('DELETE FROM interview_route_snapshot WHERE job_id=$1', [closedStartJobId]); } catch (cleanupError) { console.error('closed-start cleanup snapshot failed:', cleanupError); }
   try { await pool.query('DELETE FROM application_route_binding WHERE job_id=$1', [closedStartJobId]); } catch (cleanupError) { console.error('closed-start cleanup binding failed:', cleanupError); }
   try { await pool.query('DELETE FROM job_route_event WHERE job_id=$1', [closedStartJobId]); } catch (cleanupError) { console.error('closed-start cleanup route event failed:', cleanupError); }
@@ -457,6 +467,8 @@ async function cleanup() {
 }
 
 main().catch((e) => { console.error(e); failures++; }).finally(async () => {
-  try { await cleanup(); } catch (e) { console.error('cleanup failed:', e); }
-  await pool.end(); process.exit(failures === 0 ? 0 : 1);
+  let cleanupFailed = false;
+  try { await cleanup(); } catch (e) { cleanupFailed = true; console.error('CLEANUP_REPORT failed:', e); }
+  await pool.end();
+  process.exit(failures === 0 && !cleanupFailed ? 0 : 1);
 });

@@ -3,6 +3,8 @@
  * PII 不入 trace（redactOutput）+ 转写文本回灌 ingestResume 的确定性下游门（注入拦截 / PII 脱敏）。
  * 覆盖 UC-RES-003 验收 ④成功confirmed ⑤幂等 ⑥下游门 ⑦不冒充 ⑧PII不入trace，及失败 released。
  *   pnpm ocr:prove   (需 pnpm db:up)
+ * 本证明只用一个 owner。重复请求、同 key 并发、跨 owner 拒绝都还没有断言。
+ * 现有绿不能当成这三条正式用例，也不能把脚本视觉当成真实供应商整链。本次没有数据库，这三条未跑。
  */
 import { createHash } from 'node:crypto';
 import {
