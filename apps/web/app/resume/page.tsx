@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { SubmitButton } from '@/components/ui/SubmitButton';
 import { Badge } from '@/components/ui/badge';
 import { ResumeList, type ResumeRef as Resume } from '@meetwise/contracts';
-import { resumeStatusLabel } from '@/lib/resume/display';
+import { resumeStatusKey } from '@/lib/resume/display';
 import { isOcrPreviewEnabled } from '@/lib/ocr-preview';
 import { resumeUploadCardDescription, type ResumeUploadCopyLabels } from '@/lib/resume/ocr-preview-ui';
 
@@ -39,6 +39,7 @@ export default async function ResumePage() {
   const ocrPreview = isOcrPreviewEnabled();
   const tResumeUpload = await getTranslations('resumeUpload');
   const tPage = await getTranslations('resumePage');
+  const tStatus = await getTranslations('resumeStatus');
   const resumeUploadLabels: ResumeUploadCopyLabels = (key) => tResumeUpload(key);
 
   return (
@@ -101,7 +102,7 @@ export default async function ResumePage() {
                   <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <div className="truncate font-medium">{r.display_name}</div>
-                      <Badge variant="secondary" className="mt-1">{resumeStatusLabel(r.status)}</Badge>
+                      <Badge variant="secondary" className="mt-1">{tStatus(resumeStatusKey(r.status))}</Badge>
                     </div>
                     <div className="flex gap-2">
                       {/* 一键据这份简历做诊断(隐藏 resumeId → Server Action startDiagnosisAction)。 */}

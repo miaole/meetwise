@@ -259,6 +259,15 @@
     "legal": "Data boundary",
     "previewNavAria": "Preview navigation"
   },
+  "resumeStatus": {
+    "uploaded": "Uploaded",
+    "ingesting": "Parsing",
+    "ingested": "Parsed",
+    "failed": "Parsing failed",
+    "erasure_fenced": "Deletion in progress",
+    "erased": "Deleted",
+    "unknown": "Unknown status"
+  },
   "resumeDelete": {
     "networkError": "Network error. Please try again later; the resume was not deleted.",
     "notFound": "This resume was not found, or it has already been deleted.",

@@ -13,6 +13,24 @@ export function resumeStatusLabel(status: string): string {
   return STATUS_LABEL[status] ?? '状态未知';
 }
 
+/** i18n 面：服务端状态 → `resumeStatus` 词典键（未知状态走 `unknown`）。
+ * 英文简历页用它取双语标签；`resumeStatusLabel` 的 zh 字面仍供尚未迁移的页面使用，
+ * 两套键必须一一对应（uc-e2e-003-i18n-locale.proof S6 断言）。 */
+export type ResumeStatusKey = 'uploaded' | 'ingesting' | 'ingested' | 'failed' | 'erasure_fenced' | 'erased' | 'unknown';
+
+const STATUS_KEYS: Record<string, ResumeStatusKey> = {
+  uploaded: 'uploaded',
+  ingesting: 'ingesting',
+  ingested: 'ingested',
+  failed: 'failed',
+  erasure_fenced: 'erasure_fenced',
+  erased: 'erased',
+};
+
+export function resumeStatusKey(status: string): ResumeStatusKey {
+  return STATUS_KEYS[status] ?? 'unknown';
+}
+
 export function resumeOptionLabel(resume: ResumeRef): string {
   return `${resume.display_name}（${resumeStatusLabel(resume.status)}）`;
 }

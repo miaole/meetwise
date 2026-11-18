@@ -283,6 +283,35 @@ const checks = {
     for (const [key, value] of Object.entries(enMessages.resumeDelete)) {
       assert.ok(!CJK.test(value), `en.resumeDelete.${key} must stay CJK-free`);
     }
+    // ④c Resume list status badges: the page must take labels from the resumeStatus
+    // namespace through the pure key mapper. The zh literal table in display.ts stays
+    // for not-yet-migrated pages, so both tables must carry the same status codes.
+    const resumePage = read('apps/web/app/resume/page.tsx');
+    const resumePageCode = resumePage
+      .split('\n')
+      .filter((line) => !/^\s*(\*|\/\/|\/\*)/.test(line))
+      .join('\n');
+    assert.ok(!resumePageCode.includes('resumeStatusLabel'), 'resume page must not use the zh-only status table');
+    assert.match(resumePage, /resumeStatusKey/, 'resume page must map status through resumeStatusKey');
+    assert.match(resumePage, /getTranslations\('resumeStatus'\)/, 'resume page must read the resumeStatus namespace');
+    const statusKeys = Object.keys(zhMessages.resumeStatus).sort();
+    assert.deepEqual(
+      Object.keys(enMessages.resumeStatus).sort(),
+      statusKeys,
+      'resumeStatus key sets must match across locales',
+    );
+    assert.deepEqual(
+      statusKeys,
+      ['erased', 'erasure_fenced', 'failed', 'ingested', 'ingesting', 'unknown', 'uploaded'],
+      'resumeStatus must cover every server status plus unknown',
+    );
+    const resumeDisplay = read('apps/web/lib/resume/display.ts');
+    const statusKeyBlock = /const STATUS_KEYS[\s\S]*?\n\};/.exec(resumeDisplay);
+    assert.ok(statusKeyBlock, 'display.ts must keep the STATUS_KEYS map');
+    for (const key of statusKeys.filter((k) => k !== 'unknown')) {
+      assert.ok(statusKeyBlock[0].includes(key), `STATUS_KEYS must cover ${key}`);
+    }
+    assert.match(resumeDisplay, /\?\? 'unknown'/, 'resumeStatusKey must fall back to the unknown key');
     // ⑤ privacy actions face: the cookie-locale pipe into privacyPreview, the {status} ICU
     // form instead of a template literal, and zero residual of the ten zh error literals
     // (delimited full-sentence needles; the wire token `public_preview_read_only` stays untouched).

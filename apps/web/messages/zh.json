@@ -259,6 +259,15 @@
     "legal": "数据边界",
     "previewNavAria": "预览导航"
   },
+  "resumeStatus": {
+    "uploaded": "已上传",
+    "ingesting": "解析中",
+    "ingested": "解析完成",
+    "failed": "解析失败",
+    "erasure_fenced": "删除处理中",
+    "erased": "已删除",
+    "unknown": "状态未知"
+  },
   "resumeDelete": {
     "networkError": "网络错误，请稍后重试；简历未被删除。",
     "notFound": "找不到这份简历，或它已被删除。",
