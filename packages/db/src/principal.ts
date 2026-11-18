@@ -887,6 +887,24 @@ export async function asPrivacyWorkerPrincipal<T>(pool: DbPool, user: string, fn
   } catch (e) { await c.query('ROLLBACK'); throw e; } finally { c.release(); }
 }
 
+/**
+ * Signer transaction. The connection must already be able to SET ROLE
+ * privacy_issuer (local superuser, same as the existing issuer proofs).
+ * Do not GRANT this NOLOGIN role to a login: assertPrivacyAuthorizationIssuerIdentity
+ * requires zero impersonating members. This helper never sets the worker role.
+ */
+export async function asPrivacyIssuer<T>(pool: DbPool, user: string, fn: (c: Client) => Promise<T>): Promise<T> {
+  const c = await pool.connect();
+  try {
+    await c.query('BEGIN');
+    await c.query('SET LOCAL ROLE privacy_issuer');
+    await c.query("SELECT set_config('app.principal_user', $1, true)", [user]);
+    const r = await fn(c);
+    await c.query('COMMIT');
+    return r;
+  } catch (e) { await c.query('ROLLBACK'); throw e; } finally { c.release(); }
+}
+
 /** Execute a reviewed cross-owner dispatch procedure without exposing tables. */
 export async function asPrivacyWorkerExecutor<T>(pool: DbPool, fn: (c: Client) => Promise<T>): Promise<T> {
   const c = await pool.connect();

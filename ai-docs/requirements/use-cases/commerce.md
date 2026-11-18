@@ -98,17 +98,17 @@ related:
 
 ### UC-COMMERCE-04 · 支付异步通知回调 `[正常][异常][并发][刁钻]`
 - **角色**：渠道→系统　**触发**：异步通知。
-- **主流程**：1) **验签**（服务端密码学）2) 幂等键 `(order_no, channel_seq)` UNIQUE 去重 3) **金额复核** `notify_amount == order.final_amount && currency 一致` 4) 乱序守卫（仅 `pending/created` 可入 `paid`）5) CAS `→paid` 6) 事务性 outbox 派生履约事件。
-- **异常 E4 金额不符**：告警、不入账、不改单。
-- **刁钻 badsig**：验签失败 → 拒绝、记安全事件，**不暴露原因细节**。
+- **主流程**：1) **验签**（服务端密码学）2) 幂等键 `(order_no, channel_seq)` UNIQUE 去重 3) 入账次数用建单目录，回调体只有 `providerTxn`、`sig`、`ts` 4) 乱序守卫（仅 `pending/created` 可入 `paid`）5) CAS `→paid` 6) 事务性 outbox 派生履约事件。
+- **异常 E4 夹带金额**：不读、不采用。旧文「金额不符则告警、不入账、不改单」保留为历史 FAIL。不为旧文增加回调金额通道。
+- **刁钻 badsig**：验签失败 → `403 bad_signature`、记安全事件。缺字段或时间窗外为 `400 invalid_callback`。伪签不得放过。
 - **并发 E1 重复回调**：同幂等键二次 → `ON CONFLICT DO NOTHING`，副作用仅一次。
 - **后置**：`paid`；写 `payment_notify_ledger`、`domain_event(order_paid)`。
 - **验收**：重复/乱序/篡额/伪签四类各自被对应机制拦截，恰一次入账。
 - **关联**：状态机 PaymentOrder；原语 幂等键+CAS；安全：验签+金额复核。
 - **TC**：
   - `TC-COMMERCE-04-idem`（集成）：同通知发 2 次 → 一条 paid 账。
-  - `TC-COMMERCE-04-badsig`（**验签函数单元 + 拒绝集成**，修正：原标"契约+集成"，Zod 测不了签名）：伪签 → 单元断言验签 false；集成断言 401/不入账。
-  - `TC-COMMERCE-04-amount`（集成）：篡额回调 → 不入账+告警。
+  - `TC-COMMERCE-04-badsig`（**验签函数单元 + 拒绝集成**，修正：原标"契约+集成"，Zod 测不了签名）：伪签 → 单元断言验签 false；集成断言 `403 bad_signature`、不入账。旧「集成 401」保留为历史 FAIL。未单独跑过的单元子断言不涂绿。
+  - `TC-COMMERCE-04-amount`（集成）：夹带金额不改变目录入账。旧「不入账+告警」保留为历史 FAIL。
 
 ### UC-COMMERCE-05 · 权益履约发放 `[正常][异常][复杂]`
 - **主流程**：`paid→fulfilled`；向 `entitlement_account` credit（source=paid, source_order_id, unit_price）CAS 增 balance；写 `entitlement_ledger(credit)`。

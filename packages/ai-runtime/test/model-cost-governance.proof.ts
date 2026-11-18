@@ -248,6 +248,35 @@ async function main() {
       && halfResults.every((result) => 'value' in result)
       && halfResults.map((result) => 'value' in result ? result.value.answer : '').sort().join(',') === 'backup,primary');
 
+  // MW-RUN-003：供应商已经返回后，校验器抛错只落失败终态。费用按已发生的用量结算，
+  // 不改成 unknown，同键重放不再外派。
+  const throwCalls = { n: 0 };
+  const throwing = billable(Promise.resolve({ ok: true as const, raw: { answer: 'thrown' }, usage: { inputTokens: 10, outputTokens: 20 } }), throwCalls);
+  const thrown = await invoke({
+    idempotencyKey: 'cost:validator-throw', schema: Schema,
+    businessValidate: () => { throw new Error('boom'); }, model: throwing,
+  }, pool, OWNER);
+  const thrownReplay = await invoke({
+    idempotencyKey: 'cost:validator-throw', schema: Schema,
+    businessValidate: () => { throw new Error('boom'); }, model: throwing,
+  }, pool, OWNER);
+  const thrownInvocation = await pool.query(
+    `SELECT status, error_code FROM ai_model_invocation WHERE owner_user_id=$1 AND idempotency_key='cost:validator-throw'`,
+    [OWNER],
+  );
+  const thrownCost = await pool.query(
+    `SELECT status, settled_micro_cny FROM ai_cost_reservation WHERE scope_id=$1 AND idempotency_key='cost:validator-throw'`,
+    [SCOPE],
+  );
+  A('校验器抛错落成 failed，费用按用量结算，同键重放不再外派',
+    'error' in thrown && thrown.error === 'validator_internal_error'
+    && 'error' in thrownReplay && thrownReplay.error === 'validator_internal_error'
+    && throwCalls.n === 1
+    && thrownInvocation.rows[0]?.status === 'failed'
+    && thrownInvocation.rows[0]?.error_code === 'validator_internal_error'
+    && thrownCost.rows[0]?.status === 'settled'
+    && Number(thrownCost.rows[0]?.settled_micro_cny) === 50);
+
   console.log(failures ? `\n✗ ${failures} 项失败` : '\n✓ 文本模型费用状态机全部通过');
   await pool.end();
   process.exit(failures ? 1 : 0);

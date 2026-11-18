@@ -1,6 +1,6 @@
 /**
  * MW-RUN-003：业务校验器抛错归一为 validator_internal_error，不再外派。
- * 不连数据库。真实 PG 上的 invocation/cost 终态未跑。
+ * 本文件不连数据库。真实库上的调用和费用终态在 model-cost-governance.proof.ts。
  * releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false
  */
 import { readFileSync } from 'node:fs';
@@ -33,7 +33,7 @@ A('异常：校验器抛错归一且不逃逸', (() => {
 const invoke = readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), '../src/invoke.ts'), 'utf8');
 const gate = invoke.slice(invoke.indexOf('classifyDoubleValidate(spec.schema'));
 A('回归：invoke 使用归一结果，没有在校验抛错后再次外派', gate.includes('classified.error') && !gate.slice(0, 800).includes('model.complete'));
-console.log('NOT_RUN  真实 PG invocation/cost 终态 blocked:docker');
+console.log('PG_TERMINAL  真实库终态在 model-cost-governance.proof.ts：failed / validator_internal_error，费用结算，同键不再外派');
 
 const exit = failures.length === 0 ? 0 : 1;
 console.log(`ATTEMPT_END EXIT=${exit} fail=${failures.length}`);

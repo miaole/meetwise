@@ -9,6 +9,7 @@ import { DbService } from '../../platform/db.service';
 import { RateLimitService } from '../../platform/rate-limit.service';
 import { evictPrincipalStatus } from '../../platform/principal.guard';
 import { issueSessionToken } from '../../platform/auth-session';
+import { notifyDeletionSigner } from './deletion-signer-client';
 
 /** settings 白名单键(与 contracts.updateSettingsSchema 同源):落库前把已存 preferences 投影到这些键。 */
 const SETTINGS_KEYS = ['locale', 'theme', 'notifications'];
@@ -199,22 +200,29 @@ export class ProfileService {
         'SELECT id FROM interview WHERE owner_user_id=$1 ORDER BY created_at, id',
         [principal]);
       let interviewsFenced = 0;
+      const signerRequestIds: string[] = [];
       for (const row of interviews.rows) {
         const keyHash = createHash('sha256').update(`account_deletion:interview:${principal}:${row.id}`).digest('hex');
-        await beginInterviewProjectionErasure(c, row.id, keyHash, 1);
+        const begun = await beginInterviewProjectionErasure(c, row.id, keyHash, 1);
+        await c.query('SELECT privacy_attach_external_retention_pending($1::uuid)', [begun.requestId]);
+        signerRequestIds.push(begun.requestId);
         interviewsFenced++;
       }
       // 记忆轨:账户级删除分账本(0093;幂等键同内部派生,重放同 requestId)。
       const memoryKeyHash = createHash('sha256').update(`account_deletion:memory:${principal}`).digest('hex');
       const memory = await beginMemoryAccountErasure(c, memoryKeyHash);
+      await c.query('SELECT privacy_attach_external_retention_pending($1::uuid)', [memory.requestId]);
+      signerRequestIds.push(memory.requestId);
       // 账户本体:disabled + deleted_at + 密码代次自增(0153;吊销全部既有令牌的代次面)。
       const up = await c.query(
         "UPDATE user_account SET status='disabled', deleted_at=now(), pwd_epoch=pwd_epoch+1 WHERE id=$1 AND status='active' RETURNING deleted_at, pwd_epoch",
         [principal]);
       if (up.rowCount === 0) throw new HttpException({ error: 'not_found' }, HttpStatus.NOT_FOUND);
-      return { deletedAt: up.rows[0].deleted_at as string, resumesFenced, interviewsFenced, memoryRequestId: memory.requestId };
+      return { deletedAt: up.rows[0].deleted_at as string, resumesFenced, interviewsFenced, memoryRequestId: memory.requestId, signerRequestIds };
     });
     evictPrincipalStatus(principal);   // 本进程守卫缓存即时清(注销后旧令牌下一请求即 401);跨实例由 0189 触发器广播(status/pwd_epoch 在 UPDATE 列集内)
+    // 签发失败只进入可重试，不改变 202 / purgePending，也不把请求说成已清除。
+    await notifyDeletionSigner(result.signerRequestIds, process.env, principal);
     return {
       deactivated: true as const,
       mode: 'logical' as const,

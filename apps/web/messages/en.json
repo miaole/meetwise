@@ -263,7 +263,13 @@
     "networkError": "Network error. Please try again later; the resume was not deleted.",
     "notFound": "This resume was not found, or it has already been deleted.",
     "notAccepted": "Delete request not accepted (status {status}); not treated as deleted.",
-    "invalidShape": "The delete response shape is invalid; not treated as deleted."
+    "invalidShape": "The delete response shape is invalid; not treated as deleted.",
+    "start": "Delete",
+    "accepted": "Accepted: this resume has stopped processing and has been removed from your account; background erasure completes later (this does not affect your use or privacy isolation).",
+    "confirmBody": "The resume leaves your account and stops all processing immediately. Background erasure completes later (this does not affect your use or privacy isolation).",
+    "pending": "Deleting…",
+    "confirm": "Confirm delete",
+    "cancel": "Cancel"
   },
   "privacyPreview": {
     "scopeRequired": "Select a scope; erasure preview for an interview requires an interview ID.",

@@ -110,6 +110,8 @@ export {
   canonicalTargetSetDigest, generatePrivacyAuthzKeyPair, publicKeyFromJwk,
   signPrivacyAuthorizationSnapshot, verifyPrivacyAuthorizationSnapshot, PrivacyAuthzKeyRegistry,
 } from './privacy-authorization.ts';
+export { authorizeLiveDeletion } from './privacy-signer-job.ts';
+export type { SignerKeyMaterial, LiveDeletionRequest, SignerJobPorts, SignerJobResult } from './privacy-signer-job.ts';
 export type {
   PrivacyAuthzPurpose, PrivacyAuthzTarget, PrivacyAuthorizationClaims, VerifiedPrivacyAuthorization,
   EcJwk, PrivacyAuthzPublicKey, PrivacyAuthzKeyMaterial, SignPrivacyAuthorizationInput, SignedPrivacyAuthorization, VerifyPrivacyAuthorizationInput,

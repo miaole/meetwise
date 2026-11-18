@@ -168,17 +168,17 @@ related:
 - **异常流**：
   | flow | 场景 | 机制 / 状态 | 后置 |
   |---|---|---|---|
-  | E1 诊断失败 | `AssessmentReport(diagnose) generating→failed` | 状态机 + 业务事实保全 | 降级文案 + 重试（failed→pending），**未消耗额度**（诊断/押题不计面试额度，D1） |
-  | E2 押题失败 | `AiGraphRun(resume-quiz) active→failed` | 状态机 | 同上，重试预算内 |
+  | E1 诊断失败 | `AssessmentReport(diagnose) generating→failed` | 状态机 + 业务事实保全 | 降级文案 + 重试（failed→pending）。冻结实现在开始时 `reserveEntitlement(..., 'resume_diagnosis', 1.0)`；失败路径释放，净额 0。这不是面试额度，也不是积分改版已经上线。旧文「诊断全程不扣」保留为历史 FAIL |
+  | E2 押题失败 | `AiGraphRun(resume-quiz) active→failed` | 状态机 | 同上。开始时 `reserveEntitlement(..., 'resume_quiz', 1.0)`，失败释放。旧文「押题不计费」保留为历史 FAIL |
   | E3 押题schema失败 | 输出非法 JSON | 双校验第一层拒绝 → 重试分类（transient 重试 / 确定性拒绝不重试） | 可解释降级 |
-- **后置**：失败对象停在 `failed`，可重试；无额度变动。
-- **验收**：A1 诊断失败页面显示降级 + 重试，重试后可成功；A2 押题失败同理；A3 全程额度不变。
+- **后置**：失败对象停在 `failed`，可重试；失败路径释放预留，净额 0。成功路径各确认 1.0，不是旧文的全程不扣。
+- **验收**：A1 诊断失败页面显示降级 + 重试，重试后可成功；A2 押题失败同理；A3 失败净额 0，成功各确认 1.0。不把 `ai-docs/delivery/billing-redesign/LANDING-INDEX.md` 的积分改版写成已经上线，也不另造诊断 `rule_version`。
 - **关联**：契约 `POST /quiz`、`GET /diagnose/:id`。状态机：AssessmentReport、AiGraphRun。安全：双校验。
 
 **测试用例**
 - TC-E2E-016-diagnose-fail · graph · 注入失败断言 `failed`+重试成功。
 - TC-E2E-016-quiz-schema · graph · 非法 JSON → 拒绝重试，确定性拒绝不无限重试。
-- TC-E2E-016-no-credit · integration · 额度不变。
+- TC-E2E-016-no-credit · integration · 失败释放后净额 0；成功各确认 1.0。旧「全程额度不变」保留为历史 FAIL。
 
 ## UC-E2E-029 · 退化边界：押题 0 题 / 摄取后结构化字段为空【评审必补#13】
 
@@ -519,30 +519,30 @@ related:
 
 - **七类覆盖**：高并发 ✅（重复/乱序回调）· 异常 ✅ · 复杂 ✅（履约 saga）。
 - **触发**：支付平台异步通知到达（可能重复/乱序）。
-- **主流程 / 机制**：`PaymentOrder created→paid`（通知幂等键 = 支付单号+流水 + 服务端金额复核 + 乱序守卫）→ `paid→fulfilled`（权益发放 CAS）。
-- **异常流**：重复回调 → 幂等键 `ON CONFLICT DO NOTHING` 仅入账一次；金额不符 → 告警不入账；履约 CAS 失败 → `fulfill_failed` 重试，超限 `refunding`。
-- **后置**：`PaymentOrder ∈ {fulfilled, fulfill_failed→refunding}`；权益恰一次发放。
-- **验收**：A1 重复回调仅充值一次；A2 金额篡改不入账并告警；A3 履约失败进 fulfill_failed 可重试。
-- **测试用例**：TC-E2E-014-idem · integration · 重复回调仅一次入账。TC-E2E-014-amount · integration · 金额不符不入账。
+- **主流程 / 机制**：`PaymentOrder created→paid`（通知幂等键 = 支付单号+流水 + 建单时的目录次数 + 乱序守卫）→ `paid→fulfilled`（权益发放 CAS）。回调体只有 `providerTxn`、`sig`、`ts`，没有金额字段。入账次数来自建单目录：`pack_10` 为 10，`pack_30` 为 30。调用方夹带的 amount 不读、不入账。
+- **异常流**：重复回调 → 幂等键 `ON CONFLICT DO NOTHING` 仅入账一次；履约 CAS 失败 → `fulfill_failed` 重试，超限 `refunding`。旧文「金额不符 → 告警不入账」与目录入账冲突，保留为历史 FAIL。不为这条旧文补一条回调金额通道。
+- **后置**：`PaymentOrder ∈ {fulfilled, fulfill_failed→refunding}`；权益恰一次发放，次数等于目录而不是夹带值。
+- **验收**：A1 重复回调仅充值一次；A2 夹带 amount 仍只按目录 10/30 入账，不采用篡改值；A3 履约失败进 fulfill_failed 可重试。旧「篡改则拒绝且不入账」保留为历史 FAIL。
+- **测试用例**：TC-E2E-014-idem · integration · 重复回调仅一次入账。TC-E2E-014-amount · integration · 夹带金额不改变目录入账。旧「金额不符不入账」保留为历史 FAIL。
 
 ## UC-E2E-026 · 支付回调重放 / 篡改签名【评审必补#10·区别于014幂等】
 
 - **七类覆盖**：刁钻 ✅（伪造/篡改/重放）· 异常 ✅ · 安全 ✅。
 - **触发**：攻击者伪造/篡改签名/重放旧回调。
-- **主流程 / 机制**：1) **签名验签**（非幂等，先于幂等）——验签失败直接拒，不进入状态机。2) 重放合法旧回调 → 幂等键去重（已 paid 不再处理）。3) 篡改金额 → 验签失败 + 金额复核双拦。
+- **主流程 / 机制**：1) **签名验签**（非幂等，先于幂等）——验签失败直接拒，不进入状态机。2) 重放合法旧回调 → 幂等键去重（已 paid 不再处理）。3) 回调没有金额字段；入账只用建单目录次数。夹带 amount 不被采用。
 - **异常流**：
   | flow | 机制 | 后置 |
   |---|---|---|
   | E-伪造签名 | 验签 fail-closed | 拒绝、不改状态、告警 |
-  | E-篡改金额 | 验签 + 服务端金额复核 | 双拦不入账 |
+  | E-篡改金额 | 无金额通道；目录次数入账 | 不采用夹带值。旧文「验签失败且不入账」保留为历史 FAIL |
   | E-重放 | 幂等键（与 014 区分：014 是合法重复，本条是恶意重放，统一靠幂等去重 + 验签兜底） | 不重复发放 |
 - **后置**：非法回调零副作用，审计落 GuardrailHit/安全日志。
-- **验收**：A1 伪造签名回调被拒、PaymentOrder 不变；A2 篡改金额不入账；A3 重放不二次发放权益。
+- **验收**：A1 伪造签名回调被拒、PaymentOrder 不变；A2 夹带金额不改变目录入账；A3 重放不二次发放权益。旧「篡改金额不入账」保留为历史 FAIL。
 - **关联**：状态机：PaymentOrder。原语：幂等键、事件日志（审计）。安全：验签为第一道门。
 
 **测试用例**
 - TC-E2E-026-forged-sig · integration · 伪造签名断言拒绝、无状态变化。
-- TC-E2E-026-tamper-amount · integration · 篡改金额断言不入账。
+- TC-E2E-026-tamper-amount · integration · 夹带金额不改变目录入账。旧「不入账」保留为历史 FAIL。
 - TC-E2E-026-replay · integration · 重放断言不二次发放。
 
 ## UC-E2E-028 · 可观测兜底：trace/账本写入失败不阻塞业务【评审必补#12】

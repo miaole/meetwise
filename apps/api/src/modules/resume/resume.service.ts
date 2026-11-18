@@ -100,7 +100,7 @@ export class ResumeService {
     if (buffer.length > MAX_RESUME_BYTES) throw new HttpException({ error: 'file_too_large' }, HttpStatus.PAYLOAD_TOO_LARGE);
     const releaseLane = await this.acquireUserLane(principal, options?.signal);   // r5:每用户最多 1 个解析;第二请求排队,等待越限/断开→可重试 503
     try {
-      await this.doUploadFile(principal, dto, buffer, options);
+      return await this.doUploadFile(principal, dto, buffer, options);
     } finally {
       releaseLane();
     }

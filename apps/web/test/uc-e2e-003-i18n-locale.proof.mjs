@@ -256,6 +256,33 @@ const checks = {
     );
     assert.match(deleteActions, /t\('notAccepted',\s*\{\s*status:\s*res\.status\s*\}\)/, 'notAccepted arm must use the {status} ICU interpolation');
     assert.ok(!deleteActions.includes("'+ res.status + '"), 'delete face must not concatenate res.status');
+    // ④b DeleteResumeButton component face: the six UI strings must come from the resumeDelete
+    // namespace. S6 ④ only read actions.ts, so hardcoded zh in the client component stayed green.
+    // zh must stay byte-identical to the pre-migration literals; en must stay CJK-free; both
+    // locales must carry the same key set.
+    const deleteButton = read('apps/web/app/resume/DeleteResumeButton.tsx');
+    assert.match(deleteButton, /useTranslations\('resumeDelete'\)/, 'DeleteResumeButton must consume the resumeDelete namespace');
+    // Comments stay Chinese; only code lines must be free of the six literals.
+    const deleteButtonCode = deleteButton
+      .split('\n')
+      .filter((line) => !/^\s*(\*|\/\/|\/\*)/.test(line))
+      .join('\n');
+    for (const needle of ['删除', '已受理', '删除中', '确认删除', '取消']) {
+      assert.ok(!deleteButtonCode.includes(needle), `DeleteResumeButton face must be migrated: ${needle}`);
+    }
+    for (const key of ['start', 'accepted', 'confirmBody', 'pending', 'confirm', 'cancel']) {
+      assert.ok(deleteButton.includes(`t('${key}')`), `DeleteResumeButton must read resumeDelete.${key}`);
+    }
+    const enMessages = JSON.parse(read('apps/web/messages/en.json'));
+    const zhMessages = JSON.parse(read('apps/web/messages/zh.json'));
+    assert.deepEqual(
+      Object.keys(enMessages.resumeDelete).sort(),
+      Object.keys(zhMessages.resumeDelete).sort(),
+      'resumeDelete key sets must match across locales',
+    );
+    for (const [key, value] of Object.entries(enMessages.resumeDelete)) {
+      assert.ok(!CJK.test(value), `en.resumeDelete.${key} must stay CJK-free`);
+    }
     // ⑤ privacy actions face: the cookie-locale pipe into privacyPreview, the {status} ICU
     // form instead of a template literal, and zero residual of the ten zh error literals
     // (delimited full-sentence needles; the wire token `public_preview_read_only` stays untouched).

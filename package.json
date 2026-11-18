@@ -501,6 +501,7 @@
     "tenant-rls-isolation:prove:raw": "node scripts/require-e2e-isolated.mjs -- pnpm -C packages/db prove:tenant-rls-isolation",
     "privacy-authorization:prove:raw": "node scripts/require-e2e-isolated.mjs -- pnpm -C packages/db prove:privacy-authorization",
     "uc052:internal-erasure:prove": "node scripts/run-e2e-isolated.mjs uc052:internal-erasure:prove:raw",
+    "privacy-signer-live:prove": "pnpm -C packages/db exec tsx test/privacy-signer-live.proof.ts",
     "uc052:internal-erasure:prove:raw": "node scripts/require-e2e-isolated.mjs -- pnpm -C packages/db prove:uc052-internal-erasure",
     "uc052:external-sink-retention:prove": "node scripts/run-e2e-isolated.mjs uc052:external-sink-retention:prove:raw",
     "uc052:external-sink-retention:prove:raw": "node scripts/require-e2e-isolated.mjs -- pnpm -C packages/db prove:uc052-external-sink-retention",

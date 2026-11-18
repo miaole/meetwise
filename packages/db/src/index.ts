@@ -13,7 +13,7 @@ import type { Client } from './principal.ts';
 import { AppError, asErr, errCode } from './errors.ts';
 
 export {
-  createPool, resolveDatabaseConnectionString, rebindDatabaseLogin, asPrincipal, asPrivacyWorkerPrincipal, asPrivacyWorkerExecutor, assertPrivacyWorkerExecutorIdentity, assertPrivacyAuthorizationIssuerIdentity,
+  createPool, resolveDatabaseConnectionString, rebindDatabaseLogin, asPrincipal, asPrivacyWorkerPrincipal, asPrivacyIssuer, asPrivacyWorkerExecutor, assertPrivacyWorkerExecutorIdentity, assertPrivacyAuthorizationIssuerIdentity,
   asQbankControlExecutor, assertQbankControlExecutorIdentity, assertQbankControlDefinerOwnership, asRagControlExecutor, assertRagControlExecutorIdentity, assertRagControlDefinerOwnership, assertDistinctProvisionedLoginNames, asOnlineJudgeScheduler, asOnlineJudgeExecutor, asGateway,
   provisionRuntimeLogin, provisionQbankControlLogin, provisionQbankControlDefiner, provisionRagControlLogin, provisionPrivacyWorkerLogin, provisionOnlineJudgeSchedulerLogin, provisionOnlineJudgeExecutorLogin,
   QBANK_CONTROL_DEFINER_ROLE, QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST, QBANK_CONTROL_DEFINER_TABLE_MANIFEST, QBANK_CONTROL_DEFINER_VIEW_MANIFEST,
